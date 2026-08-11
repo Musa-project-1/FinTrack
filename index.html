@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DemoKas Professional</title>
+  <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
+  <meta name="theme-color" content="#10b981">
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10433/10433048.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <header class="header">
+      <h1>
+        <div class="brand-icon-box">
+          <i class="ph-fill ph-wallet"></i>
+        </div>
+      </h1>
+      <div class="header-mobile-top">
+        <button class="btn btn-outline" onclick="toggleTheme()" title="Ganti Tema">
+          <i class="ph ph-moon theme-icon" style="font-size: 18px;"></i>
+        </button>
+        <div class="status-badge connection-status">
+          <i class="ph-fill ph-circle"></i> <span class="status-text">Online</span>
+        </div>
+        
+        <button class="btn btn-primary btn-catat-mobile" onclick="bukaModalTransaksi()" title="Catat Transaksi">
+          <i class="ph ph-plus-circle" style="font-size: 18px;"></i>
+        </button>
+        <button class="btn btn-icon mobile-menu-btn" onclick="toggleMobileMenu()" title="Menu">
+          <i class="ph ph-list" style="font-size: 24px;"></i>
+        </button>
+      </div>
+      <div class="header-actions" id="header-actions">
+        <!-- Desktop connection status (hidden on mobile) -->
+        <div class="status-badge desktop-only connection-status" role="button" tabindex="0">
+          <i class="ph-fill ph-circle"></i> <span class="status-text">Online</span>
+        </div>
+        <button class="btn btn-outline" onclick="toggleTheme()" title="Ganti Tema">
+          <i class="ph ph-moon theme-icon" style="font-size: 18px;"></i> <span>Tema</span>
+        </button>
+
+        <button class="btn btn-outline" id="btn-login-admin" onclick="toggleAdminLogin()">
+          <i class="ph ph-lock-key"></i> Admin
+        </button>
+
+        
+
+        <button class="btn btn-outline" onclick="openModal('modal-riwayat')">
+          <i class="ph ph-clock-counter-clockwise" style="font-size: 18px;"></i> <span>Riwayat</span>
+        </button>
+
+        <button class="btn btn-outline" onclick="openModal('modal-statistik')">
+          <i class="ph ph-chart-bar" style="font-size: 18px;"></i> <span>Statistik</span>
+        </button>
+
+        <button class="btn btn-outline btn-export" onclick="openModal('modal-export')">
+          <i class="ph ph-export" style="font-size: 18px;"></i> <span>Export</span>
+        </button>
+        
+        <button class="btn btn-primary" onclick="bukaModalTransaksi()">
+          <i class="ph ph-plus-circle" style="font-size: 18px;"></i> <span>Catat Transaksi</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <div class="card glow-blue">
+        <div class="card-icon icon-blue"><i class="ph-fill ph-vault"></i></div>
+        <div class="card-info">
+          <h3>Saldo Kas Saat Ini</h3>
+          <div id="ui-saldo" class="nominal-val"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+      <div class="card glow-green">
+        <div class="card-icon icon-green"><i class="ph-fill ph-trend-up"></i></div>
+        <div class="card-info">
+          <h3>Total Pemasukan</h3>
+          <div id="ui-masuk" class="nominal-val nominal-masuk"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+      <div class="card glow-red">
+        <div class="card-icon icon-red"><i class="ph-fill ph-trend-down"></i></div>
+        <div class="card-info">
+          <h3>Total Pengeluaran</h3>
+          <div id="ui-keluar" class="nominal-val nominal-keluar"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <div style="display:flex; align-items:center; gap:16px; flex:1;">
+          <h2 class="table-title">
+            <i class="ph-fill ph-users-three"></i>
+            Status Iuran
+          </h2>
+        </div>
+        <div class="year-pill">
+          <i class="ph-bold ph-calendar-blank" style="color: var(--primary);"></i>
+          Tahun: 
+          <select id="ui-tahun-rekap-select" onchange="gantiTahunRekap(this.value)" style="border: none; background: transparent; font-weight: 700; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 14px;">
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-matriks">
+          <thead>
+            <tr>
+              <th style="text-align: left; min-width: 180px; padding-left: 24px;">Nama Anggota</th>
+              <th>Jan</th> <th>Feb</th> <th>Mar</th> <th>Apr</th> <th>Mei</th> <th>Jun</th>
+              <th>Jul</th> <th>Agu</th> <th>Sep</th> <th>Okt</th> <th>Nov</th> <th>Des</th>
+            </tr>
+          </thead>
+          <tbody id="ui-table-rekap">
+            <tr><td colspan="13"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Mobile Card View -->
+      <div class="iuran-cards-container" id="iuran-cards-mobile">
+        <div style="padding: 20px; text-align: center;">
+          <div class="skeleton skeleton-text" style="width: 100%; height: 100px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-content" style="max-width: 350px; text-align: center; padding: 30px;">
+      <div style="width: 64px; height: 64px; background: rgba(16, 185, 129, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+        <i class="ph-fill ph-lock-key"></i>
+      </div>
+      <h2 style="margin-bottom: 8px; font-size: 20px;">Akses Admin</h2>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Masukkan password untuk menambah, mengedit, atau menghapus data.</p>
+      
+      <form onsubmit="submitLoginAdmin(event)">
+        <div class="form-group">
+          <input type="password" id="input-admin-pwd" class="form-control" placeholder="Password Admin..." required style="text-align: center;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">MASUK</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Offline Queue Modal -->
+  <div class="modal-overlay" id="modal-offline-queue">
+    <div class="modal-content" style="max-width: 720px; padding: 18px;">
+      <div class="modal-title" style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-spinner"></i> Transaksi Tertunda</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn btn-outline" onclick="updateOfflineQueueList()">Refresh</button>
+          <button class="btn btn-primary" onclick="syncOfflineTransactions()">Sinkronkan Sekarang</button>
+          <button class="close-modal" onclick="closeModal('modal-offline-queue')"><i class="ph ph-x"></i></button>
+        </div>
+      </div>
+
+      <div id="offline-queue-list" style="max-height: 420px; overflow: auto; display: grid; gap: 8px;">
+        <div style="color:var(--text-muted);">Memuat...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-export">
+    <div class="modal-content" style="max-width: 420px; padding: 24px;">
+      <div class="modal-title" style="margin-bottom: 20px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-export" style="color:var(--primary);"></i> Export & Cetak</span>
+        <button class="close-modal" onclick="closeModal('modal-export')"><i class="ph ph-x"></i></button>
+      </div>
+      <div style="display: grid; gap: 12px;">
+        <button class="btn btn-outline" style="padding: 16px; justify-content: flex-start; align-items: flex-start; gap: 16px;" onclick="exportToCSV()">
+          <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 12px; color: var(--primary);">
+            <i class="ph-bold ph-microsoft-excel-logo" style="font-size: 24px;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">Unduh CSV Transaksi</div>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; font-weight: 400;">Format Excel yang berisi riwayat masuk dan keluar secara terperinci.</div>
+          </div>
+        </button>
+        <button class="btn btn-outline" style="padding: 16px; justify-content: flex-start; align-items: flex-start; gap: 16px;" onclick="cetakLaporanTahunan()">
+          <div style="background: rgba(79, 70, 229, 0.1); padding: 10px; border-radius: 12px; color: var(--secondary);">
+            <i class="ph-bold ph-printer" style="font-size: 24px;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">Cetak Rekap Tahunan</div>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; font-weight: 400;">Cetak Matriks status iuran anggota ke PDF (Ukuran A4 Landscape).</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-riwayat">
+    <div class="modal-content" style="max-width: 1100px; padding: 24px;">
+      <div class="modal-title" style="margin-bottom: 16px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--primary);"></i> Riwayat Transaksi</span>
+        <button class="close-modal" onclick="closeModal('modal-riwayat')"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+        <div class="search-wrapper" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="search-trx" class="form-control" placeholder="Cari keterangan atau kategori..." onkeyup="filterRiwayat()">
+        </div>
+        <div class="filter-chips" id="history-filter-chips" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <select id="filter-bulan" class="form-control" style="width: auto; padding: 4px 10px; height: 36px; font-size: 13px; border-radius: 20px;" onchange="renderTableTransaksi()">
+            <option value="all">Semua Bulan</option>
+            <option value="0">Januari</option>
+            <option value="1">Februari</option>
+            <option value="2">Maret</option>
+            <option value="3">April</option>
+            <option value="4">Mei</option>
+            <option value="5">Juni</option>
+            <option value="6">Juli</option>
+            <option value="7">Agustus</option>
+            <option value="8">September</option>
+            <option value="9">Oktober</option>
+            <option value="10">November</option>
+            <option value="11">Desember</option>
+          </select>
+          <select id="filter-tahun" class="form-control" style="width: auto; padding: 4px 10px; height: 36px; font-size: 13px; border-radius: 20px;" onchange="renderTableTransaksi()">
+            <option value="all">Semua Tahun</option>
+          </select>
+          <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px; align-self: center;"></div>
+          <button class="chip-btn active" onclick="setHistoryFilter('semua', this)">Semua</button>
+          <button class="chip-btn" onclick="setHistoryFilter('masuk', this)">Masuk</button>
+          <button class="chip-btn" onclick="setHistoryFilter('keluar', this)">Keluar</button>
+          <button class="chip-btn" onclick="setHistoryFilter('iuran', this)">Iuran</button>
+          <button class="chip-btn" onclick="setHistoryFilter('operasional', this)">Operasional</button>
+        </div>
+      </div>
+      
+      <div class="table-responsive table-scrollable" style="max-height: 50vh; border-radius: var(--radius-sm); border: 1px solid var(--border); position: relative;">
+        <table style="margin-bottom: 0;" id="table-riwayat-data">
+          <thead>
+            <tr>
+              <th style="background: var(--bg-color);">Waktu</th>
+              <th style="background: var(--bg-color);">Keterangan Transaksi</th>
+              <th style="background: var(--bg-color);">Nominal</th>
+              <th style="background: var(--bg-color);">Tipe Arus</th>
+              <th style="background: var(--bg-color); text-align: center; min-width: 140px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="ui-table-trx">
+            <tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>
+          </tbody>
+        </table>
+        <div id="load-more-container" style="text-align: center; padding: 15px; display: none; background: var(--bg-color); border-top: 1px solid var(--border);">
+          <button class="btn btn-outline" style="font-size: 13px; padding: 8px 24px;" onclick="loadMoreHistory()">
+            <i class="ph-bold ph-caret-double-down"></i> Tampilkan Lebih Banyak
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-transaksi">
+    <div class="modal-content">
+      <div class="modal-title">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-plus-circle" style="color:var(--primary);"></i> Catat Transaksi Baru</span>
+        <button class="close-modal" onclick="closeModal('modal-transaksi')"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="tab-header">
+        <button class="tab-btn active" id="btn-tab-iuran" onclick="switchTab('iuran', 'modal-transaksi')">Iuran Anggota</button>
+        <button class="tab-btn" id="btn-tab-operasional" onclick="switchTab('operasional', 'modal-transaksi')">Kas Operasional</button>
+      </div>
+
+      <div class="tab-content active" id="tab-iuran">
+        <form onsubmit="submitIuran(event)">
+          <div class="modal-grid">
+            <!-- Left Side: Config -->
+            <div class="modal-side-info">
+              <div class="form-group">
+                <label>Kategori</label>
+                <select id="iuran-kategori" class="form-control" required></select>
+              </div>
+              
+              <div class="form-group">
+                <label>Nominal (per orang)</label>
+                <div class="chip-group" id="chip-group-iuran">
+                  <button type="button" class="chip-btn active" onclick="pilihNominalCepat(10000, this)">10K</button>
+                  <button type="button" class="chip-btn" onclick="pilihNominalCepat(20000, this)">20K</button>
+                  <button type="button" class="chip-btn" onclick="pilihNominalCepat(50000, this)">50K</button>
+                </div>
+                <div class="input-with-prefix">
+                  <span>Rp</span>
+                  <input type="text" id="iuran-nominal" class="form-control" required inputmode="numeric" value="10.000" oninput="handleNominalInput(this); resetChipAktif(); updateCounterIuran();">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Bulan</label>
+                  <select id="iuran-bulan" class="form-control" required onchange="renderCheckboxIuran()">
+                    <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
+                    <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
+                    <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
+                    <option value="Oktober">Oktober</option> <option value="November">November</option> <option value="Desember">Desember</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Tahun</label>
+                  <input type="number" id="iuran-tahun" class="form-control" required min="2000" max="2100" oninput="renderCheckboxIuran()">
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-item"><span>Terpilih:</span> <span id="summary-count">0 Orang</span></div>
+                <div class="summary-item"><span>Nominal:</span> <span id="summary-nominal">Rp 0</span></div>
+                <div class="summary-total"><span>TOTAL KAS:</span> <span id="summary-total">Rp 0</span></div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; margin-top: 24px; border-radius: 12px; font-weight: 700; letter-spacing: 0.5px;" id="btn-submit-iuran">SIMPAN IURAN</button>
+            </div>
+
+            <!-- Right Side: Selection -->
+            <div class="modal-main-selection">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                <label style="margin-bottom: 0; font-size: 15px; font-weight: 700; color: var(--text-main);">
+                  Pilih Anggota <span style="color: var(--primary); background: rgba(5, 150, 105, 0.1); padding: 2px 10px; border-radius: 20px; font-size: 13px; margin-left: 6px;" id="count-terpilih">0</span>
+                </label>
+                <button type="button" id="btn-pilih-semua" class="btn btn-outline" style="padding: 6px 16px; font-size: 13px; border-radius: 100px;" onclick="pilihSemuaIuran()">Pilih Semua</button>
+              </div>
+
+              <div class="search-wrapper" style="margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota..." onkeyup="filterAnggotaIuran()">
+              </div>
+
+              <div class="checkbox-grid" id="iuran-checkbox-anggota"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="tab-content" id="tab-operasional">
+        <form onsubmit="submitOperasional(event)">
+          <div class="modal-grid">
+            <!-- Left Side: Config -->
+            <div class="modal-side-info">
+              <div class="form-group">
+                <label>Tipe Arus</label>
+                <select id="ops-tipe" class="form-control" required onchange="filterKategori('ops-tipe', 'ops-kategori'); updateCounterOps();">
+                  <option value="Keluar" selected>Pengeluaran (-)</option>
+                  <option value="Masuk">Pemasukan (+)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Kategori</label>
+                <select id="ops-kategori" class="form-control" required></select>
+              </div>
+
+              <div class="form-group">
+                <label>Nominal Total (Rp)</label>
+                <div class="input-with-prefix">
+                  <span>Rp</span>
+                  <input type="text" id="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0" oninput="handleNominalInput(this); updateCounterOps();">
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-item"><span>Tipe:</span> <span id="summary-ops-tipe" style="font-weight:700; color:var(--danger);">PENGELUARAN</span></div>
+                <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
+                <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; margin-top: 24px; border-radius: 12px; font-weight: 700;" id="btn-submit-ops">SIMPAN OPERASIONAL</button>
+            </div>
+
+            <!-- Right Side: Details -->
+            <div class="modal-main-selection">
+              <label style="display:block; margin-bottom: 16px; font-size: 15px; font-weight: 700; color: var(--text-main);">Detail Transaksi</label>
+              
+              <div class="form-group">
+                <label>Keterangan / Catatan</label>
+                <textarea id="ops-keterangan" class="form-control" required style="min-height: 120px; resize: none; padding-top: 16px;" placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
+              </div>
+
+              <div class="form-group" style="margin-top: 24px;">
+                <label>Terkait Anggota (Opsional)</label>
+                <div style="position: relative;">
+                  <i class="ph ph-user" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px;"></i>
+                  <select id="ops-anggota" class="form-control" style="padding-left: 48px;">
+                    <option value="-">-- Tidak ada kaitan dengan anggota --</option>
+                  </select>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">Pilih anggota jika pengeluaran/pemasukan ini spesifik untuk individu tertentu (misal: santunan atau pinjaman).</p>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-edit-transaksi">
+    <div class="modal-content">
+      <div class="modal-title">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-pencil-simple" style="color:var(--warning);"></i> Edit Transaksi</span>
+        <button class="close-modal" onclick="closeModal('modal-edit-transaksi')"><i class="ph ph-x"></i></button>
+      </div>
+      <form onsubmit="submitEditTransaksi(event)">
+        <input type="hidden" id="edit-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipe Transaksi</label>
+            <select id="edit-tipe" class="form-control" required onchange="filterKategori('edit-tipe', 'edit-kategori')">
+              <option value="Masuk">Pemasukan (+)</option>
+              <option value="Keluar">Pengeluaran (-)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="edit-kategori" class="form-control" required></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nominal (Rp)</label>
+          <input type="number" id="edit-nominal" class="form-control" required min="1">
+        </div>
+        <div class="form-group">
+          <label>Terkait Anggota</label>
+          <select id="edit-anggota" class="form-control"></select>
+        </div>
+        <div class="form-row">
+           <div class="form-group">
+            <label>Bulan</label>
+            <select id="edit-bulan" class="form-control">
+              <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
+              <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
+              <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
+              <option value="September">September</option> <option value="Oktober">Oktober</option> <option value="November">November</option> <option value="Desember">Desember</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tahun</label>
+            <input type="number" id="edit-tahun" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Keterangan</label>
+          <input type="text" id="edit-keterangan" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary" style="background-color: var(--warning); width: 100%; padding: 14px;" id="btn-submit-edit">UPDATE DATA</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-hapus">
+    <div class="modal-content" style="max-width:380px; text-align:center; padding: 40px 30px;">
+      <div style="width: 64px; height: 64px; background: rgba(225, 29, 72, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+        <i class="ph-bold ph-warning"></i>
+      </div>
+      <h2 style="margin-bottom: 12px; font-size: 20px;">Hapus Transaksi?</h2>
+      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Tindakan ini tidak dapat dibatalkan.</p>
+      <input type="hidden" id="hapus-id-target">
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeModal('modal-hapus')">Batal</button>
+        <button class="btn btn-primary" style="flex:1; background: var(--danger);" onclick="eksekusiHapus()" id="btn-hapus">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-statistik">
+    <div class="modal-content" style="max-width: 900px; padding: 24px;">
+      <div class="modal-title" style="margin-bottom: 20px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-chart-bar" style="color:var(--primary);"></i> Statistik Kas</span>
+        <button class="close-modal" onclick="closeModal('modal-statistik')"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div class="chart-section" style="margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px;">
+        <div class="table-card chart-container-card" style="box-shadow: none; border: 1px solid var(--border); margin-bottom: 0; padding: 16px;">
+          <div class="table-header" style="padding: 0 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; height: auto;">
+            <h2 style="font-size: 15px; background: none; -webkit-text-fill-color: initial;">Tren Arus Kas (6 Bulan)</h2>
+            <div style="font-size: 10px; color: var(--text-muted);">Update: <span id="last-update">-</span></div>
+          </div>
+          <div class="chart-wrapper" style="height: 220px; margin-top: 0;">
+            <canvas id="cashFlowChart"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card chart-container-card" style="box-shadow: none; border: 1px solid var(--border); margin-bottom: 0; padding: 16px;">
+          <div class="table-header" style="padding: 0 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; height: auto;">
+            <h2 style="font-size: 15px; background: none; -webkit-text-fill-color: initial;">Kategori Pengeluaran (Bulan Ini)</h2>
+          </div>
+          <div class="chart-wrapper" style="height: 220px; margin-top: 0; display: flex; justify-content: center;">
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-profil-anggota">
+    <div class="modal-content" style="max-width: 700px; padding: 24px;">
+      <div class="modal-title" style="margin-bottom: 20px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-user-circle" style="color:var(--primary);"></i> Profil Anggota</span>
+        <button class="close-modal" onclick="closeModal('modal-profil-anggota')"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 24px;">
+        <div style="text-align: center; padding: 20px; background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md);">
+          <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px;">
+            <i class="ph-fill ph-user"></i>
+          </div>
+          <h2 id="p-nama-anggota" style="font-size: 18px; margin-bottom: 4px; color: var(--text-main);">Nama Anggota</h2>
+          <div id="p-id-anggota" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">ID: -</div>
+          <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="h-card" style="padding: 12px;">
+            <span>Total Kontribusi</span>
+            <div id="p-total-kontribusi" style="color: var(--primary); font-size: 16px;">Rp 0</div>
+          </div>
+          <div class="h-card" style="padding: 12px;">
+            <span>Bulan Terajin</span>
+            <div id="p-bulan-terajin" style="font-size: 16px;">-</div>
+          </div>
+          <div class="h-card" style="padding: 12px; grid-column: span 2;">
+            <span>Tahun Aktif</span>
+            <div id="p-tahun-aktif" style="font-size: 14px; font-weight: 600;">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px; font-weight: 700; font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+        <i class="ph-bold ph-list-dashes"></i> Riwayat Pembayaran Iuran
+      </div>
+      
+      <div class="table-responsive table-scrollable" style="max-height: 250px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <table style="margin-bottom: 0;">
+          <thead style="position: sticky; top: 0; z-index: 10;">
+            <tr>
+              <th style="background: var(--bg-color); font-size: 11px;">Tanggal</th>
+              <th style="background: var(--bg-color); font-size: 11px;">Kategori / Iuran</th>
+              <th style="background: var(--bg-color); font-size: 11px;">Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="p-table-transaksi">
+            <tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker Registered'))
+          .catch(err => console.log('SW Registration Failed', err));
+      });
+    }
+  </script>
+</body>
+</html>

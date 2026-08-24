@@ -125,6 +125,7 @@ document.addEventListener('click', (e) => {
     case 'load-more':        loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
+    case 'copy-monthly-recap': copyMonthlyRecap(); break;
     case 'export-csv':       exportToCSV(); break;
     case 'print-annual':     cetakLaporanTahunan(); break;
     case 'print-reminder':   createGroupReminderMessage(); break;
@@ -896,29 +897,47 @@ const cetakStruk = (idTrx) => {
 };
 
 const cetakLaporanTahunan = () => {
-  if (getState().anggota.length === 0) return showToast('Tidak ada data anggota untuk dicetak.', 'error');
+  const state = getState();
+  if (state.anggota.length === 0) return showToast('Tidak ada data anggota untuk dicetak.', 'error');
   closeModal('modal-export');
 
+  const skipSet = new Set(state.skippedMonths || []);
   const mapPembayaran = {};
-  getState().transaksi.forEach((t) => {
+  state.transaksi.forEach((t) => {
     if (t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
       mapPembayaran[`${t.ID_Anggota}_${t.Bulan_Iuran}`] = true;
     }
   });
 
+  const monthTotals = Array(NAMA_BULAN.length).fill(0);
   let tbodyHTML = '';
   let index = 1;
-  getState().anggota.forEach((ang) => {
+  state.anggota.forEach((ang) => {
     if (ang.Status_Aktif === 'Aktif') {
       let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${escapeHtml(ang.Nama_Anggota)}</td>`;
-      NAMA_BULAN.forEach((bulan) => {
-        tr += `<td style="text-align:center;">${mapPembayaran[`${ang.ID_Anggota}_${bulan}`] ? '&#10003;' : ''}</td>`;
+      NAMA_BULAN.forEach((bulan, idx) => {
+        const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
+        if (skipSet.has(monthKey)) {
+          tr += '<td style="text-align:center;color:#999;">-</td>';
+        } else if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) {
+          monthTotals[idx]++;
+          tr += '<td style="text-align:center;color:#059669;font-weight:700;">&#10003;</td>';
+        } else {
+          tr += '<td style="text-align:center;"></td>';
+        }
       });
       tbodyHTML += tr + '</tr>';
     }
   });
 
-  const html = `<html><head><title>Laporan Rekap Iuran ${currentRekapYear}</title><style>body{font-family:'Segoe UI',sans-serif;padding:20px;color:#111}h2{text-align:center;margin-bottom:5px}p{text-align:center;margin-top:0;color:#555;font-size:14px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #aaa;padding:8px 4px}th{background-color:#eee;text-transform:uppercase;font-size:11px;text-align:center}@media print{@page{size:landscape;margin:15mm}}</style></head><body><h2>Laporan Rekap Iuran Anggota</h2><p>Tahun: <b>${currentRekapYear}</b> | Dicetak pada: ${new Date().toLocaleDateString('id-ID')}</p><table><thead><tr><th style="width:30px;">No</th><th style="text-align:left;padding-left:8px;width:180px;">Nama Anggota</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th></tr></thead><tbody>${tbodyHTML}</tbody></table><div style="margin-top:50px;text-align:right;padding-right:60px;"><p style="text-align:right;color:#111;">Mengetahui,</p><br><br><br><p style="text-align:right;color:#111;"><b>Pengurus Kas</b></p></div></body></html>`;
+  const totalsRow = `<tr style="background:#f1f5f9;font-weight:700;"><td colspan="2" style="text-align:left;padding-left:8px;">Jumlah Lunas / Bulan</td>${monthTotals.map((n) => `<td style="text-align:center;">${n}</td>`).join('')}</tr>`;
+  const skippedList = Array.from(skipSet)
+    .filter((k) => k.endsWith(`-${currentRekapYear}`))
+    .map((k) => NAMA_BULAN[parseInt(k.split('-')[0], 10) - 1])
+    .join(', ');
+  const skippedNote = skippedList ? `<p style="text-align:center;color:#555;font-size:12px;margin-top:8px;">Bulan libur (${currentRekapYear}): <b>${escapeHtml(skippedList)}</b></p>` : '';
+
+  const html = `<html><head><title>Laporan Rekap Iuran ${currentRekapYear}</title><style>body{font-family:'Segoe UI',sans-serif;padding:20px;color:#111}h2{text-align:center;margin-bottom:5px}p{text-align:center;margin-top:0;color:#555;font-size:14px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #aaa;padding:8px 4px}th{background-color:#eee;text-transform:uppercase;font-size:11px;text-align:center}@media print{@page{size:landscape;margin:15mm}}</style></head><body><h2>Laporan Rekap Iuran Anggota</h2><p>Tahun: <b>${currentRekapYear}</b> | Dicetak pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p><table><thead><tr><th style="width:30px;">No</th><th style="text-align:left;padding-left:8px;width:180px;">Nama Anggota</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th></tr></thead><tbody>${tbodyHTML}${totalsRow}</tbody></table>${skippedNote}<p style="text-align:center;color:#777;font-size:11px;margin-top:10px;">Keterangan: &#10003; = Lunas &nbsp;|&nbsp; - = Bulan libur (tidak dihitung tunggakan)</p><div style="margin-top:50px;text-align:right;padding-right:60px;"><p style="text-align:right;color:#111;">Mengetahui,</p><br><br><br><p style="text-align:right;color:#111;"><b>Pengurus Kas</b></p></div></body></html>`;
 
   const pw = window.open('', '_blank');
   pw.document.write(html);
@@ -928,26 +947,99 @@ const cetakLaporanTahunan = () => {
 };
 
 /* ══════════════════════════════════════════════════════════════════
-   CSV EXPORT
+   MONTHLY RECAP FOR WHATSAPP
+   ══════════════════════════════════════════════════════════════════ */
+
+const copyMonthlyRecap = async () => {
+  const state = getState();
+  const now = new Date();
+  const bulan = NAMA_BULAN[now.getMonth()];
+  const tahun = now.getFullYear();
+  const monthKey = `${(now.getMonth() + 1).toString().padStart(2, '0')}-${tahun}`;
+  const isSkipped = (state.skippedMonths || []).includes(monthKey);
+
+  const inMonth = (t) => {
+    const d = new Date(t.Timestamp);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === tahun;
+  };
+
+  const masuk = state.transaksi.filter((t) => t.Tipe_Arus === 'Masuk' && inMonth(t)).reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
+  const keluar = state.transaksi.filter((t) => t.Tipe_Arus === 'Keluar' && inMonth(t)).reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
+  const totalMasuk = state.transaksi.filter((t) => t.Tipe_Arus === 'Masuk').reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
+  const totalKeluar = state.transaksi.filter((t) => t.Tipe_Arus === 'Keluar').reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
+
+  const paidSet = new Set(
+    state.transaksi
+      .filter((t) => t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran === bulan && String(t.Tahun_Iuran) === String(tahun) && t.ID_Anggota !== '-')
+      .map((t) => t.ID_Anggota)
+  );
+  const active = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
+  const belum = active.filter((a) => !paidSet.has(a.ID_Anggota)).map((a) => a.Nama_Anggota);
+
+  const lines = [
+    `*Rekap Kas ${bulan} ${tahun}*`,
+    `Masuk: ${formatRp(masuk)} (${paidSet.size}/${active.length} anggota)`,
+    `Keluar: ${formatRp(keluar)}`,
+    `Saldo kas: ${formatRp(totalMasuk - totalKeluar)}`
+  ];
+  if (isSkipped) {
+    lines.push('(Bulan libur — tidak ada iuran)');
+  } else if (belum.length > 0) {
+    lines.push(`Belum bayar: ${belum.join(', ')}`);
+  } else {
+    lines.push('Semua anggota sudah lunas. Terima kasih!');
+  }
+
+  try {
+    await navigator.clipboard.writeText(lines.join('\n'));
+    showToast('Rekap bulanan disalin! Tempel di grup WA.', 'success');
+    closeModal('modal-export');
+  } catch (err) {
+    showToast('Gagal menyalin. Izinkan akses clipboard.', 'error');
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════
+    CSV EXPORT
    ══════════════════════════════════════════════════════════════════ */
 
 const exportToCSV = () => {
-  if (getState().transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
+  const state = getState();
+  if (state.transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
   closeModal('modal-export');
-  const q = (s) => '"' + String(s || '').replace(/"/g, '""') + '"';
-  const header = ['ID Transaksi','Tanggal','Tipe Arus','Kategori','ID Anggota','Bulan Iuran','Tahun Iuran','Nominal','Keterangan'];
-  let csv = 'data:text/csv;charset=utf-8,' + header.map(q).join(',') + '\n';
-  getState().transaksi.forEach((row) => {
-    const tgl = new Date(row.Timestamp).toLocaleDateString('id-ID');
-    csv += [row.ID_Transaksi, tgl, row.Tipe_Arus, row.ID_Kategori, row.ID_Anggota, row.Bulan_Iuran, row.Tahun_Iuran, row.Nominal, row.Keterangan].map(q).join(',') + '\n';
-  });
+
+  const q = (s) => '"' + String(s ?? '').replace(/"/g, '""') + '"';
+  const header = ['ID Transaksi', 'Waktu', 'Tipe Arus', 'Kategori', 'Anggota', 'Bulan Iuran', 'Tahun Iuran', 'Nominal', 'Keterangan'];
+  const lines = [header.map(q).join(';')];
+
+  [...state.transaksi]
+    .sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
+    .forEach((row) => {
+      const waktu = new Date(row.Timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const kat = state.kategori.find((k) => k.ID_Kategori === row.ID_Kategori);
+      const ang = row.ID_Anggota && row.ID_Anggota !== '-' ? state.anggota.find((a) => a.ID_Anggota === row.ID_Anggota) : null;
+      lines.push([
+        row.ID_Transaksi,
+        waktu,
+        row.Tipe_Arus,
+        kat ? kat.Nama_Kategori : (row.ID_Kategori || '-'),
+        ang ? ang.Nama_Anggota : '-',
+        row.Bulan_Iuran || '-',
+        row.Tahun_Iuran || '-',
+        row.Nominal,
+        row.Keterangan || ''
+      ].map(q).join(';'));
+    });
+
+  // BOM (\uFEFF) agar Excel membaca UTF-8 dengan benar; ';' sesuai locale Excel Indonesia
+  const blob = '\uFEFF' + lines.join('\r\n');
   const link = document.createElement('a');
-  link.setAttribute('href', encodeURI(csv));
-  link.setAttribute('download', `Laporan_Kas_${new Date().getTime()}.csv`);
+  link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(blob));
+  link.setAttribute('download', `Laporan_Kas_${new Date().toISOString().slice(0, 10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  showToast('File Excel diunduh!');
+  showToast('File Excel (CSV) diunduh!');
 };
 
 /* ══════════════════════════════════════════════════════════════════

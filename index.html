@@ -296,13 +296,13 @@
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
       <div style="display: grid; gap: 12px;">
-        <button class="btn btn-outline" style="padding: 16px; justify-content: flex-start; align-items: flex-start; gap: 16px;" data-action="export-csv">
-          <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 12px; color: var(--primary);">
-            <i class="ph-bold ph-microsoft-excel-logo" style="font-size: 24px;"></i>
+        <button class="btn btn-primary admin-only" style="padding: 16px; justify-content: flex-start; align-items: flex-start; gap: 16px;" data-action="copy-monthly-recap">
+          <div style="background: rgba(255,255,255,0.15); padding: 10px; border-radius: 12px;">
+            <i class="ph-bold ph-whatsapp-logo" style="font-size: 24px;"></i>
           </div>
-          <div>
-            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">Unduh CSV Transaksi</div>
-            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; font-weight: 400;">Format Excel yang berisi riwayat masuk dan keluar secara terperinci.</div>
+          <div style="text-align: left;">
+            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">Salin Rekap Bulan Ini (WA)</div>
+            <div style="font-size: 12px; opacity: 0.85; line-height: 1.4; font-weight: 400;">Ringkasan masuk/keluar/saldo + daftar yang belum bayar. Tempel langsung ke grup WA.</div>
           </div>
         </button>
         <button class="btn btn-outline" style="padding: 16px; justify-content: flex-start; align-items: flex-start; gap: 16px;" data-action="print-annual">
@@ -314,6 +314,7 @@
             <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; font-weight: 400;">Cetak Matriks status iuran anggota ke PDF (Ukuran A4 Landscape).</div>
           </div>
         </button>
+        <button class="btn" style="background: none; border: none; color: var(--text-muted); font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px;" data-action="export-csv">atau unduh CSV lengkap (arsip data)</button>
       </div>
     </div>
   </div>

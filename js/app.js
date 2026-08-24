@@ -16,7 +16,7 @@ import {
 } from './state.js';
 import {
   postToBackend, sendAdminPayload, fetchInitialData,
-  loginAdminApi, checkAdminSessionApi, logoutAdminApi
+  loginAdminApi, checkAdminSessionApi, logoutAdminApi, fetchAuditLogApi
 } from './api.js';
 import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml } from './utils.js';
 import {
@@ -68,6 +68,8 @@ document.addEventListener('click', (e) => {
     case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;
     case 'open-skipped-months': openSkippedMonthsModal(); break;
+    case 'open-audit-log':   closeHeaderDropdown(); openAuditLogModal(); break;
+    case 'refresh-audit-log': renderAuditLogList(); break;
     case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
     case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); break;
     case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;
@@ -584,6 +586,60 @@ const eksekusiHapus = async () => {
 const openSkippedMonthsModal = () => {
   renderSkippedMonthsList();
   openModal('modal-skipped-months');
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   AUDIT LOG
+   ══════════════════════════════════════════════════════════════════ */
+
+const AUDIT_ACTION_LABELS = {
+  LOGIN_ADMIN:        { label: 'Login Admin', color: 'var(--primary)' },
+  LOGIN_GAGAL:        { label: 'Login Gagal', color: 'var(--danger)' },
+  LOGOUT_ADMIN:       { label: 'Logout', color: '#64748b' },
+  TAMBAH_TRANSAKSI:   { label: 'Tambah Transaksi', color: 'var(--primary)' },
+  TAMBAH_IURAN_MASSAL:{ label: 'Iuran Massal', color: 'var(--primary)' },
+  EDIT_TRANSAKSI:     { label: 'Edit Transaksi', color: 'var(--warning)' },
+  HAPUS_TRANSAKSI:    { label: 'Hapus Transaksi', color: 'var(--danger)' },
+  DUPLIKAT_DITOLAK:   { label: 'Duplikat Ditolak', color: 'var(--danger)' },
+  TAMBAH_ANGGOTA:     { label: 'Tambah Anggota', color: 'var(--primary)' },
+  TAMBAH_KATEGORI:    { label: 'Tambah Kategori', color: 'var(--primary)' },
+  TAMBAH_BULAN_LIBUR: { label: 'Bulan Libur +', color: 'var(--warning)' },
+  HAPUS_BULAN_LIBUR:  { label: 'Bulan Libur -', color: 'var(--warning)' }
+};
+
+const renderAuditLogList = async () => {
+  const tbody = document.getElementById('audit-log-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Memuat...</td></tr>';
+
+  const res = await fetchAuditLogApi();
+  if (!res || !res.status) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--danger);">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
+    return;
+  }
+
+  const log = res.data?.log || [];
+  if (log.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada aktivitas tercatat.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = log.map((entry) => {
+    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi, color: 'var(--text-main)' };
+    const tgl = new Date(entry.Timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+      <tr>
+        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${escapeHtml(tgl)}</td>
+        <td style="white-space:nowrap;"><span style="font-size:11px; font-weight:700; color:${meta.color};">${escapeHtml(meta.label)}</span></td>
+        <td style="font-size:12px; color:var(--text-main); word-break:break-word;">${escapeHtml(String(entry.Detail || ''))}</td>
+      </tr>
+    `;
+  }).join('');
+};
+
+const openAuditLogModal = () => {
+  openModal('modal-audit-log');
+  renderAuditLogList();
 };
 
 const addSkippedMonth = async () => {

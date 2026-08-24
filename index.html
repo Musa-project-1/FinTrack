@@ -63,6 +63,7 @@
               <button class="dropdown-item" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key" style="margin-right:8px"></i> Login</button>
               <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out" style="margin-right:8px"></i> Logout Admin</button>
               <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x" style="margin-right:8px"></i> Bulan Libur</button>
+              <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective" style="margin-right:8px"></i> Log Aktivitas</button>
               <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise" style="margin-right:8px"></i> Riwayat</button>
               <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar" style="margin-right:8px"></i> Statistik</button>
               <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export" style="margin-right:8px"></i> Export</button>
@@ -167,9 +168,35 @@
     </div>
   </div>
 
+  <!-- Audit Log Modal -->
+  <div class="modal-overlay" id="modal-audit-log">
+    <div class="modal-content" style="max-width: 760px; padding: 18px;">
+      <div class="modal-title" style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-detective" style="color:var(--primary);"></i> Log Aktivitas Admin</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn btn-outline" data-action="refresh-audit-log">Refresh</button>
+          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+        </div>
+      </div>
+      <div class="table-responsive table-scrollable" style="max-height: 55vh; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <table style="margin-bottom: 0;">
+          <thead>
+            <tr>
+              <th style="background: var(--bg-color); white-space: nowrap;">Waktu</th>
+              <th style="background: var(--bg-color);">Aksi</th>
+              <th style="background: var(--bg-color);">Detail</th>
+            </tr>
+          </thead>
+          <tbody id="audit-log-tbody">
+            <tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- Skipped Months / Bulan Libur Modal -->
-  <div class="modal-overlay" id="modal-skipped-months">
-    <div class="modal-content" style="max-width: 520px; padding: 18px;">
+  <div class="modal-overlay" id="modal-skipped-months">    <div class="modal-content" style="max-width: 520px; padding: 18px;">
       <div class="modal-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-calendar-x" style="color:var(--primary);"></i> Atur Bulan Libur (Bulan Skip)</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>

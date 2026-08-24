@@ -1,4 +1,4 @@
-const CACHE_NAME = 'demokas-v5';
+const CACHE_NAME = 'demokas-v6';
 
 // Local assets including ES modules and old script.js as fallback
 const LOCAL_ASSETS = [

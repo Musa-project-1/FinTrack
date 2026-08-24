@@ -5,6 +5,7 @@
 
 import { GAS_URL } from './config.js';
 import { getAdminPassword } from './state.js';
+import { hashText } from './utils.js';
 
 /**
  * Send a POST payload to the GAS backend.
@@ -47,17 +48,18 @@ export const fetchInitialData = async () => {
 };
 
 /**
- * Login admin with plaintext password (client hashes it, backend validates).
- * @param {string} pwd - Plaintext password entered by user.
+ * Login admin — sends the SHA-256 hash of the password, never plaintext.
+ * @param {string} pwd - Plaintext password entered by user (hashed client-side before sending).
  * @returns {Promise<{status: boolean, message: string, data: object|null}>|null}
  */
 export const loginAdminApi = async (pwd) => {
   try {
+    const hashedPwd = await hashText(pwd);
     const response = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        data: JSON.stringify({ action: 'loginAdmin', password: pwd })
+        data: JSON.stringify({ action: 'loginAdmin', password: hashedPwd })
       })
     });
     return await response.json();

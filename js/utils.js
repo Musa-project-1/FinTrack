@@ -35,19 +35,6 @@ export const getRawNominal = (id) => {
 };
 
 /**
- * Validate that a nominal amount is positive.
- * @param {number} nominal - Amount to check.
- * @returns {boolean} True if valid.
- */
-export const validateNominal = (nominal) => {
-  if (nominal <= 0) {
-    showToast('Nominal harus lebih dari 0!', 'error');
-    return false;
-  }
-  return true;
-};
-
-/**
  * Show a toast notification.
  * @param {string} message - Message to display.
  * @param {'success'|'error'|'warning'} [type='success'] - Toast type.
@@ -125,3 +112,24 @@ export const getAvatarGradient = (name, gradients) => {
  * @returns {boolean}
  */
 export const isOnline = () => window.navigator.onLine;
+
+/**
+ * Hash text using SHA-256.
+ * @param {string} text
+ * @returns {Promise<string>} Hex-encoded hash.
+ */
+export const hashText = async (text) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+};
+
+/** @private entity map for escapeHtml */
+const _ESCAPE_MAP = { '&': String.fromCharCode(38), '<': String.fromCharCode(60), '>': String.fromCharCode(62), '"': String.fromCharCode(34), "'": String.fromCharCode(39) };
+const _ESCAPE_RE = /[&<"']/g;
+
+export const escapeHtml = (str) => {
+  if (str == null) return '';
+  return String(str).replace(_ESCAPE_RE, (ch) => _ESCAPE_MAP[ch]);
+};

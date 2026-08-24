@@ -114,9 +114,13 @@ export const syncOfflineTransactions = async (onSuccess) => {
         return;
       }
 
-      if (resJSON.status) {
+      if (resJSON.status || resJSON.data?.duplicate) {
         await deleteOfflineTransaction(item.id);
-        successCount += 1;
+        if (resJSON.data?.duplicate) {
+          showToast(`Transaksi duplikat dilewati: ${resJSON.message}`, 'success');
+        } else {
+          successCount += 1;
+        }
       } else {
         showToast(`Sinkronisasi gagal: ${resJSON.message}`, 'error');
         return;

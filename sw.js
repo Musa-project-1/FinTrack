@@ -1,4 +1,4 @@
-const CACHE_NAME = 'demokas-v4';
+const CACHE_NAME = 'demokas-v5';
 
 // Local assets including ES modules and old script.js as fallback
 const LOCAL_ASSETS = [
@@ -65,7 +65,7 @@ const OFFLINE_STORE_NAME = 'offline-transactions';
 // GAS_URL imported from config is not available in SW context (no importScripts
 // in module scope for ES modules). Duplicated here intentionally — single source
 // of truth lives in js/config.js for the main thread.
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwvRbsRZXKCuU64dZPvJ0c4K3-RggIgM9VKKoDoVVmTSF4jebfN4izABgMG8O6pT0B-/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4Fj_mwFmVBg0mO0s4xScgBrCTAX5nynIUeuJ4eeJ6sz82TvIsgqDACfGdsG3pBnVc/exec';
 
 const openOfflineDB = () => {
   return new Promise((resolve, reject) => {
@@ -120,7 +120,8 @@ const sendQueuedOfflineTransactions = async () => {
       }
 
       const resJSON = await response.json();
-      if (resJSON && resJSON.status) {
+      if (resJSON && (resJSON.status || resJSON.data?.duplicate)) {
+        // duplicate=true means the backend already has this transaction — drop it
         await deleteOfflineTransaction(item.id);
       } else {
         throw new Error(resJSON ? resJSON.message || 'Unknown server error' : 'Invalid server response');

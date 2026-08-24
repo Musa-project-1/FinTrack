@@ -5,7 +5,7 @@
 
 import { NAMA_BULAN } from './config.js';
 import { getState } from './state.js';
-import { showToast, handleNominalInput, getRawNominal } from './utils.js';
+import { showToast, handleNominalInput, getRawNominal, formatRp } from './utils.js';
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
@@ -104,8 +104,8 @@ export const updateCounterOps = () => {
   const summaryLabel = document.getElementById('summary-ops-label');
   const summaryTotal = document.getElementById('summary-ops-total');
 
-  document.getElementById('summary-ops-nominal').innerText = formatRpLocal(nominal);
-  summaryTotal.innerText = formatRpLocal(nominal);
+  document.getElementById('summary-ops-nominal').innerText = formatRp(nominal);
+  summaryTotal.innerText = formatRp(nominal);
 
   if (tipe === 'Masuk') {
     summaryTipe.innerText = 'PEMASUKAN';
@@ -130,8 +130,8 @@ export const updateCounterIuran = () => {
 
   document.getElementById('count-terpilih').innerText = `${totalChecked} dari ${totalElements.length}`;
   document.getElementById('summary-count').innerText = `${totalChecked} Orang`;
-  document.getElementById('summary-nominal').innerText = formatRpLocal(nominal);
-  document.getElementById('summary-total').innerText = formatRpLocal(totalChecked * nominal);
+  document.getElementById('summary-nominal').innerText = formatRp(nominal);
+  document.getElementById('summary-total').innerText = formatRp(totalChecked * nominal);
 
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (totalElements.length === 0) {
@@ -169,38 +169,38 @@ export const renderCheckboxIuran = () => {
 
   const mapLunas = {};
   getState().transaksi.forEach((t) => {
-    if (t.Bulan_Iuran === bln && t.Tahun_Iuran == thn && t.Tipe_Arus === 'Masuk' && t.ID_Anggota !== '-') {
+    if (t.Bulan_Iuran === bln && String(t.Tahun_Iuran) === String(thn) && t.Tipe_Arus === 'Masuk' && t.ID_Anggota !== '-') {
       mapLunas[t.ID_Anggota] = true;
     }
   });
 
-  const container = document.getElementById('iuran-checkbox-anggota');
-  container.innerHTML = '';
-
+  const htmlParts = [];
   getState().anggota.forEach((ang) => {
     if (ang.Status_Aktif === 'Aktif') {
       const isLunas = mapLunas[ang.ID_Anggota];
       if (isLunas) {
-        container.innerHTML += `
+        htmlParts.push(`
           <label class="checkbox-item" style="background: var(--bg-color); border-color: var(--border); cursor: not-allowed; opacity: 0.6; box-shadow: none;">
             <input type="checkbox" class="chk-iuran" value="${ang.ID_Anggota}" disabled checked>
             <div style="display:flex; flex-direction:column; gap:2px;">
               <span style="color: var(--text-muted); text-decoration: line-through; font-size: 13px; font-weight: 500;">${ang.Nama_Anggota}</span>
               <div style="font-size: 10px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 4px;"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
             </div>
-          </label>`;
+          </label>`);
       } else {
-        container.innerHTML += `
+        htmlParts.push(`
           <label class="checkbox-item">
             <input type="checkbox" class="chk-iuran" value="${ang.ID_Anggota}" onchange="window.__updateCounterIuran && window.__updateCounterIuran()">
             <div style="display:flex; flex-direction:column; gap:2px;">
               <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">${ang.Nama_Anggota}</span>
               <div style="font-size: 10px; color: var(--text-muted); font-weight: 500;">BELUM BAYAR</div>
             </div>
-          </label>`;
+          </label>`);
       }
     }
   });
+  const container = document.getElementById('iuran-checkbox-anggota');
+  container.innerHTML = htmlParts.join('');
 
   updateCounterIuran();
   window.__filterAnggotaIuran && window.__filterAnggotaIuran();
@@ -275,8 +275,3 @@ export const closeHeaderDropdown = () => {
 };
 
 /* ── Utility ───────────────────────────────────────────────────── */
-
-/** @private — local formatRp to avoid circular import with utils */
-function formatRpLocal(n) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0);
-}

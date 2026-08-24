@@ -5,7 +5,7 @@
  * global callbacks for backward-compatibility with inline handlers in HTML.
  */
 
-import { GAS_URL, NAMA_BULAN } from './config.js';
+import { GAS_URL, NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from './config.js';
 import {
   getState, setState, addTransaction, saveCache, loadCache,
   getAdminPassword, setAdminPassword, clearAdminPassword,
@@ -18,7 +18,7 @@ import {
   postToBackend, sendAdminPayload, fetchInitialData,
   loginAdminApi, checkAdminSessionApi, logoutAdminApi
 } from './api.js';
-import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal } from './utils.js';
+import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml } from './utils.js';
 import {
   openOfflineDB, addOfflineTransaction, getOfflineTransactions,
   deleteOfflineTransaction, queueOfflinePayload, syncOfflineTransactions
@@ -210,13 +210,6 @@ const renderAdminUI = () => {
    ADMIN LOGIN / LOGOUT
    ══════════════════════════════════════════════════════════════════ */
 
-const hashText = async (text) => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
-};
-
 const submitLoginAdmin = async (e) => {
   const form = e.target;
   const btn = form.querySelector('button[type="submit"]');
@@ -234,8 +227,9 @@ const submitLoginAdmin = async (e) => {
     document.getElementById('input-admin-pwd').value = '';
     renderAdminUI();
     handleUI(true);
+    initApp();
+    renderChart();
     showToast('Berhasil Login sebagai Admin!', 'success');
-    window.location.reload();
   } else {
     showToast(resJSON ? resJSON.message : 'Gagal terhubung ke server.', 'error');
     document.getElementById('input-admin-pwd').value = '';
@@ -254,7 +248,7 @@ const logoutAdminAction = async () => {
     clearAdminPassword();
     renderAdminUI();
     handleUI(false);
-    window.location.reload();
+    showToast('Berhasil logout.', 'success');
   } else {
     showToast('Gagal logout dari server.', 'error');
   }
@@ -292,21 +286,19 @@ window.gantiTahunRekap = (v) => { setCurrentRekapYear(v); renderTableRekap(); };
    QUICK PAY
    ══════════════════════════════════════════════════════════════════ */
 
-const quickPay = (idAnggota, bulan) => {
+const quickPay = async (idAnggota, bulan) => {
   bukaModalTransaksi();
-  setTimeout(() => {
-    document.getElementById('iuran-bulan').value = bulan;
-    document.getElementById('iuran-tahun').value = currentRekapYear;
-    renderCheckboxIuran();
-    setTimeout(() => {
-      document.querySelectorAll('.chk-iuran').forEach((chk) => {
-        if (chk.value === idAnggota && !chk.disabled) {
-          chk.checked = true;
-          updateCounterIuran();
-        }
-      });
-    }, 50);
-  }, 100);
+  await new Promise((r) => setTimeout(r, 100));
+  document.getElementById('iuran-bulan').value = bulan;
+  document.getElementById('iuran-tahun').value = currentRekapYear;
+  renderCheckboxIuran();
+  await new Promise((r) => setTimeout(r, 50));
+  document.querySelectorAll('.chk-iuran').forEach((chk) => {
+    if (chk.value === idAnggota && !chk.disabled) {
+      chk.checked = true;
+      updateCounterIuran();
+    }
+  });
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -356,9 +348,9 @@ const submitIuran = async (e) => {
     }
   };
 
-  const optimisticUpdate = () => {
+  const optimisticUpdate = (idsToAdd) => {
     const timestamp = new Date().toISOString();
-    arrIdAnggota.forEach((idAng) => {
+    idsToAdd.forEach((idAng) => {
       addTransaction({
         ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: timestamp,
         Tipe_Arus: 'Masuk', ID_Kategori: formKategori, ID_Anggota: idAng,
@@ -379,7 +371,7 @@ const submitIuran = async (e) => {
     await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
     showToast('Offline: transaksi iuran disimpan lokal untuk sinkronisasi nanti.', 'success');
     closeModal('modal-transaksi');
-    optimisticUpdate();
+    optimisticUpdate(arrIdAnggota);
     resetBtn();
     return;
   }
@@ -394,9 +386,17 @@ const submitIuran = async (e) => {
       return;
     }
     if (resJSON.status) {
-      showToast('Iuran berhasil dicatat!');
-      closeModal('modal-transaksi');
-      optimisticUpdate();
+      const inserted = Number(resJSON.data?.inserted ?? arrIdAnggota.length);
+      const skipped = Array.isArray(resJSON.data?.skipped) ? resJSON.data.skipped : [];
+      if (inserted === 0) {
+        showToast(resJSON.message || 'Semua anggota yang dipilih sudah lunas.', 'warning');
+        closeModal('modal-transaksi');
+        initApp();
+      } else {
+        showToast(resJSON.message || 'Iuran berhasil dicatat!', skipped.length ? 'warning' : 'success');
+        closeModal('modal-transaksi');
+        optimisticUpdate(arrIdAnggota.filter((id) => !skipped.includes(id)));
+      }
     } else {
       showToast(resJSON.message, 'error');
     }
@@ -640,7 +640,7 @@ const renderOfflineQueueList = async () => {
       card.innerHTML = `
         <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
           <div style="flex:1;">
-            <div style="font-weight:700; color:var(--text-main);">${action}</div>
+            <div style="font-weight:700; color:var(--text-main);">${escapeHtml(action)}</div>
             <div style="font-size:12px; color:var(--text-muted);">${t}</div>
             <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">${JSON.stringify(item.payload.dataForm || item.payload || {})}</div>
           </div>
@@ -675,7 +675,7 @@ const cetakStruk = (idTrx) => {
   const objAng = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
   const namaAnggota = objAng ? objAng.Nama_Anggota : '-';
 
-  const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>KAS KITA PRO</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${trx.ID_Transaksi}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${tglStr}</div><div class="row"><span>Tipe Arus:</span><span><b>${trx.Tipe_Arus.toUpperCase()}</b></span></div><div class="row"><span>Kategori:</span><span>${namaKat}</span></div><div class="row"><span>Anggota:</span><span>${namaAnggota}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${trx.Keterangan || '-'}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
+  const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>KAS KITA PRO</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${escapeHtml(trx.ID_Transaksi)}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${escapeHtml(tglStr)}</div><div class="row"><span>Tipe Arus:</span><span><b>${escapeHtml(trx.Tipe_Arus.toUpperCase())}</b></span></div><div class="row"><span>Kategori:</span><span>${escapeHtml(namaKat)}</span></div><div class="row"><span>Anggota:</span><span>${escapeHtml(namaAnggota)}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${escapeHtml(trx.Keterangan || '-')}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
 
   const pw = window.open('', '_blank', 'width=400,height=600');
   pw.document.write(html);
@@ -699,7 +699,7 @@ const cetakLaporanTahunan = () => {
   let index = 1;
   getState().anggota.forEach((ang) => {
     if (ang.Status_Aktif === 'Aktif') {
-      let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${ang.Nama_Anggota}</td>`;
+      let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${escapeHtml(ang.Nama_Anggota)}</td>`;
       NAMA_BULAN.forEach((bulan) => {
         tr += `<td style="text-align:center;">${mapPembayaran[`${ang.ID_Anggota}_${bulan}`] ? '&#10003;' : ''}</td>`;
       });
@@ -723,11 +723,12 @@ const cetakLaporanTahunan = () => {
 const exportToCSV = () => {
   if (getState().transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
   closeModal('modal-export');
-  let csv = 'data:text/csv;charset=utf-8,ID Transaksi,Tanggal,Tipe Arus,Kategori,ID Anggota,Bulan Iuran,Tahun Iuran,Nominal,Keterangan\n';
+  const q = (s) => '"' + String(s || '').replace(/"/g, '""') + '"';
+  const header = ['ID Transaksi','Tanggal','Tipe Arus','Kategori','ID Anggota','Bulan Iuran','Tahun Iuran','Nominal','Keterangan'];
+  let csv = 'data:text/csv;charset=utf-8,' + header.map(q).join(',') + '\n';
   getState().transaksi.forEach((row) => {
-    const ket = (row.Keterangan || '').replace(/,/g, ' ');
     const tgl = new Date(row.Timestamp).toLocaleDateString('id-ID');
-    csv += `${row.ID_Transaksi},${tgl},${row.Tipe_Arus},${row.ID_Kategori},${row.ID_Anggota},${row.Bulan_Iuran},${row.Tahun_Iuran},${row.Nominal},${ket}\n`;
+    csv += [row.ID_Transaksi, tgl, row.Tipe_Arus, row.ID_Kategori, row.ID_Anggota, row.Bulan_Iuran, row.Tahun_Iuran, row.Nominal, row.Keterangan].map(q).join(',') + '\n';
   });
   const link = document.createElement('a');
   link.setAttribute('href', encodeURI(csv));
@@ -743,12 +744,12 @@ const exportToCSV = () => {
    ══════════════════════════════════════════════════════════════════ */
 
 const createGroupReminderMessage = async () => {
-  const startYear = 2025;
-  const startMonth = 11;
+  const startYear = GROUP_START_YEAR;
+  const startMonth = GROUP_START_MONTH;
   const now = new Date();
   const endYear = now.getFullYear();
   const endMonth = now.getMonth() + 1;
-  const monthlyFee = 10000;
+  const monthlyFee = DEFAULT_MONTHLY_FEE;
 
   const monthsRange = [];
   let y = startYear, m = startMonth;
@@ -866,8 +867,12 @@ const initApp = async () => {
 window.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
 
-  const sessionResp = await checkAdminSessionApi();
-  handleUI(sessionResp?.status && sessionResp.data ? !!sessionResp.data.isAdmin : false);
+  try {
+    const sessionResp = await checkAdminSessionApi();
+    handleUI(sessionResp?.status && sessionResp.data ? !!sessionResp.data.isAdmin : false);
+  } catch (e) {
+    handleUI(false);
+  }
   renderAdminUI();
 
   initApp();

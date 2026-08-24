@@ -1,6 +1,6 @@
 {
-  "name": "DemoKas Professional",
-  "short_name": "DemoKas",
+  "name": "Finkas",
+  "short_name": "FinKas",
   "description": "Aplikasi Manajemen Kas & Iuran Anggota",
   "start_url": "index.html",
   "display": "standalone",

@@ -573,6 +573,8 @@ body.dark-mode tr:hover td {
 
 /* Modern Badges */
 .badge {
+  display: inline-block;
+  white-space: nowrap;
   padding: 6px 14px;
   border-radius: 100px;
   font-size: 11px;
@@ -2349,5 +2351,14 @@ body { padding: 6px 0 40px 0; }
   .table-matriks td:nth-child(5) .btn {
     font-size: 11px;
     padding: 6px 10px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+
+  .badge i {
+    font-size: 11px;
   }
 }

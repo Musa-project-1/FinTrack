@@ -5,7 +5,7 @@
  */
 
 /** Google Apps Script Web App deployment URL */
-export const GAS_URL = 'https://script.google.com/macros/s/AKfycbwvRbsRZXKCuU64dZPvJ0c4K3-RggIgM9VKKoDoVVmTSF4jebfN4izABgMG8O6pT0B-/exec';
+export const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4Fj_mwFmVBg0mO0s4xScgBrCTAX5nynIUeuJ4eeJ6sz82TvIsgqDACfGdsG3pBnVc/exec';
 
 /** Indonesian month names (0-indexed: namaBulan[0] = "Januari") */
 export const NAMA_BULAN = [
@@ -20,6 +20,10 @@ export const OFFLINE_STORE_NAME = 'offline-transactions';
 
 /** Default monthly contribution amount (Rp) */
 export const DEFAULT_MONTHLY_FEE = 10000;
+
+/** WhatsApp group reminder date range start */
+export const GROUP_START_YEAR = 2025;
+export const GROUP_START_MONTH = 11;
 
 /** Avatar gradient presets for member cards */
 export const AVATAR_GRADIENTS = [

@@ -5,7 +5,7 @@
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, AVATAR_GRADIENTS, CHART_COLORS } from './config.js';
 import { getState, currentRekapYear, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, getAdminPassword } from './state.js';
-import { formatRp, getInitials, getAvatarGradient } from './utils.js';
+import { formatRp, getInitials, getAvatarGradient, escapeHtml } from './utils.js';
 import { openModal, closeModal, switchTab, resetChipAktif, filterKategori } from './modal.js';
 
 /* ── Render All ────────────────────────────────────────────────── */
@@ -44,14 +44,14 @@ export const renderDropdowns = () => {
 
   let optAnggota = '<option value="-">-- Bukan transaksi anggota --</option>';
   anggota.forEach((ang) => {
-    if (ang.Status_Aktif === 'Aktif') optAnggota += `<option value="${ang.ID_Anggota}">${ang.Nama_Anggota}</option>`;
+    if (ang.Status_Aktif === 'Aktif') optAnggota += `<option value="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</option>`;
   });
   document.getElementById('edit-anggota').innerHTML = optAnggota;
   document.getElementById('ops-anggota').innerHTML = optAnggota;
 
   let optKatMasuk = '';
   kategori.forEach((kat) => {
-    if (kat.Tipe === 'Masuk') optKatMasuk += `<option value="${kat.ID_Kategori}">${kat.Nama_Kategori}</option>`;
+    if (kat.Tipe === 'Masuk') optKatMasuk += `<option value="${escapeHtml(kat.ID_Kategori)}">${escapeHtml(kat.Nama_Kategori)}</option>`;
   });
   if (optKatMasuk === '') optKatMasuk = '<option value="">-- Buat Kategori Masuk Dulu --</option>';
   document.getElementById('iuran-kategori').innerHTML = optKatMasuk;
@@ -90,8 +90,15 @@ export const renderTableTransaksi = () => {
     const namaKat = objKat ? objKat.Nama_Kategori.toLowerCase() : '';
     const ket = (trx.Keterangan || '').toLowerCase();
     const matchesSearch = searchQuery === '' || ket.includes(searchQuery) || namaKat.includes(searchQuery);
-    const matchesMonth = filterBulan === 'all' || tglObj.getMonth().toString() === filterBulan;
-    const matchesYear = filterTahun === 'all' || tglObj.getFullYear().toString() === filterTahun;
+
+    // Iuran rows are matched by their iuran period (Bulan_Iuran/Tahun_Iuran),
+    // not by the date they were recorded. Operasional rows use the timestamp.
+    const isIuranRow = trx.ID_Anggota !== '-' && trx.Bulan_Iuran && trx.Bulan_Iuran !== '-';
+    const iuranMonthIdx = isIuranRow ? NAMA_BULAN.indexOf(trx.Bulan_Iuran) : -1;
+    const trxMonth = iuranMonthIdx !== -1 ? iuranMonthIdx : tglObj.getMonth();
+    const trxYear = isIuranRow && trx.Tahun_Iuran && trx.Tahun_Iuran !== '-' ? String(trx.Tahun_Iuran) : String(tglObj.getFullYear());
+    const matchesMonth = filterBulan === 'all' || String(trxMonth) === filterBulan;
+    const matchesYear = filterTahun === 'all' || trxYear === filterTahun;
 
     return matchesChip && matchesSearch && matchesMonth && matchesYear;
   });
@@ -107,12 +114,12 @@ export const renderTableTransaksi = () => {
 
   const fragment = document.createDocumentFragment();
   let lastDateStr = '';
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
 
   visibleTrx.forEach((trx) => {
     const tglObj = new Date(trx.Timestamp);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
 
     const dateStr = tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -140,9 +147,9 @@ export const renderTableTransaksi = () => {
     if (trx.ID_Anggota !== '-') {
       const objAng = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
       const namaAnggota = objAng ? objAng.Nama_Anggota : 'Anggota';
-      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${trx.ID_Anggota}">${namaAnggota}</strong> (Iuran ${trx.Bulan_Iuran} ${trx.Tahun_Iuran}) <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${ketExtra}</span>`;
+      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong> (Iuran ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}) <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${escapeHtml(ketExtra)}</span>`;
     } else {
-      ketExtra = `<strong style="color: var(--text-main); font-weight: 600;">${namaKat}</strong> <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${ketExtra}</span>`;
+      ketExtra = `<strong style="color: var(--text-main); font-weight: 600;">${escapeHtml(namaKat)}</strong> <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${escapeHtml(ketExtra)}</span>`;
     }
 
     const isMasuk = (trx.Tipe_Arus || '').toLowerCase() === 'masuk';
@@ -190,8 +197,8 @@ export const populateFilterTahunHistory = () => {
   if (!select) return;
   const yearsSet = new Set();
   getState().transaksi.forEach((t) => {
-    const year = new Date(t.Timestamp).getFullYear().toString();
-    yearsSet.add(year);
+    yearsSet.add(new Date(t.Timestamp).getFullYear().toString());
+    if (t.Tahun_Iuran && t.Tahun_Iuran !== '-') yearsSet.add(t.Tahun_Iuran.toString());
   });
   const currentVal = select.value;
   select.innerHTML = '<option value="all">Semua Tahun</option>';
@@ -248,7 +255,7 @@ export const renderTableRekap = () => {
     filteredAnggota.forEach((ang) => {
       const tr = document.createElement('tr');
       const tdNama = document.createElement('td');
-      tdNama.innerHTML = `<span class="clickable-name" data-action="profil" data-id="${ang.ID_Anggota}">${ang.Nama_Anggota}</span>`;
+      tdNama.innerHTML = `<span class="clickable-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</span>`;
       tr.appendChild(tdNama);
 
       NAMA_BULAN.forEach((bulan, idx) => {
@@ -342,7 +349,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
         <div class="iuran-card-header">
           <div class="iuran-card-avatar" style="background: ${avatarGradient};">${initials}</div>
           <div class="iuran-card-main-info">
-            <div class="iuran-card-name" data-action="profil" data-id="${ang.ID_Anggota}">${ang.Nama_Anggota}</div>
+            <div class="iuran-card-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</div>
             <div class="iuran-progress-subtext">${lunasBulan}/12 Bulan Lunas</div>
           </div>
           <div class="iuran-card-status">

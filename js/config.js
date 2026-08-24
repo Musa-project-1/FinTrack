@@ -7,6 +7,9 @@
 /** Google Apps Script Web App deployment URL */
 export const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4Fj_mwFmVBg0mO0s4xScgBrCTAX5nynIUeuJ4eeJ6sz82TvIsgqDACfGdsG3pBnVc/exec';
 
+/** Google Sheets database (admin only) */
+export const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1_cvppK9zmuXXQ9oZcH66zwOzwCYWJ_nP411M9W09zGo/edit';
+
 /** Indonesian month names (0-indexed: namaBulan[0] = "Januari") */
 export const NAMA_BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',

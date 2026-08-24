@@ -308,9 +308,10 @@ body.dark-mode .btn-icon:hover {
 /* Ensure header uses space-between layout */
 .table-card .table-header { display: flex; justify-content: space-between; align-items: center; }
 
+.table-header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
+
 /* Role-based visibility helpers */
-.admin-only { display: none !important; }
-.admin-mode .admin-only { display: initial !important; }
+body:not(.admin-mode) .admin-only { display: none !important; }
 .btn-wa-reminder i { display: inline-flex; align-items:center; justify-content:center; }
 .btn-wa-reminder:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.08); background: linear-gradient(90deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08)); }
 
@@ -1551,11 +1552,19 @@ body { padding: 6px 0 40px 0; }
     align-items: stretch;
   }
   .year-pill {
-    width: 100%;
-    justify-content: space-between;
+    flex: 1;
+    width: auto;
     padding: 10px 16px;
     font-size: 12px;
     order: 3;
+  }
+  /* Keep icon + label grouped left, year value pushed right */
+  .year-pill select {
+    margin-left: auto;
+  }
+  /* WA reminder shares the row with the year pill */
+  .btn-wa-reminder-icon {
+    order: 4;
   }
   .table-responsive {
     overflow-x: auto;
@@ -1810,13 +1819,26 @@ body { padding: 6px 0 40px 0; }
   .member-search-wrapper i {
     font-size: 16px;
   }
-  /* Table header controls stacking on mobile */
+  /* Table header controls: search on row 1, WA + year share row 2 */
   .table-header-controls {
     width: 100%;
-    flex-direction: column;
-    align-items: stretch !important;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+  .table-header-controls .member-search-wrapper {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .table-header-controls .btn-wa-reminder-icon {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
   }
   .table-header-controls .year-pill {
+    grid-row: 2;
+    grid-column: 2;
     width: 100%;
   }
 /* Hide traditional matrix table on mobile */
@@ -2122,17 +2144,17 @@ body { padding: 6px 0 40px 0; }
     padding: 6px 10px;
   }
   
-  /* Better modal for small screens */
-  .modal-overlay { 
+  /* Better modal for small screens: centered, not bottom-anchored */
+  .modal-overlay {
     padding: 8px;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
   }
-  .modal-content { 
+  .modal-content {
     width: calc(100vw - 16px);
     max-width: 420px;
     max-height: 90vh;
-    border-radius: 18px 18px 0 0;
+    border-radius: 18px;
     padding: 14px 16px;
   }
   .modal-title { 
@@ -2360,5 +2382,366 @@ body { padding: 6px 0 40px 0; }
 
   .badge i {
     font-size: 11px;
+  }
+}
+
+/* === RIWAYAT CARD VIEW (MOBILE) ===
+   Restyles the history table rows into tappable cards on small screens.
+   Desktop keeps the real table. */
+@media (max-width: 768px) {
+  #table-riwayat-data {
+    min-width: 0 !important;
+  }
+
+  #table-riwayat-data thead {
+    display: none;
+  }
+
+  #table-riwayat-data,
+  #table-riwayat-data tbody {
+    display: block;
+    width: 100%;
+  }
+
+  #table-riwayat-data tbody {
+    padding: 4px 2px 8px;
+  }
+
+  /* Transaction row -> card */
+  #table-riwayat-data tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-card-flat);
+    break-inside: avoid;
+  }
+
+  /* Date section header stays a slim full-width strip */
+  #table-riwayat-data tr.date-group-header {
+    display: block;
+    padding: 8px 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  #table-riwayat-data tr.date-group-header td {
+    display: block;
+    padding: 0;
+  }
+
+  /* All cells reset */
+  #table-riwayat-data td {
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent !important;
+    min-height: 0;
+    white-space: normal;
+    font-size: 13px;
+  }
+
+  /* Empty / skeleton rows (single colspan cell) */
+  #table-riwayat-data td[colspan] {
+    grid-column: 1 / -1;
+    padding: 18px;
+    text-align: center;
+  }
+
+  /* Row 1 left: keterangan (name + note) */
+  #table-riwayat-data td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  #table-riwayat-data td:nth-child(2) .clickable-name {
+    display: inline;
+    margin-bottom: 0;
+  }
+
+  /* Row 1 right: nominal */
+  #table-riwayat-data td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  /* Row 2 left: time */
+  #table-riwayat-data td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 12px;
+  }
+
+  /* Row 2 right: tipe arus badge */
+  #table-riwayat-data td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  #table-riwayat-data td:nth-child(4) .badge {
+    padding: 3px 10px;
+    font-size: 10px;
+  }
+
+  /* Row 3: action buttons */
+  #table-riwayat-data td:nth-child(5) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+    margin-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+
+  #table-riwayat-data td:nth-child(5) .btn-icon {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 0;
+  }
+
+  /* Hide actions row entirely when empty (non-admin) */
+  #table-riwayat-data td:nth-child(5):empty {
+    display: none;
+  }
+}
+
+/* === QUICK PAY BOTTOM SHEET === */
+.quickpay-sheet {
+  max-width: 400px;
+  padding: 18px 20px 20px;
+}
+
+.quickpay-handle {
+  display: none;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+  margin: 0 auto 14px;
+}
+
+.qp-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-color);
+  margin-bottom: 16px;
+}
+
+.qp-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay:has(.quickpay-sheet),
+  .modal-overlay:has(.menu-sheet) {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .quickpay-sheet,
+  .menu-sheet {
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    transform: translateY(40px);
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .modal-overlay.active .quickpay-sheet,
+  .modal-overlay.active .menu-sheet {
+    transform: translateY(0);
+  }
+
+  .quickpay-handle {
+    display: block;
+  }
+
+  .menu-sheet-list {
+    display: grid;
+    gap: 2px;
+  }
+
+  .menu-sheet-list .dropdown-item {
+    padding: 14px 12px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .menu-sheet-list .dropdown-item:active {
+    background: var(--bg-color);
+  }
+
+  /* Hamburger replaced by bottom nav on mobile */
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  /* Duplicate of bottom-nav [+ Catat] CTA */
+  .btn-catat-mobile {
+    display: none !important;
+  }
+}
+
+/* === BOTTOM NAVIGATION (MOBILE ONLY) === */
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  body {
+    padding-bottom: 72px;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    border-radius: 10px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav-item i {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--primary);
+  }
+
+  .bottom-nav-cta {
+    color: var(--text-muted);
+  }
+
+  .bottom-nav-cta i {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    border-radius: 50%;
+    font-size: 22px;
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(5, 150, 105, 0.35);
+  }
+
+  .bottom-nav-cta span {
+    margin-top: 2px;
+  }
+
+  /* Perfectly even columns regardless of how many items are visible */
+  .bottom-nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .bottom-nav-item > * {
+    align-self: center;
+  }
+}
+
+/* === LARGE MODALS ANCHOR TO TOP ===
+   Tall content (tables, lists) opens from the top so it can use the
+   full screen height. Small/medium modals stay centered. */
+.modal-overlay.modal-top {
+  align-items: flex-start;
+}
+
+.modal-overlay.modal-top .modal-content {
+  max-height: 94vh;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay.modal-top {
+    align-items: flex-start;
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+  }
+
+  .modal-overlay.modal-top .modal-content {
+    max-height: 88vh;
+  }
+}
+
+/* === STATISTIK MODAL (MOBILE) === */
+@media (max-width: 768px) {
+  /* Charts stack vertically — inline minmax(400px) overflows phones */
+  #modal-statistik .chart-section {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stat cards: 2 per row, health card full width */
+  #modal-statistik .stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  #modal-statistik .stat-card {
+    padding: 14px;
+  }
+
+  /* Big rupiah values must fit the narrow cards */
+  #modal-statistik .stat-card-value {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+
+  #modal-statistik .stat-card-title {
+    font-size: 12px;
+  }
+
+  #modal-statistik .stat-card.health-card,
+  #modal-statistik .stat-card:last-child {
+    grid-column: 1 / -1;
   }
 }

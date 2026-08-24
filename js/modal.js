@@ -32,6 +32,9 @@ export const closeModal = (id) => {
   document.getElementById(id).classList.remove('active');
   if (!document.querySelector('.modal-overlay.active')) {
     document.body.classList.remove('modal-open');
+    document.querySelectorAll('.bottom-nav-item').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-action') === 'nav-home');
+    });
   }
 };
 

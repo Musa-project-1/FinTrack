@@ -157,6 +157,16 @@ export const renderTableTransaksi = () => {
     const iconPh = isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
     const nominalColor = isMasuk ? 'var(--primary)' : 'var(--danger)';
 
+    const isAdmin = !!getAdminPassword();
+    const aksiHtml = isAdmin ? `
+          <button class="btn-icon admin-only" style="color: #64748b;" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer" style="font-size: 16px;"></i></button>
+          <button class="btn-icon admin-only" style="color: var(--warning);" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple" style="font-size: 16px;"></i></button>
+          <button class="btn-icon admin-only" style="color: var(--danger);" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash" style="font-size: 16px;"></i></button>
+        ` : '';
+    const aksiTd = isAdmin
+      ? `<td data-label="Aksi" style="text-align: center; white-space: nowrap; vertical-align: middle;">${aksiHtml}</td>`
+      : '<td data-label="Aksi"></td>';
+
     const tr = document.createElement('tr');
     tr.className = isMasuk ? 'row-masuk' : 'row-keluar';
     tr.setAttribute('data-tipe', isMasuk ? 'Masuk' : 'Keluar');
@@ -170,11 +180,7 @@ export const renderTableTransaksi = () => {
         <td data-label="Keterangan">${ketExtra}</td>
         <td data-label="Nominal" style="font-weight: 700; color: ${nominalColor}; font-size: 15px; vertical-align: middle;">${formatRp(trx.Nominal)}</td>
         <td data-label="Tipe Arus" style="vertical-align: middle;"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${trx.Tipe_Arus}</span></td>
-        <td data-label="Aksi" style="text-align: center; white-space: nowrap; vertical-align: middle;">
-          <button class="btn-icon admin-only" style="color: #64748b;" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer" style="font-size: 16px;"></i></button>
-          <button class="btn-icon admin-only" style="color: var(--warning);" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple" style="font-size: 16px;"></i></button>
-          <button class="btn-icon admin-only" style="color: var(--danger);" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash" style="font-size: 16px;"></i></button>
-        </td>
+        ${aksiTd}
     `;
     fragment.appendChild(tr);
   });
@@ -498,7 +504,7 @@ export const renderChart = () => {
 
   document.getElementById('stat-health-pct').innerText = `${healthPct}%`;
   document.getElementById('stat-health-fill').style.width = `${healthPct}%`;
-  document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari ${formatRp(totalExpected)} expected.`;
+  document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari target ${formatRp(totalExpected)}.`;
   const noteEl = document.getElementById('stat-health-note');
   if (noteEl) noteEl.innerText = '';
 
@@ -617,6 +623,7 @@ const renderExpenseChart = (isDark, textColor) => {
     return;
   }
 
+  const isMobileView = window.innerWidth < 768;
   const expenseChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -633,8 +640,8 @@ const renderExpenseChart = (isDark, textColor) => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'right',
-          labels: { color: textColor, font: { family: 'Inter', size: 11 }, padding: 20 }
+          position: isMobileView ? 'bottom' : 'right',
+          labels: { color: textColor, font: { family: 'Inter', size: 11 }, padding: isMobileView ? 12 : 20, boxWidth: isMobileView ? 14 : 40 }
         },
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatRp(ctx.raw)}` } }
       },

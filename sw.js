@@ -1,4 +1,4 @@
-const CACHE_NAME = 'demokas-v6';
+const CACHE_NAME = 'demokas-v9';
 
 // Local assets including ES modules and old script.js as fallback
 const LOCAL_ASSETS = [
@@ -43,17 +43,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch — cache-first for local, network-first for external
+// Fetch — network-first for local files (always fresh when online),
+// fall back to cache when offline. External requests go to network.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Only use cache-first for same-origin requests
-  if (url.origin === location.origin) {
+  if (url.origin === location.origin && event.request.method === 'GET') {
     event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
-  // External requests (CDN, etc.) go straight to network — no CORS issues
 });
 
 /* ── Offline queue sync ────────────────────────────────────────── */

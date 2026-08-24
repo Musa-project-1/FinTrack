@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -60,13 +60,14 @@
               <i class="ph ph-list" style="font-size: 22px;"></i>
             </button>
             <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
-              <button class="dropdown-item" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key" style="margin-right:8px"></i> Login</button>
-              <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out" style="margin-right:8px"></i> Logout Admin</button>
-              <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x" style="margin-right:8px"></i> Bulan Libur</button>
-              <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective" style="margin-right:8px"></i> Log Aktivitas</button>
-              <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise" style="margin-right:8px"></i> Riwayat</button>
-              <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar" style="margin-right:8px"></i> Statistik</button>
-              <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export" style="margin-right:8px"></i> Export</button>
+              <button class="dropdown-item non-admin-only" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login</button>
+              <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out" style="margin-right:8px; font-size:18px; color:var(--danger);"></i> Logout Admin</button>
+              <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x" style="margin-right:8px; font-size:18px; color:var(--warning);"></i> Bulan Libur</button>
+              <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective" style="margin-right:8px; font-size:18px; color:#64748b;"></i> Log Aktivitas</button>
+              <button class="dropdown-item admin-only" data-action="open-database" role="menuitem"><i class="ph ph-database" style="margin-right:8px; font-size:18px; color:#0f9d58;"></i> Database (Sheets)</button>
+              <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Riwayat</button>
+              <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Statistik</button>
+              <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Export</button>
             </div>
           </div>
 
@@ -101,7 +102,7 @@
       </div>
     </div>
 
-    <div class="table-card">
+    <div class="table-card" id="section-rekap">
       <div class="table-header">
         <div style="display:flex; align-items:center; gap:16px; flex:1;">
           <h2 class="table-title">
@@ -109,7 +110,7 @@
             Status Iuran
           </h2>
         </div>
-        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;" class="table-header-controls">
+        <div class="table-header-controls">
           <div class="search-wrapper member-search-wrapper" style="margin-bottom: 0;">
             <i class="ph ph-magnifying-glass"></i>
             <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
@@ -168,8 +169,58 @@
     </div>
   </div>
 
+  <!-- Menu Bottom Sheet (mobile) -->
+  <div class="modal-overlay" id="modal-menu">
+    <div class="modal-content menu-sheet">
+      <div class="quickpay-handle" aria-hidden="true"></div>
+      <div class="modal-title" style="font-size: 18px; margin-bottom: 10px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-list" style="color:var(--primary);"></i> Menu</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="menu-sheet-list">
+        <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar" style="font-size:20px; color:var(--primary);"></i> Statistik</button>
+        <button class="dropdown-item" data-action="open-export"><i class="ph ph-export" style="font-size:20px; color:var(--primary);"></i> Export Data</button>
+        <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x" style="font-size:20px; color:var(--warning);"></i> Bulan Libur</button>
+        <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective" style="font-size:20px; color:#64748b;"></i> Log Aktivitas</button>
+        <button class="dropdown-item admin-only" data-action="open-database"><i class="ph ph-database" style="font-size:20px; color:#0f9d58;"></i> Database (Sheets)</button>
+        <button class="dropdown-item non-admin-only" data-action="open-login"><i class="ph ph-lock-key" style="font-size:20px; color:var(--primary);"></i> Login Admin</button>
+        <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out" style="font-size:20px; color:var(--danger);"></i> Logout Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Pay Bottom Sheet -->
+  <div class="modal-overlay" id="modal-quickpay">
+    <div class="modal-content quickpay-sheet">
+      <div class="quickpay-handle" aria-hidden="true"></div>
+      <div class="modal-title" style="font-size: 18px; margin-bottom: 16px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-hand-coins" style="color:var(--primary);"></i> Bayar Iuran Cepat</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="form-quickpay">
+        <input type="hidden" id="qp-id-anggota">
+        <input type="hidden" id="qp-bulan">
+        <input type="hidden" id="qp-tahun">
+        <div class="qp-member">
+          <div class="qp-avatar" id="qp-avatar">?</div>
+          <div style="min-width:0;">
+            <div id="qp-nama" style="font-weight:700; font-size:15px; color:var(--text-main);">-</div>
+            <div id="qp-periode" style="font-size:12px; color:var(--text-muted);">-</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Nominal</label>
+          <input type="text" id="qp-nominal" class="form-control" inputmode="numeric" required style="font-weight:700; font-size:16px;">
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-submit-quickpay" style="width:100%; padding:12px; margin-top:4px;">
+          <i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Audit Log Modal -->
-  <div class="modal-overlay" id="modal-audit-log">
+  <div class="modal-overlay modal-top" id="modal-audit-log">
     <div class="modal-content" style="max-width: 760px; padding: 18px;">
       <div class="modal-title" style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-detective" style="color:var(--primary);"></i> Log Aktivitas Admin</span>
@@ -196,7 +247,8 @@
   </div>
 
   <!-- Skipped Months / Bulan Libur Modal -->
-  <div class="modal-overlay" id="modal-skipped-months">    <div class="modal-content" style="max-width: 520px; padding: 18px;">
+  <div class="modal-overlay" id="modal-skipped-months">
+    <div class="modal-content" style="max-width: 520px; padding: 18px;">
       <div class="modal-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-calendar-x" style="color:var(--primary);"></i> Atur Bulan Libur (Bulan Skip)</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
@@ -219,7 +271,7 @@
   </div>
 
   <!-- Offline Queue Modal -->
-  <div class="modal-overlay" id="modal-offline-queue">
+  <div class="modal-overlay modal-top" id="modal-offline-queue">
     <div class="modal-content" style="max-width: 720px; padding: 18px;">
       <div class="modal-title" style="margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-spinner"></i> Transaksi Tertunda</span>
@@ -267,7 +319,7 @@
   </div>
 
   <!-- History Modal -->
-  <div class="modal-overlay" id="modal-riwayat">
+  <div class="modal-overlay modal-top" id="modal-riwayat">
     <div class="modal-content" style="max-width: 1100px; padding: 24px;">
       <div class="modal-title" style="margin-bottom: 16px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--primary);"></i> Riwayat Transaksi</span>
@@ -290,6 +342,9 @@
           <select id="filter-tahun" class="form-control" style="width: auto; padding: 4px 10px; height: 36px; font-size: 13px; border-radius: 20px;">
             <option value="all">Semua Tahun</option>
           </select>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month">Bulan Lalu</button>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time">Semua Waktu</button>
           <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px; align-self: center;"></div>
           <button class="chip-btn active" data-action="set-history-filter" data-filter="semua">Semua</button>
           <button class="chip-btn" data-action="set-history-filter" data-filter="masuk">Masuk</button>
@@ -324,7 +379,7 @@
   </div>
 
   <!-- Transaction Modal -->
-  <div class="modal-overlay" id="modal-transaksi">
+  <div class="modal-overlay modal-top" id="modal-transaksi">
     <div class="modal-content">
       <div class="modal-title">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-plus-circle" style="color:var(--primary);"></i> Catat Transaksi Baru</span>
@@ -463,7 +518,7 @@
   </div>
 
   <!-- Edit Transaction Modal -->
-  <div class="modal-overlay" id="modal-edit-transaksi">
+  <div class="modal-overlay modal-top" id="modal-edit-transaksi">
     <div class="modal-content">
       <div class="modal-title">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-pencil-simple" style="color:var(--warning);"></i> Edit Transaksi</span>
@@ -532,8 +587,23 @@
     </div>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" id="modal-logout">
+    <div class="modal-content" style="max-width:380px; text-align:center; padding: 40px 30px;">
+      <div style="width: 64px; height: 64px; background: rgba(100, 116, 139, 0.12); color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+        <i class="ph-bold ph-sign-out"></i>
+      </div>
+      <h2 style="margin-bottom: 12px; font-size: 20px;">Keluar dari mode Admin?</h2>
+      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Anda perlu login kembali untuk mengelola data.</p>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
+        <button class="btn btn-outline" style="flex:1;" data-action="cancel-logout">Batal</button>
+        <button class="btn btn-primary" style="flex:1; background: #64748b;" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Statistics Modal -->
-  <div class="modal-overlay" id="modal-statistik">
+  <div class="modal-overlay modal-top" id="modal-statistik">
     <div class="modal-content" style="max-width: 900px; padding: 24px;">
       <div class="modal-title" style="margin-bottom: 20px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-chart-bar" style="color:var(--primary);"></i> Statistik Kas</span>
@@ -591,7 +661,7 @@
   </div>
 
   <!-- Member Profile Modal -->
-  <div class="modal-overlay" id="modal-profil-anggota">
+  <div class="modal-overlay modal-top" id="modal-profil-anggota">
     <div class="modal-content" style="max-width: 700px; padding: 24px;">
       <div class="modal-title" style="margin-bottom: 20px;">
         <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-user-circle" style="color:var(--primary);"></i> Profil Anggota</span>
@@ -647,11 +717,35 @@
 
   <div id="toast-container"></div>
 
+  <!-- Bottom Navigation (mobile only) -->
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
+    <button class="bottom-nav-item active" data-action="nav-home" aria-label="Beranda">
+      <i class="ph-fill ph-house"></i>
+      <span>Beranda</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-riwayat" aria-label="Riwayat">
+      <i class="ph ph-clock-counter-clockwise"></i>
+      <span>Riwayat</span>
+    </button>
+    <button class="bottom-nav-item bottom-nav-cta admin-only" data-action="nav-catat" aria-label="Catat Transaksi">
+      <i class="ph-bold ph-plus"></i>
+      <span>Catat</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-rekap" aria-label="Rekap">
+      <i class="ph ph-table"></i>
+      <span>Rekap</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-menu" aria-label="Menu">
+      <i class="ph ph-list"></i>
+      <span>Menu</span>
+    </button>
+  </nav>
+
   <script type="module" src="js/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
           .then(reg => console.log('Service Worker Registered'))
           .catch(err => console.log('SW Registration Failed', err));
       });

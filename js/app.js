@@ -5,7 +5,7 @@
  * global callbacks for backward-compatibility with inline handlers in HTML.
  */
 
-import { GAS_URL, NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from './config.js';
+import { GAS_URL, NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS, SHEETS_URL } from './config.js';
 import {
   getState, setState, addTransaction, saveCache, loadCache,
   getAdminPassword, setAdminPassword, clearAdminPassword,
@@ -18,7 +18,7 @@ import {
   postToBackend, sendAdminPayload, fetchInitialData,
   loginAdminApi, checkAdminSessionApi, logoutAdminApi, fetchAuditLogApi
 } from './api.js';
-import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml } from './utils.js';
+import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml, getInitials, getAvatarGradient } from './utils.js';
 import {
   openOfflineDB, addOfflineTransaction, getOfflineTransactions,
   deleteOfflineTransaction, queueOfflinePayload, syncOfflineTransactions
@@ -54,6 +54,11 @@ document.addEventListener('click', (e) => {
   if (!target) return;
 
   const action = target.getAttribute('data-action');
+
+  // Menu sheet: close itself before opening the target modal (no stacking)
+  if (target.closest('#modal-menu') && action !== 'close-modal' && !['logout', 'close-dropdown'].includes(action)) {
+    closeModal('modal-menu');
+  }
   const id = target.getAttribute('data-id');
   const month = target.getAttribute('data-month');
   const anggota = target.getAttribute('data-anggota');
@@ -70,11 +75,26 @@ document.addEventListener('click', (e) => {
     case 'open-skipped-months': openSkippedMonthsModal(); break;
     case 'open-audit-log':   closeHeaderDropdown(); openAuditLogModal(); break;
     case 'refresh-audit-log': renderAuditLogList(); break;
+    case 'open-database':    window.open(SHEETS_URL, '_blank'); break;
     case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
     case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); break;
     case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;
     case 'buka-transaksi':   bukaModalTransaksi(); break;
     case 'pilih-nominal':    e.stopPropagation(); pilihNominalCepat(parseInt(target.getAttribute('data-nilai')), target, updateCounterIuran); break;
+
+    /* ── Bottom navigation (mobile) ───────────────── */
+    case 'nav-home':         closeActiveModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); setBottomNavActive('nav-home'); break;
+    case 'nav-riwayat':      closeActiveModal(); setBottomNavActive('nav-riwayat'); openModal('modal-riwayat'); break;
+    case 'nav-rekap':        closeActiveModal(); setBottomNavActive('nav-rekap'); document.getElementById('section-rekap')?.scrollIntoView({ behavior: 'smooth' }); break;
+    case 'nav-catat':
+      setBottomNavActive('nav-catat');
+      if (getIsAdminSession()) bukaModalTransaksi();
+      else openModal('modal-login');
+      break;
+    case 'nav-menu':
+      setBottomNavActive('nav-menu');
+      openModal('modal-menu');
+      break;
 
     /* ── Modals ───────────────────────────────────── */
     case 'close-modal':      closeModal(target.closest('.modal-overlay').id); break;
@@ -89,8 +109,8 @@ document.addEventListener('click', (e) => {
     case 'hapus':            e.stopPropagation(); konfirmasiHapus(id); break;
 
     /* ── Quick pay ────────────────────────────────── */
-    case 'quickpay':         e.stopPropagation(); quickPay(anggota, bulan); break;
-    case 'quickpay-card':    e.stopPropagation(); quickPay(anggota, bulan); break;
+    case 'quickpay':         e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
+    case 'quickpay-card':    e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
 
     /* ── Mobile card accordion ────────────────────── */
     case 'toggle-card':      toggleIuranCard(target.closest('.iuran-member-card')); break;
@@ -101,6 +121,7 @@ document.addEventListener('click', (e) => {
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
+    case 'set-riwayat-preset': applyRiwayatPreset(target.getAttribute('data-preset'), target); break;
     case 'load-more':        loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
@@ -109,7 +130,9 @@ document.addEventListener('click', (e) => {
     case 'print-reminder':   createGroupReminderMessage(); break;
 
     /* ── Login/Logout ─────────────────────────────── */
-    case 'logout':           closeHeaderDropdown(); logoutAdminAction(); break;
+    case 'logout':           closeHeaderDropdown(); openModal('modal-logout'); break;
+    case 'confirm-logout':   logoutAdminAction(); break;
+    case 'cancel-logout':    closeModal('modal-logout'); break;
 
     /* ── Delete confirmation ──────────────────────── */
     case 'confirm-delete':   eksekusiHapus(); break;
@@ -177,6 +200,23 @@ document.getElementById('modal-edit-transaksi')?.addEventListener('submit', (e) 
   submitEditTransaksi(e);
 });
 
+document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
+  submitQuickPay(e);
+});
+
+/* ── Bottom nav helpers ────────────────────────────────────────── */
+
+const setBottomNavActive = (action) => {
+  document.querySelectorAll('.bottom-nav-item').forEach((b) => {
+    b.classList.toggle('active', b.getAttribute('data-action') === action);
+  });
+};
+
+const closeActiveModal = () => {
+  const active = document.querySelector('.modal-overlay.active');
+  if (active) closeModal(active.id);
+};
+
 /* ══════════════════════════════════════════════════════════════════
    ADMIN UI MANAGEMENT
    ══════════════════════════════════════════════════════════════════ */
@@ -186,11 +226,14 @@ const handleUI = (isAdmin) => {
   document.querySelectorAll('.admin-only').forEach((el) => {
     el.style.display = getIsAdminSession() ? '' : 'none';
   });
+  document.querySelectorAll('.non-admin-only').forEach((el) => {
+    el.style.display = getIsAdminSession() ? 'none' : '';
+  });
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
     btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary);"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key" style="margin-right:8px"></i> Login ';
+      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary); margin-right:8px; font-size:18px;"></i> Admin Aktif'
+      : '<i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login';
   }
   const logoutBtn = document.getElementById('btn-logout-admin');
   if (logoutBtn) logoutBtn.style.display = getIsAdminSession() ? '' : 'none';
@@ -200,8 +243,8 @@ const renderAdminUI = () => {
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
     btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary);"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key" style="margin-right:8px"></i> Login ';
+      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary); margin-right:8px; font-size:18px;"></i> Admin Aktif'
+      : '<i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login';
   }
   document.body.classList.toggle('admin-mode', getIsAdminSession());
   const waBtn = document.getElementById('btn-copy-wa-reminder');
@@ -225,11 +268,11 @@ const submitLoginAdmin = async (e) => {
 
   if (resJSON && resJSON.status) {
     setAdminPassword(hashedPwd);
+    handleUI(true);
+    renderAdminUI();
     closeModal('modal-login');
     document.getElementById('input-admin-pwd').value = '';
-    renderAdminUI();
-    handleUI(true);
-    initApp();
+    renderAll();
     renderChart();
     showToast('Berhasil Login sebagai Admin!', 'success');
   } else {
@@ -243,13 +286,14 @@ const submitLoginAdmin = async (e) => {
 };
 
 const logoutAdminAction = async () => {
-  if (!confirm('Apakah Anda yakin ingin keluar dari mode Admin?')) return;
+  closeModal('modal-logout');
   const res = await logoutAdminApi();
   if (res && res.status) {
     setIsAdminSession(false);
     clearAdminPassword();
     renderAdminUI();
     handleUI(false);
+    renderAll();
     showToast('Berhasil logout.', 'success');
   } else {
     showToast('Gagal logout dari server.', 'error');
@@ -263,6 +307,46 @@ const logoutAdminAction = async () => {
 const setHistoryFilter = (filter, btn) => {
   setCurrentHistoryFilter(filter);
   document.querySelectorAll('#history-filter-chips .chip-btn').forEach((b) => b.classList.remove('active'));
+  btn.classList.add('active');
+  setItemsToShow(20);
+  renderTableTransaksi();
+};
+
+/* ── Quick presets: Bulan Ini / Bulan Lalu / Semua Waktu ───────── */
+
+const clearRiwayatPresetHighlight = () => {
+  document.querySelectorAll('#history-filter-chips [data-preset]').forEach((b) => b.classList.remove('active'));
+};
+
+const applyRiwayatPreset = (preset, btn) => {
+  const now = new Date();
+  let year = now.getFullYear();
+  let monthIdx = now.getMonth();
+  if (preset === 'last-month') {
+    monthIdx -= 1;
+    if (monthIdx < 0) { monthIdx = 11; year -= 1; }
+  }
+
+  const bulanSel = document.getElementById('filter-bulan');
+  const tahunSel = document.getElementById('filter-tahun');
+  if (!bulanSel || !tahunSel) return;
+
+  if (preset === 'all-time') {
+    bulanSel.value = 'all';
+    tahunSel.value = 'all';
+  } else {
+    const yearStr = String(year);
+    if (!Array.from(tahunSel.options).some((o) => o.value === yearStr)) {
+      const opt = document.createElement('option');
+      opt.value = yearStr;
+      opt.text = yearStr;
+      tahunSel.appendChild(opt);
+    }
+    bulanSel.value = String(monthIdx);
+    tahunSel.value = yearStr;
+  }
+
+  clearRiwayatPresetHighlight();
   btn.classList.add('active');
   setItemsToShow(20);
   renderTableTransaksi();
@@ -285,22 +369,93 @@ const setupRekapSearchListener = () => {
 window.gantiTahunRekap = (v) => { setCurrentRekapYear(v); renderTableRekap(); };
 
 /* ══════════════════════════════════════════════════════════════════
-   QUICK PAY
+   QUICK PAY (BOTTOM SHEET)
    ══════════════════════════════════════════════════════════════════ */
 
-const quickPay = async (idAnggota, bulan) => {
-  bukaModalTransaksi();
-  await new Promise((r) => setTimeout(r, 100));
-  document.getElementById('iuran-bulan').value = bulan;
-  document.getElementById('iuran-tahun').value = currentRekapYear;
-  renderCheckboxIuran();
-  await new Promise((r) => setTimeout(r, 50));
-  document.querySelectorAll('.chk-iuran').forEach((chk) => {
-    if (chk.value === idAnggota && !chk.disabled) {
-      chk.checked = true;
-      updateCounterIuran();
+const openQuickPaySheet = (idAnggota, bulan) => {
+  if (!idAnggota || !bulan) return;
+  const ang = getState().anggota.find((a) => a.ID_Anggota === idAnggota);
+  if (!ang) return showToast('Anggota tidak ditemukan.', 'error');
+
+  document.getElementById('qp-id-anggota').value = idAnggota;
+  document.getElementById('qp-bulan').value = bulan;
+  document.getElementById('qp-tahun').value = currentRekapYear;
+  document.getElementById('qp-nama').innerText = ang.Nama_Anggota;
+  document.getElementById('qp-periode').innerText = `Iuran ${bulan} ${currentRekapYear}`;
+  const avatar = document.getElementById('qp-avatar');
+  avatar.innerText = getInitials(ang.Nama_Anggota);
+  avatar.style.background = getAvatarGradient(ang.Nama_Anggota, AVATAR_GRADIENTS);
+  const nominalEl = document.getElementById('qp-nominal');
+  nominalEl.value = new Intl.NumberFormat('id-ID').format(DEFAULT_MONTHLY_FEE);
+  openModal('modal-quickpay');
+};
+
+const submitQuickPay = async (e) => {
+  e.preventDefault();
+  const idAnggota = document.getElementById('qp-id-anggota').value;
+  const bulan = document.getElementById('qp-bulan').value;
+  const tahun = document.getElementById('qp-tahun').value;
+  const nominal = getRawNominal('qp-nominal');
+
+  if (nominal <= 0) return showToast('Nominal harus lebih dari 0.', 'error');
+
+  const state = getState();
+  const kat = state.kategori.find((k) => k.Tipe === 'Masuk');
+  if (!kat) return showToast('Buat kategori Masuk terlebih dahulu.', 'error');
+
+  const btn = document.getElementById('btn-submit-quickpay');
+  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
+  btn.disabled = true;
+
+  const payload = {
+    action: 'tambahTransaksi',
+    dataForm: {
+      tipeArus: 'Masuk', idKategori: kat.ID_Kategori, idAnggota,
+      bulanIuran: bulan, tahunIuran: tahun, nominal, keterangan: 'Iuran Anggota'
     }
-  });
+  };
+
+  const optimisticUpdate = () => {
+    addTransaction({
+      ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: new Date().toISOString(),
+      Tipe_Arus: 'Masuk', ID_Kategori: kat.ID_Kategori, ID_Anggota: idAnggota,
+      Bulan_Iuran: bulan, Tahun_Iuran: tahun, Nominal: nominal, Keterangan: 'Iuran Anggota'
+    });
+    renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
+  };
+
+  const resetBtn = () => { btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG'; btn.disabled = false; };
+
+  if (!isOnline()) {
+    await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+    showToast('Offline: pembayaran disimpan lokal untuk sinkronisasi nanti.', 'success');
+    closeModal('modal-quickpay');
+    optimisticUpdate();
+    resetBtn();
+    return;
+  }
+
+  try {
+    const resJSON = await sendAdminPayload(payload);
+    if (!resJSON) {
+      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+      showToast('Offline atau server tidak tersedia. Pembayaran disimpan lokal.', 'success');
+      closeModal('modal-quickpay');
+      optimisticUpdate();
+      return;
+    }
+    if (resJSON.status) {
+      showToast(`Iuran ${bulan} ${tahun} untuk ${getState().anggota.find((a) => a.ID_Anggota === idAnggota)?.Nama_Anggota || 'anggota'} berhasil dicatat!`);
+      closeModal('modal-quickpay');
+      optimisticUpdate();
+    } else {
+      showToast(resJSON.message, 'error');
+    }
+  } catch (error) {
+    showToast('Gagal menyimpan data.', 'error');
+  } finally {
+    resetBtn();
+  }
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -957,6 +1112,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   const opsNominal = document.getElementById('ops-nominal');
   if (opsNominal) opsNominal.addEventListener('input', function() { handleNominalInput(this); updateCounterOps(); });
 
+  const qpNominal = document.getElementById('qp-nominal');
+  if (qpNominal) qpNominal.addEventListener('input', function() { handleNominalInput(this); });
+
   const iuranBulan = document.getElementById('iuran-bulan');
   if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
 
@@ -973,10 +1131,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (searchTrx) searchTrx.addEventListener('keyup', renderTableTransaksi);
 
   const filterBulan = document.getElementById('filter-bulan');
-  if (filterBulan) filterBulan.addEventListener('change', renderTableTransaksi);
+  if (filterBulan) filterBulan.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
 
   const filterTahun = document.getElementById('filter-tahun');
-  if (filterTahun) filterTahun.addEventListener('change', renderTableTransaksi);
+  if (filterTahun) filterTahun.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
 
   const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
   if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('keyup', filterAnggotaIuran);

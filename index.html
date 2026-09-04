@@ -399,32 +399,58 @@
 
   <!-- History Modal -->
   <div class="modal-overlay modal-top" id="modal-riwayat">
-    <div class="modal-content" style="max-width: 1100px; padding: 24px;">
-      <div class="modal-title" style="margin-bottom: 16px;">
-        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-clock-counter-clockwise" style="color:var(--primary);"></i> Riwayat Transaksi</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+    <div class="modal-content riwayat-modal-content">
+      <!-- Modal Header -->
+      <div class="riwayat-header">
+        <div class="riwayat-header-left">
+          <div class="riwayat-icon-badge">
+            <i class="ph-fill ph-clock-counter-clockwise"></i>
+          </div>
+          <div>
+            <h2 class="riwayat-title">Riwayat Transaksi</h2>
+            <p class="riwayat-subtitle">Pencatatan arus kas masuk, keluar, dan iuran anggota</p>
+          </div>
+        </div>
+        <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
-        <div class="search-wrapper" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+      <!-- Controls & Filter Toolbar -->
+      <div class="riwayat-toolbar">
+        <div class="search-wrapper riwayat-search">
           <i class="ph ph-magnifying-glass"></i>
-          <input type="text" id="search-trx" class="form-control" placeholder="Cari keterangan atau kategori...">
+          <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota, kategori...">
         </div>
-        <div class="filter-chips" id="history-filter-chips" style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <select id="filter-bulan" class="form-control" style="width: auto; padding: 4px 10px; height: 36px; font-size: 13px; border-radius: 20px;">
-            <option value="all">Semua Bulan</option>
-            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
-            <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
-            <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
-            <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-          </select>
-          <select id="filter-tahun" class="form-control" style="width: auto; padding: 4px 10px; height: 36px; font-size: 13px; border-radius: 20px;">
-            <option value="all">Semua Tahun</option>
-          </select>
+
+        <div class="riwayat-selectors">
+          <div class="select-pill-wrap">
+            <i class="ph ph-calendar"></i>
+            <select id="filter-bulan" class="riwayat-select" aria-label="Filter Bulan">
+              <option value="all">Semua Bulan</option>
+              <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+              <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+              <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+              <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+            </select>
+          </div>
+
+          <div class="select-pill-wrap">
+            <i class="ph ph-calendar-blank"></i>
+            <select id="filter-tahun" class="riwayat-select" aria-label="Filter Tahun">
+              <option value="all">Semua Tahun</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segmented Chips Filter (Scrollable on Mobile) -->
+      <div class="riwayat-chips-bar" id="history-filter-chips">
+        <div class="chips-group">
           <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
           <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month">Bulan Lalu</button>
           <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time">Semua Waktu</button>
-          <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px; align-self: center;"></div>
+        </div>
+        <div class="chips-divider"></div>
+        <div class="chips-group">
           <button class="chip-btn active" data-action="set-history-filter" data-filter="semua">Semua</button>
           <button class="chip-btn" data-action="set-history-filter" data-filter="masuk">Masuk</button>
           <button class="chip-btn" data-action="set-history-filter" data-filter="keluar">Keluar</button>
@@ -433,23 +459,24 @@
         </div>
       </div>
       
-      <div class="table-responsive table-scrollable" style="max-height: 50vh; border-radius: var(--radius-sm); border: 1px solid var(--border); position: relative;">
+      <!-- Table / Cards List Container -->
+      <div class="table-responsive table-scrollable riwayat-scroll-area">
         <table style="margin-bottom: 0;" id="table-riwayat-data">
           <thead>
             <tr>
-              <th style="background: var(--bg-color);">Waktu</th>
-              <th style="background: var(--bg-color);">Keterangan Transaksi</th>
-              <th style="background: var(--bg-color);">Nominal</th>
-              <th style="background: var(--bg-color);">Tipe Arus</th>
-              <th style="background: var(--bg-color); text-align: center; min-width: 140px;">Aksi</th>
+              <th style="width: 140px;">Waktu</th>
+              <th>Keterangan Transaksi</th>
+              <th style="width: 160px; text-align: right; padding-right: 20px;">Nominal</th>
+              <th style="width: 130px; text-align: center;">Tipe Arus</th>
+              <th style="width: 140px; text-align: center;" class="admin-only">Aksi</th>
             </tr>
           </thead>
           <tbody id="ui-table-trx">
             <tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>
           </tbody>
         </table>
-        <div id="load-more-container" style="text-align: center; padding: 15px; display: none; background: var(--bg-color); border-top: 1px solid var(--border);">
-          <button class="btn btn-outline" style="font-size: 13px; padding: 8px 24px;" data-action="load-more">
+        <div id="load-more-container" class="riwayat-load-more">
+          <button class="btn btn-outline" style="font-size: 13px; padding: 10px 24px;" data-action="load-more">
             <i class="ph-bold ph-caret-double-down"></i> Tampilkan Lebih Banyak
           </button>
         </div>

@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=29">
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=30">
+  <link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -538,18 +538,18 @@
                 <div class="summary-total"><span>TOTAL KAS:</span> <span id="summary-total">Rp 0</span></div>
               </div>
               
-              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; margin-top: 24px; border-radius: 12px; font-weight: 700; letter-spacing: 0.5px;" id="btn-submit-iuran">SIMPAN IURAN</button>
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-iuran">SIMPAN IURAN</button>
             </div>
 
             <div class="modal-main-selection">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
-                <label style="margin-bottom: 0; font-size: 15px; font-weight: 700; color: var(--text-main);">
-                  Pilih Anggota <span style="color: var(--primary); background: rgba(5, 150, 105, 0.1); padding: 2px 10px; border-radius: 20px; font-size: 13px; margin-left: 6px;" id="count-terpilih">0</span>
+              <div class="selection-header-row">
+                <label class="selection-label">
+                  Pilih Anggota <span class="badge-count-terpilih" id="count-terpilih">0</span>
                 </label>
-                <button type="button" id="btn-pilih-semua" class="btn btn-outline" style="padding: 6px 16px; font-size: 13px; border-radius: 100px;">Pilih Semua</button>
+                <button type="button" id="btn-pilih-semua" class="btn btn-outline btn-select-all">Pilih Semua</button>
               </div>
 
-              <div class="search-wrapper" style="margin-bottom: 20px;">
+              <div class="search-wrapper mb-16">
                 <i class="ph ph-magnifying-glass"></i>
                 <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
               </div>
@@ -586,20 +586,20 @@
               </div>
 
               <div class="summary-card">
-                <div class="summary-item"><span>Tipe:</span> <span id="summary-ops-tipe" style="font-weight:700; color:var(--danger);">PENGELUARAN</span></div>
+                <div class="summary-item"><span>Tipe:</span> <span id="summary-ops-tipe" class="summary-ops-tipe-badge">PENGELUARAN</span></div>
                 <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
                 <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
               </div>
               
-              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; margin-top: 24px; border-radius: 12px; font-weight: 700;" id="btn-submit-ops">SIMPAN OPERASIONAL</button>
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN OPERASIONAL</button>
             </div>
 
             <div class="modal-main-selection">
-              <label style="display:block; margin-bottom: 16px; font-size: 15px; font-weight: 700; color: var(--text-main);">Detail Transaksi</label>
+              <label class="selection-label mb-16 d-block">Detail Transaksi</label>
               
               <div class="form-group">
                 <label>Keterangan / Catatan</label>
-                <textarea id="ops-keterangan" class="form-control" required style="min-height: 120px; resize: none; padding-top: 16px;" placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
+                <textarea id="ops-keterangan" class="form-control textarea-ops" required placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
               </div>
 
               <div class="form-group" style="margin-top: 24px;">
@@ -844,11 +844,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=29"></script>
+  <script type="module" src="js/app.js?v=30"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=29', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=30', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

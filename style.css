@@ -1590,15 +1590,6 @@ body { padding: 6px 0 40px 0; }
     font-size: 14px;
     flex-shrink: 0;
   }
-  .btn-catat-mobile {
-    background: var(--primary) !important;
-    color: white !important;
-    border: none !important;
-    padding: 6px 8px !important;
-  }
-  .btn-catat-mobile:hover {
-    background: #059669 !important;
-  }
   .header-actions { 
     display: none !important;
     position: fixed;
@@ -1687,7 +1678,6 @@ body { padding: 6px 0 40px 0; }
   .header-actions::-webkit-scrollbar-track { background: transparent; }
   .header-actions::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   
-  .mobile-menu-btn { display: flex !important; }
   .btn-export { display: none; }
   .dashboard { 
     display: grid;
@@ -2596,6 +2586,16 @@ body { padding: 6px 0 40px 0; }
 
   .menu-sheet-list .dropdown-item:active {
     background: var(--bg-color);
+  }
+
+  /* Hamburger replaced by bottom nav on mobile */
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  /* Duplicate of bottom-nav [+ Catat] CTA */
+  .btn-catat-mobile {
+    display: none !important;
   }
 
   /* Bottom Navigation Mobile */

@@ -597,6 +597,49 @@ body {
   font-size: 13px;
 }
 
+/* Checkbox items for iuran selection */
+.item-disabled-lunas {
+  background: var(--bg-color) !important;
+  border-color: var(--border) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+.chk-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chk-name-lunas {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.chk-badge-lunas {
+  font-size: 10px;
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chk-name-pending {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.chk-badge-pending {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

@@ -184,20 +184,20 @@ export const renderCheckboxIuran = () => {
       const isLunas = mapLunas[ang.ID_Anggota];
       if (isLunas) {
         htmlParts.push(`
-          <label class="checkbox-item" style="background: var(--bg-color); border-color: var(--border); cursor: not-allowed; opacity: 0.6; box-shadow: none;">
+          <label class="checkbox-item item-disabled-lunas">
             <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" disabled checked>
-            <div style="display:flex; flex-direction:column; gap:2px;">
-              <span style="color: var(--text-muted); text-decoration: line-through; font-size: 13px; font-weight: 500;">${escapeHtml(ang.Nama_Anggota)}</span>
-              <div style="font-size: 10px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 4px;"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
+            <div class="chk-info-col">
+              <span class="chk-name-lunas">${escapeHtml(ang.Nama_Anggota)}</span>
+              <div class="chk-badge-lunas"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
             </div>
           </label>`);
       } else {
         htmlParts.push(`
           <label class="checkbox-item">
             <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" onchange="window.__updateCounterIuran && window.__updateCounterIuran()">
-            <div style="display:flex; flex-direction:column; gap:2px;">
-              <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">${escapeHtml(ang.Nama_Anggota)}</span>
-              <div style="font-size: 10px; color: var(--text-muted); font-weight: 500;">BELUM BAYAR</div>
+            <div class="chk-info-col">
+              <span class="chk-name-pending">${escapeHtml(ang.Nama_Anggota)}</span>
+              <div class="chk-badge-pending">BELUM BAYAR</div>
             </div>
           </label>`);
       }

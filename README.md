@@ -1,67 +1,71 @@
 # Finkas
 
-Aplikasi kas anggota berbasis web (PWA) untuk mencatat iuran, kas operasional, dan rekap pembayaran — backend Firebase Firestore.
+Aplikasi manajemen kas anggota dan kas operasional berbasis web (**Progressive Web App / PWA**) dengan arsitektur modern tanpa framework berat, didukung oleh backend **Google Cloud Firestore**.
 
-## Fitur
+---
 
-- **Dashboard** — total masuk, keluar, saldo, dan grafik arus kas bulanan (Chart.js)
-- **Iuran Anggota** — catat pembayaran massal banyak anggota sekaligus, cepat via quick-pay di rekap
-- **Kas Operasional** — transaksi masuk/keluar non-anggota dengan kategori
-- **Riwayat Transaksi** — pencarian, filter bulan/tahun (berdasarkan periode iuran), filter kategori
-- **Rekap Matriks** — grid 12 bulan per anggota, tandai bulan libur (skipped months)
-- **Profil Anggota** — riwayat, total kontribusi, statistik pembayaran
-- **Ekspor & Cetak** — CSV/Excel, struk transaksi, laporan tahunan, pesan pengingat WhatsApp
-- **Offline Mode (PWA)** — bisa dipasang, transaksi offline disimpan di IndexedDB dan disinkronkan otomatis
-- **Admin** — login password (hash SHA-256, sesi server 24 jam), proteksi duplikat iuran per anggota-bulan-tahun
+## ✨ Fitur Utama
 
-## Teknologi
+- **Dashboard Finansial** — Visualisasi saldo kas, total pemasukan, total pengeluaran, serta tren grafik bulanan interaktif (Chart.js) dengan format numerik monospaced (`tabular-nums`).
+- **Rekap Matriks Iuran 12 Bulan** — Grid 12 bulan per anggota (desktop) dan card view adaptif dengan progress bar (mobile).
+- **Pencatatan Cepat (Quick Pay)** — Bendahara dapat mencatat pembayaran anggota dalam 1 kali klik via modal bottom sheet.
+- **Kas Operasional** — Mencatat transaksi masuk/keluar non-iuran dengan kategori kustom.
+- **Kelola Master Data (CRUD Khusus Admin)** — Menambah, menonaktifkan, atau menghapus anggota dan kategori kas secara langsung dari modal admin.
+- **Bulan Libur (Skipped Months)** — Mengatur bulan libur agar tidak dihitung sebagai tunggakan.
+- **Riwayat & Filter Lengkap** — Pencarian instan berdasarkan nama/kategori, filter bulan & tahun periode iuran, serta preset rentang waktu.
+- **Profil & Statistik Anggota** — Riwayat kontribusi dan persentase pembayaran per individu.
+- **Ekspor & Pelaporan** — Ekspor data ke CSV/Excel, cetak struk transaksi formal, cetak rekap tahunan siap arsip, dan generator pesan pengingat tagihan WhatsApp otomatis.
+- **Offline-First (PWA)** — Dapat diinstall di Android/iOS/Desktop. Saat internet mati, transaksi tetap tersimpan di IndexedDB dan disinkronkan otomatis saat kembali online.
+- **Keamanan Admin** — Autentikasi dengan hash password SHA-256 tersimpan di Firestore, proteksi menu sensitif, dan pencegahan duplikasi data iuran.
 
-| Bagian | Teknologi |
+---
+
+## 🛠️ Teknologi
+
+| Layer | Teknologi |
 |---|---|
-| Frontend | HTML, CSS, JavaScript (ES Modules, tanpa framework) |
-| PWA | Service Worker, Web App Manifest, IndexedDB |
-| Backend | Google Apps Script (`doGet`/`doPost`) |
-| Database | Google Sheets (sheet: `Anggota`, `Kategori`, `Transaksi`, `Settings`) |
+| **Frontend** | HTML5, CSS3 (Modern Tokens, Zero AI Slop), Vanilla JavaScript (ES Modules) |
+| **PWA** | Service Worker, Web App Manifest, IndexedDB Background Sync |
+| **Backend & Database** | Google Cloud Firestore (REST API, Region: Jakarta `asia-southeast2`) |
+| **Grafik & Ikon** | Chart.js, Phosphor Icons Web, Custom Minimal Monogram SVG Icons |
 
-## Struktur
+---
+
+## 📁 Struktur Direktori
 
 ```
-├── index.html          # UI utama
-├── style.css           # Semua style (desktop + mobile)
-├── sw.js               # Service worker (cache + sync offline)
-├── manifest.json       # Manifest PWA
-├── icons/              # Ikon aplikasi (SVG)
+├── index.html          # Halaman utama aplikasi (UI)
+├── style.css           # Design tokens, responsive layout, dan tema dark/light
+├── sw.js               # Service worker (caching aset & sinkronisasi offline Firestore)
+├── manifest.json       # Konfigurasi PWA installable
+├── icons/              # Set ikon aplikasi (icon-512, icon-192, favicon SVG)
 └── js/
-    ├── config.js       # GAS_URL & konstanta
-    ├── utils.js        # Format rupiah, toast, hash, dll
-    ├── state.js        # State terpusat + cache localStorage
-    ├── api.js          # Komunikasi dengan backend GAS
-    ├── offline.js      # Antrean offline (IndexedDB)
-    ├── theme.js        # Dark/light mode
-    ├── modal.js        # Modal, tab, checkbox iuran
-    ├── render.js       # Render tabel, kartu, grafik
-    └── app.js          # Event delegation & inisialisasi
+    ├── config.js       # Konfigurasi Firebase (Project ID, App ID, API Key) & konstanta
+    ├── utils.js        # Format rupiah, sanitasi escapeHtml, hash SHA-256, toast, dsb.
+    ├── state.js        # Manajemen state terpusat & cache localStorage
+    ├── api.js          # Integrasi langsung ke Google Cloud Firestore REST API
+    ├── offline.js      # Antrean antarmuka offline (IndexedDB)
+    ├── theme.js        # Logika pergantian tema Dark / Light mode
+    ├── modal.js        # Pengendali modal, tab, dan filter checkbox anggota
+    ├── render.js       # Render reaktif (dashboard, matriks, kartu mobile, tabel riwayat)
+    └── app.js          # Inisialisasi aplikasi & event delegation
 ```
 
-Backend Apps Script (`backend_api.gs`, `Kode.gs`) tidak disertakan di repo — dikelola langsung di editor Apps Script.
+---
 
-## Setup
+## 🚀 Setup & Deployment
 
-### 1. Backend (Google Apps Script)
+### 1. Konfigurasi Firebase
+Aplikasi ini sudah terhubung ke Google Cloud Firestore project `finkas-kas`. Jika ingin menggunakan project sendiri:
+1. Buat project baru di [Firebase Console](https://console.firebase.google.com/).
+2. Aktifkan **Cloud Firestore Database** (Mode Native, pilih lokasi misal: `asia-southeast2`).
+3. Daftarkan Web App dan salin konfigurasi ke `js/config.js` (`FIREBASE_CONFIG`).
+4. Jalankan script inisialisasi dokumen `settings/app_config` dengan field `admin_password_hash` (default SHA-256 hash).
 
-1. Buat Google Spreadsheet dengan sheet `Anggota`, `Kategori`, `Transaksi` (header sesuai field: `ID_Transaksi`, `Timestamp`, `Tipe_Arus`, `ID_Kategori`, `ID_Anggota`, `Bulan_Iuran`, `Tahun_Iuran`, `Nominal`, `Keterangan`).
-2. Buat project Apps Script, tempel `backend_api.gs`, sesuaikan `SPREADSHEET_ID`.
-3. Jalankan sekali di editor: `setupAdminPassword('password-anda')`.
-4. **Deploy → New deployment → Web app**, akses: *Anyone*.
-5. Salin URL `/exec` yang dihasilkan.
+### 2. Hosting Frontend
+Karena Finkas merupakan aplikasi web statis murni tanpa server build yang rumit, Anda bisa langsung menghosting folder ini ke:
+- **GitHub Pages**
+- **Netlify / Vercel**
+- **Firebase Hosting**
 
-### 2. Frontend
-
-1. Ganti `GAS_URL` di `js/config.js` dan `sw.js` dengan URL dari langkah di atas.
-2. Host file statis (GitHub Pages, Netlify, atau hosting apa pun).
-3. Selesai — buka di browser, login admin lewat menu.
-
-## Catatan
-
-- Setiap deploy frontend sebaiknya menaikkan `CACHE_NAME` di `sw.js` agar pengguna mendapat file terbaru (service worker cache-first).
-- Backend menolak iuran duplikat: satu anggota hanya bisa tercatat sekali per bulan + tahun iuran.
+Buka halaman web di browser, lalu login sebagai pengurus melalui menu dropdown untuk mulai mengelola kas.

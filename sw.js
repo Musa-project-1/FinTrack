@@ -1,11 +1,17 @@
-const CACHE_NAME = 'finkas-v22';
+const CACHE_NAME = 'finkas-v23';
 
-// Local assets including ES modules and old script.js as fallback
+// Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
   '/',
   'index.html',
   'style.css',
   'manifest.json',
+  'icons/favicon.svg',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-192.svg',
+  'icons/icon-512.svg',
+  'icons/icon-light-192.svg',
   'js/config.js',
   'js/utils.js',
   'js/state.js',

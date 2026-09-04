@@ -3,9 +3,9 @@
  * All rendering functions: dashboard, tables, charts, mobile cards, member profile.
  */
 
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, AVATAR_GRADIENTS, CHART_COLORS } from './config.js';
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, CHART_COLORS } from './config.js';
 import { getState, currentRekapYear, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, getAdminPassword } from './state.js';
-import { formatRp, getInitials, getAvatarGradient, escapeHtml } from './utils.js';
+import { formatRp, escapeHtml } from './utils.js';
 import { openModal, closeModal, switchTab, resetChipAktif, filterKategori } from './modal.js';
 
 /* ── Render All ────────────────────────────────────────────────── */

@@ -916,6 +916,146 @@ body.dark-mode tr:hover td {
   font-size: 12px;
 }
 
+/* === MODAL UTILITIES & DIALOG STANDARDS === */
+.modal-sm {
+  max-width: 380px;
+}
+
+.modal-md {
+  max-width: 520px;
+}
+
+.modal-lg {
+  max-width: 820px;
+}
+
+.modal-xl {
+  max-width: 920px;
+}
+
+.modal-auth-card {
+  max-width: 380px;
+  text-align: center;
+  padding: 32px 28px;
+  position: relative;
+}
+
+.modal-auth-card .close-modal {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.modal-dialog-card {
+  max-width: 380px;
+  text-align: center;
+  padding: 40px 30px;
+}
+
+.modal-icon-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 20px;
+  border: 1px solid transparent;
+}
+
+.modal-icon-badge.badge-primary {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%);
+  color: var(--primary);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.modal-icon-badge.badge-danger {
+  background: rgba(225, 29, 72, 0.1);
+  color: var(--danger);
+  border-radius: 50%;
+}
+
+.modal-icon-badge.badge-slate {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  border-radius: 50%;
+}
+
+.modal-head-title {
+  margin-bottom: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.modal-desc-subtext {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-dialog-title {
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: var(--text-main);
+}
+
+.modal-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.modal-dialog-actions .btn {
+  flex: 1;
+}
+
+.btn-pwd-peek {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-admin-code {
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 2px;
+  padding: 14px 44px 14px 16px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-full-submit {
+  width: 100%;
+  padding: 14px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.btn-danger-solid {
+  background: var(--danger) !important;
+  color: white !important;
+}
+
+.btn-slate-solid {
+  background: #64748b !important;
+  color: white !important;
+}
+
 .td-skipped {
   background: rgba(226, 232, 240, 0.5);
   color: #475569;
@@ -1626,125 +1766,8 @@ body { padding: 6px 0 40px 0; }
   .table-responsive table {
     min-width: 860px;
   }
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
   .table-responsive::-webkit-scrollbar { height: 4px; }
   .table-responsive::-webkit-scrollbar-thumb { background: var(--border); }
-  
-  /* Hide matrix table header and transform to card layout */
-  .table-matriks thead {
-    display: none;
-  }
-  
-  .table-matriks,
-  .table-matriks tbody,
-  .table-matriks tr {
-    display: block;
-    width: 100%;
-  }
-  
-  .table-matriks tr {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0;
-    margin-bottom: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-  }
-  
-  .table-matriks tr:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
-  
-  .table-matriks tr.row-masuk {
-      background: transparent;
-    }
-  
-    .table-matriks tr.row-keluar {
-      background: transparent;
-    }
-  
-  .table-matriks tr.date-group-header {
-    background: var(--bg-color);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-  }
-  
-  .table-matriks tr.date-group-header td {
-    background: transparent !important;
-    border: none !important;
-    color: var(--primary) !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.5px;
-    padding: 0 !important;
-  }
-  
-  .table-matriks td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    min-height: 44px;
-    font-size: 13px;
-  }
-  
-  .table-matriks td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: var(--text-muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    min-width: 80px;
-  }
-  
-  .table-matriks td:last-child {
-    border-bottom: none;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-  }
-  
-  .table-matriks td:last-child::before {
-    margin-bottom: 8px;
-  }
-  
-  .table-matriks td:nth-child(3) {
-    font-weight: 600;
-    font-size: 15px;
-  }
-  
-  .table-matriks td:nth-child(5) .btn {
-    width: 100%;
-    margin-top: 8px;
-    font-size: 12px;
-    padding: 8px 12px;
-    justify-content: center;
-  }
-  
-  .table-matriks td:nth-child(5) .btn:first-of-type {
-    margin-top: 0;
-  }
-
-  .table-matriks td:nth-child(5) .btn-icon {
-    flex: 1;
-    min-width: 44px;
-    min-height: 44px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg-color);
-  }
   
   /* Modal improvements */
   .modal-overlay { padding: 12px; }
@@ -1978,39 +2001,6 @@ body { padding: 6px 0 40px 0; }
     font-size: 18px;
   }
   
-  /* Card-based matrix rows on 480px */
-  .table-matriks td {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-  
-  .table-matriks td::before {
-    min-width: 70px;
-    font-size: 10px;
-  }
-  
-  .table-matriks tr {
-    margin-bottom: 10px;
-  }
-  
-  .table-matriks td:nth-child(1),
-  .table-matriks td:nth-child(3) {
-    font-size: 13px;
-  }
-  
-  .table-matriks td:nth-child(2) {
-    font-size: 12px;
-  }
-  
-  .table-matriks td:nth-child(5) {
-    padding: 12px;
-  }
-  
-  .table-matriks td:nth-child(5) .btn {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
-  
   /* Better modal for small screens: centered, not bottom-anchored */
   .modal-overlay {
     padding: 8px;
@@ -2157,7 +2147,7 @@ body { padding: 6px 0 40px 0; }
     min-width: 32px;
   }
   
-  /* Hide matrix table on mobile, show card view */
+  /* Mobile Iuran Cards View */
   .table-card .table-responsive {
     display: none !important;
   }
@@ -2165,7 +2155,8 @@ body { padding: 6px 0 40px 0; }
   .table-card .iuran-cards-container {
     display: block !important;
   }
-.iuran-month-grid {
+  
+  .iuran-month-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
   }
@@ -2173,12 +2164,6 @@ body { padding: 6px 0 40px 0; }
   .iuran-member-card {
     padding: 8px 10px;
     margin-bottom: 6px;
-  }
-  
-  .iuran-card-avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 11px;
   }
   
   .iuran-card-name {
@@ -2519,6 +2504,19 @@ body { padding: 6px 0 40px 0; }
   }
 }
 
+/* === BOTTOM NAVIGATION & MODAL TOP BASE === */
+.bottom-nav {
+  display: none;
+}
+
+.modal-overlay.modal-top {
+  align-items: flex-start;
+}
+
+.modal-overlay.modal-top .modal-content {
+  max-height: 94vh;
+}
+
 /* === QUICK PAY BOTTOM SHEET === */
 .quickpay-sheet {
   max-width: 400px;
@@ -2600,23 +2598,7 @@ body { padding: 6px 0 40px 0; }
     background: var(--bg-color);
   }
 
-  /* Hamburger replaced by bottom nav on mobile */
-  .mobile-menu-btn {
-    display: none !important;
-  }
-
-  /* Duplicate of bottom-nav [+ Catat] CTA */
-  .btn-catat-mobile {
-    display: none !important;
-  }
-}
-
-/* === BOTTOM NAVIGATION (MOBILE ONLY) === */
-.bottom-nav {
-  display: none;
-}
-
-@media (max-width: 768px) {
+  /* Bottom Navigation Mobile */
   .bottom-nav {
     position: fixed;
     left: 0;
@@ -2692,20 +2674,8 @@ body { padding: 6px 0 40px 0; }
   .bottom-nav-item > * {
     align-self: center;
   }
-}
 
-/* === LARGE MODALS ANCHOR TO TOP ===
-   Tall content (tables, lists) opens from the top so it can use the
-   full screen height. Small/medium modals stay centered. */
-.modal-overlay.modal-top {
-  align-items: flex-start;
-}
-
-.modal-overlay.modal-top .modal-content {
-  max-height: 94vh;
-}
-
-@media (max-width: 768px) {
+  /* Large Modals Anchor to Top */
   .modal-overlay.modal-top {
     align-items: flex-start;
     padding-top: max(10px, env(safe-area-inset-top, 0px));
@@ -2714,10 +2684,7 @@ body { padding: 6px 0 40px 0; }
   .modal-overlay.modal-top .modal-content {
     max-height: 88vh;
   }
-}
 
-/* === STATISTIK MODAL (MOBILE) === */
-@media (max-width: 768px) {
   /* Charts stack vertically — inline minmax(400px) overflows phones */
   #modal-statistik .chart-section {
     grid-template-columns: 1fr !important;

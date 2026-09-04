@@ -12,14 +12,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=22">
-  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=23">
+  <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
 
@@ -156,23 +156,23 @@
 
   <!-- Login Modal -->
   <div class="modal-overlay" id="modal-login">
-    <div class="modal-content" style="max-width: 380px; text-align: center; padding: 32px 28px; position: relative;">
-      <button class="close-modal" data-action="close-modal" aria-label="Tutup" style="position: absolute; top: 18px; right: 18px;"><i class="ph ph-x"></i></button>
+    <div class="modal-content modal-auth-card">
+      <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       
-      <div style="width: 68px; height: 68px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 8px auto 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
+      <div class="modal-icon-badge badge-primary">
         <i class="ph-fill ph-lock-key"></i>
       </div>
-      <h2 style="margin-bottom: 8px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">Akses Pengurus</h2>
-      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px; line-height: 1.5;">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
+      <h2 class="modal-head-title">Akses Pengurus</h2>
+      <p class="modal-desc-subtext">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
       
       <form id="form-login-admin">
         <div class="form-group" style="margin-bottom: 20px; position: relative;">
-          <input type="password" id="input-admin-pwd" class="form-control" placeholder="Password Admin..." required style="text-align: center; font-size: 15px; letter-spacing: 2px; padding: 14px 44px 14px 16px; border-radius: var(--radius-sm);">
-          <button type="button" id="btn-toggle-pwd" aria-label="Lihat Password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">
+          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required>
+          <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
             <i class="ph ph-eye" id="icon-toggle-pwd"></i>
           </button>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 700; border-radius: var(--radius-sm); font-size: 14px; letter-spacing: 0.5px;">MASUK KE PANEL</button>
+        <button type="submit" class="btn btn-primary btn-full-submit">MASUK KE PANEL</button>
       </form>
     </div>
   </div>
@@ -679,31 +679,31 @@
 
   <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="modal-hapus">
-    <div class="modal-content" style="max-width:380px; text-align:center; padding: 40px 30px;">
-      <div style="width: 64px; height: 64px; background: rgba(225, 29, 72, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+    <div class="modal-content modal-dialog-card">
+      <div class="modal-icon-badge badge-danger">
         <i class="ph-bold ph-warning"></i>
       </div>
-      <h2 style="margin-bottom: 12px; font-size: 20px;">Hapus Transaksi?</h2>
-      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Tindakan ini tidak dapat dibatalkan.</p>
+      <h2 class="modal-dialog-title">Hapus Transaksi?</h2>
+      <p class="modal-desc-subtext" style="margin-bottom: 0;">Tindakan ini tidak dapat dibatalkan.</p>
       <input type="hidden" id="hapus-id-target">
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
-        <button class="btn btn-outline" style="flex:1;" data-action="cancel-delete">Batal</button>
-        <button class="btn btn-primary" style="flex:1; background: var(--danger);" data-action="confirm-delete" id="btn-hapus">Ya, Hapus</button>
+      <div class="modal-dialog-actions">
+        <button class="btn btn-outline" data-action="cancel-delete">Batal</button>
+        <button class="btn btn-primary btn-danger-solid" data-action="confirm-delete" id="btn-hapus">Ya, Hapus</button>
       </div>
     </div>
   </div>
 
   <!-- Logout Confirmation Modal -->
   <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content" style="max-width:380px; text-align:center; padding: 40px 30px;">
-      <div style="width: 64px; height: 64px; background: rgba(100, 116, 139, 0.12); color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+    <div class="modal-content modal-dialog-card">
+      <div class="modal-icon-badge badge-slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
-      <h2 style="margin-bottom: 12px; font-size: 20px;">Keluar dari mode Admin?</h2>
-      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Anda perlu login kembali untuk mengelola data.</p>
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
-        <button class="btn btn-outline" style="flex:1;" data-action="cancel-logout">Batal</button>
-        <button class="btn btn-primary" style="flex:1; background: #64748b;" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+      <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
+      <p class="modal-desc-subtext" style="margin-bottom: 0;">Anda perlu login kembali untuk mengelola data.</p>
+      <div class="modal-dialog-actions">
+        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
+        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
       </div>
     </div>
   </div>
@@ -847,11 +847,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=22"></script>
+  <script type="module" src="js/app.js?v=23"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=22', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=23', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

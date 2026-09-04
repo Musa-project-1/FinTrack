@@ -703,19 +703,21 @@ body.dark-mode tr:hover td {
   margin-bottom: 6px;
 }
 
-.iuran-card-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  color: white;
+.iuran-card-index {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-color);
+  color: var(--text-muted);
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  letter-spacing: 0.5px;
+  border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
 }
 
 .iuran-card-main-info {

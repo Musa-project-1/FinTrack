@@ -324,14 +324,13 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
   }
 
   const state = getState();
-  const cardsHTML = filteredAnggota.map((ang) => {
+  const cardsHTML = filteredAnggota.map((ang, index) => {
     let lunasBulan = 0;
     NAMA_BULAN.forEach((bulan) => {
       if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) lunasBulan++;
     });
     const progressPercent = (lunasBulan / 12) * 100;
-    const initials = getInitials(ang.Nama_Anggota);
-    const avatarGradient = getAvatarGradient(ang.Nama_Anggota, AVATAR_GRADIENTS);
+    const nomorUrut = String(index + 1).padStart(2, '0');
     const isFullPaid = lunasBulan === 12;
 
     const monthGridHTML = NAMA_BULAN.map((bulan, idx) => {
@@ -353,7 +352,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
     return `
       <div class="iuran-member-card" data-action="toggle-card" tabindex="0" role="button" aria-expanded="false">
         <div class="iuran-card-header">
-          <div class="iuran-card-avatar" style="background: ${avatarGradient};">${initials}</div>
+          <div class="iuran-card-index">${nomorUrut}</div>
           <div class="iuran-card-main-info">
             <div class="iuran-card-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</div>
             <div class="iuran-progress-subtext">${lunasBulan}/12 Bulan Lunas</div>

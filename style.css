@@ -758,6 +758,16 @@ body {
   color: var(--text-muted);
 }
 
+.toast-icon-success {
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.toast-icon-danger {
+  color: var(--danger);
+  font-size: 22px;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

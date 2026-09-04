@@ -45,8 +45,8 @@ export const showToast = (message, type = 'success') => {
   toast.className = `toast ${type === 'error' ? 'error' : ''}`;
   toast.innerHTML =
     type === 'success'
-      ? `<i class="ph-fill ph-check-circle" style="color:var(--primary); font-size:22px;"></i> <span>${message}</span>`
-      : `<i class="ph-fill ph-warning-circle" style="color:var(--danger); font-size:22px;"></i> <span>${message}</span>`;
+      ? `<i class="ph-fill ph-check-circle toast-icon-success"></i> <span>${message}</span>`
+      : `<i class="ph-fill ph-warning-circle toast-icon-danger"></i> <span>${message}</span>`;
   container.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 50);
   setTimeout(() => {

@@ -13,9 +13,6 @@ export const FIREBASE_CONFIG = {
   messagingSenderId: "837369279315"
 };
 
-/** Google Sheets database (admin backup view) */
-export const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1_cvppK9zmuXXQ9oZcH66zwOzwCYWJ_nP411M9W09zGo/edit';
-
 /** Indonesian month names (0-indexed: namaBulan[0] = "Januari") */
 export const NAMA_BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',

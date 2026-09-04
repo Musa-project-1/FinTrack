@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=24">
-  <link rel="stylesheet" href="style.css?v=24">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=25">
+  <link rel="stylesheet" href="style.css?v=25">
 </head>
 <body>
 
@@ -67,7 +67,6 @@
               <button class="dropdown-item admin-only" data-action="open-kelola-master" role="menuitem"><i class="ph ph-users-three" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Kelola Anggota & Kategori</button>
               <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x" style="margin-right:8px; font-size:18px; color:var(--warning);"></i> Bulan Libur</button>
               <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective" style="margin-right:8px; font-size:18px; color:#64748b;"></i> Log Aktivitas</button>
-              <button class="dropdown-item admin-only" data-action="open-database" role="menuitem"><i class="ph ph-database" style="margin-right:8px; font-size:18px; color:#0f9d58;"></i> Database (Sheets)</button>
               <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Riwayat</button>
               <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Statistik</button>
               <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Export</button>
@@ -191,7 +190,6 @@
         <button class="dropdown-item" data-action="open-export"><i class="ph ph-export" style="font-size:20px; color:var(--primary);"></i> Export Data</button>
         <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x" style="font-size:20px; color:var(--warning);"></i> Bulan Libur</button>
         <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective" style="font-size:20px; color:#64748b;"></i> Log Aktivitas</button>
-        <button class="dropdown-item admin-only" data-action="open-database"><i class="ph ph-database" style="font-size:20px; color:#0f9d58;"></i> Database (Sheets)</button>
         <button class="dropdown-item non-admin-only" data-action="open-login"><i class="ph ph-lock-key" style="font-size:20px; color:var(--primary);"></i> Login Admin</button>
         <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out" style="font-size:20px; color:var(--danger);"></i> Logout Admin</button>
       </div>
@@ -847,11 +845,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=24"></script>
+  <script type="module" src="js/app.js?v=25"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=24', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=25', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

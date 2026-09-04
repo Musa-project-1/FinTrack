@@ -5,7 +5,7 @@
  * global callbacks for backward-compatibility with inline handlers in HTML.
  */
 
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS, SHEETS_URL } from './config.js';
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS } from './config.js';
 import {
   getState, setState, addTransaction, saveCache, loadCache,
   getAdminPassword, setAdminPassword, clearAdminPassword,
@@ -79,7 +79,6 @@ document.addEventListener('click', (e) => {
     case 'toggle-status-anggota': toggleStatusAnggotaAction(id, target.getAttribute('data-status')); break;
     case 'hapus-master-anggota': hapusMasterAnggotaAction(id); break;
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
-    case 'open-database':    window.open(SHEETS_URL, '_blank'); break;
     case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
     case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
     case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;

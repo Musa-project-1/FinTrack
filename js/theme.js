@@ -34,10 +34,20 @@ export const applyTheme = () => {
 };
 
 /**
- * Toggle between dark and light theme instantly with zero transition lag.
+ * Toggle between dark and light theme using native View Transitions API
+ * (Hardware GPU accelerated cross-fade) or instant fallback.
  */
 export const toggleTheme = () => {
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
-  applyTheme();
+
+  // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+),
+  // let the GPU take a screenshot and cross-fade the entire viewport seamlessly.
+  if (document.startViewTransition) {
+    document.startViewTransition(() => {
+      applyTheme();
+    });
+  } else {
+    applyTheme();
+  }
 };

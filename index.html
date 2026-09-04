@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=32">
-  <link rel="stylesheet" href="style.css?v=32">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=33">
+  <link rel="stylesheet" href="style.css?v=33">
 </head>
 <body>
 
@@ -106,7 +106,7 @@
 
     <div class="table-card" id="section-rekap">
       <div class="table-header">
-        <div style="display:flex; align-items:center; gap:16px; flex:1;">
+        <div class="table-header-left">
           <h2 class="table-title">
             <i class="ph-fill ph-users-three"></i>
             Status Iuran
@@ -133,21 +133,21 @@
         <table class="table-matriks">
           <thead>
             <tr>
-              <th style="text-align: left; min-width: 180px; padding-left: 24px;">Nama Anggota</th>
+              <th class="th-member-col">Nama Anggota</th>
               <th>Jan</th> <th>Feb</th> <th>Mar</th> <th>Apr</th> <th>Mei</th> <th>Jun</th>
               <th>Jul</th> <th>Agu</th> <th>Sep</th> <th>Okt</th> <th>Nov</th> <th>Des</th>
             </tr>
           </thead>
           <tbody id="ui-table-rekap">
-            <tr><td colspan="13"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>
+            <tr><td colspan="13"><div class="p-10"><div class="skeleton skeleton-text"></div></div></td></tr>
           </tbody>
         </table>
       </div>
       
       <!-- Mobile Card View -->
       <div class="iuran-cards-container" id="iuran-cards-mobile">
-        <div style="padding: 20px; text-align: center;">
-          <div class="skeleton skeleton-text" style="width: 100%; height: 100px;"></div>
+        <div class="mobile-loading-wrap">
+          <div class="skeleton skeleton-text h-100 w-full"></div>
         </div>
       </div>
     </div>
@@ -602,15 +602,13 @@
                 <textarea id="ops-keterangan" class="form-control textarea-ops" required placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
               </div>
 
-              <div class="form-group" style="margin-top: 24px;">
-                <label>Terkait Anggota (Opsional)</label>
-                <div style="position: relative;">
-                  <i class="ph ph-user" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px;"></i>
-                  <select id="ops-anggota" class="form-control" style="padding-left: 48px;">
-                    <option value="-">-- Tidak ada kaitan dengan anggota --</option>
-                  </select>
+              <div class="form-group mt-24">
+                <label>Kaitkan Transaksi ke Anggota (Opsional)</label>
+                <div class="relative">
+                  <i class="ph ph-user icon-input-left"></i>
+                  <select id="ops-anggota" class="form-control pl-48"></select>
                 </div>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">Pilih anggota jika pengeluaran/pemasukan ini spesifik untuk individu tertentu (misal: santunan atau pinjaman).</p>
+                <p class="text-xs-muted mt-8">Pilih anggota jika pengeluaran/pemasukan ini spesifik untuk individu tertentu (misal: santunan atau pinjaman).</p>
               </div>
             </div>
           </div>
@@ -844,11 +842,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=32"></script>
+  <script type="module" src="js/app.js?v=33"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=32', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=33', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

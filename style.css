@@ -437,6 +437,45 @@ body {
   padding: 10px 24px;
 }
 
+.table-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.th-member-col {
+  text-align: left !important;
+  min-width: 180px;
+  padding-left: 24px !important;
+}
+
+.mobile-loading-wrap {
+  padding: 20px;
+  text-align: center;
+}
+
+.h-100 { height: 100px; }
+.w-full { width: 100%; }
+
+.mt-24 { margin-top: 24px; }
+.mt-8 { margin-top: 8px; }
+.relative { position: relative; }
+.pl-48 { padding-left: 48px; }
+.text-xs-muted {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.icon-input-left {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

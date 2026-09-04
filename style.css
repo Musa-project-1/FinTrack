@@ -640,6 +640,54 @@ body {
   font-weight: 500;
 }
 
+.td-date-group-header {
+  background: var(--bg-color);
+  padding: 12px 20px;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trx-subnote {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.trx-category-title {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.fs-16 { font-size: 16px; }
+.text-danger { color: var(--danger); }
+
+.td-center-nowrap {
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.td-time-col {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.td-nominal-col {
+  font-weight: 700;
+  font-size: 15px;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-middle { vertical-align: middle; }
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

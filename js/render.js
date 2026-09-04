@@ -121,7 +121,7 @@ export const renderTableTransaksi = () => {
   }
 
   if (filteredTrx.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Tidak ada transaksi ditemukan.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="td-muted-center">Tidak ada transaksi ditemukan.</td></tr>';
     loadMoreBtn.style.display = 'none';
     return;
   }
@@ -151,37 +151,37 @@ export const renderTableTransaksi = () => {
 
       const headerRow = document.createElement('tr');
       headerRow.className = 'date-group-header';
-      headerRow.innerHTML = `<td colspan="5" style="background: var(--bg-color); padding: 12px 20px; font-weight: 700; color: var(--primary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border);">${dateHeader}</td>`;
+      headerRow.innerHTML = `<td colspan="5" class="td-date-group-header">${dateHeader}</td>`;
       fragment.appendChild(headerRow);
       lastDateStr = dateStr;
     }
 
-    const tglTime = tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    const objKategori = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
-    const namaKat = objKategori ? objKategori.Nama_Kategori : '-';
-
-    let ketExtra = trx.Keterangan || '';
-    if (trx.ID_Anggota !== '-') {
-      const objAng = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
-      const namaAnggota = objAng ? objAng.Nama_Anggota : 'Anggota';
-      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong> (Iuran ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}) <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${escapeHtml(ketExtra)}</span>`;
-    } else {
-      ketExtra = `<strong style="color: var(--text-main); font-weight: 600;">${escapeHtml(namaKat)}</strong> <br> <span style="font-size:12px; color:var(--text-muted); margin-top: 4px; display: inline-block;">${escapeHtml(ketExtra)}</span>`;
-    }
-
-    const isMasuk = (trx.Tipe_Arus || '').toLowerCase() === 'masuk';
+    const isMasuk = trx.Tipe_Arus === 'Masuk';
+    const nominalColor = isMasuk ? 'var(--primary)' : 'var(--danger)';
     const badgeClass = isMasuk ? 'badge-masuk' : 'badge-keluar';
     const iconPh = isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
-    const nominalColor = isMasuk ? 'var(--primary)' : 'var(--danger)';
+
+    let ketExtra = trx.Keterangan || '';
+    if (trx.ID_Anggota && trx.ID_Anggota !== '-') {
+      const angObj = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
+      const namaAnggota = angObj ? angObj.Nama_Anggota : trx.ID_Anggota;
+      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong> (Iuran ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}) <br> <span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
+    } else {
+      const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
+      const namaKat = objKat ? objKat.Nama_Kategori : 'Operasional';
+      ketExtra = `<strong class="trx-category-title">${escapeHtml(namaKat)}</strong> <br> <span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
+    }
+
+    const tglTime = `${tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} • ${tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
 
     const isAdmin = !!getAdminPassword();
     const aksiHtml = isAdmin ? `
-          <button class="btn-icon admin-only" style="color: #64748b;" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer" style="font-size: 16px;"></i></button>
-          <button class="btn-icon admin-only" style="color: var(--warning);" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple" style="font-size: 16px;"></i></button>
-          <button class="btn-icon admin-only" style="color: var(--danger);" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash" style="font-size: 16px;"></i></button>
+          <button class="btn-icon admin-only text-muted" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer fs-16"></i></button>
+          <button class="btn-icon admin-only text-warning" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple fs-16"></i></button>
+          <button class="btn-icon admin-only text-danger" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash fs-16"></i></button>
         ` : '';
     const aksiTd = isAdmin
-      ? `<td data-label="Aksi" style="text-align: center; white-space: nowrap; vertical-align: middle;">${aksiHtml}</td>`
+      ? `<td data-label="Aksi" class="td-center-nowrap">${aksiHtml}</td>`
       : '<td data-label="Aksi"></td>';
 
     const tr = document.createElement('tr');
@@ -191,12 +191,12 @@ export const renderTableTransaksi = () => {
     tr.setAttribute('data-is-iuran', trx.ID_Anggota !== '-' ? 'true' : 'false');
 
     tr.innerHTML = `
-        <td data-label="Waktu" style="white-space: nowrap; font-size: 13px; color: var(--text-muted); vertical-align: middle;">
+        <td data-label="Waktu" class="td-time-col">
           ${tglTime}
         </td>
         <td data-label="Keterangan">${ketExtra}</td>
-        <td data-label="Nominal" style="font-weight: 700; color: ${nominalColor}; font-size: 15px; vertical-align: middle;">${formatRp(trx.Nominal)}</td>
-        <td data-label="Tipe Arus" style="vertical-align: middle;"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${trx.Tipe_Arus}</span></td>
+        <td data-label="Nominal" class="td-nominal-col ${isMasuk ? 'text-primary' : 'text-danger'}">${formatRp(trx.Nominal)}</td>
+        <td data-label="Tipe Arus" class="va-middle"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${trx.Tipe_Arus}</span></td>
         ${aksiTd}
     `;
     fragment.appendChild(tr);

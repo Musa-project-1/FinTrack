@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v17';
+const CACHE_NAME = 'finkas-v18';
 
 // Local assets including ES modules and old script.js as fallback
 const LOCAL_ASSETS = [

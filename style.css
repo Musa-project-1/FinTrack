@@ -688,6 +688,53 @@ body {
 
 .va-middle { vertical-align: middle; }
 
+.td-audit-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ws-nowrap { white-space: nowrap; }
+
+.audit-action-tag {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.td-audit-detail {
+  font-size: 12px;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.td-id-col {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.td-name-col {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.td-wa-col {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.td-action-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-compact-action {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.ml-4 { margin-left: 4px; }
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

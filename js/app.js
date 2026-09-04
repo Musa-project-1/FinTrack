@@ -236,8 +236,8 @@ const handleUI = (isAdmin) => {
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
     btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary); margin-right:8px; font-size:18px;"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login';
+      ? '<i class="ph-fill ph-lock-key-open"></i> Admin Aktif'
+      : '<i class="ph ph-lock-key"></i> Login';
   }
   const logoutBtn = document.getElementById('btn-logout-admin');
   if (logoutBtn) logoutBtn.style.display = getIsAdminSession() ? '' : 'none';
@@ -247,8 +247,8 @@ const renderAdminUI = () => {
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
     btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open" style="color: var(--primary); margin-right:8px; font-size:18px;"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login';
+      ? '<i class="ph-fill ph-lock-key-open"></i> Admin Aktif'
+      : '<i class="ph ph-lock-key"></i> Login';
   }
   document.body.classList.toggle('admin-mode', getIsAdminSession());
   const waBtn = document.getElementById('btn-copy-wa-reminder');
@@ -772,17 +772,17 @@ const AUDIT_ACTION_LABELS = {
 const renderAuditLogList = async () => {
   const tbody = document.getElementById('audit-log-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Memuat...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>';
 
   const res = await fetchAuditLogApi();
   if (!res || !res.status) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--danger);">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center text-danger">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
     return;
   }
 
   const log = res.data?.log || [];
   if (log.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada aktivitas tercatat.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada aktivitas tercatat.</td></tr>';
     return;
   }
 
@@ -791,9 +791,9 @@ const renderAuditLogList = async () => {
     const tgl = new Date(entry.Timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     return `
       <tr>
-        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">${escapeHtml(tgl)}</td>
-        <td style="white-space:nowrap;"><span style="font-size:11px; font-weight:700; color:${meta.color};">${escapeHtml(meta.label)}</span></td>
-        <td style="font-size:12px; color:var(--text-main); word-break:break-word;">${escapeHtml(String(entry.Detail || ''))}</td>
+        <td class="td-audit-time">${escapeHtml(tgl)}</td>
+        <td class="ws-nowrap"><span class="audit-action-tag" style="color:${meta.color};">${escapeHtml(meta.label)}</span></td>
+        <td class="td-audit-detail">${escapeHtml(String(entry.Detail || ''))}</td>
       </tr>
     `;
   }).join('');
@@ -845,7 +845,7 @@ const renderMasterAnggotaTable = () => {
   if (!tbody) return;
   const anggota = getState().anggota || [];
   if (anggota.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada anggota.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="td-muted-center">Belum ada anggota.</td></tr>';
     return;
   }
   tbody.innerHTML = anggota.map((ang) => {
@@ -858,13 +858,13 @@ const renderMasterAnggotaTable = () => {
 
     return `
       <tr>
-        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">${escapeHtml(ang.ID_Anggota)}</td>
-        <td style="font-weight:600; color:var(--text-main);">${escapeHtml(ang.Nama_Anggota)}</td>
-        <td style="color:var(--text-muted); font-size:13px;">${escapeHtml(ang.Nomor_WA || '-')}</td>
-        <td style="text-align:center;">${statusBadge}</td>
-        <td style="text-align:center; white-space:nowrap;">
-          <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" data-action="toggle-status-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" data-status="${nextStatus}">${toggleBtnLabel}</button>
-          <button class="btn btn-danger" style="padding:4px 8px; font-size:11px; margin-left:4px;" data-action="hapus-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-trash"></i></button>
+        <td class="td-id-col">${escapeHtml(ang.ID_Anggota)}</td>
+        <td class="td-name-col">${escapeHtml(ang.Nama_Anggota)}</td>
+        <td class="td-wa-col">${escapeHtml(ang.Nomor_WA || '-')}</td>
+        <td class="text-center">${statusBadge}</td>
+        <td class="td-action-cell">
+          <button class="btn btn-outline btn-compact-action" data-action="toggle-status-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" data-status="${nextStatus}">${toggleBtnLabel}</button>
+          <button class="btn btn-danger btn-compact-action ml-4" data-action="hapus-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-trash"></i></button>
         </td>
       </tr>
     `;
@@ -876,7 +876,7 @@ const renderMasterKategoriTable = () => {
   if (!tbody) return;
   const kategori = getState().kategori || [];
   if (kategori.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada kategori.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="td-muted-center">Belum ada kategori.</td></tr>';
     return;
   }
   tbody.innerHTML = kategori.map((kat) => {
@@ -887,11 +887,11 @@ const renderMasterKategoriTable = () => {
 
     return `
       <tr>
-        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">${escapeHtml(kat.ID_Kategori)}</td>
-        <td style="font-weight:600; color:var(--text-main);">${escapeHtml(kat.Nama_Kategori)}</td>
-        <td style="text-align:center;">${badge}</td>
-        <td style="text-align:center;">
-          <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" data-action="hapus-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}"><i class="ph-bold ph-trash"></i> Hapus</button>
+        <td class="td-id-col">${escapeHtml(kat.ID_Kategori)}</td>
+        <td class="td-name-col">${escapeHtml(kat.Nama_Kategori)}</td>
+        <td class="text-center">${badge}</td>
+        <td class="text-center">
+          <button class="btn btn-danger btn-compact-action" data-action="hapus-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}"><i class="ph-bold ph-trash"></i> Hapus</button>
         </td>
       </tr>
     `;

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Clean solid background adapting with high clarity -->
+  <style>
+    .bg { fill: #ffffff; stroke: #e2e8f0; stroke-width: 8; }
+    .stem, .arm { fill: #059669; }
+    .bar { fill: #10b981; }
+    .dot { fill: #047857; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0f172a; stroke: none; }
+      .stem, .arm { fill: #10b981; }
+      .bar { fill: #34d399; }
+      .dot { fill: #6ee7b7; }
+    }
+  </style>
+  <rect class="bg" width="512" height="512" rx="112"/>
+  <g transform="translate(136, 126)">
+    <rect class="stem" x="0" y="0" width="48" height="260" rx="24"/>
+    <rect class="arm" x="0" y="0" width="220" height="48" rx="24"/>
+    <rect class="bar" x="0" y="96" width="160" height="48" rx="24"/>
+    <circle class="dot" cx="196" cy="120" r="24"/>
+  </g>
+</svg>

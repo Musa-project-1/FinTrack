@@ -88,7 +88,14 @@ body {
 .card.glow-red { box-shadow: var(--shadow-glow-red) !important; }
 .card.glow-blue { box-shadow: var(--shadow-glow-blue) !important; }
 
-/* === BRAND ICON === */
+/* === BRAND LOGO THEME ADAPTIVE === */
+.brand-logo-light { display: block; }
+.brand-logo-dark { display: none; }
+
+body.dark-mode .brand-logo-light { display: none !important; }
+body.dark-mode .brand-logo-dark { display: block !important; }
+
+/* === BRAND ICON (FALLBACK) === */
 .brand-icon-box {
   background: var(--primary-gradient);
   color: white;

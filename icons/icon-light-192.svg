@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Light surface container with subtle border for crisp contrast in light mode -->
+  <rect width="192" height="192" rx="42" fill="#ffffff" stroke="#e2e8f0" stroke-width="4"/>
+  <g transform="translate(51, 47)">
+    <rect x="0" y="0" width="18" height="98" rx="9" fill="#059669"/>
+    <rect x="0" y="0" width="82" height="18" rx="9" fill="#059669"/>
+    <rect x="0" y="36" width="60" height="18" rx="9" fill="#10b981"/>
+    <circle cx="74" cy="45" r="9" fill="#059669"/>
+  </g>
+</svg>

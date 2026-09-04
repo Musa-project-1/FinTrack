@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#10b981"/>
-  <text x="50" y="65" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="50" fill="white">K</text>
+  <rect width="100" height="100" rx="22" fill="#0f172a"/>
+  <g transform="translate(26, 24)">
+    <rect x="0" y="0" width="10" height="52" rx="5" fill="#10b981"/>
+    <rect x="0" y="0" width="44" height="10" rx="5" fill="#10b981"/>
+    <rect x="0" y="19" width="32" height="10" rx="5" fill="#34d399"/>
+    <circle cx="39" cy="24" r="5" fill="#6ee7b7"/>
+  </g>
 </svg>

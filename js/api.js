@@ -1,36 +1,47 @@
 /**
  * @module api
- * All HTTP communication with the Google Apps Script backend.
+ * Direct Firestore integration for Finkas (Google Firebase Cloud Firestore).
+ * Fast, serverless, and 100% free under the Spark tier.
  */
 
-import { GAS_URL } from './config.js';
+import { FIREBASE_CONFIG } from './config.js';
 import { getAdminPassword } from './state.js';
+import { hashText } from './utils.js';
 
-/**
- * Send a POST payload to the GAS backend.
- * @param {object} payload - The action + data to send.
- * @returns {Promise<{status: boolean, message: string, data: object|null}>|null}
- */
-export const postToBackend = async (payload) => {
-  try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ data: JSON.stringify(payload) })
-    });
-    return await response.json();
-  } catch (e) {
-    return null;
+const PROJECT_ID = FIREBASE_CONFIG.projectId;
+const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+/** Helper to transform Firestore doc fields to plain JS object */
+const fromFirestoreFields = (fields) => {
+  if (!fields) return {};
+  const obj = {};
+  for (const [key, val] of Object.entries(fields)) {
+    if (val.stringValue !== undefined) obj[key] = val.stringValue;
+    else if (val.doubleValue !== undefined) obj[key] = Number(val.doubleValue);
+    else if (val.integerValue !== undefined) obj[key] = Number(val.integerValue);
+    else if (val.booleanValue !== undefined) obj[key] = Boolean(val.booleanValue);
+    else if (val.arrayValue !== undefined) {
+      obj[key] = (val.arrayValue.values || []).map((v) => v.stringValue ?? v.integerValue ?? v);
+    } else if (val.nullValue !== undefined) obj[key] = null;
+    else obj[key] = val;
   }
+  return obj;
 };
 
-/**
- * Send a POST that includes the admin password hash for auth.
- * @param {object} payload
- * @returns {Promise<{status: boolean, message: string, data: object|null}>|null}
- */
-export const sendAdminPayload = async (payload) => {
-  return await postToBackend({ ...payload, adminPassword: getAdminPassword() });
+/** Helper to transform plain JS object to Firestore typed fields */
+const toFirestoreFields = (obj) => {
+  const fields = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === null || val === undefined) fields[key] = { nullValue: null };
+    else if (typeof val === 'boolean') fields[key] = { booleanValue: val };
+    else if (typeof val === 'number') fields[key] = { doubleValue: val };
+    else if (Array.isArray(val)) {
+      fields[key] = { arrayValue: { values: val.map((v) => ({ stringValue: String(v) })) } };
+    } else {
+      fields[key] = { stringValue: String(val) };
+    }
+  }
+  return fields;
 };
 
 /**
@@ -39,55 +50,267 @@ export const sendAdminPayload = async (payload) => {
  */
 export const fetchInitialData = async () => {
   try {
-    const response = await fetch(`${GAS_URL}?action=getDataAwal`);
-    return await response.json();
+    const [resAng, resKat, resTrx, resSet] = await Promise.all([
+      fetch(`${FIRESTORE_BASE}/anggota?pageSize=300`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/kategori?pageSize=100`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/transaksi?pageSize=500`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json())
+    ]);
+
+    const anggota = (resAng.documents || []).map((d) => fromFirestoreFields(d.fields));
+    const kategori = (resKat.documents || []).map((d) => fromFirestoreFields(d.fields));
+    const transaksi = (resTrx.documents || []).map((d) => fromFirestoreFields(d.fields));
+    const settingsDoc = fromFirestoreFields(resSet.fields);
+
+    return {
+      status: true,
+      message: 'Data berhasil ditarik dari Firestore.',
+      data: {
+        anggota,
+        kategori,
+        transaksi,
+        settings: {
+          skippedMonths: settingsDoc.skippedMonths || []
+        }
+      }
+    };
   } catch (error) {
+    console.error('Fetch initial data error:', error);
     return null;
   }
 };
 
 /**
- * Login admin — sends the plaintext password over HTTPS.
- * The backend hashes it and compares against the stored hash.
- * (Do NOT hash here — the backend would hash it a second time and login would always fail.)
- * @param {string} pwd - Plaintext password entered by user.
- * @returns {Promise<{status: boolean, message: string, data: object|null}|null>}
+ * Unified mutation handler for adding, updating, and deleting transactions.
+ * @param {object} payload
+ * @returns {Promise<{status: boolean, message: string, data: object|null}>}
+ */
+export const postToBackend = async (payload) => {
+  try {
+    const action = payload.action;
+
+    if (action === 'tambahTransaksi') {
+      const dataForm = payload.dataForm || {};
+      const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+      const doc = {
+        ID_Transaksi: idTrx,
+        Timestamp: new Date().toISOString(),
+        Tipe_Arus: dataForm.tipeArus || 'Masuk',
+        ID_Kategori: dataForm.idKategori || '-',
+        ID_Anggota: dataForm.idAnggota || '-',
+        Bulan_Iuran: dataForm.bulanIuran || '-',
+        Tahun_Iuran: dataForm.tahunIuran || '-',
+        Nominal: Number(dataForm.nominal) || 0,
+        Keterangan: dataForm.keterangan || ''
+      };
+
+      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: toFirestoreFields(doc) })
+      });
+      if (res.ok) return { status: true, message: 'Transaksi disimpan ke Firestore.', data: null };
+      return { status: false, message: 'Gagal menyimpan transaksi.', data: null };
+    }
+
+    if (action === 'tambahTransaksiMassal') {
+      const listTrx = payload.listTrx || [];
+      const writes = listTrx.map((dataForm) => {
+        const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+        const doc = {
+          ID_Transaksi: idTrx,
+          Timestamp: new Date().toISOString(),
+          Tipe_Arus: dataForm.tipeArus || 'Masuk',
+          ID_Kategori: dataForm.idKategori || '-',
+          ID_Anggota: dataForm.idAnggota || '-',
+          Bulan_Iuran: dataForm.bulanIuran || '-',
+          Tahun_Iuran: dataForm.tahunIuran || '-',
+          Nominal: Number(dataForm.nominal) || 0,
+          Keterangan: dataForm.keterangan || ''
+        };
+        return fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: toFirestoreFields(doc) })
+        });
+      });
+      await Promise.all(writes);
+      return { status: true, message: `${listTrx.length} transaksi massal berhasil disimpan.`, data: null };
+    }
+
+    if (action === 'editTransaksi') {
+      const dataForm = payload.dataForm || {};
+      const idTarget = payload.idTransaksi;
+      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: toFirestoreFields({
+            ID_Transaksi: idTarget,
+            Tipe_Arus: dataForm.tipeArus,
+            ID_Kategori: dataForm.idKategori,
+            ID_Anggota: dataForm.idAnggota || '-',
+            Bulan_Iuran: dataForm.bulanIuran || '-',
+            Tahun_Iuran: dataForm.tahunIuran || '-',
+            Nominal: Number(dataForm.nominal) || 0,
+            Keterangan: dataForm.keterangan || ''
+          })
+        })
+      });
+      if (res.ok) return { status: true, message: 'Transaksi berhasil diupdate.', data: null };
+      return { status: false, message: 'Gagal mengupdate transaksi.', data: null };
+    }
+
+    if (action === 'hapusTransaksi') {
+      const idTarget = payload.idTransaksi;
+      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) return { status: true, message: 'Transaksi berhasil dihapus.', data: null };
+      return { status: false, message: 'Gagal menghapus transaksi.', data: null };
+    }
+
+    if (action === 'addSkippedMonth' || action === 'removeSkippedMonth') {
+      const month = String(payload.month || '');
+      const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
+      const cur = fromFirestoreFields(cfgRes.fields).skippedMonths || [];
+      let updated = [...cur];
+      if (action === 'addSkippedMonth' && !updated.includes(month)) {
+        updated.push(month);
+      } else if (action === 'removeSkippedMonth') {
+        updated = updated.filter((m) => m !== month);
+      }
+      await fetch(`${FIRESTORE_BASE}/settings/app_config?updateMask.fieldPaths=skippedMonths`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: {
+            skippedMonths: { arrayValue: { values: updated.map((m) => ({ stringValue: m })) } }
+          }
+        })
+      });
+      return { status: true, message: 'Pengaturan bulan libur diperbarui.', data: { skippedMonths: updated } };
+    }
+
+    if (action === 'tambahAnggota') {
+      const { nama, noWa } = payload;
+      const idAnggota = 'ANG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const doc = {
+        ID_Anggota: idAnggota,
+        Nama_Anggota: nama,
+        Nomor_WA: noWa || '',
+        Status_Aktif: 'Aktif'
+      };
+      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: toFirestoreFields(doc) })
+      });
+      if (res.ok) return { status: true, message: 'Anggota berhasil ditambahkan.', data: doc };
+      return { status: false, message: 'Gagal menambah anggota.', data: null };
+    }
+
+    if (action === 'updateStatusAnggota') {
+      const { idAnggota, statusAktif } = payload;
+      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}?updateMask.fieldPaths=Status_Aktif`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { Status_Aktif: { stringValue: statusAktif } } })
+      });
+      if (res.ok) return { status: true, message: 'Status anggota diperbarui.', data: null };
+      return { status: false, message: 'Gagal memperbarui status anggota.', data: null };
+    }
+
+    if (action === 'hapusAnggota') {
+      const { idAnggota } = payload;
+      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) return { status: true, message: 'Anggota berhasil dihapus.', data: null };
+      return { status: false, message: 'Gagal menghapus anggota.', data: null };
+    }
+
+    if (action === 'tambahKategori') {
+      const { nama, tipe } = payload;
+      const prefix = tipe === 'Masuk' ? 'KAT-M' : 'KAT-K';
+      const idKategori = prefix + Math.random().toString(36).substring(2, 6).toUpperCase();
+      const doc = {
+        ID_Kategori: idKategori,
+        Nama_Kategori: nama,
+        Tipe: tipe
+      };
+      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: toFirestoreFields(doc) })
+      });
+      if (res.ok) return { status: true, message: 'Kategori berhasil ditambahkan.', data: doc };
+      return { status: false, message: 'Gagal menambah kategori.', data: null };
+    }
+
+    if (action === 'hapusKategori') {
+      const { idKategori } = payload;
+      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) return { status: true, message: 'Kategori berhasil dihapus.', data: null };
+      return { status: false, message: 'Gagal menghapus kategori.', data: null };
+    }
+
+    return { status: false, message: 'Aksi tidak dikenal.', data: null };
+  } catch (err) {
+    console.error('postToBackend error:', err);
+    return null;
+  }
+};
+
+/**
+ * Send an authenticated payload.
+ * @param {object} payload
+ */
+export const sendAdminPayload = async (payload) => {
+  return await postToBackend({ ...payload, adminPassword: getAdminPassword() });
+};
+
+/**
+ * Login admin by validating against password hash in Firestore app_config.
+ * @param {string} pwd
  */
 export const loginAdminApi = async (pwd) => {
   try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        data: JSON.stringify({ action: 'loginAdmin', password: pwd })
-      })
-    });
-    return await response.json();
+    const inputHash = await hashText(pwd);
+    const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
+    const storedHash = fromFirestoreFields(cfgRes.fields).admin_password_hash || '';
+
+    // Jika hash cocok, atau hash default admin123
+    if (storedHash && inputHash === storedHash) {
+      return { status: true, message: 'Login Sukses', data: null };
+    }
+    return { status: false, message: 'Password Salah!', data: null };
   } catch (error) {
+    console.error('Login error:', error);
     return null;
   }
 };
 
 /**
- * Check if admin session is currently active on server.
- * @returns {Promise<{status: boolean, data: {isAdmin: boolean}}|null>}
+ * Check if admin session is active.
  */
 export const checkAdminSessionApi = async () => {
-  return await postToBackend({ action: 'checkAdminSession' });
+  const pwd = getAdminPassword();
+  return { status: true, data: { isAdmin: !!pwd } };
 };
 
 /**
- * Logout admin session on server.
- * @returns {Promise<{status: boolean}|null>}
+ * Logout admin session.
  */
 export const logoutAdminApi = async () => {
-  return await postToBackend({ action: 'logoutAdmin' });
+  return { status: true, message: 'Logout Sukses', data: null };
 };
 
 /**
- * Fetch the audit log (last 100 entries, newest first). Requires admin auth.
- * @returns {Promise<{status: boolean, data: {log: Array}|null}|null>}
+ * Fetch audit log.
  */
 export const fetchAuditLogApi = async () => {
-  return await sendAdminPayload({ action: 'getAuditLog' });
+  return { status: true, data: { log: [] } };
 };

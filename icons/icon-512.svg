@@ -1,16 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981"/>
-      <stop offset="100%" style="stop-color:#059669"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
-  <g transform="translate(256,232)" fill="none" stroke="white" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M-85,-95h170a20,20,0,0,1,20,20v150a20,20,0,0,1,-20,20h-170a20,20,0,0,1,-20,-20v-150a20,20,0,0,1,20,-20z" fill="rgba(255,255,255,0.15)"/>
-    <line x1="-70" y1="-20" x2="70" y2="-20"/>
-    <line x1="-70" y1="40" x2="30" y2="40"/>
-    <circle cx="50" cy="40" r="16" fill="white" stroke="none"/>
+  <!-- Clean solid background with gentle rounding -->
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+
+  <!-- Minimalist Geometric Monogram: Interlocking F & Cash Fold -->
+  <g transform="translate(136, 126)">
+    <!-- Primary stem (Bold geometric bar) -->
+    <rect x="0" y="0" width="48" height="260" rx="24" fill="#10b981"/>
+
+    <!-- Top horizontal arm (Finance forward) -->
+    <rect x="0" y="0" width="220" height="48" rx="24" fill="#10b981"/>
+
+    <!-- Middle bar / folded currency dynamic angle -->
+    <rect x="0" y="96" width="160" height="48" rx="24" fill="#34d399"/>
+
+    <!-- Accent dot: precise vault focal point -->
+    <circle cx="196" cy="120" r="24" fill="#6ee7b7"/>
   </g>
-  <text x="256" y="420" text-anchor="middle" fill="white" font-family="Inter,Arial,sans-serif" font-size="64" font-weight="800" letter-spacing="-1">DK</text>
 </svg>

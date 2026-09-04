@@ -1,4 +1,4 @@
-const CACHE_NAME = 'demokas-v9';
+const CACHE_NAME = 'finkas-v12';
 
 // Local assets including ES modules and old script.js as fallback
 const LOCAL_ASSETS = [
@@ -65,14 +65,27 @@ self.addEventListener('fetch', (event) => {
 
 /* ── Offline queue sync ────────────────────────────────────────── */
 
-const OFFLINE_DB_NAME = 'demokas-offline-db';
+const OFFLINE_DB_NAME = 'finkas-offline-db';
 const OFFLINE_DB_VERSION = 1;
 const OFFLINE_STORE_NAME = 'offline-transactions';
 
-// GAS_URL imported from config is not available in SW context (no importScripts
-// in module scope for ES modules). Duplicated here intentionally — single source
-// of truth lives in js/config.js for the main thread.
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4Fj_mwFmVBg0mO0s4xScgBrCTAX5nynIUeuJ4eeJ6sz82TvIsgqDACfGdsG3pBnVc/exec';
+// Firebase Firestore Project Configuration for Background Sync
+const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/finkas-kas/databases/(default)/documents';
+
+const toFirestoreFields = (obj) => {
+  const fields = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === null || val === undefined) fields[key] = { nullValue: null };
+    else if (typeof val === 'boolean') fields[key] = { booleanValue: val };
+    else if (typeof val === 'number') fields[key] = { doubleValue: val };
+    else if (Array.isArray(val)) {
+      fields[key] = { arrayValue: { values: val.map((v) => ({ stringValue: String(v) })) } };
+    } else {
+      fields[key] = { stringValue: String(val) };
+    }
+  }
+  return fields;
+};
 
 const openOfflineDB = () => {
   return new Promise((resolve, reject) => {
@@ -116,22 +129,29 @@ const sendQueuedOfflineTransactions = async () => {
     if (!queued.length) return;
 
     for (const item of queued) {
-      const response = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ data: JSON.stringify(item.payload) })
+      const payload = item.payload || {};
+      const dataForm = payload.dataForm || {};
+      const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+      const doc = {
+        ID_Transaksi: idTrx,
+        Timestamp: new Date().toISOString(),
+        Tipe_Arus: dataForm.tipeArus || 'Masuk',
+        ID_Kategori: dataForm.idKategori || '-',
+        ID_Anggota: dataForm.idAnggota || '-',
+        Bulan_Iuran: dataForm.bulanIuran || '-',
+        Tahun_Iuran: dataForm.tahunIuran || '-',
+        Nominal: Number(dataForm.nominal) || 0,
+        Keterangan: dataForm.keterangan || ''
+      };
+
+      const response = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: toFirestoreFields(doc) })
       });
 
-      if (!response.ok) {
-        throw new Error('Server returned ' + response.status);
-      }
-
-      const resJSON = await response.json();
-      if (resJSON && (resJSON.status || resJSON.data?.duplicate)) {
-        // duplicate=true means the backend already has this transaction — drop it
+      if (response.ok) {
         await deleteOfflineTransaction(item.id);
-      } else {
-        throw new Error(resJSON ? resJSON.message || 'Unknown server error' : 'Invalid server response');
       }
     }
   } catch (error) {
@@ -141,7 +161,7 @@ const sendQueuedOfflineTransactions = async () => {
 };
 
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'demokas-sync-offline') {
+  if (event.tag === 'finkas-sync-offline') {
     event.waitUntil(sendQueuedOfflineTransactions());
   }
 });

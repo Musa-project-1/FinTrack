@@ -5,7 +5,7 @@
  * global callbacks for backward-compatibility with inline handlers in HTML.
  */
 
-import { GAS_URL, NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS, SHEETS_URL } from './config.js';
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS, SHEETS_URL } from './config.js';
 import {
   getState, setState, addTransaction, saveCache, loadCache,
   getAdminPassword, setAdminPassword, clearAdminPassword,
@@ -75,6 +75,10 @@ document.addEventListener('click', (e) => {
     case 'open-skipped-months': openSkippedMonthsModal(); break;
     case 'open-audit-log':   closeHeaderDropdown(); openAuditLogModal(); break;
     case 'refresh-audit-log': renderAuditLogList(); break;
+    case 'open-kelola-master': closeHeaderDropdown(); openKelolaMasterModal(); break;
+    case 'toggle-status-anggota': toggleStatusAnggotaAction(id, target.getAttribute('data-status')); break;
+    case 'hapus-master-anggota': hapusMasterAnggotaAction(id); break;
+    case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
     case 'open-database':    window.open(SHEETS_URL, '_blank'); break;
     case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
     case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); break;
@@ -366,8 +370,6 @@ const setupRekapSearchListener = () => {
     rekapSearchTimer = setTimeout(() => renderTableRekap(), 150);
   });
 };
-
-window.gantiTahunRekap = (v) => { setCurrentRekapYear(v); renderTableRekap(); };
 
 /* ══════════════════════════════════════════════════════════════════
    QUICK PAY (BOTTOM SHEET)
@@ -831,6 +833,157 @@ const removeSkippedMonth = async (key) => {
 };
 
 /* ══════════════════════════════════════════════════════════════════
+   MASTER DATA CRUD (ANGGOTA & KATEGORI)
+   ══════════════════════════════════════════════════════════════════ */
+
+const renderMasterAnggotaTable = () => {
+  const tbody = document.getElementById('master-anggota-tbody');
+  if (!tbody) return;
+  const anggota = getState().anggota || [];
+  if (anggota.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada anggota.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = anggota.map((ang) => {
+    const isAktif = ang.Status_Aktif === 'Aktif';
+    const statusBadge = isAktif
+      ? '<span class="badge badge-masuk">Aktif</span>'
+      : '<span class="badge badge-keluar">Nonaktif</span>';
+    const toggleBtnLabel = isAktif ? 'Nonaktifkan' : 'Aktifkan';
+    const nextStatus = isAktif ? 'Nonaktif' : 'Aktif';
+
+    return `
+      <tr>
+        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">${escapeHtml(ang.ID_Anggota)}</td>
+        <td style="font-weight:600; color:var(--text-main);">${escapeHtml(ang.Nama_Anggota)}</td>
+        <td style="color:var(--text-muted); font-size:13px;">${escapeHtml(ang.Nomor_WA || '-')}</td>
+        <td style="text-align:center;">${statusBadge}</td>
+        <td style="text-align:center; white-space:nowrap;">
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" data-action="toggle-status-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" data-status="${nextStatus}">${toggleBtnLabel}</button>
+          <button class="btn btn-danger" style="padding:4px 8px; font-size:11px; margin-left:4px;" data-action="hapus-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+};
+
+const renderMasterKategoriTable = () => {
+  const tbody = document.getElementById('master-kategori-tbody');
+  if (!tbody) return;
+  const kategori = getState().kategori || [];
+  if (kategori.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">Belum ada kategori.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = kategori.map((kat) => {
+    const isMasuk = kat.Tipe === 'Masuk';
+    const badge = isMasuk
+      ? '<span class="badge badge-masuk"><i class="ph-bold ph-arrow-down-left"></i> Masuk</span>'
+      : '<span class="badge badge-keluar"><i class="ph-bold ph-arrow-up-right"></i> Keluar</span>';
+
+    return `
+      <tr>
+        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">${escapeHtml(kat.ID_Kategori)}</td>
+        <td style="font-weight:600; color:var(--text-main);">${escapeHtml(kat.Nama_Kategori)}</td>
+        <td style="text-align:center;">${badge}</td>
+        <td style="text-align:center;">
+          <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" data-action="hapus-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}"><i class="ph-bold ph-trash"></i> Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+};
+
+const openKelolaMasterModal = () => {
+  if (!getIsAdminSession()) {
+    showToast('Hanya admin yang dapat mengakses menu ini.', 'error');
+    openModal('modal-login');
+    return;
+  }
+  renderMasterAnggotaTable();
+  renderMasterKategoriTable();
+  openModal('modal-kelola-master');
+};
+
+const submitTambahAnggota = async (e) => {
+  e.preventDefault();
+  const nama = document.getElementById('input-nama-anggota').value.trim();
+  const noWa = document.getElementById('input-wa-anggota').value.trim();
+  if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
+
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const res = await sendAdminPayload({ action: 'tambahAnggota', nama, noWa });
+  btn.disabled = false;
+
+  if (res && res.status) {
+    showToast('Anggota berhasil ditambahkan!', 'success');
+    document.getElementById('input-nama-anggota').value = '';
+    document.getElementById('input-wa-anggota').value = '';
+    await initApp();
+    renderMasterAnggotaTable();
+  } else {
+    showToast(res?.message || 'Gagal menambah anggota.', 'error');
+  }
+};
+
+const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
+  const res = await sendAdminPayload({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
+  if (res && res.status) {
+    showToast(`Status anggota diubah ke ${nextStatus}.`, 'success');
+    await initApp();
+    renderMasterAnggotaTable();
+  } else {
+    showToast(res?.message || 'Gagal mengubah status anggota.', 'error');
+  }
+};
+
+const hapusMasterAnggotaAction = async (idAnggota) => {
+  if (!confirm('Yakin ingin menghapus anggota ini?')) return;
+  const res = await sendAdminPayload({ action: 'hapusAnggota', idAnggota });
+  if (res && res.status) {
+    showToast('Anggota berhasil dihapus.', 'success');
+    await initApp();
+    renderMasterAnggotaTable();
+  } else {
+    showToast(res?.message || 'Gagal menghapus anggota.', 'error');
+  }
+};
+
+const submitTambahKategori = async (e) => {
+  e.preventDefault();
+  const tipe = document.getElementById('input-tipe-kategori').value;
+  const nama = document.getElementById('input-nama-kategori').value.trim();
+  if (!nama) return showToast('Nama kategori tidak boleh kosong.', 'error');
+
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const res = await sendAdminPayload({ action: 'tambahKategori', nama, tipe });
+  btn.disabled = false;
+
+  if (res && res.status) {
+    showToast('Kategori berhasil ditambahkan!', 'success');
+    document.getElementById('input-nama-kategori').value = '';
+    await initApp();
+    renderMasterKategoriTable();
+  } else {
+    showToast(res?.message || 'Gagal menambah kategori.', 'error');
+  }
+};
+
+const hapusMasterKategoriAction = async (idKategori) => {
+  if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+  const res = await sendAdminPayload({ action: 'hapusKategori', idKategori });
+  if (res && res.status) {
+    showToast('Kategori berhasil dihapus.', 'success');
+    await initApp();
+    renderMasterKategoriTable();
+  } else {
+    showToast(res?.message || 'Gagal menghapus kategori.', 'error');
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════
    OFFLINE QUEUE UI
    ══════════════════════════════════════════════════════════════════ */
 
@@ -887,7 +1040,7 @@ const cetakStruk = (idTrx) => {
   const objAng = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
   const namaAnggota = objAng ? objAng.Nama_Anggota : '-';
 
-  const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>KAS KITA PRO</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${escapeHtml(trx.ID_Transaksi)}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${escapeHtml(tglStr)}</div><div class="row"><span>Tipe Arus:</span><span><b>${escapeHtml(trx.Tipe_Arus.toUpperCase())}</b></span></div><div class="row"><span>Kategori:</span><span>${escapeHtml(namaKat)}</span></div><div class="row"><span>Anggota:</span><span>${escapeHtml(namaAnggota)}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${escapeHtml(trx.Keterangan || '-')}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
+  const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>FINKAS</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${escapeHtml(trx.ID_Transaksi)}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${escapeHtml(tglStr)}</div><div class="row"><span>Tipe Arus:</span><span><b>${escapeHtml(trx.Tipe_Arus.toUpperCase())}</b></span></div><div class="row"><span>Kategori:</span><span>${escapeHtml(namaKat)}</span></div><div class="row"><span>Anggota:</span><span>${escapeHtml(namaAnggota)}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${escapeHtml(trx.Keterangan || '-')}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
 
   const pw = window.open('', '_blank', 'width=400,height=600');
   pw.document.write(html);
@@ -1233,4 +1386,33 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
+
+  const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
+  if (tahunRekapSelect) {
+    tahunRekapSelect.addEventListener('change', (e) => {
+      setCurrentRekapYear(e.target.value);
+      renderTableRekap();
+    });
+  }
+
+  const formTambahAnggota = document.getElementById('form-tambah-anggota');
+  if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);
+
+  const formTambahKategori = document.getElementById('form-tambah-kategori');
+  if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
+
+  const btnTogglePwd = document.getElementById('btn-toggle-pwd');
+  if (btnTogglePwd) {
+    btnTogglePwd.addEventListener('click', () => {
+      const input = document.getElementById('input-admin-pwd');
+      const icon = document.getElementById('icon-toggle-pwd');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'ph ph-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'ph ph-eye';
+      }
+    });
+  }
 });

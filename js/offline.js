@@ -85,7 +85,7 @@ export const queueOfflinePayload = async (payload) => {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     const registration = await navigator.serviceWorker.ready;
     try {
-      await registration.sync.register('demokas-sync-offline');
+      await registration.sync.register('finkas-sync-offline');
     } catch (syncError) {
       console.warn('Background sync unavailable:', syncError);
     }

@@ -1,6 +1,6 @@
-# FinTrack (DemoKas)
+# Finkas
 
-Aplikasi kas anggota berbasis web (PWA) untuk mencatat iuran, kas operasional, dan rekap pembayaran — tanpa framework, backend Google Sheets via Apps Script.
+Aplikasi kas anggota berbasis web (PWA) untuk mencatat iuran, kas operasional, dan rekap pembayaran — backend Firebase Firestore.
 
 ## Fitur
 

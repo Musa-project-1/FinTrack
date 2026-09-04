@@ -62,6 +62,7 @@
             <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
               <button class="dropdown-item non-admin-only" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Login</button>
               <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out" style="margin-right:8px; font-size:18px; color:var(--danger);"></i> Logout Admin</button>
+              <button class="dropdown-item admin-only" data-action="open-kelola-master" role="menuitem"><i class="ph ph-users-three" style="margin-right:8px; font-size:18px; color:var(--primary);"></i> Kelola Anggota & Kategori</button>
               <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x" style="margin-right:8px; font-size:18px; color:var(--warning);"></i> Bulan Libur</button>
               <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective" style="margin-right:8px; font-size:18px; color:#64748b;"></i> Log Aktivitas</button>
               <button class="dropdown-item admin-only" data-action="open-database" role="menuitem"><i class="ph ph-database" style="margin-right:8px; font-size:18px; color:#0f9d58;"></i> Database (Sheets)</button>
@@ -121,7 +122,7 @@
           <div class="year-pill">
             <i class="ph-bold ph-calendar-blank" style="color: var(--primary);"></i>
             Tahun: 
-            <select id="ui-tahun-rekap-select" onchange="gantiTahunRekap(this.value)" style="border: none; background: transparent; font-weight: 700; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 14px;">
+            <select id="ui-tahun-rekap-select" style="border: none; background: transparent; font-weight: 700; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 14px;">
             </select>
           </div>
         </div>
@@ -153,18 +154,23 @@
 
   <!-- Login Modal -->
   <div class="modal-overlay" id="modal-login">
-    <div class="modal-content" style="max-width: 350px; text-align: center; padding: 30px;">
-      <div style="width: 64px; height: 64px; background: rgba(16, 185, 129, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+    <div class="modal-content" style="max-width: 380px; text-align: center; padding: 32px 28px; position: relative;">
+      <button class="close-modal" data-action="close-modal" aria-label="Tutup" style="position: absolute; top: 18px; right: 18px;"><i class="ph ph-x"></i></button>
+      
+      <div style="width: 68px; height: 68px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 8px auto 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
         <i class="ph-fill ph-lock-key"></i>
       </div>
-      <h2 style="margin-bottom: 8px; font-size: 20px;">Akses Admin</h2>
-      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Masukkan password untuk menambah, mengedit, atau menghapus data.</p>
+      <h2 style="margin-bottom: 8px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">Akses Pengurus</h2>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px; line-height: 1.5;">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
       
       <form id="form-login-admin">
-        <div class="form-group">
-          <input type="password" id="input-admin-pwd" class="form-control" placeholder="Password Admin..." required style="text-align: center;">
+        <div class="form-group" style="margin-bottom: 20px; position: relative;">
+          <input type="password" id="input-admin-pwd" class="form-control" placeholder="Password Admin..." required style="text-align: center; font-size: 15px; letter-spacing: 2px; padding: 14px 44px 14px 16px; border-radius: var(--radius-sm);">
+          <button type="button" id="btn-toggle-pwd" aria-label="Lihat Password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">
+            <i class="ph ph-eye" id="icon-toggle-pwd"></i>
+          </button>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">MASUK</button>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 700; border-radius: var(--radius-sm); font-size: 14px; letter-spacing: 0.5px;">MASUK KE PANEL</button>
       </form>
     </div>
   </div>
@@ -178,6 +184,7 @@
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
       <div class="menu-sheet-list">
+        <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three" style="font-size:20px; color:var(--primary);"></i> Kelola Anggota & Kategori</button>
         <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar" style="font-size:20px; color:var(--primary);"></i> Statistik</button>
         <button class="dropdown-item" data-action="open-export"><i class="ph ph-export" style="font-size:20px; color:var(--primary);"></i> Export Data</button>
         <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x" style="font-size:20px; color:var(--warning);"></i> Bulan Libur</button>
@@ -266,6 +273,75 @@
           <div style="color:var(--text-muted);">Memuat...</div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Data CRUD Modal (Admin Only) -->
+  <div class="modal-overlay modal-top admin-only" id="modal-kelola-master">
+    <div class="modal-content" style="max-width: 820px; padding: 24px;">
+      <div class="modal-title" style="margin-bottom: 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-users-three" style="color:var(--primary);"></i> Kelola Anggota & Kategori</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="tab-buttons" style="margin-bottom: 20px;">
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Daftar Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori Kas</button>
+      </div>
+
+      <!-- Tab 1: Anggota -->
+      <div id="tab-master-anggota" class="tab-content active">
+        <form id="form-tambah-anggota" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <input type="text" id="input-nama-anggota" class="form-control" placeholder="Nama Anggota Baru..." required style="flex: 1; min-width: 200px;">
+          <input type="text" id="input-wa-anggota" class="form-control" placeholder="No. WA (Opsional)..." style="width: 160px;">
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> Tambah</button>
+        </form>
+
+        <div class="table-responsive table-scrollable" style="max-height: 45vh; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 100px;">ID</th>
+                <th>Nama Anggota</th>
+                <th>No. WhatsApp</th>
+                <th style="width: 110px; text-align: center;">Status</th>
+                <th style="width: 130px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="master-anggota-tbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Memuat data anggota...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Kategori -->
+      <div id="tab-master-kategori" class="tab-content">
+        <form id="form-tambah-kategori" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <select id="input-tipe-kategori" class="form-control" style="width: 140px;" required>
+            <option value="Masuk">Masuk</option>
+            <option value="Keluar">Keluar</option>
+          </select>
+          <input type="text" id="input-nama-kategori" class="form-control" placeholder="Nama Kategori Baru..." required style="flex: 1; min-width: 200px;">
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
+        </form>
+
+        <div class="table-responsive table-scrollable" style="max-height: 45vh; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 110px;">ID</th>
+                <th>Nama Kategori</th>
+                <th style="width: 120px; text-align: center;">Tipe Arus</th>
+                <th style="width: 100px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="master-kategori-tbody">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Memuat data kategori...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

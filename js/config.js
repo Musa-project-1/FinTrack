@@ -1,13 +1,19 @@
 /**
  * @module config
- * Centralized configuration for DemoKas Professional.
- * Both script.js and sw.js import GAS_URL from here.
+ * Centralized configuration for Finkas.
  */
 
-/** Google Apps Script Web App deployment URL */
-export const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4Fj_mwFmVBg0mO0s4xScgBrCTAX5nynIUeuJ4eeJ6sz82TvIsgqDACfGdsG3pBnVc/exec';
+/** Firebase Configuration */
+export const FIREBASE_CONFIG = {
+  projectId: "finkas-kas",
+  appId: "1:837369279315:web:82a31208be2afc179ae7a6",
+  storageBucket: "finkas-kas.firebasestorage.app",
+  apiKey: "AIzaSy...l3z8",
+  authDomain: "finkas-kas.firebaseapp.com",
+  messagingSenderId: "837369279315"
+};
 
-/** Google Sheets database (admin only) */
+/** Google Sheets database (admin backup view) */
 export const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1_cvppK9zmuXXQ9oZcH66zwOzwCYWJ_nP411M9W09zGo/edit';
 
 /** Indonesian month names (0-indexed: namaBulan[0] = "Januari") */
@@ -17,7 +23,7 @@ export const NAMA_BULAN = [
 ];
 
 /** IndexedDB constants for offline queue */
-export const OFFLINE_DB_NAME = 'demokas-offline-db';
+export const OFFLINE_DB_NAME = 'finkas-offline-db';
 export const OFFLINE_DB_VERSION = 1;
 export const OFFLINE_STORE_NAME = 'offline-transactions';
 
@@ -46,6 +52,6 @@ export const CHART_COLORS = [
 ];
 
 /** localStorage keys */
-export const CACHE_KEY = 'demokas_cache';
+export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
-export const ADMIN_PWD_KEY = 'demokas_admin_pwd';
+export const ADMIN_PWD_KEY = 'finkas_admin_pwd';

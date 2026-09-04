@@ -5,7 +5,7 @@
 
 import { NAMA_BULAN } from './config.js';
 import { getState } from './state.js';
-import { showToast, handleNominalInput, getRawNominal, formatRp } from './utils.js';
+import { showToast, handleNominalInput, getRawNominal, formatRp, escapeHtml } from './utils.js';
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
@@ -86,12 +86,13 @@ export const resetChipAktif = () => {
 export const filterKategori = (idTipe, idKat) => {
   const tipe = document.getElementById(idTipe).value;
   const elKategori = document.getElementById(idKat);
-  elKategori.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+  const options = ['<option value="">-- Pilih Kategori --</option>'];
   getState().kategori.forEach((kat) => {
     if (kat.Tipe === tipe) {
-      elKategori.innerHTML += `<option value="${kat.ID_Kategori}">${kat.Nama_Kategori}</option>`;
+      options.push(`<option value="${escapeHtml(kat.ID_Kategori)}">${escapeHtml(kat.Nama_Kategori)}</option>`);
     }
   });
+  elKategori.innerHTML = options.join('');
 };
 
 /* ── Counter updates ───────────────────────────────────────────── */
@@ -184,18 +185,18 @@ export const renderCheckboxIuran = () => {
       if (isLunas) {
         htmlParts.push(`
           <label class="checkbox-item" style="background: var(--bg-color); border-color: var(--border); cursor: not-allowed; opacity: 0.6; box-shadow: none;">
-            <input type="checkbox" class="chk-iuran" value="${ang.ID_Anggota}" disabled checked>
+            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" disabled checked>
             <div style="display:flex; flex-direction:column; gap:2px;">
-              <span style="color: var(--text-muted); text-decoration: line-through; font-size: 13px; font-weight: 500;">${ang.Nama_Anggota}</span>
+              <span style="color: var(--text-muted); text-decoration: line-through; font-size: 13px; font-weight: 500;">${escapeHtml(ang.Nama_Anggota)}</span>
               <div style="font-size: 10px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 4px;"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
             </div>
           </label>`);
       } else {
         htmlParts.push(`
           <label class="checkbox-item">
-            <input type="checkbox" class="chk-iuran" value="${ang.ID_Anggota}" onchange="window.__updateCounterIuran && window.__updateCounterIuran()">
+            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" onchange="window.__updateCounterIuran && window.__updateCounterIuran()">
             <div style="display:flex; flex-direction:column; gap:2px;">
-              <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">${ang.Nama_Anggota}</span>
+              <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">${escapeHtml(ang.Nama_Anggota)}</span>
               <div style="font-size: 10px; color: var(--text-muted); font-weight: 500;">BELUM BAYAR</div>
             </div>
           </label>`);

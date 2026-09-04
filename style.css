@@ -72,12 +72,33 @@ body {
   background-color: var(--bg-color); 
   color: var(--text-main); 
   padding: 40px 20px; 
-  transition: background-color 0.15s ease, color 0.15s ease; 
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* === CARDS & SURFACES === */
+/* === CARDS & SURFACES SMOOTH THEME ADAPTATION === */
+.card,
+.table-card,
+.modal-content,
+.stat-card,
+.qp-member,
+.pending-item,
+.checkbox-item,
+.dropdown-menu,
+.menu-sheet,
+.bottom-nav,
+.select-pill-wrap,
+.form-control,
+.year-pill,
+th,
+td {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .table-card, .modal-content {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;

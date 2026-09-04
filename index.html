@@ -18,18 +18,18 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=26">
-  <link rel="stylesheet" href="style.css?v=26">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=27">
+  <link rel="stylesheet" href="style.css?v=27">
 </head>
 <body>
 
   <div class="container">
     <header class="header">
       <div class="header-left">
-        <a href="#" class="brand-link" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
-          <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover;">
-          <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover; display: none;">
-          <span class="brand-title" style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main);">Finkas</span>
+        <a href="#" class="brand-link">
+          <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
+          <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
+          <span class="brand-title">Finkas</span>
         </a>
         <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status Koneksi: Online. Klik untuk melihat transaksi tertunda.">
           <i class="ph-fill ph-circle"></i> <span class="status-text">Online</span>
@@ -845,11 +845,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=26"></script>
+  <script type="module" src="js/app.js?v=27"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=26', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=27', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

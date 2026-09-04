@@ -94,6 +94,28 @@ body {
 .card.glow-blue { box-shadow: var(--shadow-glow-blue) !important; }
 
 /* === BRAND LOGO THEME ADAPTIVE === */
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
 .brand-logo-light { display: block; }
 .brand-logo-dark { display: none; }
 

@@ -590,6 +590,13 @@ body {
   }
 }
 
+.iuran-cards-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

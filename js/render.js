@@ -273,7 +273,7 @@ export const renderTableRekap = () => {
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota));
 
   if (!filteredAnggota || filteredAnggota.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; padding:40px; color:var(--text-muted);">Tidak ada anggota ditemukan.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="td-muted-center">Tidak ada anggota ditemukan.</td></tr>';
   } else {
     filteredAnggota.forEach((ang) => {
       const tr = document.createElement('tr');
@@ -336,7 +336,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
   if (!container) return;
 
   if (!filteredAnggota || filteredAnggota.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">Tidak ada anggota ditemukan.</div>';
+    container.innerHTML = '<div class="iuran-cards-empty">Tidak ada anggota ditemukan.</div>';
     return;
   }
 

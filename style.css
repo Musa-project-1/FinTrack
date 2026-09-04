@@ -768,6 +768,31 @@ body {
   font-size: 22px;
 }
 
+.td-desc-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.td-nom-primary {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.skip-month-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.fw-700 { font-weight: 700; }
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

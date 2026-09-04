@@ -454,7 +454,7 @@ export const bukaProfilAnggota = (idAnggota) => {
   tbody.innerHTML = '';
 
   if (userTrx.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">Belum ada riwayat transaksi.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada riwayat transaksi.</td></tr>';
   } else {
     userTrx.forEach((t) => {
       const tgl = new Date(t.Timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -463,9 +463,9 @@ export const bukaProfilAnggota = (idAnggota) => {
       const namaKat = cat ? cat.Nama_Kategori : '-';
       const ket = t.Bulan_Iuran !== '-' ? `Iuran ${t.Bulan_Iuran} ${t.Tahun_Iuran}` : namaKat;
       tr.innerHTML = `
-        <td style="font-size: 12px; color: var(--text-muted);">${tgl}</td>
-        <td style="font-size: 13px; font-weight: 600;">${ket}</td>
-        <td style="font-size: 13px; font-weight: 700; color: var(--primary); text-align: right;">${formatRp(t.Nominal)}</td>
+        <td class="td-audit-time">${tgl}</td>
+        <td class="td-desc-text">${ket}</td>
+        <td class="td-nom-primary">${formatRp(t.Nominal)}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -676,17 +676,17 @@ export const renderSkippedMonthsList = () => {
   const { skippedMonths } = getState();
 
   if (!skippedMonths || skippedMonths.length === 0) {
-    container.innerHTML = '<div style="color:var(--text-muted);">Belum ada bulan libur yang diatur.</div>';
+    container.innerHTML = '<div class="text-muted">Belum ada bulan libur yang diatur.</div>';
     return;
   }
 
   const sorted = skippedMonths.slice().sort().reverse();
   sorted.forEach((mm) => {
     const card = document.createElement('div');
-    card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid var(--border);border-radius:8px;';
+    card.className = 'skip-month-card';
     const parts = mm.split('-');
     const label = parts.length === 2 ? `${NAMA_BULAN[parseInt(parts[0], 10) - 1]} ${parts[1]}` : mm;
-    card.innerHTML = `<div style="font-weight:700;">${label}</div><div style="display:flex;gap:8px;"><button class="btn btn-outline admin-only" data-action="remove-skip" data-month="${mm}">Hapus</button></div>`;
+    card.innerHTML = `<div class="fw-700">${label}</div><div class="flex-align-gap"><button class="btn btn-outline admin-only" data-action="remove-skip" data-month="${mm}">Hapus</button></div>`;
     container.appendChild(card);
   });
 };

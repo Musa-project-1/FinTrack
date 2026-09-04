@@ -77,26 +77,18 @@ body {
   overflow-x: hidden;
 }
 
-/* === CARDS & SURFACES SMOOTH THEME ADAPTATION === */
-.card,
-.table-card,
-.modal-content,
-.stat-card,
-.qp-member,
-.pending-item,
-.checkbox-item,
-.dropdown-menu,
-.menu-sheet,
-.bottom-nav,
-.select-pill-wrap,
-.form-control,
-.year-pill,
-th,
-td {
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* === THEME TRANSITION ORCHESTRATOR === 
+   Applied globally only during theme toggling so ALL elements change simultaneously 
+   with 0ms delay differences across mobile and desktop. */
+body.theme-transitioning,
+body.theme-transitioning *,
+body.theme-transitioning *::before,
+body.theme-transitioning *::after {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
+              color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important !important;
+  transition-delay: 0s !important;
 }
 
 .table-card, .modal-content {

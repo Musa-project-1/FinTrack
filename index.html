@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=34">
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=35">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 
@@ -455,6 +455,18 @@
           <button class="chip-btn" data-action="set-history-filter" data-filter="operasional">Operasional</button>
         </div>
       </div>
+
+      <!-- Quick Summary Sub-bar for Filtered Transactions -->
+      <div class="riwayat-summary-bar" id="riwayat-summary-bar">
+        <div class="riwayat-summary-item">
+          <span class="riwayat-summary-label">Total Ditemukan:</span>
+          <span class="riwayat-summary-value" id="rw-count">0 transaksi</span>
+        </div>
+        <div class="riwayat-summary-metrics">
+          <span class="metric-pill metric-in" id="rw-masuk">+Rp 0</span>
+          <span class="metric-pill metric-out" id="rw-keluar">-Rp 0</span>
+        </div>
+      </div>
       
       <!-- Table / Cards List Container -->
       <div class="table-responsive table-scrollable riwayat-scroll-area">
@@ -842,11 +854,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=34"></script>
+  <script type="module" src="js/app.js?v=35"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=34', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=35', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

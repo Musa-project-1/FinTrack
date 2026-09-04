@@ -103,6 +103,23 @@ export const renderTableTransaksi = () => {
     return matchesChip && matchesSearch && matchesMonth && matchesYear;
   });
 
+  // Update quick summary statistics for filtered dataset
+  const rwCountEl = document.getElementById('rw-count');
+  const rwMasukEl = document.getElementById('rw-masuk');
+  const rwKeluarEl = document.getElementById('rw-keluar');
+  if (rwCountEl && rwMasukEl && rwKeluarEl) {
+    let totalMasuk = 0;
+    let totalKeluar = 0;
+    filteredTrx.forEach((t) => {
+      const nom = Number(t.Nominal) || 0;
+      if (t.Tipe_Arus === 'Masuk') totalMasuk += nom;
+      else if (t.Tipe_Arus === 'Keluar') totalKeluar += nom;
+    });
+    rwCountEl.innerText = `${filteredTrx.length} transaksi`;
+    rwMasukEl.innerText = `+${formatRp(totalMasuk)}`;
+    rwKeluarEl.innerText = `-${formatRp(totalKeluar)}`;
+  }
+
   if (filteredTrx.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Tidak ada transaksi ditemukan.</td></tr>';
     loadMoreBtn.style.display = 'none';

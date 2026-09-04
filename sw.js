@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v34';
+const CACHE_NAME = 'finkas-v35';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [

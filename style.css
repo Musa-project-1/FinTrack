@@ -2534,16 +2534,20 @@ body { padding: 6px 0 40px 0; }
 }
 
 .qp-avatar {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  background: var(--surface);
+  color: var(--text-muted);
   font-weight: 700;
   font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border);
+  letter-spacing: -0.5px;
 }
 
 @media (max-width: 768px) {

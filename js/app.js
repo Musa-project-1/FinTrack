@@ -5,7 +5,7 @@
  * global callbacks for backward-compatibility with inline handlers in HTML.
  */
 
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH, AVATAR_GRADIENTS } from './config.js';
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from './config.js';
 import {
   getState, setState, addTransaction, saveCache, loadCache,
   getAdminPassword, setAdminPassword, clearAdminPassword,
@@ -18,7 +18,7 @@ import {
   postToBackend, sendAdminPayload, fetchInitialData,
   loginAdminApi, checkAdminSessionApi, logoutAdminApi, fetchAuditLogApi
 } from './api.js';
-import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml, getInitials, getAvatarGradient } from './utils.js';
+import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput, getRawNominal, hashText, escapeHtml, getInitials } from './utils.js';
 import {
   openOfflineDB, addOfflineTransaction, getOfflineTransactions,
   deleteOfflineTransaction, queueOfflinePayload, syncOfflineTransactions
@@ -384,9 +384,14 @@ const openQuickPaySheet = (idAnggota, bulan) => {
   document.getElementById('qp-tahun').value = currentRekapYear;
   document.getElementById('qp-nama').innerText = ang.Nama_Anggota;
   document.getElementById('qp-periode').innerText = `Iuran ${bulan} ${currentRekapYear}`;
+  
   const avatar = document.getElementById('qp-avatar');
-  avatar.innerText = getInitials(ang.Nama_Anggota);
-  avatar.style.background = getAvatarGradient(ang.Nama_Anggota, AVATAR_GRADIENTS);
+  const anggotaList = getState().anggota || [];
+  const idx = anggotaList.findIndex((a) => a.ID_Anggota === idAnggota);
+  const nomorUrut = idx !== -1 ? String(idx + 1).padStart(2, '0') : '01';
+  avatar.innerText = nomorUrut;
+  avatar.style.background = '';
+  
   const nominalEl = document.getElementById('qp-nominal');
   nominalEl.value = new Intl.NumberFormat('id-ID').format(DEFAULT_MONTHLY_FEE);
   openModal('modal-quickpay');

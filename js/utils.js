@@ -93,22 +93,6 @@ export const getInitials = (name) => {
 };
 
 /**
- * Get a deterministic gradient string for a member avatar based on name.
- * @param {string} name
- * @param {string[]} [gradients] - Array of CSS gradient strings.
- * @returns {string} CSS gradient.
- */
-export const getAvatarGradient = (name, gradients) => {
-  if (!name) return gradients[0];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % gradients.length;
-  return gradients[index];
-};
-
-/**
  * Check if the browser is currently online.
  * @returns {boolean}
  */

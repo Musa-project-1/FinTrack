@@ -81,7 +81,7 @@ document.addEventListener('click', (e) => {
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
     case 'open-database':    window.open(SHEETS_URL, '_blank'); break;
     case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
-    case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); break;
+    case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
     case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;
     case 'buka-transaksi':   bukaModalTransaksi(); break;
     case 'pilih-nominal':    e.stopPropagation(); pilihNominalCepat(parseInt(target.getAttribute('data-nilai')), target, updateCounterIuran); break;

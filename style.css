@@ -72,7 +72,7 @@ body {
   background-color: var(--bg-color); 
   color: var(--text-main); 
   padding: 40px 20px; 
-  transition: all 0.2s ease; 
+  transition: background-color 0.15s ease, color 0.15s ease; 
   min-height: 100vh;
   overflow-x: hidden;
 }

@@ -24,10 +24,12 @@ export const applyTheme = () => {
     if (metaTheme) metaTheme.setAttribute('content', '#f1f5f9');
   }
 
-  // Re-render charts if they exist (to update colors)
-  const renderChartFn = window.__renderChart;
-  if (renderChartFn && (getCashFlowChart() || getExpenseChart())) {
-    renderChartFn();
+  // Re-render charts only if the statistics modal is currently open
+  // This prevents main thread freeze / lag when switching themes on dashboard
+  const statModal = document.getElementById('modal-statistik');
+  if (statModal && statModal.classList.contains('active')) {
+    const renderChartFn = window.__renderChart;
+    if (renderChartFn) renderChartFn();
   }
 };
 

@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=31">
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=32">
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -39,27 +39,27 @@
       <div class="header-right">
         <div class="header-mobile-top">
         <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-          <i class="ph ph-moon theme-icon" style="font-size: 18px;"></i>
+          <i class="ph ph-moon theme-icon fs-18"></i>
         </button>
 
         <button class="btn btn-primary btn-catat-mobile admin-only" data-action="buka-transaksi" title="Catat Transaksi">
-          <i class="ph ph-plus-circle" style="font-size: 18px;"></i>
+          <i class="ph ph-plus-circle fs-18"></i>
         </button>
 
         <button class="btn btn-icon mobile-menu-btn" data-action="toggle-mobile-menu" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
-          <i class="ph ph-list" style="font-size: 22px;"></i>
+          <i class="ph ph-list fs-22"></i>
         </button>
         </div>
 
         <div class="header-actions" id="header-actions">
           <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-            <i class="ph ph-moon theme-icon" style="font-size: 18px;"></i>
+            <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
           <!-- Header Dropdown -->
           <div class="header-dropdown" id="header-dropdown">
             <button class="btn btn-icon" id="btn-header-menu" aria-haspopup="true" aria-expanded="false" data-action="toggle-dropdown" title="Menu">
-              <i class="ph ph-list" style="font-size: 22px;"></i>
+              <i class="ph ph-list fs-22"></i>
             </button>
             <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
               <button class="dropdown-item non-admin-only" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key"></i> Login</button>
@@ -74,7 +74,7 @@
           </div>
 
           <button class="btn btn-primary admin-only" data-action="buka-transaksi">
-            <i class="ph ph-plus-circle" style="font-size: 18px;"></i> <span>Catat Transaksi</span>
+            <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
           </button>
         </div>
       </div>
@@ -458,22 +458,22 @@
       
       <!-- Table / Cards List Container -->
       <div class="table-responsive table-scrollable riwayat-scroll-area">
-        <table style="margin-bottom: 0;" id="table-riwayat-data">
+        <table class="m-0" id="table-riwayat-data">
           <thead>
             <tr>
-              <th style="width: 140px;">Waktu</th>
+              <th class="w-140">Waktu</th>
               <th>Keterangan Transaksi</th>
-              <th style="width: 160px; text-align: right; padding-right: 20px;">Nominal</th>
-              <th style="width: 130px; text-align: center;">Tipe Arus</th>
-              <th style="width: 140px; text-align: center;" class="admin-only">Aksi</th>
+              <th class="w-160 text-right pr-20">Nominal</th>
+              <th class="w-130 text-center">Tipe Arus</th>
+              <th class="w-140 text-center admin-only">Aksi</th>
             </tr>
           </thead>
           <tbody id="ui-table-trx">
-            <tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>
+            <tr><td colspan="5"><div class="p-10"><div class="skeleton skeleton-text"></div></div></td></tr>
           </tbody>
         </table>
         <div id="load-more-container" class="riwayat-load-more">
-          <button class="btn btn-outline" style="font-size: 13px; padding: 10px 24px;" data-action="load-more">
+          <button class="btn btn-outline btn-load-more" data-action="load-more">
             <i class="ph-bold ph-caret-double-down"></i> Tampilkan Lebih Banyak
           </button>
         </div>
@@ -844,11 +844,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=31"></script>
+  <script type="module" src="js/app.js?v=32"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=31', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=32', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

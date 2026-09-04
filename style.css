@@ -421,6 +421,22 @@ body {
   font-size: 11px;
 }
 
+.fs-18 { font-size: 18px; }
+.fs-22 { font-size: 22px; }
+.m-0 { margin-bottom: 0 !important; }
+.p-10 { padding: 10px; }
+.pr-20 { padding-right: 20px; }
+.text-right { text-align: right; }
+
+.w-140 { width: 140px; }
+.w-160 { width: 160px; }
+.w-130 { width: 130px; }
+
+.btn-load-more {
+  font-size: 13px;
+  padding: 10px 24px;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

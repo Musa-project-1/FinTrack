@@ -25,27 +25,28 @@ Aplikasi manajemen kas anggota dan kas operasional berbasis web (**Progressive W
 | Layer | Teknologi |
 |---|---|
 | **Frontend** | HTML5, CSS3 (Modern Tokens, Zero AI Slop), Vanilla JavaScript (ES Modules) |
-| **PWA** | Service Worker, Web App Manifest, IndexedDB Background Sync |
-| **Backend & Database** | Google Cloud Firestore (REST API, Region: Jakarta `asia-southeast2`) |
-| **Grafik & Ikon** | Chart.js, Phosphor Icons Web, Custom Minimal Monogram SVG Icons |
+| **PWA & Mobile** | Service Worker, Web App Manifest, High-Res PNG & Maskable SVG Icons, GPU View Transitions API |
+| **Backend & Database** | Google Cloud Firestore (REST API murni tanpa SDK berat, Region: Jakarta `asia-southeast2`) |
+| **Offline Engine** | IndexedDB (`finkas-offline-db`), Background Synchronization |
+| **Grafik & Ikon** | Chart.js, Phosphor Icons Web, Custom Minimal Monogram Brand Vectors |
 
 ---
 
 ## 📁 Struktur Direktori
 
 ```
-├── index.html          # Halaman utama aplikasi (UI)
-├── style.css           # Design tokens, responsive layout, dan tema dark/light
-├── sw.js               # Service worker (caching aset & sinkronisasi offline Firestore)
-├── manifest.json       # Konfigurasi PWA installable
-├── icons/              # Set ikon aplikasi (icon-512, icon-192, favicon SVG)
+├── index.html          # Halaman utama aplikasi (UI & Bottom Nav Mobile)
+├── style.css           # Design tokens, responsive CSS, View Transitions, dan tema dark/light
+├── sw.js               # Service Worker (caching aset v25 & sinkronisasi offline Firestore)
+├── manifest.json       # Konfigurasi PWA installable (PNG 192/512 + SVG maskable)
+├── icons/              # Set ikon aplikasi (icon-512.png/svg, icon-192.png/svg, favicon.svg)
 └── js/
-    ├── config.js       # Konfigurasi Firebase (Project ID, App ID, API Key) & konstanta
+    ├── config.js       # Konfigurasi Firebase Firestore & konstanta bisnis
     ├── utils.js        # Format rupiah, sanitasi escapeHtml, hash SHA-256, toast, dsb.
     ├── state.js        # Manajemen state terpusat & cache localStorage
     ├── api.js          # Integrasi langsung ke Google Cloud Firestore REST API
     ├── offline.js      # Antrean antarmuka offline (IndexedDB)
-    ├── theme.js        # Logika pergantian tema Dark / Light mode
+    ├── theme.js        # Logika tema Dark / Light mode (GPU hardware-accelerated crossfade)
     ├── modal.js        # Pengendali modal, tab, dan filter checkbox anggota
     ├── render.js       # Render reaktif (dashboard, matriks, kartu mobile, tabel riwayat)
     └── app.js          # Inisialisasi aplikasi & event delegation

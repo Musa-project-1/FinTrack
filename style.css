@@ -280,6 +280,147 @@ body {
   padding-top: 16px;
 }
 
+.btn-submit-warning {
+  background-color: var(--warning) !important;
+  width: 100%;
+  padding: 14px;
+}
+
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.p-12 { padding: 12px; }
+.col-span-2 { grid-column: span 2; }
+.flex-center { display: flex; justify-content: center; }
+
+.chart-grid-section {
+  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 16px;
+}
+
+.chart-flat-card {
+  box-shadow: none !important;
+  border: 1px solid var(--border);
+  margin-bottom: 0 !important;
+  padding: 16px !important;
+}
+
+.chart-header-strip {
+  padding: 0 0 12px 0 !important;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px !important;
+  height: auto !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-card-title {
+  font-size: 15px;
+  background: none;
+  -webkit-text-fill-color: initial;
+  margin: 0;
+}
+
+.chart-update-text {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.chart-wrapper-compact {
+  height: 240px;
+  margin-top: 0;
+}
+
+.profile-grid-top {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+}
+
+.profile-card-center {
+  text-align: center;
+  padding: 20px;
+  background: var(--bg-color);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.profile-avatar-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 12px;
+}
+
+.profile-name {
+  font-size: 18px;
+  margin-bottom: 4px;
+  color: var(--text-main);
+}
+
+.profile-id {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.profile-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-metric-val {
+  color: var(--primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profile-metric-plain {
+  font-size: 16px;
+}
+
+.profile-metric-year {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-history-title {
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-table-scroll {
+  max-height: 250px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.sticky-thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.th-profile {
+  background: var(--bg-color);
+  font-size: 11px;
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

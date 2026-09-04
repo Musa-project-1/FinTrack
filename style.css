@@ -735,6 +735,29 @@ body {
 
 .ml-4 { margin-left: 4px; }
 
+.pending-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.pending-card-action {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pending-card-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pending-card-payload {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

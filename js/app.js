@@ -998,7 +998,7 @@ const renderOfflineQueueList = async () => {
   try {
     const queued = await getOfflineTransactions();
     if (!queued || queued.length === 0) {
-      container.innerHTML = '<div style="color:var(--text-muted);">Tidak ada transaksi tertunda.</div>';
+      container.innerHTML = '<div class="text-muted">Tidak ada transaksi tertunda.</div>';
       return;
     }
     queued.reverse().forEach((item) => {
@@ -1007,13 +1007,13 @@ const renderOfflineQueueList = async () => {
       const t = new Date(item.queuedAt).toLocaleString('id-ID');
       const action = item.payload?.action || 'unknown';
       card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
-          <div style="flex:1;">
-            <div style="font-weight:700; color:var(--text-main);">${escapeHtml(action)}</div>
-            <div style="font-size:12px; color:var(--text-muted);">${t}</div>
-            <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">${JSON.stringify(item.payload.dataForm || item.payload || {})}</div>
+        <div class="pending-card-row">
+          <div class="flex-1">
+            <div class="pending-card-action">${escapeHtml(action)}</div>
+            <div class="pending-card-time">${t}</div>
+            <div class="pending-card-payload">${JSON.stringify(item.payload.dataForm || item.payload || {})}</div>
           </div>
-          <div style="display:flex; gap:8px;">
+          <div class="flex-align-gap">
             <button class="btn btn-outline" data-action="delete-offline-item" data-item-id="${item.id}">Hapus</button>
           </div>
         </div>
@@ -1021,7 +1021,7 @@ const renderOfflineQueueList = async () => {
       container.appendChild(card);
     });
   } catch (err) {
-    container.innerHTML = '<div style="color:var(--danger);">Gagal memuat daftar.</div>';
+    container.innerHTML = '<div class="text-danger">Gagal memuat daftar.</div>';
   }
 };
 

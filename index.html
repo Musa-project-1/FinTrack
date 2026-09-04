@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=33">
-  <link rel="stylesheet" href="style.css?v=33">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=34">
+  <link rel="stylesheet" href="style.css?v=34">
 </head>
 <body>
 
@@ -165,7 +165,7 @@
       <p class="modal-desc-subtext">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
       
       <form id="form-login-admin">
-        <div class="form-group" style="margin-bottom: 20px; position: relative;">
+        <div class="form-group form-group-auth">
           <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required>
           <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
             <i class="ph ph-eye" id="icon-toggle-pwd"></i>
@@ -180,8 +180,8 @@
   <div class="modal-overlay" id="modal-menu">
     <div class="modal-content menu-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-title" style="font-size: 18px; margin-bottom: 10px;">
-        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-list" style="color:var(--primary);"></i> Menu</span>
+      <div class="modal-title sheet-title-sm">
+        <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
       <div class="menu-sheet-list">
@@ -200,8 +200,8 @@
   <div class="modal-overlay" id="modal-quickpay">
     <div class="modal-content quickpay-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-title" style="font-size: 18px; margin-bottom: 16px;">
-        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-hand-coins" style="color:var(--primary);"></i> Bayar Iuran Cepat</span>
+      <div class="modal-title sheet-title-md">
+        <span class="flex-align-gap"><i class="ph-fill ph-hand-coins text-primary"></i> Bayar Iuran Cepat</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
       <form id="form-quickpay">
@@ -210,16 +210,16 @@
         <input type="hidden" id="qp-tahun">
         <div class="qp-member">
           <div class="qp-avatar" id="qp-avatar">?</div>
-          <div style="min-width:0;">
-            <div id="qp-nama" style="font-weight:700; font-size:15px; color:var(--text-main);">-</div>
-            <div id="qp-periode" style="font-size:12px; color:var(--text-muted);">-</div>
+          <div class="min-w-0">
+            <div id="qp-nama" class="qp-member-name">-</div>
+            <div id="qp-periode" class="qp-member-period">-</div>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom: 14px;">
+        <div class="form-group mb-14">
           <label>Nominal</label>
-          <input type="text" id="qp-nominal" class="form-control" inputmode="numeric" required style="font-weight:700; font-size:16px;">
+          <input type="text" id="qp-nominal" class="form-control input-qp-nominal" inputmode="numeric" required>
         </div>
-        <button type="submit" class="btn btn-primary" id="btn-submit-quickpay" style="width:100%; padding:12px; margin-top:4px;">
+        <button type="submit" class="btn btn-primary btn-qp-submit" id="btn-submit-quickpay">
           <i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG
         </button>
       </form>
@@ -237,7 +237,7 @@
         </div>
       </div>
       <div class="table-responsive table-scrollable max-h-55vh">
-        <table style="margin-bottom: 0;">
+        <table class="m-0">
           <thead>
             <tr>
               <th class="th-bg-nowrap">Waktu</th>
@@ -485,7 +485,7 @@
   <div class="modal-overlay modal-top" id="modal-transaksi">
     <div class="modal-content">
       <div class="modal-title">
-        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-plus-circle" style="color:var(--primary);"></i> Catat Transaksi Baru</span>
+        <span class="flex-align-gap"><i class="ph-fill ph-plus-circle text-primary"></i> Catat Transaksi Baru</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
 
@@ -622,7 +622,7 @@
   <div class="modal-overlay modal-top" id="modal-edit-transaksi">
     <div class="modal-content">
       <div class="modal-title">
-        <span style="display:flex; align-items:center; gap:8px;"><i class="ph-fill ph-pencil-simple" style="color:var(--warning);"></i> Edit Transaksi</span>
+        <span class="flex-align-gap"><i class="ph-fill ph-pencil-simple text-warning"></i> Edit Transaksi</span>
         <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
       </div>
       <form id="form-edit-transaksi">
@@ -679,7 +679,7 @@
         <i class="ph-bold ph-warning"></i>
       </div>
       <h2 class="modal-dialog-title">Hapus Transaksi?</h2>
-      <p class="modal-desc-subtext" style="margin-bottom: 0;">Tindakan ini tidak dapat dibatalkan.</p>
+      <p class="modal-desc-subtext mb-0">Tindakan ini tidak dapat dibatalkan.</p>
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-delete">Batal</button>
@@ -695,7 +695,7 @@
         <i class="ph-bold ph-sign-out"></i>
       </div>
       <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
-      <p class="modal-desc-subtext" style="margin-bottom: 0;">Anda perlu login kembali untuk mengelola data.</p>
+      <p class="modal-desc-subtext mb-0">Anda perlu login kembali untuk mengelola data.</p>
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
         <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
@@ -800,7 +800,7 @@
       </div>
       
       <div class="table-responsive table-scrollable profile-table-scroll">
-        <table style="margin-bottom: 0;">
+        <table class="m-0">
           <thead class="sticky-thead">
             <tr>
               <th class="th-profile">Tanggal</th>
@@ -842,11 +842,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=33"></script>
+  <script type="module" src="js/app.js?v=34"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=33', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=34', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

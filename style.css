@@ -476,6 +476,50 @@ body {
   font-size: 18px;
 }
 
+.form-group-auth {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.sheet-title-sm {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.sheet-title-md {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.min-w-0 { min-width: 0; }
+
+.qp-member-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.qp-member-period {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mb-14 { margin-bottom: 14px; }
+
+.input-qp-nominal {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.btn-qp-submit {
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.mb-0 { margin-bottom: 0 !important; }
+.text-warning { color: var(--warning); }
+
 /* === BRAND LOGO THEME ADAPTIVE === */
 .brand-link {
   display: flex;

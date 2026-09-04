@@ -33,22 +33,11 @@ export const applyTheme = () => {
   }
 };
 
-let themeTransitionTimeout = null;
-
 /**
- * Toggle between dark and light theme with synchronized transition.
+ * Toggle between dark and light theme instantly with zero transition lag.
  */
 export const toggleTheme = () => {
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
-
-  // Trigger synchronized global transition class
-  document.body.classList.add('theme-transitioning');
-  if (themeTransitionTimeout) clearTimeout(themeTransitionTimeout);
-
   applyTheme();
-
-  themeTransitionTimeout = setTimeout(() => {
-    document.body.classList.remove('theme-transitioning');
-  }, 260);
 };

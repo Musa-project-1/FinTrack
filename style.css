@@ -72,23 +72,8 @@ body {
   background-color: var(--bg-color); 
   color: var(--text-main); 
   padding: 40px 20px; 
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
   min-height: 100vh;
   overflow-x: hidden;
-}
-
-/* === THEME TRANSITION ORCHESTRATOR === 
-   Applied globally only during theme toggling so ALL elements change simultaneously 
-   with 0ms delay differences across mobile and desktop. */
-body.theme-transitioning,
-body.theme-transitioning *,
-body.theme-transitioning *::before,
-body.theme-transitioning *::after {
-  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
-              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
-              color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important,
-              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important !important;
-  transition-delay: 0s !important;
 }
 
 .table-card, .modal-content {
@@ -688,7 +673,7 @@ body.dark-mode tr:hover td {
   border-radius: 14px;
   padding: 10px 12px;
   margin-bottom: 8px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   outline: none;

@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=70">
-  <link rel="stylesheet" href="style.css?v=70">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=71">
+  <link rel="stylesheet" href="style.css?v=71">
 </head>
 <body>
 
@@ -67,6 +67,10 @@
         <div class="header-actions" id="header-actions">
           <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
+          </button>
+
+          <button class="btn btn-icon desktop-only" id="btn-toggle-stats-header" data-action="toggle-header-stats" aria-label="Alihkan Posisi Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
+            <i class="ph ph-layout fs-18" id="icon-toggle-stats-header"></i>
           </button>
 
           <!-- Hamburger Button opens Unified Menu Modal -->
@@ -971,11 +975,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=70"></script>
+  <script type="module" src="js/app.js?v=71"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=70', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=71', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

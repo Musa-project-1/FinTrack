@@ -5,6 +5,7 @@
 
 import { THEME_KEY, HEADER_STATS_KEY } from './config.js';
 import { getCashFlowChart, getExpenseChart } from './state.js';
+import { showToast } from './utils.js';
 
 /**
  * Apply the saved header stats position preference.
@@ -21,6 +22,11 @@ export const applyHeaderStatsPreference = () => {
   if (iconEl) {
     iconEl.className = isHeaderStats ? 'ph ph-rows' : 'ph ph-layout';
   }
+
+  const iconHdr = document.getElementById('icon-toggle-stats-header');
+  if (iconHdr) {
+    iconHdr.className = isHeaderStats ? 'ph ph-rows fs-18' : 'ph ph-layout fs-18';
+  }
 };
 
 /**
@@ -31,6 +37,7 @@ export const toggleHeaderStats = () => {
   const next = !current;
   localStorage.setItem(HEADER_STATS_KEY, String(next));
   applyHeaderStatsPreference();
+  showToast(next ? 'Ringkasan kas dipindahkan ke Header!' : 'Ringkasan kas dikembalikan ke Dashboard!', 'success');
 };
 
 /**

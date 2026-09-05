@@ -44,9 +44,11 @@ export const toggleTheme = () => {
   // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+),
   // let the GPU take a screenshot and cross-fade the entire viewport seamlessly.
   if (document.startViewTransition) {
-    document.startViewTransition(() => {
+    const transition = document.startViewTransition(() => {
       applyTheme();
     });
+    // Safely catch AbortError if the user clicks quickly or transition is skipped by browser
+    transition.finished.catch(() => {});
   } else {
     applyTheme();
   }

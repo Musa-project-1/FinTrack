@@ -156,7 +156,7 @@ document.addEventListener('click', (e) => {
     case 'cancel-delete':    closeModal('modal-hapus'); break;
 
     /* ── Offline sync ─────────────────────────────── */
-    case 'sync-now':         syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
+    case 'sync-now':         syncOfflineTransactions(() => { initApp(true); renderChart(); }); break;
     case 'refresh-offline':  renderOfflineQueueList(); break;
     case 'delete-offline-item': {
       const itemId = parseInt(target.getAttribute('data-item-id'), 10);
@@ -223,7 +223,7 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
 
 
 
-export const initApp = async () => {
+export const initApp = async (forceRemote = false) => {
   if (isLoading) return;
 
   const hasCache = loadCache();
@@ -232,6 +232,13 @@ export const initApp = async () => {
   } else {
     const trxList = document.getElementById('table-riwayat-data') || document.getElementById('ui-table-trx');
     if (trxList) trxList.innerHTML = '<tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>';
+  }
+
+  // If we already have a valid local cache and caller is not explicitly forcing a remote sync,
+  // skip the expensive Firestore multi-hundred document fetch to strictly preserve quota.
+  if (hasCache && !forceRemote) {
+    setConnectionStatus(true);
+    return;
   }
 
   isLoading = true;
@@ -296,7 +303,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener('online', () => {
     showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
-    syncOfflineTransactions(() => { initApp(); renderChart(); });
+    syncOfflineTransactions(() => { initApp(true); renderChart(); });
   });
   window.addEventListener('offline', () => {
     showToast('Anda sedang offline. Transaksi akan disimpan lokal.', 'error');

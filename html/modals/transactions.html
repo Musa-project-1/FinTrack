@@ -24,8 +24,8 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Kategori</label>
-                <select id="iuran-kategori" class="form-control" required></select>
+                <label for="iuran-kategori">Kategori</label>
+                <select id="iuran-kategori" class="form-control" required aria-label="Kategori Iuran"></select>
               </div>
               
               <div class="form-group">
@@ -43,8 +43,8 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Bulan</label>
-                  <select id="iuran-bulan" class="form-control" required>
+                  <label for="iuran-bulan">Bulan</label>
+                  <select id="iuran-bulan" class="form-control" required aria-label="Bulan Iuran">
                     <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
                     <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
                     <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
@@ -94,16 +94,16 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Tipe Kas</label>
-                <select id="ops-tipe" class="form-control" required>
+                <label for="ops-tipe">Tipe Kas</label>
+                <select id="ops-tipe" class="form-control" required aria-label="Tipe Kas">
                   <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label>Kategori</label>
-                <select id="ops-kategori" class="form-control" required></select>
+                <label for="ops-kategori">Kategori</label>
+                <select id="ops-kategori" class="form-control" required aria-label="Kategori Transaksi Kas"></select>
               </div>
 
               <div class="form-group">
@@ -124,8 +124,8 @@
 
             <div class="modal-main-selection">
               <div class="form-group">
-                <label>Terkait Anggota (Opsional)</label>
-                <select id="ops-anggota" class="form-control"></select>
+                <label for="ops-anggota">Terkait Anggota (Opsional)</label>
+                <select id="ops-anggota" class="form-control" aria-label="Terkait Anggota"></select>
               </div>
 
               <div class="form-group">
@@ -159,29 +159,29 @@
         <input type="hidden" id="edit-id">
         <div class="form-row">
           <div class="form-group">
-            <label>Tipe Transaksi</label>
-            <select id="edit-tipe" class="form-control" required>
+            <label for="edit-tipe">Tipe Transaksi</label>
+            <select id="edit-tipe" class="form-control" required aria-label="Tipe Transaksi">
               <option value="Masuk">Pemasukan (+)</option>
               <option value="Keluar">Pengeluaran (-)</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Kategori</label>
-            <select id="edit-kategori" class="form-control" required></select>
+            <label for="edit-kategori">Kategori</label>
+            <select id="edit-kategori" class="form-control" required aria-label="Kategori Transaksi"></select>
           </div>
         </div>
         <div class="form-group">
-          <label>Nominal (Rp)</label>
+          <label for="edit-nominal">Nominal (Rp)</label>
           <input type="number" id="edit-nominal" class="form-control" required min="1">
         </div>
         <div class="form-group">
-          <label>Terkait Anggota</label>
-          <select id="edit-anggota" class="form-control"></select>
+          <label for="edit-anggota">Terkait Anggota</label>
+          <select id="edit-anggota" class="form-control" aria-label="Terkait Anggota"></select>
         </div>
         <div class="form-row">
            <div class="form-group">
-            <label>Bulan</label>
-            <select id="edit-bulan" class="form-control">
+            <label for="edit-bulan">Bulan</label>
+            <select id="edit-bulan" class="form-control" aria-label="Bulan Iuran">
               <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
               <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
               <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
@@ -189,12 +189,12 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Tahun</label>
+            <label for="edit-tahun">Tahun</label>
             <input type="number" id="edit-tahun" class="form-control">
           </div>
         </div>
         <div class="form-group">
-          <label>Keterangan</label>
+          <label for="edit-keterangan">Keterangan</label>
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
         <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit">SIMPAN PERUBAHAN</button>

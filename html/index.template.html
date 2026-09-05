@@ -14,16 +14,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=63">
-  <link rel="stylesheet" href="style.css?v=63">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=64">
+  <link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
 
-  <div class="container">
+  <main class="container">
     <header class="header">
       <div class="header-left">
         <a href="#" class="brand-link">
@@ -100,9 +101,9 @@
         </div>
         <div class="table-header-controls">
           <div class="year-pill">
-            <i class="ph-bold ph-calendar-blank"></i>
-            Tahun: 
-            <select id="ui-tahun-rekap-select">
+            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
+            <label for="ui-tahun-rekap-select">Tahun: </label>
+            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
             </select>
           </div>
           <div class="member-search-wrapper">
@@ -137,7 +138,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <!-- Login Modal -->
 
@@ -169,11 +170,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=63"></script>
+  <script type="module" src="js/app.js?v=64"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=63', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=64', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

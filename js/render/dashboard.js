@@ -43,12 +43,36 @@ export const renderDropdowns = () => {
 };
 
 
+/* ── Lazy load Chart.js on demand ─────────────────────────────── */
+let chartJsPromise = null;
+const ensureChartJs = () => {
+  if (window.Chart) return Promise.resolve(window.Chart);
+  if (!chartJsPromise) {
+    chartJsPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      script.onload = () => resolve(window.Chart);
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+  return chartJsPromise;
+};
+
 /* ── Charts ────────────────────────────────────────────────────── */
 
-export const renderChart = () => {
+export const renderChart = async () => {
   const state = getState();
   const chartEl = document.getElementById('cashFlowChart');
   if (!chartEl) return;
+
+  try {
+    await ensureChartJs();
+  } catch (err) {
+    console.warn('Gagal memuat pustaka Chart.js:', err);
+    return;
+  }
+
   const ctx = chartEl.getContext('2d');
 
   const now = new Date();

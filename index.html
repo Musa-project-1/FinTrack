@@ -14,16 +14,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=63">
-  <link rel="stylesheet" href="style.css?v=63">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=64">
+  <link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
 
-  <div class="container">
+  <main class="container">
     <header class="header">
       <div class="header-left">
         <a href="#" class="brand-link">
@@ -100,9 +101,9 @@
         </div>
         <div class="table-header-controls">
           <div class="year-pill">
-            <i class="ph-bold ph-calendar-blank"></i>
-            Tahun: 
-            <select id="ui-tahun-rekap-select">
+            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
+            <label for="ui-tahun-rekap-select">Tahun: </label>
+            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
             </select>
           </div>
           <div class="member-search-wrapper">
@@ -137,7 +138,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <!-- Login Modal -->
 
@@ -367,7 +368,8 @@
       <!-- Tab 2: Kategori -->
       <div id="tab-master-kategori" class="tab-content">
         <form id="form-tambah-kategori" class="form-row-flex mb-16">
-          <select id="input-tipe-kategori" class="form-control w-140" required>
+          <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
+          <select id="input-tipe-kategori" class="form-control w-140" required aria-label="Tipe Kategori Kas">
             <option value="Masuk">Kas Masuk</option>
             <option value="Keluar">Kas Keluar</option>
           </select>
@@ -720,8 +722,8 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Kategori</label>
-                <select id="iuran-kategori" class="form-control" required></select>
+                <label for="iuran-kategori">Kategori</label>
+                <select id="iuran-kategori" class="form-control" required aria-label="Kategori Iuran"></select>
               </div>
               
               <div class="form-group">
@@ -739,8 +741,8 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Bulan</label>
-                  <select id="iuran-bulan" class="form-control" required>
+                  <label for="iuran-bulan">Bulan</label>
+                  <select id="iuran-bulan" class="form-control" required aria-label="Bulan Iuran">
                     <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
                     <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
                     <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
@@ -790,16 +792,16 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Tipe Kas</label>
-                <select id="ops-tipe" class="form-control" required>
+                <label for="ops-tipe">Tipe Kas</label>
+                <select id="ops-tipe" class="form-control" required aria-label="Tipe Kas">
                   <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label>Kategori</label>
-                <select id="ops-kategori" class="form-control" required></select>
+                <label for="ops-kategori">Kategori</label>
+                <select id="ops-kategori" class="form-control" required aria-label="Kategori Transaksi Kas"></select>
               </div>
 
               <div class="form-group">
@@ -820,8 +822,8 @@
 
             <div class="modal-main-selection">
               <div class="form-group">
-                <label>Terkait Anggota (Opsional)</label>
-                <select id="ops-anggota" class="form-control"></select>
+                <label for="ops-anggota">Terkait Anggota (Opsional)</label>
+                <select id="ops-anggota" class="form-control" aria-label="Terkait Anggota"></select>
               </div>
 
               <div class="form-group">
@@ -855,29 +857,29 @@
         <input type="hidden" id="edit-id">
         <div class="form-row">
           <div class="form-group">
-            <label>Tipe Transaksi</label>
-            <select id="edit-tipe" class="form-control" required>
+            <label for="edit-tipe">Tipe Transaksi</label>
+            <select id="edit-tipe" class="form-control" required aria-label="Tipe Transaksi">
               <option value="Masuk">Pemasukan (+)</option>
               <option value="Keluar">Pengeluaran (-)</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Kategori</label>
-            <select id="edit-kategori" class="form-control" required></select>
+            <label for="edit-kategori">Kategori</label>
+            <select id="edit-kategori" class="form-control" required aria-label="Kategori Transaksi"></select>
           </div>
         </div>
         <div class="form-group">
-          <label>Nominal (Rp)</label>
+          <label for="edit-nominal">Nominal (Rp)</label>
           <input type="number" id="edit-nominal" class="form-control" required min="1">
         </div>
         <div class="form-group">
-          <label>Terkait Anggota</label>
-          <select id="edit-anggota" class="form-control"></select>
+          <label for="edit-anggota">Terkait Anggota</label>
+          <select id="edit-anggota" class="form-control" aria-label="Terkait Anggota"></select>
         </div>
         <div class="form-row">
            <div class="form-group">
-            <label>Bulan</label>
-            <select id="edit-bulan" class="form-control">
+            <label for="edit-bulan">Bulan</label>
+            <select id="edit-bulan" class="form-control" aria-label="Bulan Iuran">
               <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
               <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
               <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
@@ -885,12 +887,12 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Tahun</label>
+            <label for="edit-tahun">Tahun</label>
             <input type="number" id="edit-tahun" class="form-control">
           </div>
         </div>
         <div class="form-group">
-          <label>Keterangan</label>
+          <label for="edit-keterangan">Keterangan</label>
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
         <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit">SIMPAN PERUBAHAN</button>
@@ -940,11 +942,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=63"></script>
+  <script type="module" src="js/app.js?v=64"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=63', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=64', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

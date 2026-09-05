@@ -332,8 +332,8 @@ body.dark-mode .btn-icon:hover {
   }
 
   .bottom-nav-item.active {
-    color: var(--primary);
-    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+    background: rgba(16, 185, 129, 0.12);
     border-radius: 12px;
   }
 

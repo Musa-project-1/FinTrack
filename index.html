@@ -210,7 +210,7 @@
         <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data</button>
         <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
         <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-        <button class="dropdown-item non-admin-only" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
+        <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
         <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
       </div>
     </div>
@@ -299,7 +299,7 @@
   </div>
 
   <!-- Master Data CRUD Modal (Admin Only) -->
-  <div class="modal-overlay modal-top admin-only" id="modal-kelola-master">
+  <div class="modal-overlay modal-top" id="modal-kelola-master">
     <div class="modal-content modal-lg">
       <div class="modal-title flex-between">
         <span class="flex-align-gap"><i class="ph-fill ph-users-three text-primary"></i> Kelola Anggota & Kategori</span>
@@ -869,11 +869,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=50"></script>
+  <script type="module" src="js/app.js?v=51"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=50', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=51', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

@@ -18,6 +18,10 @@ export const handleUI = (isAdmin) => {
     btn.style.display = getIsAdminSession() ? 'none' : '';
     btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
   }
+  const btnSheet = document.getElementById('btn-login-menu-sheet');
+  if (btnSheet) {
+    btnSheet.style.display = getIsAdminSession() ? 'none' : '';
+  }
   const logoutBtn = document.getElementById('btn-logout-admin');
   if (logoutBtn) logoutBtn.style.display = getIsAdminSession() ? '' : 'none';
 };
@@ -25,9 +29,12 @@ export const handleUI = (isAdmin) => {
 export const renderAdminUI = () => {
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
-    btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key"></i> Login';
+    btn.style.display = getIsAdminSession() ? 'none' : '';
+    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
+  }
+  const btnSheet = document.getElementById('btn-login-menu-sheet');
+  if (btnSheet) {
+    btnSheet.style.display = getIsAdminSession() ? 'none' : '';
   }
   document.body.classList.toggle('admin-mode', getIsAdminSession());
   const waBtn = document.getElementById('btn-copy-wa-reminder');

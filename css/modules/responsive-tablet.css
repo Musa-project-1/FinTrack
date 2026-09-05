@@ -160,9 +160,9 @@ body { padding: 6px 0 40px 0; }
 
   /* Flatten dropdown in mobile menu — show items as styled card */
   #header-actions.mobile-menu-open .header-dropdown > .btn-icon {
-    display: none !important;
+    display: inline-flex;
   }
-  #header-actions.mobile-menu-open .header-dropdown .dropdown-menu {
+  #header-dropdown.open .dropdown-menu {
     display: block !important;
     position: fixed !important;
     top: 45px;
@@ -177,7 +177,7 @@ body { padding: 6px 0 40px 0; }
     border-radius: 12px;
     box-shadow: var(--shadow-md);
   }
-  #header-actions.mobile-menu-open .header-dropdown .dropdown-item {
+  #header-dropdown.open .dropdown-item {
     padding: 8px 10px;
     font-size: 12px;
     border-radius: 8px;

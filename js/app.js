@@ -220,7 +220,7 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
 
 
 
-const initApp = async () => {
+export const initApp = async () => {
   if (isLoading) return;
 
   const hasCache = loadCache();

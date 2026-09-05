@@ -5,6 +5,7 @@ import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../uti
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
 import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran, filterKategori } from "../modal.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
+import { initApp } from "../app.js";
 
 export const openQuickPaySheet = (idAnggota, bulan) => {
   if (!idAnggota || !bulan) return;

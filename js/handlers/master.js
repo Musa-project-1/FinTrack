@@ -4,6 +4,7 @@ import { sendAdminPayload, fetchAuditLogApi } from "../api.js";
 import { showToast, escapeHtml } from "../utils.js";
 import { openModal, closeModal } from "../modal.js";
 import { renderAll, renderSkippedMonthsList } from "../render.js";
+import { initApp } from "../app.js";
 
 export const openSkippedMonthsModal = () => {
   renderSkippedMonthsList();

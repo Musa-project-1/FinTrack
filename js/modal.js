@@ -47,10 +47,14 @@ export const closeModal = (id) => {
  */
 export const switchTab = (tabName, modalId) => {
   const modal = document.getElementById(modalId);
-  modal.querySelectorAll('.tab-btn').forEach((btn) => btn.classList.remove('active'));
-  modal.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
-  document.getElementById(`btn-tab-${tabName}`).classList.add('active');
-  document.getElementById(`tab-${tabName}`).classList.add('active');
+  if (!modal) return;
+  modal.querySelectorAll('.tab-btn').forEach((btn) => {
+    const isTarget = btn.getAttribute('data-tab') === tabName || btn.id === `btn-tab-${tabName}`;
+    btn.classList.toggle('active', isTarget);
+  });
+  modal.querySelectorAll('.tab-content').forEach((content) => {
+    content.classList.toggle('active', content.id === tabName || content.id === `tab-${tabName}`);
+  });
 };
 
 /* ── Nominal chip quick-picks ─────────────────────────────────── */

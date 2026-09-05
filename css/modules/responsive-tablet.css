@@ -75,9 +75,10 @@ body { padding: 6px 0 40px 0; }
     align-items: center; 
     gap: 6px; 
     margin-bottom: 12px;
-    padding: 8px 8px;
+    padding: 10px 12px;
     background: var(--surface);
-    padding-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
   }
   .header-left { gap:8px; }
   .header-right { gap:8px; }

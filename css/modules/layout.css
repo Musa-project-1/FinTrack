@@ -3,21 +3,17 @@
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
-  margin-bottom: 35px; 
+  margin-bottom: 30px; 
   flex-wrap: wrap; 
   gap: 20px;
   position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  box-shadow: var(--shadow-sm);
 }
 
-.header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #10b981, #3b82f6, #6366f1, #f43f5e);
-}
 .header h1 { 
   font-size: 22px; 
   font-weight: 700; 

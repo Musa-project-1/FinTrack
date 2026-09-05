@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=80">
-  <link rel="stylesheet" href="style.css?v=80">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=81">
+  <link rel="stylesheet" href="style.css?v=81">
 </head>
 <body>
 
@@ -594,50 +594,38 @@
     </div>
   </div>
 
-  <!-- 11. Modal Profil Anggota -->
+  <!-- 11. Modal Profil Anggota (Personal Card Style) -->
   <div class="modal-overlay modal-top" id="modal-profil-anggota">
-    <div class="modal-content modal-lg">
+    <div class="modal-content modal-sm profile-modal-card">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
             <i class="ph-fill ph-user-circle"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Profil & Rekam Jejak Anggota</h2>
-            <p>Detail pembayaran iuran perorangan sepanjang periode</p>
+            <h2 id="p-nama-anggota" class="profile-card-title">Nama Anggota</h2>
+            <div class="profile-meta-row">
+              <span id="p-id-anggota" class="profile-id-badge">ID: -</span>
+              <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
+            </div>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
-      <div class="profile-grid-top mb-24">
-        <div class="profile-card-center">
-          <div class="profile-avatar-circle">
-            <i class="ph-fill ph-user"></i>
-          </div>
-          <h2 id="p-nama-anggota" class="profile-name">Nama Anggota</h2>
-          <div id="p-id-anggota" class="profile-id">ID: -</div>
-          <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
+      <div class="profile-metrics-card-row mb-16">
+        <div class="profile-metric-item">
+          <span class="profile-metric-label">Total Kontribusi</span>
+          <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
         </div>
-        
-        <div class="profile-metrics-grid">
-          <div class="h-card p-12">
-            <span>Total Kontribusi</span>
-            <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
-          </div>
-          <div class="h-card p-12">
-            <span>Bulan Terajin</span>
-            <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
-          </div>
-          <div class="h-card p-12 col-span-2">
-            <span>Tahun Aktif</span>
-            <div id="p-tahun-aktif" class="profile-metric-year">-</div>
-          </div>
+        <div class="profile-metric-item">
+          <span class="profile-metric-label">Bulan Terajin</span>
+          <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
         </div>
       </div>
 
       <div class="profile-history-title">
-        <i class="ph-bold ph-list-dashes"></i> Riwayat Pembayaran Iuran
+        <i class="ph-bold ph-clock-counter-clockwise"></i> Riwayat Setoran Kas
       </div>
       
       <div class="table-responsive table-scrollable profile-table-scroll">
@@ -645,8 +633,8 @@
           <thead class="sticky-thead">
             <tr>
               <th class="th-profile">Tanggal</th>
-              <th class="th-profile">Kategori / Iuran</th>
-              <th class="th-profile">Nominal</th>
+              <th class="th-profile">Keterangan</th>
+              <th class="th-profile text-right">Nominal</th>
             </tr>
           </thead>
           <tbody id="p-table-transaksi">
@@ -1008,11 +996,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=80"></script>
+  <script type="module" src="js/app.js?v=81"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=80', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=81', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

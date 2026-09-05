@@ -41,7 +41,6 @@ export const bukaProfilAnggota = (idAnggota) => {
 
   document.getElementById('p-total-kontribusi').innerText = formatRp(totalKontribusi);
   document.getElementById('p-bulan-terajin').innerText = bulanTerajin;
-  document.getElementById('p-tahun-aktif').innerText = Array.from(tahunSet).sort((a, b) => b - a).join(', ') || '-';
 
   const tbody = document.getElementById('p-table-transaksi');
   tbody.innerHTML = '';

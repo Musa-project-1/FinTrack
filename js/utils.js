@@ -41,17 +41,22 @@ export const getRawNominal = (id) => {
  */
 export const showToast = (message, type = 'success') => {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const toast = document.createElement('div');
-  toast.className = `toast ${type === 'error' ? 'error' : ''}`;
-  toast.innerHTML =
+  const iconClass =
     type === 'success'
-      ? `<i class="ph-fill ph-check-circle toast-icon-success"></i> <span>${message}</span>`
-      : `<i class="ph-fill ph-warning-circle toast-icon-danger"></i> <span>${message}</span>`;
+      ? 'ph-fill ph-check-circle toast-icon-success'
+      : type === 'warning'
+      ? 'ph-fill ph-warning toast-icon-warning text-warning'
+      : 'ph-fill ph-warning-circle toast-icon-danger';
+
+  toast.className = `toast ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
+  toast.innerHTML = `<i class="${iconClass}"></i> <span>${message}</span>`;
   container.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 50);
+  setTimeout(() => toast.classList.add('show'), 30);
   setTimeout(() => {
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
+    setTimeout(() => toast.remove(), 350);
   }, 3500);
 };
 

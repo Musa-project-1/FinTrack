@@ -239,8 +239,7 @@ export const createGroupReminderMessage = async () => {
 
   try {
     await navigator.clipboard.writeText(parts.join('\n'));
-    alert('Message copied successfully! Please paste it in the Class WA Group.');
-    showToast('Pesan berhasil disalin ke clipboard.', 'success');
+    showToast('Pesan pengingat disalin! Siap ditempel ke grup WA.', 'success');
   } catch (err) {
     console.error('copy failed', err);
     showToast('Gagal menyalin pesan. Silakan izinkan akses clipboard.', 'error');

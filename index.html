@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=81">
-  <link rel="stylesheet" href="style.css?v=81">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=82">
+  <link rel="stylesheet" href="style.css?v=82">
 </head>
 <body>
 
@@ -628,19 +628,8 @@
         <i class="ph-bold ph-clock-counter-clockwise"></i> Riwayat Setoran Kas
       </div>
       
-      <div class="table-responsive table-scrollable profile-table-scroll">
-        <table class="m-0">
-          <thead class="sticky-thead">
-            <tr>
-              <th class="th-profile">Tanggal</th>
-              <th class="th-profile">Keterangan</th>
-              <th class="th-profile text-right">Nominal</th>
-            </tr>
-          </thead>
-          <tbody id="p-table-transaksi">
-            <tr><td colspan="3" class="td-muted-center">Memuat data...</td></tr>
-          </tbody>
-        </table>
+      <div class="profile-history-list" id="p-list-transaksi">
+        <div class="profile-history-empty">Memuat data...</div>
       </div>
     </div>
   </div>
@@ -996,11 +985,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=81"></script>
+  <script type="module" src="js/app.js?v=82"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=81', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=82', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

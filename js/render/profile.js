@@ -42,24 +42,32 @@ export const bukaProfilAnggota = (idAnggota) => {
   document.getElementById('p-total-kontribusi').innerText = formatRp(totalKontribusi);
   document.getElementById('p-bulan-terajin').innerText = bulanTerajin;
 
-  const tbody = document.getElementById('p-table-transaksi');
-  tbody.innerHTML = '';
+  const listContainer = document.getElementById('p-list-transaksi');
+  listContainer.innerHTML = '';
 
   if (userTrx.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada riwayat transaksi.</td></tr>';
+    listContainer.innerHTML = '<div class="profile-history-empty">Belum ada riwayat transaksi.</div>';
   } else {
     userTrx.forEach((t) => {
       const tgl = new Date(t.Timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      const tr = document.createElement('tr');
       const cat = state.kategori.find((k) => k.ID_Kategori === t.ID_Kategori);
       const namaKat = cat ? cat.Nama_Kategori : '-';
       const ket = t.Bulan_Iuran !== '-' ? `Iuran ${t.Bulan_Iuran} ${t.Tahun_Iuran}` : namaKat;
-      tr.innerHTML = `
-        <td class="td-audit-time">${tgl}</td>
-        <td class="td-desc-text">${ket}</td>
-        <td class="td-nom-primary">${formatRp(t.Nominal)}</td>
+      const card = document.createElement('div');
+      card.className = 'profile-trx-card';
+      card.innerHTML = `
+        <div class="profile-trx-main">
+          <div class="profile-trx-badge-icon">
+            <i class="ph-bold ph-check-circle"></i>
+          </div>
+          <div class="profile-trx-info">
+            <span class="profile-trx-title">${escapeHtml(ket)}</span>
+            <span class="profile-trx-date">${escapeHtml(tgl)}</span>
+          </div>
+        </div>
+        <div class="profile-trx-nominal">${formatRp(t.Nominal)}</div>
       `;
-      tbody.appendChild(tr);
+      listContainer.appendChild(card);
     });
   }
 

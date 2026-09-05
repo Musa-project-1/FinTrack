@@ -211,6 +211,18 @@ body.dark-mode tr:hover td {
   border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
+body.dark-mode .badge-masuk {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+body.dark-mode .badge-keluar {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(251, 113, 133, 0.3);
+}
+
 /* Matrix Table Specifics */
 .table-matriks thead th {
   background: var(--table-header-bg);

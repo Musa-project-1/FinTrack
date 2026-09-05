@@ -109,6 +109,14 @@
 .bg-secondary-10 { background: rgba(79, 70, 229, 0.1); }
 .text-secondary { color: var(--secondary); }
 
+body.dark-mode .bg-secondary-10 {
+  background: rgba(99, 102, 241, 0.18);
+}
+
+body.dark-mode .text-secondary {
+  color: #818cf8;
+}
+
 .export-btn-title {
   font-weight: 600;
   font-size: 15px;

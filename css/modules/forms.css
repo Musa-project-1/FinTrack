@@ -13,6 +13,10 @@
   padding: 20px; 
 }
 
+body.dark-mode .modal-overlay {
+  background: rgba(3, 7, 18, 0.72);
+}
+
 .modal-overlay.active { 
   opacity: 1 !important; 
   visibility: visible !important; 
@@ -207,6 +211,10 @@ select option { background-color: var(--surface); color: var(--text-main); }
   border-color: var(--primary);
   background-color: rgba(5, 150, 105, 0.04); 
   box-shadow: 0 0 0 1px var(--primary), var(--shadow-md);
+}
+
+body.dark-mode .checkbox-item:has(input:checked) {
+  background-color: rgba(16, 185, 129, 0.08);
 }
 
 .checkbox-item:has(input:checked) span { 

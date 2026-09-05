@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=57">
-  <link rel="stylesheet" href="style.css?v=57">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=61">
+  <link rel="stylesheet" href="style.css?v=61">
 </head>
 <body>
 
@@ -37,32 +37,30 @@
       </div>
 
       <div class="header-right">
-        <div class="header-mobile-top">
-        <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-          <i class="ph ph-moon theme-icon fs-18"></i>
-        </button>
-
-        <button class="btn btn-primary btn-catat-mobile admin-only" data-action="buka-transaksi" title="Catat Transaksi">
-          <i class="ph ph-plus-circle fs-18"></i>
-        </button>
-
-        <button class="btn btn-icon mobile-menu-btn" data-action="toggle-mobile-menu" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
-          <i class="ph ph-list fs-22"></i>
-        </button>
-        </div>
-
+        <!-- Desktop Actions -->
         <div class="header-actions" id="header-actions">
           <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <!-- Hamburger Button (Desktop & Mobile) opens Unified Menu Modal -->
+          <!-- Hamburger Button opens Unified Menu Modal -->
           <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" title="Menu">
             <i class="ph ph-list fs-22"></i>
           </button>
 
           <button class="btn btn-primary admin-only" data-action="buka-transaksi">
             <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
+          </button>
+        </div>
+
+        <!-- Mobile-only top icons -->
+        <div class="header-mobile-top">
+          <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+            <i class="ph ph-moon theme-icon fs-18"></i>
+          </button>
+
+          <button class="btn btn-icon" data-action="open-menu-modal" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
+            <i class="ph ph-list fs-22"></i>
           </button>
         </div>
       </div>
@@ -171,11 +169,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=57"></script>
+  <script type="module" src="js/app.js?v=61"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=57', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=61', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

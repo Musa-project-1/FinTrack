@@ -1,10 +1,19 @@
+  <!-- 3. Modal Log Aktivitas / Audit Log -->
   <div class="modal-overlay modal-top" id="modal-audit-log">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-detective text-primary"></i> Log Aktivitas Admin</span>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-detective"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Log Aktivitas Admin</h2>
+            <p>Jejak audit dan rekaman histori aksi pengurus kas</p>
+          </div>
+        </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-audit-log">Refresh</button>
-          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
+          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
       <div class="table-responsive table-scrollable max-h-55vh">
@@ -24,35 +33,49 @@
     </div>
   </div>
 
-  <!-- Skipped Months / Bulan Libur Modal -->
+  <!-- 4. Modal Bulan Libur (Skipped Months) -->
   <div class="modal-overlay" id="modal-skipped-months">
     <div class="modal-content modal-md">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-calendar-x text-primary"></i> Atur Bulan Libur (Bulan Skip)</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-calendar-x"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Bulan Libur (Kas Bebas)</h2>
+            <p>Bulan yang ditandai tidak dihitung sebagai tunggakan anggota</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="skip-month-body">
         <div class="skip-month-input-row">
           <input type="month" id="input-skip-month" class="form-control flex-1" />
-          <button class="btn btn-outline admin-only" data-action="add-skip">Tambah</button>
+          <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
         </div>
 
-        <div class="text-sm-muted">Bulan yang ditandai akan dianggap <b>TIDAK</b> sebagai tunggakan untuk semua anggota.</div>
-
         <div id="skipped-months-list" class="skipped-months-container">
-          <div class="text-muted">Memuat...</div>
+          <div class="text-muted">Memuat data bulan libur...</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Master Data CRUD Modal (Admin Only) -->
+  <!-- 5. Modal Kelola Master (Anggota & Kategori) -->
   <div class="modal-overlay modal-top" id="modal-kelola-master">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-users-three text-primary"></i> Kelola Anggota & Kategori</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-users-three"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Kelola Anggota & Kategori</h2>
+            <p>Pengaturan master data keanggotaan dan pos aliran kas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
@@ -90,8 +113,8 @@
       <div id="tab-master-kategori" class="tab-content">
         <form id="form-tambah-kategori" class="form-row-flex mb-16">
           <select id="input-tipe-kategori" class="form-control w-140" required>
-            <option value="Masuk">Masuk</option>
-            <option value="Keluar">Keluar</option>
+            <option value="Masuk">Kas Masuk</option>
+            <option value="Keluar">Kas Keluar</option>
           </select>
           <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
@@ -116,22 +139,28 @@
     </div>
   </div>
 
-  <!-- Offline Queue Modal -->
+  <!-- 6. Modal Transaksi Tertunda / Offline Queue -->
   <div class="modal-overlay modal-top" id="modal-offline-queue">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-spinner text-primary"></i> Transaksi Tertunda</span>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-cloud-arrow-up"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Antrean Transaksi Offline</h2>
+            <p>Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
+          </div>
+        </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-offline">Refresh</button>
-          <button class="btn btn-primary" data-action="sync-now">Sinkronkan Sekarang</button>
-          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
+          <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> Sinkron Sekarang</button>
+          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
 
       <div id="offline-queue-list" class="offline-queue-container">
-        <div class="text-muted">Memuat...</div>
+        <div class="text-muted">Memuat antrean...</div>
       </div>
     </div>
   </div>
-
-  <!-- Export Modal -->

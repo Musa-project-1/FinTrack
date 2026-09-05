@@ -1,17 +1,18 @@
+  <!-- 12. Modal Riwayat Transaksi -->
   <div class="modal-overlay modal-top" id="modal-riwayat">
-    <div class="modal-content riwayat-modal-content">
-      <!-- Modal Header -->
-      <div class="riwayat-header">
-        <div class="riwayat-header-left">
-          <div class="riwayat-icon-badge">
+    <div class="modal-content modal-xl riwayat-modal-content">
+      <!-- Standardized Modal Header -->
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
             <i class="ph-fill ph-clock-counter-clockwise"></i>
           </div>
-          <div>
-            <h2 class="riwayat-title">Riwayat Transaksi</h2>
-            <p class="riwayat-subtitle">Pencatatan arus kas masuk, keluar, dan iuran anggota</p>
+          <div class="modal-title-wrap">
+            <h2>Riwayat Transaksi</h2>
+            <p>Pencatatan lengkap arus kas masuk, keluar, dan iuran anggota</p>
           </div>
         </div>
-        <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <!-- Controls & Filter Toolbar -->
@@ -42,7 +43,7 @@
         </div>
       </div>
 
-      <!-- Segmented Chips Filter (Scrollable on Mobile) -->
+      <!-- Segmented Chips Filter -->
       <div class="riwayat-chips-bar" id="history-filter-chips">
         <div class="chips-group">
           <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
@@ -59,7 +60,7 @@
         </div>
       </div>
 
-      <!-- Quick Summary Sub-bar for Filtered Transactions -->
+      <!-- Quick Summary Sub-bar -->
       <div class="riwayat-summary-bar" id="riwayat-summary-bar">
         <div class="riwayat-summary-item">
           <span class="riwayat-summary-label">Total Ditemukan:</span>
@@ -70,30 +71,32 @@
           <span class="metric-pill metric-out" id="rw-keluar">-Rp 0</span>
         </div>
       </div>
-      
-      <!-- Table / Cards List Container -->
-      <div class="table-responsive table-scrollable riwayat-scroll-area">
-        <table class="m-0" id="table-riwayat-data">
-          <thead>
-            <tr>
-              <th class="w-140">Waktu</th>
-              <th>Keterangan Transaksi</th>
-              <th class="w-160 text-right pr-20">Nominal</th>
-              <th class="w-130 text-center">Tipe Arus</th>
-              <th class="w-140 text-center admin-only">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="ui-table-trx">
-            <tr><td colspan="5"><div class="p-10"><div class="skeleton skeleton-text"></div></div></td></tr>
-          </tbody>
-        </table>
-        <div id="load-more-container" class="riwayat-load-more">
-          <button class="btn btn-outline btn-load-more" data-action="load-more">
-            <i class="ph-bold ph-caret-double-down"></i> Tampilkan Lebih Banyak
-          </button>
+
+      <!-- Main History Table Container -->
+      <div class="riwayat-table-wrapper">
+        <div class="table-responsive table-scrollable">
+          <table class="m-0" id="table-riwayat">
+            <thead class="sticky-thead">
+              <tr>
+                <th class="th-rw-waktu">Waktu</th>
+                <th class="th-rw-keterangan">Keterangan & Catatan</th>
+                <th class="th-rw-nominal text-right">Nominal</th>
+                <th class="th-rw-tipe text-center">Tipe Arus</th>
+                <th class="w-140 text-center admin-only">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-riwayat-data">
+              <tr><td colspan="5" class="td-muted-center">Memuat riwayat transaksi...</td></tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      <!-- Load More Button -->
+      <div class="riwayat-footer">
+        <button id="btn-load-more" class="btn btn-outline btn-load-more" data-action="load-more">
+          <i class="ph ph-caret-down"></i> Tampilkan Lebih Banyak
+        </button>
       </div>
     </div>
   </div>
-
-  <!-- Transaction Modal -->

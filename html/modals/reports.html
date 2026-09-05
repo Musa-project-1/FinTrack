@@ -1,8 +1,17 @@
+  <!-- 9. Modal Export Data & Cetak -->
   <div class="modal-overlay" id="modal-export">
     <div class="modal-content modal-sm">
-      <div class="modal-title mb-16 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-export text-primary"></i> Export & Cetak</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-export"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Export & Cetak</h2>
+            <p>Unduh laporan atau bagikan rekap kas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div class="export-actions-list">
         <button class="btn btn-primary export-card-btn admin-only" data-action="copy-monthly-recap">
@@ -11,7 +20,7 @@
           </div>
           <div class="text-left">
             <div class="export-btn-title">Salin Rekap Bulan Ini (WA)</div>
-            <div class="export-btn-desc">Ringkasan masuk/keluar/saldo + daftar yang belum bayar. Tempel langsung ke grup WA.</div>
+            <div class="export-btn-desc">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
           </div>
         </button>
         <button class="btn btn-outline export-card-btn" data-action="print-annual">
@@ -20,21 +29,28 @@
           </div>
           <div class="text-left">
             <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
-            <div class="export-btn-desc text-muted">Cetak Matriks status iuran anggota ke PDF (Ukuran A4 Landscape).</div>
+            <div class="export-btn-desc text-muted">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
           </div>
         </button>
-        <button class="btn btn-link-subtle" data-action="export-csv">atau unduh CSV lengkap (arsip data)</button>
+        <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
       </div>
     </div>
   </div>
 
-  <!-- History Modal -->
-
+  <!-- 10. Modal Statistik Kas -->
   <div class="modal-overlay modal-top" id="modal-statistik">
     <div class="modal-content modal-xl">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-chart-bar text-primary"></i> Statistik Kas</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-chart-bar"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Statistik & Kesehatan Kas</h2>
+            <p>Visualisasi tren arus kas dan rasio kepatuhan pembayaran</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="stats-overview mb-20">
@@ -52,22 +68,22 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Lunas Penuh</div>
+          <div class="stat-card-title">Jumlah Anggota Lunas</div>
           <div id="stat-fully-paid" class="stat-card-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Masih Menunggak</div>
+          <div class="stat-card-title">Anggota Menunggak</div>
           <div id="stat-with-arrears" class="stat-card-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Total Potensi Uang Belum Tertagih</div>
+          <div class="stat-card-title">Potensi Belum Tertagih</div>
           <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
         </div>
       </div>
       <div class="chart-section chart-grid-section">
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Tren Kas Iuran</h2>
+            <h3 class="chart-card-title">Tren Kas Iuran Bulanan</h3>
             <div class="chart-update-text">Update: <span id="last-update">-</span></div>
           </div>
           <div class="chart-wrapper chart-wrapper-compact">
@@ -77,7 +93,7 @@
 
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h2>
+            <h3 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h3>
           </div>
           <div class="chart-wrapper chart-wrapper-compact flex-center">
             <canvas id="expenseChart"></canvas>
@@ -87,12 +103,20 @@
     </div>
   </div>
 
-  <!-- Member Profile Modal -->
+  <!-- 11. Modal Profil Anggota -->
   <div class="modal-overlay modal-top" id="modal-profil-anggota">
     <div class="modal-content modal-lg">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-user-circle text-primary"></i> Profil Anggota</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-user-circle"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Profil & Rekam Jejak Anggota</h2>
+            <p>Detail pembayaran iuran perorangan sepanjang periode</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="profile-grid-top mb-24">

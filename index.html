@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=57">
-  <link rel="stylesheet" href="style.css?v=57">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=61">
+  <link rel="stylesheet" href="style.css?v=61">
 </head>
 <body>
 
@@ -37,32 +37,30 @@
       </div>
 
       <div class="header-right">
-        <div class="header-mobile-top">
-        <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-          <i class="ph ph-moon theme-icon fs-18"></i>
-        </button>
-
-        <button class="btn btn-primary btn-catat-mobile admin-only" data-action="buka-transaksi" title="Catat Transaksi">
-          <i class="ph ph-plus-circle fs-18"></i>
-        </button>
-
-        <button class="btn btn-icon mobile-menu-btn" data-action="toggle-mobile-menu" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
-          <i class="ph ph-list fs-22"></i>
-        </button>
-        </div>
-
+        <!-- Desktop Actions -->
         <div class="header-actions" id="header-actions">
           <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <!-- Hamburger Button (Desktop & Mobile) opens Unified Menu Modal -->
+          <!-- Hamburger Button opens Unified Menu Modal -->
           <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" title="Menu">
             <i class="ph ph-list fs-22"></i>
           </button>
 
           <button class="btn btn-primary admin-only" data-action="buka-transaksi">
             <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
+          </button>
+        </div>
+
+        <!-- Mobile-only top icons -->
+        <div class="header-mobile-top">
+          <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+            <i class="ph ph-moon theme-icon fs-18"></i>
+          </button>
+
+          <button class="btn btn-icon" data-action="open-menu-modal" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
+            <i class="ph ph-list fs-22"></i>
           </button>
         </div>
       </div>
@@ -144,37 +142,38 @@
   <!-- Login Modal -->
 
     <!-- === Modal Module: auth.html === -->
-<div class="modal-overlay" id="modal-login">
-    <div class="modal-content modal-auth-card">
-      <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
-      
+<!-- 1. Modal Login Admin -->
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-content modal-sm modal-center-dialog">
       <div class="modal-icon-badge badge-primary">
         <i class="ph-fill ph-lock-key"></i>
       </div>
-      <h2 class="modal-head-title">Akses Pengurus</h2>
-      <p class="modal-desc-subtext">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
+      <h2>Akses Pengurus Kas</h2>
+      <p>Masukkan password admin untuk mencatat transaksi dan mengelola data kas.</p>
       
       <form id="form-login-admin">
-        <div class="form-group form-group-auth">
-          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required>
+        <div class="form-group form-group-auth position-relative">
+          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required autofocus>
           <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
             <i class="ph ph-eye" id="icon-toggle-pwd"></i>
           </button>
         </div>
-        <button type="submit" class="btn btn-primary btn-full-submit">MASUK KE PANEL</button>
+        <div class="modal-dialog-actions">
+          <button type="button" class="btn btn-outline" data-action="close-modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-login">Masuk</button>
+        </div>
       </form>
     </div>
   </div>
 
-  <!-- Menu Bottom Sheet (mobile) -->
-
+  <!-- 2. Modal Logout Admin Confirmation -->
   <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content modal-dialog-card">
-      <div class="modal-icon-badge badge-slate">
+    <div class="modal-content modal-sm modal-center-dialog">
+      <div class="modal-badge-icon slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
-      <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
-      <p class="modal-desc-subtext mb-0">Anda perlu login kembali untuk mengelola data.</p>
+      <h2>Keluar Sesi Admin?</h2>
+      <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
         <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
@@ -182,70 +181,94 @@
     </div>
   </div>
 
-  <!-- Statistics Modal -->
-
   <!-- === Modal Module: navigation.html === -->
-<!-- Navigation Menu Modal / Sheet (Unified Desktop & Mobile) -->
-    <div class="modal-overlay" id="modal-menu">
-      <div class="modal-content menu-sheet">
-        <div class="quickpay-handle" aria-hidden="true"></div>
-        <div class="modal-title sheet-title-sm flex-between">
-          <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu Navigasi</span>
-          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+<!-- 7. Navigation Menu Modal Sheet -->
+  <div class="modal-overlay" id="modal-menu">
+    <div class="modal-content modal-md menu-sheet">
+      <div class="quickpay-handle" aria-hidden="true"></div>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-list"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Menu Navigasi</h2>
+            <p>Akses fitur pembukuan dan pengaturan kas</p>
+          </div>
         </div>
-        <div class="menu-sheet-list">
-          <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
-          <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
-          <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
-          <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
-          <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-          <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
-          <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
-          <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
-        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="menu-sheet-list">
+        <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
+        <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+        <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
+        <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
+        <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
+        <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
+        <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
+        <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
       </div>
     </div>
+  </div>
 
-  <!-- Quick Pay Bottom Sheet -->
+  <!-- 8. Quick Pay Bottom Sheet -->
   <div class="modal-overlay" id="modal-quickpay">
-    <div class="modal-content quickpay-sheet">
+    <div class="modal-content modal-sm quickpay-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-title sheet-title-md">
-        <span class="flex-align-gap"><i class="ph-fill ph-hand-coins text-primary"></i> Bayar Iuran Cepat</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-hand-coins"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Bayar Iuran Kilat</h2>
+            <p id="qp-periode">Konfirmasi pembayaran satu sentuhan</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <form id="form-quickpay">
         <input type="hidden" id="qp-id-anggota">
         <input type="hidden" id="qp-bulan">
         <input type="hidden" id="qp-tahun">
-        <div class="qp-member">
+        <div class="qp-member mb-16">
           <div class="qp-avatar" id="qp-avatar">?</div>
           <div class="min-w-0">
             <div id="qp-nama" class="qp-member-name">-</div>
-            <div id="qp-periode" class="qp-member-period">-</div>
+            <div class="text-xs text-muted">Anggota Kas Terdaftar</div>
           </div>
         </div>
-        <div class="form-group mb-14">
-          <label>Nominal</label>
-          <input type="text" id="qp-nominal" class="form-control input-qp-nominal" inputmode="numeric" required>
+        <div class="form-group mb-16">
+          <label>Nominal Pembayaran</label>
+          <div class="input-with-prefix">
+            <span>Rp</span>
+            <input type="text" id="qp-nominal" class="form-control input-qp-nominal" inputmode="numeric" required>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-qp-submit" id="btn-submit-quickpay">
-          <i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG
+        <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-quickpay">
+          <i class="ph-bold ph-check-circle"></i> SIMPAN PEMBAYARAN
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Audit Log Modal -->
-
   <!-- === Modal Module: master.html === -->
-<div class="modal-overlay modal-top" id="modal-audit-log">
+<!-- 3. Modal Log Aktivitas / Audit Log -->
+  <div class="modal-overlay modal-top" id="modal-audit-log">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-detective text-primary"></i> Log Aktivitas Admin</span>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-detective"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Log Aktivitas Admin</h2>
+            <p>Jejak audit dan rekaman histori aksi pengurus kas</p>
+          </div>
+        </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-audit-log">Refresh</button>
-          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
+          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
       <div class="table-responsive table-scrollable max-h-55vh">
@@ -265,35 +288,49 @@
     </div>
   </div>
 
-  <!-- Skipped Months / Bulan Libur Modal -->
+  <!-- 4. Modal Bulan Libur (Skipped Months) -->
   <div class="modal-overlay" id="modal-skipped-months">
     <div class="modal-content modal-md">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-calendar-x text-primary"></i> Atur Bulan Libur (Bulan Skip)</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-calendar-x"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Bulan Libur (Kas Bebas)</h2>
+            <p>Bulan yang ditandai tidak dihitung sebagai tunggakan anggota</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="skip-month-body">
         <div class="skip-month-input-row">
           <input type="month" id="input-skip-month" class="form-control flex-1" />
-          <button class="btn btn-outline admin-only" data-action="add-skip">Tambah</button>
+          <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
         </div>
 
-        <div class="text-sm-muted">Bulan yang ditandai akan dianggap <b>TIDAK</b> sebagai tunggakan untuk semua anggota.</div>
-
         <div id="skipped-months-list" class="skipped-months-container">
-          <div class="text-muted">Memuat...</div>
+          <div class="text-muted">Memuat data bulan libur...</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Master Data CRUD Modal (Admin Only) -->
+  <!-- 5. Modal Kelola Master (Anggota & Kategori) -->
   <div class="modal-overlay modal-top" id="modal-kelola-master">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-users-three text-primary"></i> Kelola Anggota & Kategori</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-users-three"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Kelola Anggota & Kategori</h2>
+            <p>Pengaturan master data keanggotaan dan pos aliran kas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
@@ -331,8 +368,8 @@
       <div id="tab-master-kategori" class="tab-content">
         <form id="form-tambah-kategori" class="form-row-flex mb-16">
           <select id="input-tipe-kategori" class="form-control w-140" required>
-            <option value="Masuk">Masuk</option>
-            <option value="Keluar">Keluar</option>
+            <option value="Masuk">Kas Masuk</option>
+            <option value="Keluar">Kas Keluar</option>
           </select>
           <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
@@ -357,32 +394,47 @@
     </div>
   </div>
 
-  <!-- Offline Queue Modal -->
+  <!-- 6. Modal Transaksi Tertunda / Offline Queue -->
   <div class="modal-overlay modal-top" id="modal-offline-queue">
     <div class="modal-content modal-lg">
-      <div class="modal-title flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-spinner text-primary"></i> Transaksi Tertunda</span>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-cloud-arrow-up"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Antrean Transaksi Offline</h2>
+            <p>Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
+          </div>
+        </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-offline">Refresh</button>
-          <button class="btn btn-primary" data-action="sync-now">Sinkronkan Sekarang</button>
-          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
+          <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> Sinkron Sekarang</button>
+          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
 
       <div id="offline-queue-list" class="offline-queue-container">
-        <div class="text-muted">Memuat...</div>
+        <div class="text-muted">Memuat antrean...</div>
       </div>
     </div>
   </div>
 
-  <!-- Export Modal -->
-
   <!-- === Modal Module: reports.html === -->
-<div class="modal-overlay" id="modal-export">
+<!-- 9. Modal Export Data & Cetak -->
+  <div class="modal-overlay" id="modal-export">
     <div class="modal-content modal-sm">
-      <div class="modal-title mb-16 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-export text-primary"></i> Export & Cetak</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-export"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Export & Cetak</h2>
+            <p>Unduh laporan atau bagikan rekap kas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div class="export-actions-list">
         <button class="btn btn-primary export-card-btn admin-only" data-action="copy-monthly-recap">
@@ -391,7 +443,7 @@
           </div>
           <div class="text-left">
             <div class="export-btn-title">Salin Rekap Bulan Ini (WA)</div>
-            <div class="export-btn-desc">Ringkasan masuk/keluar/saldo + daftar yang belum bayar. Tempel langsung ke grup WA.</div>
+            <div class="export-btn-desc">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
           </div>
         </button>
         <button class="btn btn-outline export-card-btn" data-action="print-annual">
@@ -400,21 +452,28 @@
           </div>
           <div class="text-left">
             <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
-            <div class="export-btn-desc text-muted">Cetak Matriks status iuran anggota ke PDF (Ukuran A4 Landscape).</div>
+            <div class="export-btn-desc text-muted">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
           </div>
         </button>
-        <button class="btn btn-link-subtle" data-action="export-csv">atau unduh CSV lengkap (arsip data)</button>
+        <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
       </div>
     </div>
   </div>
 
-  <!-- History Modal -->
-
+  <!-- 10. Modal Statistik Kas -->
   <div class="modal-overlay modal-top" id="modal-statistik">
     <div class="modal-content modal-xl">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-chart-bar text-primary"></i> Statistik Kas</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-chart-bar"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Statistik & Kesehatan Kas</h2>
+            <p>Visualisasi tren arus kas dan rasio kepatuhan pembayaran</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="stats-overview mb-20">
@@ -432,22 +491,22 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Lunas Penuh</div>
+          <div class="stat-card-title">Jumlah Anggota Lunas</div>
           <div id="stat-fully-paid" class="stat-card-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Masih Menunggak</div>
+          <div class="stat-card-title">Anggota Menunggak</div>
           <div id="stat-with-arrears" class="stat-card-value">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Total Potensi Uang Belum Tertagih</div>
+          <div class="stat-card-title">Potensi Belum Tertagih</div>
           <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
         </div>
       </div>
       <div class="chart-section chart-grid-section">
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Tren Kas Iuran</h2>
+            <h3 class="chart-card-title">Tren Kas Iuran Bulanan</h3>
             <div class="chart-update-text">Update: <span id="last-update">-</span></div>
           </div>
           <div class="chart-wrapper chart-wrapper-compact">
@@ -457,7 +516,7 @@
 
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h2>
+            <h3 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h3>
           </div>
           <div class="chart-wrapper chart-wrapper-compact flex-center">
             <canvas id="expenseChart"></canvas>
@@ -467,12 +526,20 @@
     </div>
   </div>
 
-  <!-- Member Profile Modal -->
+  <!-- 11. Modal Profil Anggota -->
   <div class="modal-overlay modal-top" id="modal-profil-anggota">
     <div class="modal-content modal-lg">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-user-circle text-primary"></i> Profil Anggota</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-user-circle"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Profil & Rekam Jejak Anggota</h2>
+            <p>Detail pembayaran iuran perorangan sepanjang periode</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="profile-grid-top mb-24">
@@ -523,20 +590,21 @@
   </div>
 
   <!-- === Modal Module: riwayat.html === -->
-<div class="modal-overlay modal-top" id="modal-riwayat">
-    <div class="modal-content riwayat-modal-content">
-      <!-- Modal Header -->
-      <div class="riwayat-header">
-        <div class="riwayat-header-left">
-          <div class="riwayat-icon-badge">
+<!-- 12. Modal Riwayat Transaksi -->
+  <div class="modal-overlay modal-top" id="modal-riwayat">
+    <div class="modal-content modal-xl riwayat-modal-content">
+      <!-- Standardized Modal Header -->
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
             <i class="ph-fill ph-clock-counter-clockwise"></i>
           </div>
-          <div>
-            <h2 class="riwayat-title">Riwayat Transaksi</h2>
-            <p class="riwayat-subtitle">Pencatatan arus kas masuk, keluar, dan iuran anggota</p>
+          <div class="modal-title-wrap">
+            <h2>Riwayat Transaksi</h2>
+            <p>Pencatatan lengkap arus kas masuk, keluar, dan iuran anggota</p>
           </div>
         </div>
-        <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <!-- Controls & Filter Toolbar -->
@@ -567,7 +635,7 @@
         </div>
       </div>
 
-      <!-- Segmented Chips Filter (Scrollable on Mobile) -->
+      <!-- Segmented Chips Filter -->
       <div class="riwayat-chips-bar" id="history-filter-chips">
         <div class="chips-group">
           <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
@@ -584,7 +652,7 @@
         </div>
       </div>
 
-      <!-- Quick Summary Sub-bar for Filtered Transactions -->
+      <!-- Quick Summary Sub-bar -->
       <div class="riwayat-summary-bar" id="riwayat-summary-bar">
         <div class="riwayat-summary-item">
           <span class="riwayat-summary-label">Total Ditemukan:</span>
@@ -595,40 +663,51 @@
           <span class="metric-pill metric-out" id="rw-keluar">-Rp 0</span>
         </div>
       </div>
-      
-      <!-- Table / Cards List Container -->
-      <div class="table-responsive table-scrollable riwayat-scroll-area">
-        <table class="m-0" id="table-riwayat-data">
-          <thead>
-            <tr>
-              <th class="w-140">Waktu</th>
-              <th>Keterangan Transaksi</th>
-              <th class="w-160 text-right pr-20">Nominal</th>
-              <th class="w-130 text-center">Tipe Arus</th>
-              <th class="w-140 text-center admin-only">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="ui-table-trx">
-            <tr><td colspan="5"><div class="p-10"><div class="skeleton skeleton-text"></div></div></td></tr>
-          </tbody>
-        </table>
-        <div id="load-more-container" class="riwayat-load-more">
-          <button class="btn btn-outline btn-load-more" data-action="load-more">
-            <i class="ph-bold ph-caret-double-down"></i> Tampilkan Lebih Banyak
-          </button>
+
+      <!-- Main History Table Container -->
+      <div class="riwayat-table-wrapper">
+        <div class="table-responsive table-scrollable">
+          <table class="m-0" id="table-riwayat">
+            <thead class="sticky-thead">
+              <tr>
+                <th class="th-rw-waktu">Waktu</th>
+                <th class="th-rw-keterangan">Keterangan & Catatan</th>
+                <th class="th-rw-nominal text-right">Nominal</th>
+                <th class="th-rw-tipe text-center">Tipe Arus</th>
+                <th class="w-140 text-center admin-only">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-riwayat-data">
+              <tr><td colspan="5" class="td-muted-center">Memuat riwayat transaksi...</td></tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      <!-- Load More Button -->
+      <div class="riwayat-footer">
+        <button id="btn-load-more" class="btn btn-outline btn-load-more" data-action="load-more">
+          <i class="ph ph-caret-down"></i> Tampilkan Lebih Banyak
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Transaction Modal -->
-
   <!-- === Modal Module: transactions.html === -->
-<div class="modal-overlay modal-top" id="modal-transaksi">
-    <div class="modal-content">
-      <div class="modal-title">
-        <span class="flex-align-gap"><i class="ph-fill ph-plus-circle text-primary"></i> Catat Transaksi Baru</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+<!-- 13. Modal Catat Transaksi Baru (Iuran & Operasional) -->
+  <div class="modal-overlay modal-top" id="modal-transaksi">
+    <div class="modal-content modal-xl">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-plus-circle"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Catat Transaksi Baru</h2>
+            <p>Pilih tab pembayaran iuran anggota atau pencatatan kas operasional</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-header">
@@ -696,7 +775,11 @@
                 <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
               </div>
 
-              <div class="checkbox-grid" id="iuran-checkbox-anggota"></div>
+              <div class="checkbox-grid-wrapper">
+                <div class="checkbox-grid" id="container-checkbox-anggota">
+                  <div class="text-muted">Memuat daftar anggota...</div>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -707,66 +790,67 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Tipe Arus</label>
+                <label>Tipe Kas</label>
                 <select id="ops-tipe" class="form-control" required>
-                  <option value="Keluar" selected>Pengeluaran (-)</option>
+                  <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
               </div>
-
+              
               <div class="form-group">
                 <label>Kategori</label>
                 <select id="ops-kategori" class="form-control" required></select>
               </div>
 
               <div class="form-group">
-                <label>Nominal Total (Rp)</label>
+                <label>Nominal</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
                   <input type="text" id="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
                 </div>
               </div>
-
-              <div class="summary-card">
-                <div class="summary-item"><span>Tipe:</span> <span id="summary-ops-tipe" class="summary-ops-tipe-badge">PENGELUARAN</span></div>
-                <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
-                <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
-              </div>
               
-              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN OPERASIONAL</button>
+              <div class="summary-card">
+                <div class="summary-item"><span>Jenis:</span> <span id="summary-ops-tipe">Pengeluaran</span></div>
+                <div class="summary-total"><span>NOMINAL:</span> <span id="summary-ops-nominal">Rp 0</span></div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN TRANSAKSI</button>
             </div>
 
             <div class="modal-main-selection">
-              <label class="selection-label mb-16 d-block">Detail Transaksi</label>
-              
               <div class="form-group">
-                <label>Keterangan / Catatan</label>
-                <textarea id="ops-keterangan" class="form-control textarea-ops" required placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
+                <label>Terkait Anggota (Opsional)</label>
+                <select id="ops-anggota" class="form-control"></select>
               </div>
 
-              <div class="form-group mt-24">
-                <label>Kaitkan Transaksi ke Anggota (Opsional)</label>
-                <div class="relative">
-                  <i class="ph ph-user icon-input-left"></i>
-                  <select id="ops-anggota" class="form-control pl-48"></select>
-                </div>
-                <p class="text-xs-muted mt-8">Pilih anggota jika pengeluaran/pemasukan ini spesifik untuk individu tertentu (misal: santunan atau pinjaman).</p>
+              <div class="form-group">
+                <label>Keterangan / Keperluan</label>
+                <textarea id="ops-keterangan" class="form-control" rows="5" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
               </div>
             </div>
           </div>
         </form>
       </div>
-
     </div>
   </div>
 
-  <!-- Edit Transaction Modal -->
+  <!-- 14. Modal Edit Transaksi -->
   <div class="modal-overlay modal-top" id="modal-edit-transaksi">
-    <div class="modal-content">
-      <div class="modal-title">
-        <span class="flex-align-gap"><i class="ph-fill ph-pencil-simple text-warning"></i> Edit Transaksi</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-pencil-simple"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Edit Data Transaksi</h2>
+            <p>Koreksi nominal, kategori, atau catatan pembukuan</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
+
       <form id="form-edit-transaksi">
         <input type="hidden" id="edit-id">
         <div class="form-row">
@@ -809,20 +893,19 @@
           <label>Keterangan</label>
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
-        <button type="submit" class="btn btn-primary btn-submit-warning" id="btn-submit-edit">UPDATE DATA</button>
+        <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit">SIMPAN PERUBAHAN</button>
       </form>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-
+  <!-- 15. Modal Konfirmasi Hapus Transaksi -->
   <div class="modal-overlay" id="modal-hapus">
-    <div class="modal-content modal-dialog-card">
-      <div class="modal-icon-badge badge-danger">
-        <i class="ph-bold ph-warning"></i>
+    <div class="modal-content modal-sm modal-center-dialog">
+      <div class="modal-badge-icon danger">
+        <i class="ph-bold ph-trash"></i>
       </div>
-      <h2 class="modal-dialog-title">Hapus Transaksi?</h2>
-      <p class="modal-desc-subtext mb-0">Tindakan ini tidak dapat dibatalkan.</p>
+      <h2>Hapus Transaksi?</h2>
+      <p>Data yang dihapus akan dicatat ke log aktivitas dan saldo kas akan disesuaikan.</p>
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-delete">Batal</button>
@@ -830,8 +913,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Logout Confirmation Modal -->
 
   <div id="toast-container"></div>
 
@@ -859,11 +940,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=57"></script>
+  <script type="module" src="js/app.js?v=61"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=57', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=61', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

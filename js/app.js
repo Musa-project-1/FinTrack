@@ -292,6 +292,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 
   // Attach input listeners for dynamic updates
+  const btnMenuDesktop = document.getElementById('btn-header-menu');
+  if (btnMenuDesktop) {
+    btnMenuDesktop.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openModal('modal-menu');
+    });
+  }
+
+  const btnMenuMobile = document.getElementById('btn-header-menu-mobile');
+  if (btnMenuMobile) {
+    btnMenuMobile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openModal('modal-menu');
+    });
+  }
+
   const iuranNominal = document.getElementById('iuran-nominal');
   if (iuranNominal) iuranNominal.addEventListener('input', function() { handleNominalInput(this); resetChipAktif(); updateCounterIuran(); });
 

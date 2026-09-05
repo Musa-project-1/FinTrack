@@ -1,8 +1,17 @@
+  <!-- 13. Modal Catat Transaksi Baru (Iuran & Operasional) -->
   <div class="modal-overlay modal-top" id="modal-transaksi">
-    <div class="modal-content">
-      <div class="modal-title">
-        <span class="flex-align-gap"><i class="ph-fill ph-plus-circle text-primary"></i> Catat Transaksi Baru</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+    <div class="modal-content modal-xl">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-plus-circle"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Catat Transaksi Baru</h2>
+            <p>Pilih tab pembayaran iuran anggota atau pencatatan kas operasional</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-header">
@@ -70,7 +79,11 @@
                 <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
               </div>
 
-              <div class="checkbox-grid" id="iuran-checkbox-anggota"></div>
+              <div class="checkbox-grid-wrapper">
+                <div class="checkbox-grid" id="container-checkbox-anggota">
+                  <div class="text-muted">Memuat daftar anggota...</div>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -81,66 +94,67 @@
           <div class="modal-grid">
             <div class="modal-side-info">
               <div class="form-group">
-                <label>Tipe Arus</label>
+                <label>Tipe Kas</label>
                 <select id="ops-tipe" class="form-control" required>
-                  <option value="Keluar" selected>Pengeluaran (-)</option>
+                  <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
               </div>
-
+              
               <div class="form-group">
                 <label>Kategori</label>
                 <select id="ops-kategori" class="form-control" required></select>
               </div>
 
               <div class="form-group">
-                <label>Nominal Total (Rp)</label>
+                <label>Nominal</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
                   <input type="text" id="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
                 </div>
               </div>
-
-              <div class="summary-card">
-                <div class="summary-item"><span>Tipe:</span> <span id="summary-ops-tipe" class="summary-ops-tipe-badge">PENGELUARAN</span></div>
-                <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
-                <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
-              </div>
               
-              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN OPERASIONAL</button>
+              <div class="summary-card">
+                <div class="summary-item"><span>Jenis:</span> <span id="summary-ops-tipe">Pengeluaran</span></div>
+                <div class="summary-total"><span>NOMINAL:</span> <span id="summary-ops-nominal">Rp 0</span></div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN TRANSAKSI</button>
             </div>
 
             <div class="modal-main-selection">
-              <label class="selection-label mb-16 d-block">Detail Transaksi</label>
-              
               <div class="form-group">
-                <label>Keterangan / Catatan</label>
-                <textarea id="ops-keterangan" class="form-control textarea-ops" required placeholder="Misal: Beli ATK kantor, Biaya Listrik April, dll..."></textarea>
+                <label>Terkait Anggota (Opsional)</label>
+                <select id="ops-anggota" class="form-control"></select>
               </div>
 
-              <div class="form-group mt-24">
-                <label>Kaitkan Transaksi ke Anggota (Opsional)</label>
-                <div class="relative">
-                  <i class="ph ph-user icon-input-left"></i>
-                  <select id="ops-anggota" class="form-control pl-48"></select>
-                </div>
-                <p class="text-xs-muted mt-8">Pilih anggota jika pengeluaran/pemasukan ini spesifik untuk individu tertentu (misal: santunan atau pinjaman).</p>
+              <div class="form-group">
+                <label>Keterangan / Keperluan</label>
+                <textarea id="ops-keterangan" class="form-control" rows="5" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
               </div>
             </div>
           </div>
         </form>
       </div>
-
     </div>
   </div>
 
-  <!-- Edit Transaction Modal -->
+  <!-- 14. Modal Edit Transaksi -->
   <div class="modal-overlay modal-top" id="modal-edit-transaksi">
-    <div class="modal-content">
-      <div class="modal-title">
-        <span class="flex-align-gap"><i class="ph-fill ph-pencil-simple text-warning"></i> Edit Transaksi</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon warning">
+            <i class="ph-fill ph-pencil-simple"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Edit Data Transaksi</h2>
+            <p>Koreksi nominal, kategori, atau catatan pembukuan</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
+
       <form id="form-edit-transaksi">
         <input type="hidden" id="edit-id">
         <div class="form-row">
@@ -183,20 +197,19 @@
           <label>Keterangan</label>
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
-        <button type="submit" class="btn btn-primary btn-submit-warning" id="btn-submit-edit">UPDATE DATA</button>
+        <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit">SIMPAN PERUBAHAN</button>
       </form>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-
+  <!-- 15. Modal Konfirmasi Hapus Transaksi -->
   <div class="modal-overlay" id="modal-hapus">
-    <div class="modal-content modal-dialog-card">
-      <div class="modal-icon-badge badge-danger">
-        <i class="ph-bold ph-warning"></i>
+    <div class="modal-content modal-sm modal-center-dialog">
+      <div class="modal-badge-icon danger">
+        <i class="ph-bold ph-trash"></i>
       </div>
-      <h2 class="modal-dialog-title">Hapus Transaksi?</h2>
-      <p class="modal-desc-subtext mb-0">Tindakan ini tidak dapat dibatalkan.</p>
+      <h2>Hapus Transaksi?</h2>
+      <p>Data yang dihapus akan dicatat ke log aktivitas dan saldo kas akan disesuaikan.</p>
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-delete">Batal</button>
@@ -204,5 +217,3 @@
       </div>
     </div>
   </div>
-
-  <!-- Logout Confirmation Modal -->

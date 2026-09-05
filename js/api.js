@@ -57,6 +57,16 @@ export const fetchInitialData = async () => {
       fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json())
     ]);
 
+    // Check for API errors (e.g. 429 Quota Exceeded)
+    if (resAng.error || resKat.error || resTrx.error) {
+      const err = resAng.error || resKat.error || resTrx.error;
+      console.warn('Firestore API Warning/Error:', err);
+      return {
+        status: false,
+        message: err.code === 429 ? 'Batas kuota Firestore tercapai. Menggunakan data cache offline.' : (err.message || 'Gagal memuat data dari Firestore.')
+      };
+    }
+
     const anggota = (resAng.documents || []).map((d) => fromFirestoreFields(d.fields));
     const kategori = (resKat.documents || []).map((d) => fromFirestoreFields(d.fields));
     const transaksi = (resTrx.documents || []).map((d) => fromFirestoreFields(d.fields));

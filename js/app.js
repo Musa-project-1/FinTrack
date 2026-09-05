@@ -248,12 +248,22 @@ export const initApp = async () => {
       renderAll();
       setConnectionStatus(true);
     } else {
-      if (resJSON) showToast(resJSON.message, 'error');
       setConnectionStatus(false);
+      if (hasCache) {
+        // Keep rendering existing cached data safely
+        renderAll();
+        showToast('Firestore sibuk/kuota penuh: Menggunakan data tersimpan (offline).', 'warning');
+      } else {
+        if (resJSON && resJSON.message) showToast(resJSON.message, 'error');
+      }
     }
   } catch (error) {
     setConnectionStatus(false);
-    if (!hasCache) showToast('Mode Offline: Menampilkan data simulasi.', 'warning');
+    if (hasCache) {
+      renderAll();
+    } else {
+      showToast('Mode Offline: Belum ada data tersimpan.', 'warning');
+    }
   } finally {
     isLoading = false;
   }

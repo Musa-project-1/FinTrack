@@ -328,50 +328,26 @@
 }
 
 .clickable-name {
-  color: var(--text-main);
+  color: var(--secondary); /* Warna aksen teks (indigo) yang membedakan dari teks biasa */
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+  display: inline;
   text-decoration: none;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
-
-.clickable-name::after {
-  content: '↗';
-  font-size: 11px;
-  opacity: 0.6;
-  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .clickable-name:hover {
-  color: var(--primary);
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 2px 8px -1px rgba(16, 185, 129, 0.2);
-  transform: translateY(-1px);
-}
-
-.clickable-name:hover::after {
-  transform: translate(1px, -1px);
-  opacity: 1;
+  color: var(--primary); /* Berubah ke emerald saat hover */
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 body.dark-mode .clickable-name {
-  color: #e2e8f0;
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
+  color: #818cf8; /* Indigo terang di dark mode */
 }
 
 body.dark-mode .clickable-name:hover {
-  color: #34d399;
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399; /* Emerald terang saat hover */
 }
 
 .date-group-header td {

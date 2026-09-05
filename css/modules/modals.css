@@ -138,27 +138,32 @@
   color: white !important;
 }
 
+/* Bulan Libur (Skipped Month) — menyatu natural dengan tema tanpa kontras abu-abu mencolok */
 .td-skipped {
-  background: rgba(226, 232, 240, 0.5);
-  color: #475569;
+  background: transparent !important;
+  color: var(--text-muted) !important;
   cursor: default;
   pointer-events: none;
 }
+
 .td-skipped:hover {
-  background: rgba(226, 232, 240, 0.5);
+  background: transparent !important;
 }
+
 .td-skipped .skipped-month-label {
   display: inline-block;
   width: 100%;
   text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 
 .th-skipped {
-  background: rgba(226, 232, 240, 0.5);
-  color: #475569;
+  background: var(--table-header-bg) !important;
+  color: var(--text-muted) !important;
+  opacity: 0.7;
 }
 
 .iuran-action-buttons {

@@ -1,5 +1,5 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../config.js";
-import { getState, currentRekapYear } from "../state.js";
+import { getState, currentRekapYear, getAdminPassword } from "../state.js";
 import { formatRp, escapeHtml } from "../utils.js";
 
 export const populateTahunRekap = () => {

@@ -1,10 +1,10 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../config.js";
-import { getState, setState, addTransaction, saveCache, getIsAdminSession } from "../state.js";
+import { getState, setState, addTransaction, saveCache, getIsAdminSession, getAdminPassword, currentRekapYear } from "../state.js";
 import { postToBackend, sendAdminPayload } from "../api.js";
 import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../utils.js";
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
-import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran } from "../modal.js";
-import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap } from "../render.js";
+import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran, filterKategori } from "../modal.js";
+import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
 
 export const openQuickPaySheet = (idAnggota, bulan) => {
   if (!idAnggota || !bulan) return;

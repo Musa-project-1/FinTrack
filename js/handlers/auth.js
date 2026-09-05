@@ -1,8 +1,8 @@
 import { getState, setState, getIsAdminSession, setIsAdminSession, getAdminPassword, setAdminPassword, clearAdminPassword } from "../state.js";
 import { loginAdminApi, logoutAdminApi } from "../api.js";
-import { showToast } from "../utils.js";
+import { showToast, hashText } from "../utils.js";
 import { openModal, closeModal } from "../modal.js";
-import { renderAll } from "../render.js";
+import { renderAll, renderChart } from "../render.js";
 
 export const handleUI = (isAdmin) => {
   setIsAdminSession(!!isAdmin);

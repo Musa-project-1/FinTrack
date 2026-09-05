@@ -4,20 +4,20 @@
  */
 
 import {
-  setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setIsAdminSession
+  setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setIsAdminSession, setCurrentRekapYear
 } from "./state.js";
 import { fetchInitialData, checkAdminSessionApi } from "./api.js";
 import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./utils.js";
-import { openOfflineDB, syncOfflineTransactions } from "./offline.js";
+import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./offline.js";
 import { applyTheme, toggleTheme } from "./theme.js";
 import {
-  openModal, closeModal, switchTab, pilihNominalCepat,
+  openModal, closeModal, switchTab, pilihNominalCepat, resetChipAktif,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
-  filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
+  renderCheckboxIuran, filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
   toggleHeaderDropdown, closeHeaderDropdown
 } from "./modal.js";
 import {
-  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi
+  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
 } from "./render.js";
 
 // Import modular handlers
@@ -25,7 +25,7 @@ import {
   handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction
 } from "./handlers/auth.js";
 import {
-  setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, setupRekapSearchListener
+  setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener
 } from "./handlers/navigation.js";
 import {
   openQuickPaySheet, submitQuickPay, bukaModalTransaksi, submitIuran,

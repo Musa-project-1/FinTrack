@@ -172,7 +172,18 @@ export const exportToCSV = () => {
    WHATSAPP REMINDER MESSAGE
    ══════════════════════════════════════════════════════════════════ */
 
+let isCreatingReminder = false;
 export const createGroupReminderMessage = async () => {
+  if (isCreatingReminder) return;
+  isCreatingReminder = true;
+  try {
+    await doCreateGroupReminderMessage();
+  } finally {
+    setTimeout(() => { isCreatingReminder = false; }, 800);
+  }
+};
+
+const doCreateGroupReminderMessage = async () => {
   const startYear = GROUP_START_YEAR;
   const startMonth = GROUP_START_MONTH;
   const now = new Date();

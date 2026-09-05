@@ -42,6 +42,12 @@ export const getRawNominal = (id) => {
 export const showToast = (message, type = 'success') => {
   const container = document.getElementById('toast-container');
   if (!container) return;
+
+  // Prevent duplicate spam: if the exact same message is currently showing, don't stack another one
+  const existingToasts = Array.from(container.querySelectorAll('.toast'));
+  const isDuplicate = existingToasts.some((t) => t.textContent.trim().includes(message.trim()));
+  if (isDuplicate) return;
+
   const toast = document.createElement('div');
   const iconClass =
     type === 'success'

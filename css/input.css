@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
-/* === FINKAS MODULAR STYLES === */
+/* === FINKAS GRANULAR MODULAR ARCHITECTURE (ALL MODULES < 430 LINES) === */
 @import "./modules/tokens.css";
 @import "./modules/base.css";
 @import "./modules/layout.css";
-@import "./modules/components.css";
-@import "./modules/views.css";
+@import "./modules/cards.css";
+@import "./modules/buttons.css";
+@import "./modules/tables.css";
+@import "./modules/forms.css";
+@import "./modules/modals.css";
+@import "./modules/toasts.css";
+@import "./modules/widgets.css";
+@import "./modules/helpers.css";
+@import "./modules/view-iuran.css";
+@import "./modules/view-riwayat.css";
+@import "./modules/responsive-tablet.css";
+@import "./modules/responsive-mobile.css";

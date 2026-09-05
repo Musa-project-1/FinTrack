@@ -1,0 +1,273 @@
+/* Quick summary bar for filtered riwayat transactions */
+.riwayat-summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-color);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.riwayat-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.riwayat-summary-label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.riwayat-summary-value {
+  font-weight: 700;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.riwayat-summary-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-in {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.metric-out {
+  background: rgba(244, 63, 94, 0.12);
+  color: #e11d48;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+@media (max-width: 768px) {
+  .riwayat-summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  
+  .riwayat-summary-metrics {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+.iuran-cards-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Checkbox items for iuran selection */
+.item-disabled-lunas {
+  background: var(--bg-color) !important;
+  border-color: var(--border) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+.chk-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chk-name-lunas {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.chk-badge-lunas {
+  font-size: 10px;
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chk-name-pending {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.chk-badge-pending {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.td-date-group-header {
+  background: var(--bg-color);
+  padding: 12px 20px;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trx-subnote {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.trx-category-title {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.fs-16 { font-size: 16px; }
+.text-danger { color: var(--danger); }
+
+.td-center-nowrap {
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.td-time-col {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.td-nominal-col {
+  font-weight: 700;
+  font-size: 15px;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-middle { vertical-align: middle; }
+
+.td-audit-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ws-nowrap { white-space: nowrap; }
+
+.audit-action-tag {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.td-audit-detail {
+  font-size: 12px;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.td-id-col {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.td-name-col {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.td-wa-col {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.td-action-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-compact-action {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.ml-4 { margin-left: 4px; }
+
+.pending-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.pending-card-action {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pending-card-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pending-card-payload {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.toast-icon-success {
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.toast-icon-danger {
+  color: var(--danger);
+  font-size: 22px;
+}
+
+.td-desc-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.td-nom-primary {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.skip-month-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.fw-700 { font-weight: 700; }
+

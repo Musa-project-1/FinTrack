@@ -1,0 +1,213 @@
+/* === MODAL & FORMS === */
+.modal-overlay { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(15, 23, 42, 0.45); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 100; 
+  opacity: 0; 
+  visibility: hidden; 
+  transition: opacity 0.22s ease, visibility 0.22s ease; 
+  padding: 20px; 
+}
+
+.modal-overlay.active { 
+  opacity: 1; 
+  visibility: visible; 
+}
+
+.modal-content { 
+  background: var(--surface); 
+  width: 100%; 
+  max-width: 800px; 
+  border-radius: var(--radius-lg); 
+  box-shadow: var(--shadow-lg), inset 0 3px 0 0 #10b981; 
+  transform: scale(0.96) translateY(10px); 
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.2s ease-out,
+              background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  padding: 24px; 
+  max-height: 95vh; 
+  overflow-y: auto; 
+  border: 1px solid var(--border);
+}
+
+.modal-overlay.active .modal-content { 
+  transform: scale(1) translateY(0); 
+  opacity: 1;
+}
+
+/* Stacked Modal Support */
+#modal-hapus, #modal-edit-transaksi { z-index: 110; }
+
+/* === MODERN SKELETON SHIMMER LOADING MOCKUP === */
+.skeleton { 
+  background: linear-gradient(90deg, var(--border) 0%, rgba(255, 255, 255, 0.4) 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm); 
+  animation: skeleton-shimmer 1.5s infinite linear; 
+  pointer-events: none;
+}
+
+body.dark-mode .skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 100%);
+  background-size: 200% 100%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.modal-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 22px; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+.close-modal { background: var(--bg-color); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+.close-modal:hover { background: var(--border); color: var(--text-main); transform: rotate(90deg); }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+
+.form-control { width: 100%; padding: 14px 18px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; transition: all 0.2s; background-color: var(--surface); color: var(--text-main); box-shadow: var(--shadow-sm); }
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(99, 102, 241, 0.1); }
+
+/* === INPUT WITH PREFIX (CURRENCY) === */
+.input-with-prefix { position: relative; display: flex; align-items: center; }
+.input-with-prefix span { position: absolute; left: 18px; font-weight: 700; color: var(--text-muted); font-size: 15px; pointer-events: none; border-right: 1px solid var(--border); padding-right: 12px; }
+.input-with-prefix .form-control { padding-left: 60px; font-weight: 700; font-size: 18px; color: var(--primary); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* REFINEMENT: Segmented Control Tabs beradaptasi dengan Dark Mode */
+/* === MODAL GRID LAYOUT === */
+.modal-grid { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: stretch; min-height: 500px; }
+
+.modal-side-info { 
+  background: var(--bg-color); 
+  padding: 28px; 
+  border-radius: 24px; 
+  border: 1px solid var(--border); 
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.modal-main-selection {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 8px 0;
+}
+
+.summary-card { 
+  margin-top: auto; 
+  padding-top: 24px; 
+  border-top: 2px dashed var(--border); 
+}
+.summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: var(--text-muted); }
+.summary-total { display: flex; justify-content: space-between; margin-top: 14px; font-size: 16px; font-weight: 800; color: var(--primary); }
+
+.tab-header { display: flex; gap: 6px; background: var(--bg-color); padding: 6px; border-radius: 100px; margin-bottom: 28px; border: 1px solid var(--border); max-width: 450px; margin-left: auto; margin-right: auto; }
+.tab-btn { flex: 1; background: transparent; border: none; padding: 12px; font-weight: 600; font-size: 14px; color: var(--text-muted); border-radius: 100px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tab-btn.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.35); transform: scale(1.02); }
+.tab-btn:hover:not(.active) { color: var(--text-main); background: rgba(0, 0, 0, 0.03); }
+body.dark-mode .tab-btn:hover:not(.active) { background: rgba(255, 255, 255, 0.05); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: slideIn 0.4s ease; height: 100%; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+select option { background-color: var(--surface); color: var(--text-main); }
+
+/* === QUICK CHIPS UNTUK NOMINAL === */
+.chip-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+.chip-btn { 
+  padding: 10px 22px;
+  border: 1px solid var(--border); 
+  background: var(--surface); 
+  border-radius: 100px; 
+  font-size: 14px; 
+  font-weight: 600; 
+  color: var(--text-muted); 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+  user-select: none; 
+  box-shadow: var(--shadow-sm);
+}
+.chip-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.chip-btn.active { 
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981; 
+  color: white; 
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+/* === REVISI: GRID CHECKBOX DENGAN SCROLL INTERNAL === */
+.checkbox-grid { 
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+  gap: 14px; 
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px;
+  align-items: stretch;
+}
+
+.checkbox-item { 
+  display: flex;
+  align-items: center; 
+  gap: 14px; 
+  padding: 16px; 
+  cursor: pointer; 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+  user-select: none; 
+  height: 100%; 
+  box-shadow: var(--shadow-sm);
+}
+
+.checkbox-item:hover { 
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.checkbox-item input[type="checkbox"] { 
+  width: 20px;
+  height: 20px; 
+  margin: 0; 
+  accent-color: var(--primary); 
+  cursor: pointer; 
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.checkbox-item span { 
+  font-size: 14px;
+  font-weight: 500; 
+  color: var(--text-main); 
+  line-height: 1.4;
+  display: block;
+}
+
+.checkbox-item:has(input:checked) { 
+  border-color: var(--primary);
+  background-color: rgba(5, 150, 105, 0.04); 
+  box-shadow: 0 0 0 1px var(--primary), var(--shadow-md);
+}
+
+.checkbox-item:has(input:checked) span { 
+  font-weight: 600;
+  color: var(--primary); 
+}
+

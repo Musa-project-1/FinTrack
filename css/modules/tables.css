@@ -1,0 +1,275 @@
+/* === MODERN TABLES REVAMP === */
+.table-card { 
+  border-radius: var(--radius-lg); 
+  overflow: hidden; 
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6366f1, #3b82f6, #10b981);
+  z-index: 1;
+}
+
+.table-header { 
+  padding: 16px 24px; 
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 16px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.table-scrollable {
+  overflow-y: auto;
+}
+
+/* Desktop Table Styles */
+
+.table-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--text-main) !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.table-title i {
+  color: white;
+  font-size: 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.35);
+}
+
+.year-pill {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  background: var(--bg-color);
+  padding: 0 16px;
+  height: 40px;
+  box-sizing: border-box;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.year-pill:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-md);
+}
+
+.year-pill i {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.year-pill select {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+th { 
+  background: var(--table-header-bg);
+  color: var(--text-main);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 1px;
+  font-weight: 800;
+  padding: 14px 16px;
+  border-bottom: 2px solid var(--border);
+  text-align: center;
+}
+
+td { 
+  padding: 14px 16px; 
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-size: 15px;
+}
+
+th:first-child, td:first-child {
+  text-align: left !important;
+  padding-left: 28px !important;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text-main);
+}
+
+table {
+  width: 100%;
+  margin: 0 auto;
+}
+
+tr:last-child td { border-bottom: none; }
+
+/* Interactive Rows */
+tr:hover td { 
+  background: rgba(99, 102, 241, 0.05) !important;
+  color: var(--primary);
+}
+
+body.dark-mode tr:hover td {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Row-specific color tinting */
+.row-masuk:hover td { background: rgba(16, 185, 129, 0.08) !important; }
+.row-keluar:hover td { background: rgba(244, 63, 94, 0.08) !important; }
+
+/* Modern Badges */
+.badge {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-masuk { 
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.12) 100%); 
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-keluar { 
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.18) 0%, rgba(225, 29, 72, 0.12) 100%); 
+  color: #e11d48;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* Matrix Table Specifics */
+.table-matriks thead th {
+  background: var(--table-header-bg);
+  color: var(--text-main);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.table-matriks thead th:first-child {
+  text-align: left !important;
+  padding-left: 28px !important;
+}
+
+.table-matriks td.text-center {
+  font-weight: 600;
+}
+
+.table-matriks th, .table-matriks td {
+  border-right: 1px solid var(--border);
+}
+
+.table-matriks th:last-child, .table-matriks td:last-child {
+  border-right: none;
+}
+
+.table-matriks th:first-child, .table-matriks td:first-child {
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 2px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+/* Mobile-friendly matrix table */
+
+
+/* === TABLE LOGIC REFINEMENTS === */
+.td-clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.td-clickable:hover:not(:has(.status-lunas-dot)) {
+  background: rgba(16, 185, 129, 0.05) !important;
+}
+
+.td-clickable:hover:not(:has(.status-lunas-dot))::after {
+  content: '\ea14'; /* ph-plus icon */
+  font-family: 'Phosphor';
+  color: var(--primary);
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* NOTE: .progress-container and .progress-bar (orphaned, height:100%) were removed — */
+/* they were dead code not used by any HTML element. The real .progress-bar (outer) is  */
+/* defined in the Chart Section above, and .progress-fill is its inner fill.           */
+
+.skeleton-text { height: 16px; width: 100%; margin-bottom: 8px; }
+.skeleton-title { height: 32px; width: 60%; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+/* Search Input Specific */
+.search-wrapper { position: relative; margin-bottom: 16px; }
+.search-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
+.search-wrapper input { padding-left: 42px; border-radius: 20px; background-color: var(--bg-color); }
+
+/* Custom Scrollbar untuk grid anggota */
+.checkbox-grid::-webkit-scrollbar { width: 6px; }
+.checkbox-grid::-webkit-scrollbar-track { background: transparent; }
+.checkbox-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.checkbox-grid::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+

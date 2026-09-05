@@ -1,0 +1,289 @@
+@media (max-width: 480px) {
+body { padding: 6px 0 40px 0; }
+  
+  .header { 
+    margin-bottom: 12px;
+    padding: 6px 4px;
+  }
+  .header h1 { display: none; }
+  
+  .status-text { display: none; }
+  /* On very small screens, show badge as icon-only dot with tooltip */
+  .connection-status.status-badge {
+    padding: 5px 7px;
+    font-size: 10px;
+    border-radius: 100px;
+    gap: 4px;
+  }
+  .connection-status.status-badge:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  
+  .header-actions { 
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 0 4px 4px;
+  }
+  .header-actions .btn span { display: none; }
+  .header-actions .btn { 
+    padding: 6px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .header-actions .btn-primary { 
+    border-radius: 6px;
+    width: auto;
+    height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .header-actions .btn-primary span { display: inline; }
+  
+  /* Keep 2-col dashboard on very small screens, just tighter spacing */
+  .dashboard { 
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 8px 12px;
+  }
+  .dashboard .card.glow-blue {
+    grid-column: 1 / -1;
+  }
+  .card { 
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .card-icon { 
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .card-info h3 { font-size: 10px; }
+  .nominal-val { font-size: 13px; }
+  
+  /* Table on very small screens - Card Layout */
+  .table-card { 
+    border-radius: 12px;
+    margin: 0 8px 16px;
+    width: auto;
+  }
+  .table-header {
+    padding: 12px;
+  }
+  .table-title {
+    font-size: 16px !important;
+  }
+  .table-title i {
+    font-size: 18px;
+  }
+  
+  /* Better modal for small screens: centered, not bottom-anchored */
+  .modal-overlay {
+    padding: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-content {
+    width: calc(100vw - 16px);
+    max-width: 420px;
+    max-height: 90vh;
+    border-radius: 18px;
+    padding: 14px 16px;
+  }
+  .modal-title { 
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .close-modal {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  .modal-side-info {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .summary-card { margin-top: 16px; }
+  
+  .form-group label { 
+    font-size: 13px;
+  }
+  .form-group { margin-bottom: 10px; }
+  .form-control {
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+  .form-control:focus { 
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  }
+  
+  .btn { 
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 40px;
+    border-radius: 10px;
+    touch-action: manipulation;
+  }
+  
+  .chip-group { 
+    gap: 8px;
+  }
+  .chip-btn { 
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  
+  .checkbox-grid { 
+    grid-template-columns: 1fr;
+    max-height: 350px;
+    gap: 10px;
+  }
+  .checkbox-item { 
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .checkbox-item span { 
+    font-size: 13px;
+  }
+  
+  .chart-wrapper { height: 240px; }
+  
+  .year-pill {
+    font-size: 11px;
+    padding: 8px 14px;
+  }
+  
+  .tab-header {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  /* Search wrapper for mobile */
+  .search-wrapper i { font-size: 16px; }
+  .search-wrapper input { 
+    padding-left: 36px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  /* Toast positioning for mobile */
+  #toast-container { 
+    right: 8px;
+    top: 8px;
+    gap: 8px;
+  }
+  .toast { 
+    font-size: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+  }
+  
+  /* Input with prefix mobile */
+  .input-with-prefix span { 
+    font-size: 12px;
+    left: 12px;
+  }
+  .input-with-prefix .form-control { 
+    padding-left: 50px;
+    font-size: 16px;
+  }
+.table-matriks th,
+  .table-matriks td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+  
+  .table-matriks th {
+    font-size: 9px;
+  }
+  
+  .table-matriks td:first-child,
+  .table-matriks th:first-child {
+    min-width: 100px;
+  }
+  
+  .table-matriks .status-lunas-dot {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+  
+  .table-matriks td.text-center {
+    padding: 4px;
+    min-width: 32px;
+  }
+  
+  /* Mobile Iuran Cards View */
+  .table-card .table-responsive {
+    display: none !important;
+  }
+  
+  .table-card .iuran-cards-container {
+    display: block !important;
+  }
+  
+  .iuran-month-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .iuran-member-card {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  
+  .iuran-card-name {
+    font-size: 12px;
+  }
+
+  .iuran-progress-subtext {
+    font-size: 10px;
+  }
+  
+  .iuran-card-badge {
+    padding: 3px 8px;
+    font-size: 9px;
+  }
+  
+  .iuran-month-item {
+    padding: 8px 4px;
+    font-size: 11px;
+    min-height: 44px;
+  }
+  
+  .iuran-action-buttons {
+    gap: 6px;
+  }
+  
+  .iuran-btn-pay,
+  .iuran-btn-detail {
+    padding: 8px;
+    font-size: 11px;
+  }
+.checkbox-grid { grid-template-columns: 1fr; }
+  .badge {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+
+  .badge i {
+    font-size: 11px;
+  }
+}
+

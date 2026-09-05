@@ -1,0 +1,382 @@
+/* === RIWAYAT REDESIGN (DESKTOP & MOBILE TASTE SPEC) === */
+.riwayat-modal-content {
+  max-width: 1040px;
+  width: calc(100vw - 32px);
+  padding: 24px 28px;
+  border-radius: var(--radius-lg);
+}
+
+.riwayat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.riwayat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.riwayat-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.1));
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+.riwayat-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.riwayat-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.riwayat-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.riwayat-search {
+  flex: 1;
+  min-width: 240px;
+  margin-bottom: 0;
+}
+
+.riwayat-selectors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.select-pill-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 100px;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+
+.select-pill-wrap:focus-within {
+  border-color: var(--primary);
+}
+
+.riwayat-select {
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  padding-right: 4px;
+}
+
+.riwayat-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chips-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.chips-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.riwayat-scroll-area {
+  max-height: 52vh;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.riwayat-load-more {
+  text-align: center;
+  padding: 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* === RIWAYAT CARD VIEW (MOBILE) ===
+   Restyles the history table rows into tappable cards on small screens.
+   Desktop keeps the real table. */
+@media (max-width: 768px) {
+  #table-riwayat-data {
+    min-width: 0 !important;
+  }
+
+  #table-riwayat-data thead {
+    display: none;
+  }
+
+  #table-riwayat-data,
+  #table-riwayat-data tbody {
+    display: block;
+    width: 100%;
+  }
+
+  #table-riwayat-data tbody {
+    padding: 4px 2px 8px;
+  }
+
+  /* Transaction row -> card */
+  #table-riwayat-data tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-card-flat);
+    break-inside: avoid;
+  }
+
+  .riwayat-modal-content {
+    padding: 16px 14px;
+    width: calc(100vw - 16px);
+  }
+
+  .riwayat-header {
+    margin-bottom: 14px;
+  }
+
+  .riwayat-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .riwayat-selectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .select-pill-wrap {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .select-pill-wrap select {
+    width: 100%;
+  }
+
+  /* Date section header stays a slim full-width strip */
+  #table-riwayat-data tr.date-group-header {
+    display: block;
+    padding: 8px 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  #table-riwayat-data tr.date-group-header td {
+    display: block;
+    padding: 0;
+  }
+
+  /* All cells reset */
+  #table-riwayat-data td {
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent !important;
+    min-height: 0;
+    white-space: normal;
+    font-size: 13px;
+  }
+
+  /* Empty / skeleton rows (single colspan cell) */
+  #table-riwayat-data td[colspan] {
+    grid-column: 1 / -1;
+    padding: 18px;
+    text-align: center;
+  }
+
+  /* Row 1 left: keterangan (name + note) */
+  #table-riwayat-data td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  #table-riwayat-data td:nth-child(2) .clickable-name {
+    display: inline;
+    margin-bottom: 0;
+  }
+
+  /* Row 1 right: nominal */
+  #table-riwayat-data td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  /* Row 2 left: time */
+  #table-riwayat-data td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 12px;
+  }
+
+  /* Row 2 right: tipe arus badge */
+  #table-riwayat-data td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  #table-riwayat-data td:nth-child(4) .badge {
+    padding: 3px 10px;
+    font-size: 10px;
+  }
+
+  /* Row 3: action buttons */
+  #table-riwayat-data td:nth-child(5) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+    margin-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+
+  #table-riwayat-data td:nth-child(5) .btn-icon {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 0;
+  }
+
+  /* Hide actions row entirely when empty (non-admin) */
+  #table-riwayat-data td:nth-child(5):empty {
+    display: none;
+  }
+}
+
+
+/* === HISTORY ENHANCEMENTS === */
+.h-card {
+  background: var(--bg-color);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.h-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary);
+}
+.h-card span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.h-card div {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.clickable-name {
+  color: var(--text-main);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.clickable-name:hover {
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+body.dark-mode .clickable-name {
+  color: var(--text-main);
+}
+
+body.dark-mode .clickable-name:hover {
+  color: var(--primary);
+}
+
+.date-group-header td {
+  background: var(--bg-color) !important;
+  color: var(--primary) !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 16px 20px 8px !important;
+  border-top: 8px solid var(--bg-color);
+}
+
+.date-group-header:first-child td {
+  border-top: none;
+}
+
+#load-more-container button {
+  transition: all 0.2s ease;
+}
+#load-more-container button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.filter-chips .chip-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Row highlighting based on flow */
+.row-masuk td { background-color: rgba(16, 185, 129, 0.02); }
+.row-keluar td { background-color: rgba(225, 29, 72, 0.02); }
+

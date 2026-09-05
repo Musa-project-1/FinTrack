@@ -448,7 +448,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex: 1;
+  flex-shrink: 0;
 }
 
 .th-member-col {
@@ -1082,17 +1082,16 @@ body.dark-mode .btn-icon:hover {
   box-shadow: 0 6px 14px rgba(37,211,102,0.12);
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
-  flex: 0 0 auto;         /* ← ditambah: WA button ukuran tetap, gak melar */
-  order: 2;               /* ← ditambah: WA button nempel di kanan search bar */
+  flex: 0 0 auto;
 }
 .btn-wa-reminder-icon:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(37,211,102,0.16); opacity: 0.98; }
 .btn-wa-reminder-icon:active { transform: translateY(0); }
 .btn-wa-reminder-icon i { font-size: 18px; }
 
-/* Ensure header uses space-between layout */
-.table-card .table-header { display: flex; justify-content: space-between; align-items: center; }
+/* Ensure header uses single-row layout */
+.table-card .table-header { display: flex; align-items: center; flex-wrap: nowrap; }
 
-.table-header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
+.table-header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; flex: 1; min-width: 0; }
 
 /* Role-based visibility helpers */
 body:not(.admin-mode) .admin-only { display: none !important; }
@@ -1264,13 +1263,12 @@ body.dark-mode .card.glow-red { background: linear-gradient(135deg, rgba(244, 63
 }
 
 .table-header { 
-  padding: 28px 32px; 
+  padding: 20px 24px; 
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 16px;
 }
 
@@ -1309,6 +1307,7 @@ body.dark-mode .card.glow-red { background: linear-gradient(135deg, rgba(244, 63
   background: none !important;
   -webkit-text-fill-color: initial !important;
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .table-title i {
@@ -1333,6 +1332,8 @@ body.dark-mode .card.glow-red { background: linear-gradient(135deg, rgba(244, 63
   border: 1px solid var(--border);
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .year-pill:hover {
@@ -1915,12 +1916,11 @@ body.dark-mode tr:hover td {
   background: var(--bg-color);
 }
 
-/* === MEMBER SEARCH WRAPPER (Mobile-only) === */
+/* === MEMBER SEARCH WRAPPER === */
 .member-search-wrapper {
-  flex: 1 1 auto;         /* ← ditambah: search bar isi ruang sisa (fleksibel) */
-  min-width: 0;           /* ← ditambah: KUNCI biar gak overflow/scroll horizontal */
+  flex: 1 1 auto;
+  min-width: 0;
   margin-bottom: 0;
-  order: 1;               /* ← ditambah: search bar di urutan pertama */
 }
 .member-search-wrapper input {
   width: 100%;
@@ -2525,24 +2525,19 @@ body { padding: 6px 0 40px 0; }
     border-bottom: 1px solid var(--border);
     padding: 12px;
     margin: 0 0 12px 0;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 10px;
-    align-items: stretch;
+    align-items: center;
   }
   .year-pill {
     flex: 1;
     width: auto;
     padding: 10px 16px;
     font-size: 12px;
-    order: 3;
   }
   /* Keep icon + label grouped left, year value pushed right */
   .year-pill select {
     margin-left: auto;
-  }
-  /* WA reminder shares the row with the year pill */
-  .btn-wa-reminder-icon {
-    order: 4;
   }
   .table-responsive {
     overflow-x: auto;
@@ -2678,11 +2673,11 @@ body { padding: 6px 0 40px 0; }
   .member-search-wrapper i {
     font-size: 16px;
   }
-  /* Table header controls: search on row 1, WA + year share row 2 */
+  /* Table header controls: search full-width row 1, year + WA share row 2 */
   .table-header-controls {
     width: 100%;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr auto;
     gap: 10px;
     align-items: center;
   }
@@ -2690,15 +2685,15 @@ body { padding: 6px 0 40px 0; }
     grid-column: 1 / -1;
     margin-bottom: 0;
   }
-  .table-header-controls .btn-wa-reminder-icon {
-    grid-row: 2;
-    grid-column: 1;
-    justify-self: start;
-  }
   .table-header-controls .year-pill {
     grid-row: 2;
-    grid-column: 2;
+    grid-column: 1;
     width: 100%;
+  }
+  .table-header-controls .btn-wa-reminder-icon {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
   }
 }
 

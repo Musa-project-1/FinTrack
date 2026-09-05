@@ -43,8 +43,82 @@ body.dark-mode .card.glow-red { background: linear-gradient(135deg, rgba(244, 63
 .card.glow-green .nominal-val { color: #10b981; }
 .card.glow-red .nominal-val { color: #f43f5e; }
 
-/* === HEADER ENHANCEMENTS === */
+/* === HEADER ENHANCEMENTS & COMPACT FINANCIAL PILLS === */
 .brand-name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-left: 4px; }
+
+/* Compact Header Stats Pills (Linear / Vercel style) */
+.header-stats {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+body.header-stats-active .header-stats {
+  display: flex;
+}
+
+body.header-stats-active .dashboard {
+  display: none !important;
+}
+
+.header-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  background: var(--bg-color);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.header-stat-pill:hover {
+  transform: translateY(-1px);
+}
+
+.header-stat-pill i {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.header-stat-pill.pill-saldo i { color: #3b82f6; }
+.header-stat-pill.pill-masuk i { color: #10b981; }
+.header-stat-pill.pill-keluar i { color: #f43f5e; }
+
+.header-stat-content {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.header-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.header-stat-val {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.header-stat-pill.pill-saldo .header-stat-val { color: #3b82f6; }
+.header-stat-pill.pill-masuk .header-stat-val { color: #10b981; }
+.header-stat-pill.pill-keluar .header-stat-val { color: #f43f5e; }
+
+@media (max-width: 900px) {
+  .header-stats {
+    display: none !important;
+  }
+  body.header-stats-active .dashboard {
+    display: grid !important;
+  }
+}
 .status-badge { 
   display: inline-flex; 
   align-items: center; 

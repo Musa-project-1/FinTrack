@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=69">
-  <link rel="stylesheet" href="style.css?v=69">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=70">
+  <link rel="stylesheet" href="style.css?v=70">
 </head>
 <body>
 
@@ -38,6 +38,31 @@
       </div>
 
       <div class="header-right">
+        <!-- Compact Header Financial Stats (Toggleable via Option) -->
+        <div class="header-stats" id="header-stats">
+          <div class="header-stat-pill pill-saldo" title="Saldo Kas">
+            <i class="ph-fill ph-vault"></i>
+            <div class="header-stat-content">
+              <span class="header-stat-label">Saldo</span>
+              <span class="header-stat-val" id="hdr-saldo-val">Rp 0</span>
+            </div>
+          </div>
+          <div class="header-stat-pill pill-masuk" title="Total Pemasukan">
+            <i class="ph-fill ph-trend-up"></i>
+            <div class="header-stat-content">
+              <span class="header-stat-label">Masuk</span>
+              <span class="header-stat-val" id="hdr-masuk-val">Rp 0</span>
+            </div>
+          </div>
+          <div class="header-stat-pill pill-keluar" title="Total Pengeluaran">
+            <i class="ph-fill ph-trend-down"></i>
+            <div class="header-stat-content">
+              <span class="header-stat-label">Keluar</span>
+              <span class="header-stat-val" id="hdr-keluar-val">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Desktop Actions -->
         <div class="header-actions" id="header-actions">
           <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
@@ -205,6 +230,10 @@
         <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
         <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
         <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
+        <button class="dropdown-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
+          <i class="ph ph-layout" id="icon-toggle-stats-pos"></i>
+          <span id="text-toggle-stats-pos">Pindah Kartu ke Header</span>
+        </button>
         <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
         <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
         <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
@@ -942,11 +971,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=69"></script>
+  <script type="module" src="js/app.js?v=70"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=69', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=70', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

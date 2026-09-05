@@ -3,8 +3,35 @@
  * Dark/light theme toggle and persistence.
  */
 
-import { THEME_KEY } from './config.js';
+import { THEME_KEY, HEADER_STATS_KEY } from './config.js';
 import { getCashFlowChart, getExpenseChart } from './state.js';
+
+/**
+ * Apply the saved header stats position preference.
+ */
+export const applyHeaderStatsPreference = () => {
+  const isHeaderStats = localStorage.getItem(HEADER_STATS_KEY) === 'true';
+  document.body.classList.toggle('header-stats-active', isHeaderStats);
+
+  const textEl = document.getElementById('text-toggle-stats-pos');
+  const iconEl = document.getElementById('icon-toggle-stats-pos');
+  if (textEl) {
+    textEl.innerText = isHeaderStats ? 'Kembalikan Kartu ke Body' : 'Pindah Kartu ke Header';
+  }
+  if (iconEl) {
+    iconEl.className = isHeaderStats ? 'ph ph-rows' : 'ph ph-layout';
+  }
+};
+
+/**
+ * Toggle header stats position preference.
+ */
+export const toggleHeaderStats = () => {
+  const current = localStorage.getItem(HEADER_STATS_KEY) === 'true';
+  const next = !current;
+  localStorage.setItem(HEADER_STATS_KEY, String(next));
+  applyHeaderStatsPreference();
+};
 
 /**
  * Apply the saved theme to the document and update meta theme-color.

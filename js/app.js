@@ -9,7 +9,7 @@ import {
 import { fetchInitialData, checkAdminSessionApi } from "./api.js";
 import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./utils.js";
 import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./offline.js";
-import { applyTheme, toggleTheme } from "./theme.js";
+import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./theme.js";
 import {
   openModal, closeModal, switchTab, pilihNominalCepat, resetChipAktif,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
@@ -77,6 +77,7 @@ document.addEventListener('click', (e) => {
   switch (action) {
     /* ── Navigation / menus ───────────────────────── */
     case 'toggle-theme':     toggleTheme(); break;
+    case 'toggle-header-stats': toggleHeaderStats(); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':  openModal('modal-menu'); break;
     case 'toggle-dropdown':  openModal('modal-menu'); break;
@@ -263,6 +264,7 @@ export const initApp = async () => {
 
 window.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
+  applyHeaderStatsPreference();
 
   try {
     const sessionResp = await checkAdminSessionApi();

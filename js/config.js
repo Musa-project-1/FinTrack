@@ -41,3 +41,4 @@ export const CHART_COLORS = [
 export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
 export const ADMIN_PWD_KEY = 'finkas_admin_pwd';
+export const HEADER_STATS_KEY = 'finkas_header_stats';

@@ -12,9 +12,25 @@ export const renderDashboard = () => {
     if (trx.Tipe_Arus === 'Masuk') tMasuk += nom;
     if (trx.Tipe_Arus === 'Keluar') tKeluar += nom;
   });
-  document.getElementById('ui-masuk').innerText = formatRp(tMasuk);
-  document.getElementById('ui-keluar').innerText = formatRp(tKeluar);
-  document.getElementById('ui-saldo').innerText = formatRp(tMasuk - tKeluar);
+  const saldo = tMasuk - tKeluar;
+  const saldoFormatted = formatRp(saldo);
+  const masukFormatted = formatRp(tMasuk);
+  const keluarFormatted = formatRp(tKeluar);
+
+  const elMasuk = document.getElementById('ui-masuk');
+  const elKeluar = document.getElementById('ui-keluar');
+  const elSaldo = document.getElementById('ui-saldo');
+  if (elMasuk) elMasuk.innerText = masukFormatted;
+  if (elKeluar) elKeluar.innerText = keluarFormatted;
+  if (elSaldo) elSaldo.innerText = saldoFormatted;
+
+  // Header compact pills (when enabled)
+  const elHdrSaldo = document.getElementById('hdr-saldo-val');
+  const elHdrMasuk = document.getElementById('hdr-masuk-val');
+  const elHdrKeluar = document.getElementById('hdr-keluar-val');
+  if (elHdrSaldo) elHdrSaldo.innerText = saldoFormatted;
+  if (elHdrMasuk) elHdrMasuk.innerText = masukFormatted;
+  if (elHdrKeluar) elHdrKeluar.innerText = keluarFormatted;
 };
 
 /* ── Dropdown population ───────────────────────────────────────── */

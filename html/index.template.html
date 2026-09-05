@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=77">
-  <link rel="stylesheet" href="style.css?v=77">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=78">
+  <link rel="stylesheet" href="style.css?v=78">
 </head>
 <body>
 
@@ -125,26 +125,30 @@
 
     <div class="table-card" id="section-rekap">
       <div class="table-header">
-        <div class="table-header-left">
-          <h2 class="table-title">
-            <i class="ph-fill ph-users-three"></i>
-            Status Iuran
-          </h2>
+        <div class="table-header-top">
+          <div class="table-header-left">
+            <h2 class="table-title">
+              <i class="ph-fill ph-users-three"></i>
+              Status Iuran
+            </h2>
+          </div>
+          <div class="table-header-actions">
+            <div class="year-pill">
+              <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
+              <label for="ui-tahun-rekap-select">Tahun: </label>
+              <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
+              </select>
+            </div>
+            <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
+              <i class="ph ph-whatsapp-logo"></i>
+            </button>
+          </div>
         </div>
         <div class="table-header-controls">
-          <div class="year-pill">
-            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-            <label for="ui-tahun-rekap-select">Tahun: </label>
-            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
-            </select>
-          </div>
           <div class="member-search-wrapper">
             <i class="ph ph-magnifying-glass"></i>
             <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
           </div>
-          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
-            <i class="ph ph-whatsapp-logo"></i>
-          </button>
         </div>
       </div>
       
@@ -202,11 +206,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=77"></script>
+  <script type="module" src="js/app.js?v=78"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=77', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=78', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

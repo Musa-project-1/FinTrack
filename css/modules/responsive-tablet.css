@@ -146,21 +146,37 @@ body { padding: 6px 0 40px 0; }
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    padding: 12px;
+    padding: 12px 14px;
     margin: 0 0 12px 0;
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+    align-items: stretch;
+  }
+  .table-header-top {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    width: 100%;
+  }
+  .table-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .year-pill {
-    flex: 1;
     width: auto;
-    padding: 10px 16px;
-    font-size: 12px;
+    max-width: 150px;
+    height: 34px;
+    padding: 0 12px;
+    font-size: 11px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
   }
-  /* Keep icon + label grouped left, year value pushed right */
-  .year-pill select {
-    margin-left: auto;
+  .table-header-controls {
+    width: 100%;
+    margin: 0;
   }
   .table-responsive {
     overflow-x: auto;
@@ -311,36 +327,7 @@ body { padding: 6px 0 40px 0; }
   /* Table header controls: search full-width row 1, year + WA share row 2 */
   .table-header-controls {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    align-items: center;
-  }
-  .table-header-controls .member-search-wrapper {
-    grid-row: 1;
-    grid-column: 1 / -1;
-    margin: 0 !important;
-  }
-  .table-header-controls .year-pill {
-    grid-row: 2;
-    grid-column: 1;
-    width: auto;
-    max-width: 140px;
-    height: 34px;
-    padding: 0 12px;
-    font-size: 11px;
-    box-sizing: border-box;
-  }
-  .table-header-controls .btn-wa-reminder-icon {
-    grid-row: 2;
-    grid-column: 2;
-    justify-self: end;
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-  }
-  .table-header-controls .btn-wa-reminder-icon i {
-    font-size: 15px;
+    margin: 0;
   }
 }
 

@@ -59,8 +59,8 @@
   line-height: 1;
 }
 
-/* Ensure header uses single-row layout */
-.table-card .table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; }
+/* Ensure header uses single-row layout on desktop */
+.table-card .table-header { display: flex; justify-content: space-between; align-items: center; }
 
 .table-header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; flex-shrink: 0; }
 

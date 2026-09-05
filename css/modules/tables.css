@@ -44,6 +44,44 @@ body.dark-mode .table-card:hover {
   gap: 16px;
 }
 
+.table-header-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.table-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (min-width: 769px) {
+  .table-header {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .table-header-top {
+    flex: 0 0 auto;
+  }
+  .table-header-actions {
+    order: 2;
+  }
+  .table-header-controls {
+    flex: 1;
+    max-width: 320px;
+    order: 1;
+    margin-left: auto;
+  }
+}
+
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;

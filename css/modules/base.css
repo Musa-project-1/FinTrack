@@ -4,6 +4,12 @@ html {
 
 body { 
   background-color: var(--bg-color); 
+  background-image: 
+    var(--bg-glow-top),
+    var(--bg-glow-bottom),
+    radial-gradient(var(--bg-pattern-dot) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 24px 24px;
+  background-attachment: fixed;
   color: var(--text-main); 
   padding: 40px 20px; 
   min-height: 100vh;

@@ -4,9 +4,23 @@
   overflow: hidden; 
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
   position: relative;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
+
+body.dark-mode .table-card {
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
+}
+
+.table-card:hover {
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06);
+}
+
+body.dark-mode .table-card:hover {
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+}
+
 
 .table-card::before {
   content: '';

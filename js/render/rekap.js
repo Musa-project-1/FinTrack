@@ -3,19 +3,28 @@ import { getState, currentRekapYear, getAdminPassword } from "../state.js";
 import { formatRp, escapeHtml } from "../utils.js";
 
 export const populateTahunRekap = () => {
-  const select = document.getElementById('ui-tahun-rekap-select');
+  const selects = [
+    document.getElementById('ui-tahun-rekap-select'),
+    document.getElementById('ui-tahun-rekap-select-mobile')
+  ].filter(Boolean);
+
   const yearsSet = new Set();
   yearsSet.add(new Date().getFullYear().toString());
   getState().transaksi.forEach((t) => {
     if (t.Tahun_Iuran && t.Tahun_Iuran !== '-') yearsSet.add(t.Tahun_Iuran.toString());
   });
-  select.innerHTML = '';
-  Array.from(yearsSet).sort((a, b) => b - a).forEach((y) => {
-    const option = document.createElement('option');
-    option.value = y;
-    option.text = y;
-    if (y === currentRekapYear) option.selected = true;
-    select.appendChild(option);
+
+  const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+
+  selects.forEach((select) => {
+    select.innerHTML = '';
+    sortedYears.forEach((y) => {
+      const option = document.createElement('option');
+      option.value = y;
+      option.text = y;
+      if (y === currentRekapYear) option.selected = true;
+      select.appendChild(option);
+    });
   });
 };
 
@@ -34,7 +43,13 @@ export const renderTableRekap = () => {
     }
   });
 
-  const searchVal = (document.getElementById('search-member-rekap')?.value || '').trim().toLowerCase();
+  const searchInput = document.getElementById('search-member-rekap');
+  const searchInputMobile = document.getElementById('search-member-rekap-mobile');
+  const searchVal = (
+    (searchInput && searchInput.value) ||
+    (searchInputMobile && searchInputMobile.value) ||
+    ''
+  ).trim().toLowerCase();
   const filteredAnggota = state.anggota
     .filter((ang) => ang.Status_Aktif === 'Aktif')
     .filter((ang) => !searchVal || ang.Nama_Anggota.toLowerCase().includes(searchVal))

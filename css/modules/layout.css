@@ -125,8 +125,16 @@ body.dark-mode .btn-icon:hover {
   display: inline;
 }
 
-/* Desktop-only variant for connection status; hidden on small screens */
-.desktop-only { display: inline-flex; align-items: center; }
+/* Desktop/Mobile visibility helpers */
+.desktop-only { display: flex !important; }
+span.desktop-only { display: inline !important; }
+button.desktop-only { display: inline-flex !important; }
+.mobile-only { display: none !important; }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex !important; }
+}
 
 /* Mobile Menu Styles */
 #header-actions {

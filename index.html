@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=78">
-  <link rel="stylesheet" href="style.css?v=78">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=79">
+  <link rel="stylesheet" href="style.css?v=79">
 </head>
 <body>
 
@@ -30,6 +30,7 @@
         <a href="#" class="brand-link" title="Finkas" aria-label="Finkas">
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
+          <span class="brand-title desktop-only">Finkas</span>
         </a>
         <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status: Online. Klik untuk melihat transaksi tertunda.">
           <i class="ph-fill ph-circle"></i>
@@ -124,7 +125,33 @@
     </div>
 
     <div class="table-card" id="section-rekap">
-      <div class="table-header">
+      <!-- Desktop Table Header (Clean 1-Row Toolbar) -->
+      <div class="table-header desktop-only">
+        <div class="table-header-left">
+          <h2 class="table-title">
+            <i class="ph-fill ph-users-three"></i>
+            Status Iuran
+          </h2>
+        </div>
+        <div class="table-header-controls">
+          <div class="year-pill">
+            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
+            <label for="ui-tahun-rekap-select">Tahun: </label>
+            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
+            </select>
+          </div>
+          <div class="member-search-wrapper">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
+          </div>
+          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
+            <i class="ph ph-whatsapp-logo"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Table Header (Dedicated 2-Row Layout: Row 1 Title+Actions, Row 2 Full-Width Search) -->
+      <div class="table-header mobile-only">
         <div class="table-header-top">
           <div class="table-header-left">
             <h2 class="table-title">
@@ -135,11 +162,11 @@
           <div class="table-header-actions">
             <div class="year-pill">
               <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-              <label for="ui-tahun-rekap-select">Tahun: </label>
-              <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
+              <label for="ui-tahun-rekap-select-mobile">Tahun: </label>
+              <select id="ui-tahun-rekap-select-mobile" aria-label="Pilih tahun rekap iuran">
               </select>
             </div>
-            <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
+            <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
               <i class="ph ph-whatsapp-logo"></i>
             </button>
           </div>
@@ -147,7 +174,7 @@
         <div class="table-header-controls">
           <div class="member-search-wrapper">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
+            <input type="text" id="search-member-rekap-mobile" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
           </div>
         </div>
       </div>
@@ -982,11 +1009,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=78"></script>
+  <script type="module" src="js/app.js?v=79"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=78', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=79', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

@@ -75,11 +75,18 @@ export const applyRiwayatPreset = (preset, btn) => {
 
 let rekapSearchTimer = null;
 export const setupRekapSearchListener = () => {
-  const input = document.getElementById('search-member-rekap');
-  if (!input) return;
-  input.addEventListener('input', () => {
-    clearTimeout(rekapSearchTimer);
-    rekapSearchTimer = setTimeout(() => renderTableRekap(), 150);
+  const inputs = [
+    document.getElementById('search-member-rekap'),
+    document.getElementById('search-member-rekap-mobile')
+  ].filter(Boolean);
+
+  inputs.forEach((input) => {
+    input.addEventListener('input', (e) => {
+      // Keep desktop & mobile search inputs synchronized
+      inputs.forEach((other) => { if (other !== input) other.value = input.value; });
+      clearTimeout(rekapSearchTimer);
+      rekapSearchTimer = setTimeout(() => renderTableRekap(), 150);
+    });
   });
 };
 

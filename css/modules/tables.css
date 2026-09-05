@@ -44,42 +44,54 @@ body.dark-mode .table-card:hover {
   gap: 16px;
 }
 
-.table-header-top {
+/* Desktop Table Header: Clean, strictly single horizontal row */
+.table-header.desktop-only { 
+  padding: 16px 24px; 
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 16px;
+}
+
+.table-header.desktop-only .table-header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
+}
+
+.table-header.desktop-only .table-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Mobile Table Header: 2-Row Stacked Layout */
+.table-header.mobile-only {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.table-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .table-header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.table-header-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-@media (min-width: 769px) {
-  .table-header {
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .table-header-top {
-    flex: 0 0 auto;
-  }
-  .table-header-actions {
-    order: 2;
-  }
-  .table-header-controls {
-    flex: 1;
-    max-width: 320px;
-    order: 1;
-    margin-left: auto;
-  }
+  gap: 8px;
 }
 
 .table-responsive {

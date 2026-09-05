@@ -350,12 +350,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
 
   const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
-  if (tahunRekapSelect) {
-    tahunRekapSelect.addEventListener('change', (e) => {
+  const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
+  [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
+    sel.addEventListener('change', (e) => {
       setCurrentRekapYear(e.target.value);
+      if (tahunRekapSelect) tahunRekapSelect.value = e.target.value;
+      if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = e.target.value;
       renderTableRekap();
     });
-  }
+  });
 
   const formTambahAnggota = document.getElementById('form-tambah-anggota');
   if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);

@@ -39,6 +39,8 @@ export const renderAdminUI = () => {
   document.body.classList.toggle('admin-mode', getIsAdminSession());
   const waBtn = document.getElementById('btn-copy-wa-reminder');
   if (waBtn) waBtn.style.display = getIsAdminSession() ? '' : 'none';
+  const waBtnMobile = document.getElementById('btn-copy-wa-reminder-mobile');
+  if (waBtnMobile) waBtnMobile.style.display = getIsAdminSession() ? '' : 'none';
 };
 
 /* ══════════════════════════════════════════════════════════════════

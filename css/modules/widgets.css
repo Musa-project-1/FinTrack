@@ -417,17 +417,9 @@ body.dark-mode .text-secondary {
   color: var(--text-muted);
 }
 
-.mb-14 { margin-bottom: 14px; }
-
 .input-qp-nominal {
   font-weight: 700;
   font-size: 16px;
-}
-
-.btn-qp-submit {
-  width: 100%;
-  padding: 12px;
-  margin-top: 4px;
 }
 
 .mb-0 { margin-bottom: 0 !important; }

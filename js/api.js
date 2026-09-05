@@ -101,6 +101,25 @@ export const postToBackend = async (payload) => {
 
     if (action === 'tambahTransaksi') {
       const dataForm = payload.dataForm || {};
+
+      // Idempotency / Deduplication:
+      // If adding an iuran payment, check if the member already paid for the exact same month & year.
+      if (dataForm.idAnggota && dataForm.idAnggota !== '-' && dataForm.bulanIuran && dataForm.bulanIuran !== '-' && dataForm.tahunIuran && dataForm.tahunIuran !== '-') {
+        const state = getState();
+        const isDuplicate = state.transaksi.some((t) => 
+          t.ID_Anggota === dataForm.idAnggota &&
+          t.Bulan_Iuran === dataForm.bulanIuran &&
+          t.Tahun_Iuran.toString() === dataForm.tahunIuran.toString()
+        );
+        if (isDuplicate) {
+          return {
+            status: true,
+            data: { duplicate: true },
+            message: `Iuran ${dataForm.bulanIuran} ${dataForm.tahunIuran} sudah tercatat sebelumnya.`
+          };
+        }
+      }
+
       const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
       const doc = {
         ID_Transaksi: idTrx,
@@ -125,7 +144,30 @@ export const postToBackend = async (payload) => {
 
     if (action === 'tambahTransaksiMassal') {
       const listTrx = payload.listTrx || [];
-      const writes = listTrx.map((dataForm) => {
+      const state = getState();
+
+      // Filter out any items that are already paid (idempotency)
+      const nonDuplicateList = listTrx.filter((dataForm) => {
+        if (!dataForm.idAnggota || dataForm.idAnggota === '-' || !dataForm.bulanIuran || dataForm.bulanIuran === '-') {
+          return true;
+        }
+        const alreadyPaid = state.transaksi.some((t) => 
+          t.ID_Anggota === dataForm.idAnggota &&
+          t.Bulan_Iuran === dataForm.bulanIuran &&
+          t.Tahun_Iuran.toString() === (dataForm.tahunIuran || '').toString()
+        );
+        return !alreadyPaid;
+      });
+
+      if (nonDuplicateList.length === 0 && listTrx.length > 0) {
+        return {
+          status: true,
+          data: { duplicate: true },
+          message: 'Semua iuran dalam daftar massal sudah lunas tercatat sebelumnya.'
+        };
+      }
+
+      const writes = nonDuplicateList.map((dataForm) => {
         const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const doc = {
           ID_Transaksi: idTrx,

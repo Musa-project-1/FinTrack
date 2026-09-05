@@ -37,18 +37,43 @@ export const applyTheme = () => {
  * Toggle between dark and light theme using native View Transitions API
  * (Hardware GPU accelerated cross-fade) or instant fallback.
  */
+let isTransitioning = false;
+
 export const toggleTheme = () => {
+  if (isTransitioning) return; // Prevent rapid multi-clicks triggering AbortError
+
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
 
   // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+),
   // let the GPU take a screenshot and cross-fade the entire viewport seamlessly.
-  if (document.startViewTransition) {
-    const transition = document.startViewTransition(() => {
+  if (typeof document.startViewTransition === 'function') {
+    try {
+      isTransitioning = true;
+      const transition = document.startViewTransition(() => {
+        applyTheme();
+      });
+
+      // Handle all internal ViewTransition promise rejections (ready, updateCallbackDone, finished)
+      if (transition) {
+        if (transition.ready) transition.ready.catch(() => {});
+        if (transition.updateCallbackDone) transition.updateCallbackDone.catch(() => {});
+        if (transition.finished) {
+          transition.finished
+            .catch(() => {})
+            .finally(() => {
+              isTransitioning = false;
+            });
+        } else {
+          isTransitioning = false;
+        }
+      } else {
+        isTransitioning = false;
+      }
+    } catch (e) {
+      isTransitioning = false;
       applyTheme();
-    });
-    // Safely catch AbortError if the user clicks quickly or transition is skipped by browser
-    transition.finished.catch(() => {});
+    }
   } else {
     applyTheme();
   }

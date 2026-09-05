@@ -1,3 +1,7 @@
+html {
+  scrollbar-gutter: stable;
+}
+
 body { 
   background-color: var(--bg-color); 
   color: var(--text-main); 
@@ -114,6 +118,8 @@ body.dark-mode .brand-logo-dark { display: block !important; }
   box-shadow: var(--shadow-glow-green);
 }
 
-body.modal-open { overflow: hidden; }
+body.modal-open { 
+  overflow: hidden; 
+}
 .container { max-width: 1400px; margin: 0 auto; width: 100%; }
 

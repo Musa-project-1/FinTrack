@@ -6,6 +6,7 @@ import { renderAll, renderChart } from "../render.js";
 
 export const handleUI = (isAdmin) => {
   setIsAdminSession(!!isAdmin);
+  document.body.classList.toggle('admin-mode', getIsAdminSession());
   document.querySelectorAll('.admin-only').forEach((el) => {
     el.style.display = getIsAdminSession() ? '' : 'none';
   });
@@ -14,9 +15,8 @@ export const handleUI = (isAdmin) => {
   });
   const btn = document.getElementById('btn-login-admin');
   if (btn) {
-    btn.innerHTML = getIsAdminSession()
-      ? '<i class="ph-fill ph-lock-key-open"></i> Admin Aktif'
-      : '<i class="ph ph-lock-key"></i> Login';
+    btn.style.display = getIsAdminSession() ? 'none' : '';
+    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
   }
   const logoutBtn = document.getElementById('btn-logout-admin');
   if (logoutBtn) logoutBtn.style.display = getIsAdminSession() ? '' : 'none';

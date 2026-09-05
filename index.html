@@ -62,7 +62,7 @@
               <i class="ph ph-list fs-22"></i>
             </button>
             <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
-              <button class="dropdown-item non-admin-only" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key"></i> Login</button>
+              <button class="dropdown-item" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key"></i> Login Admin</button>
               <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
               <button class="dropdown-item admin-only" data-action="open-kelola-master" role="menuitem"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
               <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
@@ -869,11 +869,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=49"></script>
+  <script type="module" src="js/app.js?v=50"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=49', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=50', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

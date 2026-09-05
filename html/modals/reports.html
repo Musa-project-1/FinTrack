@@ -1,0 +1,143 @@
+  <div class="modal-overlay" id="modal-export">
+    <div class="modal-content modal-sm">
+      <div class="modal-title mb-16 flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-export text-primary"></i> Export & Cetak</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="export-actions-list">
+        <button class="btn btn-primary export-card-btn admin-only" data-action="copy-monthly-recap">
+          <div class="export-icon-box bg-primary-15">
+            <i class="ph-bold ph-whatsapp-logo fs-24"></i>
+          </div>
+          <div class="text-left">
+            <div class="export-btn-title">Salin Rekap Bulan Ini (WA)</div>
+            <div class="export-btn-desc">Ringkasan masuk/keluar/saldo + daftar yang belum bayar. Tempel langsung ke grup WA.</div>
+          </div>
+        </button>
+        <button class="btn btn-outline export-card-btn" data-action="print-annual">
+          <div class="export-icon-box bg-secondary-10 text-secondary">
+            <i class="ph-bold ph-printer fs-24"></i>
+          </div>
+          <div class="text-left">
+            <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
+            <div class="export-btn-desc text-muted">Cetak Matriks status iuran anggota ke PDF (Ukuran A4 Landscape).</div>
+          </div>
+        </button>
+        <button class="btn btn-link-subtle" data-action="export-csv">atau unduh CSV lengkap (arsip data)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+
+  <div class="modal-overlay modal-top" id="modal-statistik">
+    <div class="modal-content modal-xl">
+      <div class="modal-title mb-20 flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-chart-bar text-primary"></i> Statistik Kas</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div class="stats-overview mb-20">
+        <div class="stat-card health-card">
+          <div class="stat-card-header">
+            <span>Kesehatan Kas</span>
+            <span id="stat-health-pct">0%</span>
+          </div>
+          <div class="stat-card-body">
+            <div id="stat-health-label" class="stat-card-note">Memuat data kesehatan kas...</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="stat-health-fill"></div>
+            </div>
+            <div id="stat-health-note" class="stat-card-note"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Jumlah Anggota Lunas Penuh</div>
+          <div id="stat-fully-paid" class="stat-card-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Jumlah Anggota Masih Menunggak</div>
+          <div id="stat-with-arrears" class="stat-card-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Total Potensi Uang Belum Tertagih</div>
+          <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
+        </div>
+      </div>
+      <div class="chart-section chart-grid-section">
+        <div class="table-card chart-container-card chart-flat-card">
+          <div class="table-header chart-header-strip">
+            <h2 class="chart-card-title">Tren Kas Iuran</h2>
+            <div class="chart-update-text">Update: <span id="last-update">-</span></div>
+          </div>
+          <div class="chart-wrapper chart-wrapper-compact">
+            <canvas id="cashFlowChart"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card chart-container-card chart-flat-card">
+          <div class="table-header chart-header-strip">
+            <h2 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h2>
+          </div>
+          <div class="chart-wrapper chart-wrapper-compact flex-center">
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Profile Modal -->
+  <div class="modal-overlay modal-top" id="modal-profil-anggota">
+    <div class="modal-content modal-lg">
+      <div class="modal-title mb-20 flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-user-circle text-primary"></i> Profil Anggota</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div class="profile-grid-top mb-24">
+        <div class="profile-card-center">
+          <div class="profile-avatar-circle">
+            <i class="ph-fill ph-user"></i>
+          </div>
+          <h2 id="p-nama-anggota" class="profile-name">Nama Anggota</h2>
+          <div id="p-id-anggota" class="profile-id">ID: -</div>
+          <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
+        </div>
+        
+        <div class="profile-metrics-grid">
+          <div class="h-card p-12">
+            <span>Total Kontribusi</span>
+            <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
+          </div>
+          <div class="h-card p-12">
+            <span>Bulan Terajin</span>
+            <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
+          </div>
+          <div class="h-card p-12 col-span-2">
+            <span>Tahun Aktif</span>
+            <div id="p-tahun-aktif" class="profile-metric-year">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-history-title">
+        <i class="ph-bold ph-list-dashes"></i> Riwayat Pembayaran Iuran
+      </div>
+      
+      <div class="table-responsive table-scrollable profile-table-scroll">
+        <table class="m-0">
+          <thead class="sticky-thead">
+            <tr>
+              <th class="th-profile">Tanggal</th>
+              <th class="th-profile">Kategori / Iuran</th>
+              <th class="th-profile">Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="p-table-transaksi">
+            <tr><td colspan="3" class="td-muted-center">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>

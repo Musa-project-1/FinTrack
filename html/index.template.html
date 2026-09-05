@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finkas</title>
+  <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
+  <meta name="theme-color" content="#10b981">
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=42">
+  <link rel="stylesheet" href="style.css?v=42">
+</head>
+<body>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <a href="#" class="brand-link">
+          <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
+          <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
+          <span class="brand-title">Finkas</span>
+        </a>
+        <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status Koneksi: Online. Klik untuk melihat transaksi tertunda.">
+          <i class="ph-fill ph-circle"></i> <span class="status-text">Online</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="header-mobile-top">
+        <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+          <i class="ph ph-moon theme-icon fs-18"></i>
+        </button>
+
+        <button class="btn btn-primary btn-catat-mobile admin-only" data-action="buka-transaksi" title="Catat Transaksi">
+          <i class="ph ph-plus-circle fs-18"></i>
+        </button>
+
+        <button class="btn btn-icon mobile-menu-btn" data-action="toggle-mobile-menu" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
+          <i class="ph ph-list fs-22"></i>
+        </button>
+        </div>
+
+        <div class="header-actions" id="header-actions">
+          <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+            <i class="ph ph-moon theme-icon fs-18"></i>
+          </button>
+
+          <!-- Header Dropdown -->
+          <div class="header-dropdown" id="header-dropdown">
+            <button class="btn btn-icon" id="btn-header-menu" aria-haspopup="true" aria-expanded="false" data-action="toggle-dropdown" title="Menu">
+              <i class="ph ph-list fs-22"></i>
+            </button>
+            <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
+              <button class="dropdown-item non-admin-only" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key"></i> Login</button>
+              <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+              <button class="dropdown-item admin-only" data-action="open-kelola-master" role="menuitem"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
+              <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
+              <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
+              <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise"></i> Riwayat</button>
+              <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar"></i> Statistik</button>
+              <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export"></i> Export</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary admin-only" data-action="buka-transaksi">
+            <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <div class="card glow-blue">
+        <div class="card-icon icon-blue"><i class="ph-fill ph-vault"></i></div>
+        <div class="card-info">
+          <h3>Saldo Kas Saat Ini</h3>
+          <div id="ui-saldo" class="nominal-val"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+      <div class="card glow-green">
+        <div class="card-icon icon-green"><i class="ph-fill ph-trend-up"></i></div>
+        <div class="card-info">
+          <h3>Total Pemasukan</h3>
+          <div id="ui-masuk" class="nominal-val nominal-masuk"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+      <div class="card glow-red">
+        <div class="card-icon icon-red"><i class="ph-fill ph-trend-down"></i></div>
+        <div class="card-info">
+          <h3>Total Pengeluaran</h3>
+          <div id="ui-keluar" class="nominal-val nominal-keluar"><div class="skeleton skeleton-title"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card" id="section-rekap">
+      <div class="table-header">
+        <div class="table-header-left">
+          <h2 class="table-title">
+            <i class="ph-fill ph-users-three"></i>
+            Status Iuran
+          </h2>
+        </div>
+        <div class="table-header-controls">
+          <div class="year-pill">
+            <i class="ph-bold ph-calendar-blank"></i>
+            Tahun: 
+            <select id="ui-tahun-rekap-select">
+            </select>
+          </div>
+          <div class="member-search-wrapper">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
+          </div>
+          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
+            <i class="ph ph-whatsapp-logo"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table-matriks">
+          <thead>
+            <tr>
+              <th class="th-member-col">Nama Anggota</th>
+              <th>Jan</th> <th>Feb</th> <th>Mar</th> <th>Apr</th> <th>Mei</th> <th>Jun</th>
+              <th>Jul</th> <th>Agu</th> <th>Sep</th> <th>Okt</th> <th>Nov</th> <th>Des</th>
+            </tr>
+          </thead>
+          <tbody id="ui-table-rekap">
+            <tr><td colspan="13"><div class="p-10"><div class="skeleton skeleton-text"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Mobile Card View -->
+      <div class="iuran-cards-container" id="iuran-cards-mobile">
+        <div class="mobile-loading-wrap">
+          <div class="skeleton skeleton-text h-100 w-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+
+  <!-- @@INJECT_MODALS@@ -->
+
+  <div id="toast-container"></div>
+
+  <!-- Bottom Navigation (mobile only) -->
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
+    <button class="bottom-nav-item active" data-action="nav-home" aria-label="Beranda">
+      <i class="ph-fill ph-house"></i>
+      <span>Beranda</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-riwayat" aria-label="Riwayat">
+      <i class="ph ph-clock-counter-clockwise"></i>
+      <span>Riwayat</span>
+    </button>
+    <button class="bottom-nav-item bottom-nav-cta admin-only" data-action="nav-catat" aria-label="Catat Transaksi">
+      <i class="ph-bold ph-plus"></i>
+      <span>Catat</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-rekap" aria-label="Rekap">
+      <i class="ph ph-table"></i>
+      <span>Rekap</span>
+    </button>
+    <button class="bottom-nav-item" data-action="nav-menu" aria-label="Menu">
+      <i class="ph ph-list"></i>
+      <span>Menu</span>
+    </button>
+  </nav>
+
+  <script type="module" src="js/app.js?v=42"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=42', { updateViaCache: 'none' })
+          .then(reg => {
+            console.log('Service Worker Registered');
+            reg.update();
+          })
+          .catch(err => console.log('SW Registration Failed', err));
+      });
+    }
+  </script>
+</body>
+</html>

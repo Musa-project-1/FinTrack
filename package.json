@@ -4,7 +4,9 @@
   "private": true,
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
+    "build:html": "node scripts/build-html.js",
     "build:css": "npx @tailwindcss/cli -i ./css/input.css -o ./style.css --minify",
+    "build": "npm run build:html && npm run build:css",
     "dev:css": "npx @tailwindcss/cli -i ./css/input.css -o ./style.css --watch"
   },
   "devDependencies": {

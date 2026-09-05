@@ -1,0 +1,39 @@
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-content modal-auth-card">
+      <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      
+      <div class="modal-icon-badge badge-primary">
+        <i class="ph-fill ph-lock-key"></i>
+      </div>
+      <h2 class="modal-head-title">Akses Pengurus</h2>
+      <p class="modal-desc-subtext">Masukkan password admin untuk mencatat transaksi dan mengelola kas.</p>
+      
+      <form id="form-login-admin">
+        <div class="form-group form-group-auth">
+          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required>
+          <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
+            <i class="ph ph-eye" id="icon-toggle-pwd"></i>
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full-submit">MASUK KE PANEL</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Menu Bottom Sheet (mobile) -->
+
+  <div class="modal-overlay" id="modal-logout">
+    <div class="modal-content modal-dialog-card">
+      <div class="modal-icon-badge badge-slate">
+        <i class="ph-bold ph-sign-out"></i>
+      </div>
+      <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
+      <p class="modal-desc-subtext mb-0">Anda perlu login kembali untuk mengelola data.</p>
+      <div class="modal-dialog-actions">
+        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
+        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Modal -->

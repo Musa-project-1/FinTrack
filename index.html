@@ -154,7 +154,9 @@
   </div>
 
   <!-- Login Modal -->
-  <div class="modal-overlay" id="modal-login">
+
+    <!-- === Modal Module: auth.html === -->
+<div class="modal-overlay" id="modal-login">
     <div class="modal-content modal-auth-card">
       <button class="close-modal" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       
@@ -177,7 +179,25 @@
   </div>
 
   <!-- Menu Bottom Sheet (mobile) -->
-  <div class="modal-overlay" id="modal-menu">
+
+  <div class="modal-overlay" id="modal-logout">
+    <div class="modal-content modal-dialog-card">
+      <div class="modal-icon-badge badge-slate">
+        <i class="ph-bold ph-sign-out"></i>
+      </div>
+      <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
+      <p class="modal-desc-subtext mb-0">Anda perlu login kembali untuk mengelola data.</p>
+      <div class="modal-dialog-actions">
+        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
+        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Modal -->
+
+  <!-- === Modal Module: navigation.html === -->
+<div class="modal-overlay" id="modal-menu">
     <div class="modal-content menu-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
       <div class="modal-title sheet-title-sm">
@@ -227,7 +247,9 @@
   </div>
 
   <!-- Audit Log Modal -->
-  <div class="modal-overlay modal-top" id="modal-audit-log">
+
+  <!-- === Modal Module: master.html === -->
+<div class="modal-overlay modal-top" id="modal-audit-log">
     <div class="modal-content modal-lg">
       <div class="modal-title flex-between">
         <span class="flex-align-gap"><i class="ph-fill ph-detective text-primary"></i> Log Aktivitas Admin</span>
@@ -364,7 +386,9 @@
   </div>
 
   <!-- Export Modal -->
-  <div class="modal-overlay" id="modal-export">
+
+  <!-- === Modal Module: reports.html === -->
+<div class="modal-overlay" id="modal-export">
     <div class="modal-content modal-sm">
       <div class="modal-title mb-16 flex-between">
         <span class="flex-align-gap"><i class="ph-fill ph-export text-primary"></i> Export & Cetak</span>
@@ -395,7 +419,121 @@
   </div>
 
   <!-- History Modal -->
-  <div class="modal-overlay modal-top" id="modal-riwayat">
+
+  <div class="modal-overlay modal-top" id="modal-statistik">
+    <div class="modal-content modal-xl">
+      <div class="modal-title mb-20 flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-chart-bar text-primary"></i> Statistik Kas</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div class="stats-overview mb-20">
+        <div class="stat-card health-card">
+          <div class="stat-card-header">
+            <span>Kesehatan Kas</span>
+            <span id="stat-health-pct">0%</span>
+          </div>
+          <div class="stat-card-body">
+            <div id="stat-health-label" class="stat-card-note">Memuat data kesehatan kas...</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="stat-health-fill"></div>
+            </div>
+            <div id="stat-health-note" class="stat-card-note"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Jumlah Anggota Lunas Penuh</div>
+          <div id="stat-fully-paid" class="stat-card-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Jumlah Anggota Masih Menunggak</div>
+          <div id="stat-with-arrears" class="stat-card-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Total Potensi Uang Belum Tertagih</div>
+          <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
+        </div>
+      </div>
+      <div class="chart-section chart-grid-section">
+        <div class="table-card chart-container-card chart-flat-card">
+          <div class="table-header chart-header-strip">
+            <h2 class="chart-card-title">Tren Kas Iuran</h2>
+            <div class="chart-update-text">Update: <span id="last-update">-</span></div>
+          </div>
+          <div class="chart-wrapper chart-wrapper-compact">
+            <canvas id="cashFlowChart"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card chart-container-card chart-flat-card">
+          <div class="table-header chart-header-strip">
+            <h2 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h2>
+          </div>
+          <div class="chart-wrapper chart-wrapper-compact flex-center">
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Profile Modal -->
+  <div class="modal-overlay modal-top" id="modal-profil-anggota">
+    <div class="modal-content modal-lg">
+      <div class="modal-title mb-20 flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-user-circle text-primary"></i> Profil Anggota</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+      
+      <div class="profile-grid-top mb-24">
+        <div class="profile-card-center">
+          <div class="profile-avatar-circle">
+            <i class="ph-fill ph-user"></i>
+          </div>
+          <h2 id="p-nama-anggota" class="profile-name">Nama Anggota</h2>
+          <div id="p-id-anggota" class="profile-id">ID: -</div>
+          <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
+        </div>
+        
+        <div class="profile-metrics-grid">
+          <div class="h-card p-12">
+            <span>Total Kontribusi</span>
+            <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
+          </div>
+          <div class="h-card p-12">
+            <span>Bulan Terajin</span>
+            <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
+          </div>
+          <div class="h-card p-12 col-span-2">
+            <span>Tahun Aktif</span>
+            <div id="p-tahun-aktif" class="profile-metric-year">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-history-title">
+        <i class="ph-bold ph-list-dashes"></i> Riwayat Pembayaran Iuran
+      </div>
+      
+      <div class="table-responsive table-scrollable profile-table-scroll">
+        <table class="m-0">
+          <thead class="sticky-thead">
+            <tr>
+              <th class="th-profile">Tanggal</th>
+              <th class="th-profile">Kategori / Iuran</th>
+              <th class="th-profile">Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="p-table-transaksi">
+            <tr><td colspan="3" class="td-muted-center">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- === Modal Module: riwayat.html === -->
+<div class="modal-overlay modal-top" id="modal-riwayat">
     <div class="modal-content riwayat-modal-content">
       <!-- Modal Header -->
       <div class="riwayat-header">
@@ -494,7 +632,9 @@
   </div>
 
   <!-- Transaction Modal -->
-  <div class="modal-overlay modal-top" id="modal-transaksi">
+
+  <!-- === Modal Module: transactions.html === -->
+<div class="modal-overlay modal-top" id="modal-transaksi">
     <div class="modal-content">
       <div class="modal-title">
         <span class="flex-align-gap"><i class="ph-fill ph-plus-circle text-primary"></i> Catat Transaksi Baru</span>
@@ -685,6 +825,7 @@
   </div>
 
   <!-- Delete Confirmation Modal -->
+
   <div class="modal-overlay" id="modal-hapus">
     <div class="modal-content modal-dialog-card">
       <div class="modal-icon-badge badge-danger">
@@ -701,132 +842,6 @@
   </div>
 
   <!-- Logout Confirmation Modal -->
-  <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content modal-dialog-card">
-      <div class="modal-icon-badge badge-slate">
-        <i class="ph-bold ph-sign-out"></i>
-      </div>
-      <h2 class="modal-dialog-title">Keluar dari mode Admin?</h2>
-      <p class="modal-desc-subtext mb-0">Anda perlu login kembali untuk mengelola data.</p>
-      <div class="modal-dialog-actions">
-        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
-        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Statistics Modal -->
-  <div class="modal-overlay modal-top" id="modal-statistik">
-    <div class="modal-content modal-xl">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-chart-bar text-primary"></i> Statistik Kas</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
-      </div>
-      
-      <div class="stats-overview mb-20">
-        <div class="stat-card health-card">
-          <div class="stat-card-header">
-            <span>Kesehatan Kas</span>
-            <span id="stat-health-pct">0%</span>
-          </div>
-          <div class="stat-card-body">
-            <div id="stat-health-label" class="stat-card-note">Memuat data kesehatan kas...</div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="stat-health-fill"></div>
-            </div>
-            <div id="stat-health-note" class="stat-card-note"></div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Lunas Penuh</div>
-          <div id="stat-fully-paid" class="stat-card-value">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Jumlah Anggota Masih Menunggak</div>
-          <div id="stat-with-arrears" class="stat-card-value">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Total Potensi Uang Belum Tertagih</div>
-          <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
-        </div>
-      </div>
-      <div class="chart-section chart-grid-section">
-        <div class="table-card chart-container-card chart-flat-card">
-          <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Tren Kas Iuran</h2>
-            <div class="chart-update-text">Update: <span id="last-update">-</span></div>
-          </div>
-          <div class="chart-wrapper chart-wrapper-compact">
-            <canvas id="cashFlowChart"></canvas>
-          </div>
-        </div>
-
-        <div class="table-card chart-container-card chart-flat-card">
-          <div class="table-header chart-header-strip">
-            <h2 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h2>
-          </div>
-          <div class="chart-wrapper chart-wrapper-compact flex-center">
-            <canvas id="expenseChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Member Profile Modal -->
-  <div class="modal-overlay modal-top" id="modal-profil-anggota">
-    <div class="modal-content modal-lg">
-      <div class="modal-title mb-20 flex-between">
-        <span class="flex-align-gap"><i class="ph-fill ph-user-circle text-primary"></i> Profil Anggota</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
-      </div>
-      
-      <div class="profile-grid-top mb-24">
-        <div class="profile-card-center">
-          <div class="profile-avatar-circle">
-            <i class="ph-fill ph-user"></i>
-          </div>
-          <h2 id="p-nama-anggota" class="profile-name">Nama Anggota</h2>
-          <div id="p-id-anggota" class="profile-id">ID: -</div>
-          <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
-        </div>
-        
-        <div class="profile-metrics-grid">
-          <div class="h-card p-12">
-            <span>Total Kontribusi</span>
-            <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
-          </div>
-          <div class="h-card p-12">
-            <span>Bulan Terajin</span>
-            <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
-          </div>
-          <div class="h-card p-12 col-span-2">
-            <span>Tahun Aktif</span>
-            <div id="p-tahun-aktif" class="profile-metric-year">-</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-history-title">
-        <i class="ph-bold ph-list-dashes"></i> Riwayat Pembayaran Iuran
-      </div>
-      
-      <div class="table-responsive table-scrollable profile-table-scroll">
-        <table class="m-0">
-          <thead class="sticky-thead">
-            <tr>
-              <th class="th-profile">Tanggal</th>
-              <th class="th-profile">Kategori / Iuran</th>
-              <th class="th-profile">Nominal</th>
-            </tr>
-          </thead>
-          <tbody id="p-table-transaksi">
-            <tr><td colspan="3" class="td-muted-center">Memuat data...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
   <div id="toast-container"></div>
 

@@ -1,0 +1,137 @@
+  <div class="modal-overlay modal-top" id="modal-audit-log">
+    <div class="modal-content modal-lg">
+      <div class="modal-title flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-detective text-primary"></i> Log Aktivitas Admin</span>
+        <div class="flex-align-gap">
+          <button class="btn btn-outline" data-action="refresh-audit-log">Refresh</button>
+          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+        </div>
+      </div>
+      <div class="table-responsive table-scrollable max-h-55vh">
+        <table class="m-0">
+          <thead>
+            <tr>
+              <th class="th-bg-nowrap">Waktu</th>
+              <th class="th-bg">Aksi</th>
+              <th class="th-bg">Detail</th>
+            </tr>
+          </thead>
+          <tbody id="audit-log-tbody">
+            <tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skipped Months / Bulan Libur Modal -->
+  <div class="modal-overlay" id="modal-skipped-months">
+    <div class="modal-content modal-md">
+      <div class="modal-title flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-calendar-x text-primary"></i> Atur Bulan Libur (Bulan Skip)</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="skip-month-body">
+        <div class="skip-month-input-row">
+          <input type="month" id="input-skip-month" class="form-control flex-1" />
+          <button class="btn btn-outline admin-only" data-action="add-skip">Tambah</button>
+        </div>
+
+        <div class="text-sm-muted">Bulan yang ditandai akan dianggap <b>TIDAK</b> sebagai tunggakan untuk semua anggota.</div>
+
+        <div id="skipped-months-list" class="skipped-months-container">
+          <div class="text-muted">Memuat...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Data CRUD Modal (Admin Only) -->
+  <div class="modal-overlay modal-top admin-only" id="modal-kelola-master">
+    <div class="modal-content modal-lg">
+      <div class="modal-title flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-users-three text-primary"></i> Kelola Anggota & Kategori</span>
+        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="tab-buttons mb-16">
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Daftar Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori Kas</button>
+      </div>
+
+      <!-- Tab 1: Anggota -->
+      <div id="tab-master-anggota" class="tab-content active">
+        <form id="form-tambah-anggota" class="form-row-flex mb-16">
+          <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required>
+          <input type="text" id="input-wa-anggota" class="form-control w-160" placeholder="No. WA (Opsional)...">
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> Tambah</button>
+        </form>
+
+        <div class="table-responsive table-scrollable max-h-45vh">
+          <table>
+            <thead>
+              <tr>
+                <th class="w-100">ID</th>
+                <th>Nama Anggota</th>
+                <th>No. WhatsApp</th>
+                <th class="w-110 text-center">Status</th>
+                <th class="w-130 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="master-anggota-tbody">
+              <tr><td colspan="5" class="td-muted-center">Memuat data anggota...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Kategori -->
+      <div id="tab-master-kategori" class="tab-content">
+        <form id="form-tambah-kategori" class="form-row-flex mb-16">
+          <select id="input-tipe-kategori" class="form-control w-140" required>
+            <option value="Masuk">Masuk</option>
+            <option value="Keluar">Keluar</option>
+          </select>
+          <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
+        </form>
+
+        <div class="table-responsive table-scrollable max-h-45vh">
+          <table>
+            <thead>
+              <tr>
+                <th class="w-110">ID</th>
+                <th>Nama Kategori</th>
+                <th class="w-120 text-center">Tipe Arus</th>
+                <th class="w-100 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="master-kategori-tbody">
+              <tr><td colspan="4" class="td-muted-center">Memuat data kategori...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offline Queue Modal -->
+  <div class="modal-overlay modal-top" id="modal-offline-queue">
+    <div class="modal-content modal-lg">
+      <div class="modal-title flex-between">
+        <span class="flex-align-gap"><i class="ph-fill ph-spinner text-primary"></i> Transaksi Tertunda</span>
+        <div class="flex-align-gap">
+          <button class="btn btn-outline" data-action="refresh-offline">Refresh</button>
+          <button class="btn btn-primary" data-action="sync-now">Sinkronkan Sekarang</button>
+          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+        </div>
+      </div>
+
+      <div id="offline-queue-list" class="offline-queue-container">
+        <div class="text-muted">Memuat...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->

@@ -77,13 +77,9 @@ document.addEventListener('click', (e) => {
   switch (action) {
     /* ── Navigation / menus ───────────────────────── */
     case 'toggle-theme':     toggleTheme(); break;
-    case 'toggle-mobile-menu': openModal('modal-menu'); break;
-    case 'toggle-dropdown': {
-      e.stopPropagation();
-      e.preventDefault();
-      toggleHeaderDropdown();
-      break;
-    }
+    case 'toggle-mobile-menu':
+    case 'open-menu-modal':  openModal('modal-menu'); break;
+    case 'toggle-dropdown':  openModal('modal-menu'); break;
     case 'close-dropdown':   closeHeaderDropdown(); break;
     case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;

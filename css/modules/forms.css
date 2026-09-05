@@ -43,6 +43,8 @@
 
 /* Stacked Modal Support */
 #modal-hapus, #modal-edit-transaksi { z-index: 110; }
+#modal-menu { z-index: 10000; }
+
 
 /* === MODERN SKELETON SHIMMER LOADING MOCKUP === */
 .skeleton { 

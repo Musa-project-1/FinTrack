@@ -15,12 +15,17 @@ import { showToast, handleNominalInput, getRawNominal, formatRp, escapeHtml } fr
  */
 export const openModal = (id) => {
   closeMobileMenu();
+  const el = document.getElementById(id);
+  if (!el) {
+    console.error('openModal: Element not found with id:', id);
+    return;
+  }
   if (id === 'modal-riwayat') {
     // Reset items-to-show when opening history
     window.__resetItemsToShow && window.__resetItemsToShow();
     window.__renderTableTransaksi && window.__renderTableTransaksi();
   }
-  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
   document.body.classList.add('modal-open');
 };
 

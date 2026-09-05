@@ -18,8 +18,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=53">
-  <link rel="stylesheet" href="style.css?v=53">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=57">
+  <link rel="stylesheet" href="style.css?v=57">
 </head>
 <body>
 
@@ -56,22 +56,10 @@
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <!-- Header Dropdown -->
-          <div class="header-dropdown" id="header-dropdown">
-            <button class="btn btn-icon" id="btn-header-menu" aria-haspopup="true" aria-expanded="false" data-action="toggle-dropdown" title="Menu">
-              <i class="ph ph-list fs-22"></i>
-            </button>
-            <div class="dropdown-menu" id="header-dropdown-menu" role="menu" aria-labelledby="btn-header-menu">
-              <button class="dropdown-item" id="btn-login-admin" data-action="open-login" role="menuitem"><i class="ph ph-lock-key"></i> Login Admin</button>
-              <button class="dropdown-item admin-only" id="btn-logout-admin" data-action="logout" role="menuitem"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
-              <button class="dropdown-item admin-only" data-action="open-kelola-master" role="menuitem"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
-              <button class="dropdown-item admin-only" id="btn-skipped-months-menu" data-action="open-skipped-months" role="menuitem"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
-              <button class="dropdown-item admin-only" data-action="open-audit-log" role="menuitem"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-              <button class="dropdown-item" data-action="open-history" role="menuitem"><i class="ph ph-clock-counter-clockwise"></i> Riwayat</button>
-              <button class="dropdown-item" data-action="open-statistik" role="menuitem"><i class="ph ph-chart-bar"></i> Statistik</button>
-              <button class="dropdown-item" data-action="open-export" role="menuitem"><i class="ph ph-export"></i> Export</button>
-            </div>
-          </div>
+          <!-- Hamburger Button (Desktop & Mobile) opens Unified Menu Modal -->
+          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" title="Menu">
+            <i class="ph ph-list fs-22"></i>
+          </button>
 
           <button class="btn btn-primary admin-only" data-action="buka-transaksi">
             <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
@@ -197,24 +185,26 @@
   <!-- Statistics Modal -->
 
   <!-- === Modal Module: navigation.html === -->
-<div class="modal-overlay" id="modal-menu">
-    <div class="modal-content menu-sheet">
-      <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-title sheet-title-sm">
-        <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
-      </div>
-      <div class="menu-sheet-list">
-        <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
-        <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik</button>
-        <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data</button>
-        <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
-        <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-        <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
-        <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+<!-- Navigation Menu Modal / Sheet (Unified Desktop & Mobile) -->
+    <div class="modal-overlay" id="modal-menu">
+      <div class="modal-content menu-sheet">
+        <div class="quickpay-handle" aria-hidden="true"></div>
+        <div class="modal-title sheet-title-sm flex-between">
+          <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu Navigasi</span>
+          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="menu-sheet-list">
+          <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
+          <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+          <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
+          <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
+          <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
+          <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
+          <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
+          <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
+        </div>
       </div>
     </div>
-  </div>
 
   <!-- Quick Pay Bottom Sheet -->
   <div class="modal-overlay" id="modal-quickpay">
@@ -869,11 +859,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=53"></script>
+  <script type="module" src="js/app.js?v=57"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=53', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=57', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

@@ -206,6 +206,37 @@ body.dark-mode .btn-icon:hover {
   letter-spacing: -0.5px;
 }
 
+.menu-sheet {
+  max-width: 360px;
+  width: 90%;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.menu-sheet-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.menu-sheet-list .dropdown-item {
+  padding: 12px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.menu-sheet-list .dropdown-item:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--primary);
+}
+
 @media (max-width: 768px) {
   .modal-overlay:has(.quickpay-sheet),
   .modal-overlay:has(.menu-sheet) {

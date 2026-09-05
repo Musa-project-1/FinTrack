@@ -92,71 +92,10 @@ body { padding: 6px 0 40px 0; }
     font-size: 14px;
     flex-shrink: 0;
   }
+  /* Hide header actions on small screens — replaced by bottom navigation */
   .header-actions { 
     display: none !important;
-    position: fixed;
-    top: 50px;
-    left: auto;
-    right: 10px;
-    width: auto;
-    min-width: 170px;
-    max-width: 200px;
-    flex-direction: column;
-    gap: 1px;
-    padding: 4px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    z-index: 1200;
-    box-shadow: var(--shadow-lg);
-    max-height: calc(100vh - 62px);
-    overflow-y: auto;
-    overflow: visible;
   }
-  #header-actions.mobile-menu-open {
-    display: flex !important;
-    overflow: visible;
-  }
-  .header-actions .btn {
-    width: 100%;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 12px;
-    justify-content: flex-start;
-    font-size: 13px;
-    gap: 10px;
-    background: transparent;
-    color: var(--text-main);
-    transition: all 0.2s ease;
-  }
-  .header-actions .btn:hover {
-    background: rgba(16, 185, 129, 0.06);
-  }
-  .header-actions .btn:last-child {
-    border-bottom: none;
-  }
-  .header-actions .btn.btn-primary {
-    background: var(--primary);
-    color: white;
-    margin: 8px;
-    border-radius: 8px;
-    border: none;
-  }
-  .header-actions .btn.btn-primary:hover {
-    background: #059669;
-    padding-left: 16px;
-  }
-  .header-actions .btn-primary {
-    display: none !important;
-  }
-
-  /* Flatten dropdown in mobile menu — show items as styled card */
-  #header-actions.mobile-menu-open .header-dropdown > .btn-icon {
-    display: inline-flex;
-  }
-  .header-actions::-webkit-scrollbar { height: 3px; }
-  .header-actions::-webkit-scrollbar-track { background: transparent; }
-  .header-actions::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   
   .btn-export { display: none; }
   .dashboard { 

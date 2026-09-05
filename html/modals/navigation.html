@@ -1,21 +1,23 @@
-  <div class="modal-overlay" id="modal-menu">
-    <div class="modal-content menu-sheet">
-      <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-title sheet-title-sm">
-        <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu</span>
-        <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
-      </div>
-      <div class="menu-sheet-list">
-        <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
-        <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik</button>
-        <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data</button>
-        <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
-        <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-        <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
-        <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+    <!-- Navigation Menu Modal / Sheet (Unified Desktop & Mobile) -->
+    <div class="modal-overlay" id="modal-menu">
+      <div class="modal-content menu-sheet">
+        <div class="quickpay-handle" aria-hidden="true"></div>
+        <div class="modal-title sheet-title-sm flex-between">
+          <span class="flex-align-gap"><i class="ph-fill ph-list text-primary"></i> Menu Navigasi</span>
+          <button class="close-modal" data-action="close-modal"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="menu-sheet-list">
+          <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
+          <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
+          <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
+          <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
+          <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
+          <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
+          <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
+          <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
+        </div>
       </div>
     </div>
-  </div>
 
   <!-- Quick Pay Bottom Sheet -->
   <div class="modal-overlay" id="modal-quickpay">

@@ -212,8 +212,10 @@ export const renderCheckboxIuran = () => {
       }
     }
   });
-  const container = document.getElementById('iuran-checkbox-anggota');
-  container.innerHTML = htmlParts.join('');
+  const container = document.getElementById('iuran-checkbox-anggota') || document.getElementById('container-checkbox-anggota');
+  if (container) {
+    container.innerHTML = htmlParts.join('');
+  }
 
   updateCounterIuran();
   window.__filterAnggotaIuran && window.__filterAnggotaIuran();
@@ -225,8 +227,8 @@ export const renderCheckboxIuran = () => {
  * Filter the iuran checkbox list by search input.
  */
 export const filterAnggotaIuran = () => {
-  const input = document.getElementById('search-anggota-iuran').value.toLowerCase();
-  const items = document.querySelectorAll('#iuran-checkbox-anggota .checkbox-item');
+  const input = document.getElementById('search-anggota-iuran')?.value.toLowerCase() || '';
+  const items = document.querySelectorAll('.checkbox-grid .checkbox-item');
   items.forEach((item) => {
     const text = item.innerText.toLowerCase();
     item.style.display = text.includes(input) ? 'flex' : 'none';

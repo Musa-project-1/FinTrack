@@ -228,7 +228,7 @@ export const initApp = async () => {
   if (hasCache) {
     renderAll();
   } else {
-    const trxList = document.getElementById('ui-table-trx');
+    const trxList = document.getElementById('table-riwayat-data') || document.getElementById('ui-table-trx');
     if (trxList) trxList.innerHTML = '<tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>';
   }
 

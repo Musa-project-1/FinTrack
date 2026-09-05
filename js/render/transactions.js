@@ -5,14 +5,15 @@ import { formatRp, escapeHtml } from "../utils.js";
 /* ── Transaction history table ─────────────────────────────────── */
 
 export const renderTableTransaksi = () => {
-  const tbody = document.getElementById('ui-table-trx');
+  const tbody = document.getElementById('table-riwayat-data') || document.getElementById('ui-table-trx');
   if (!tbody) return;
   const state = getState();
 
-  const searchQuery = document.getElementById('search-trx').value.toLowerCase();
-  const filterBulan = document.getElementById('filter-bulan').value;
-  const filterTahun = document.getElementById('filter-tahun').value;
-  const loadMoreBtn = document.getElementById('load-more-container');
+  const searchInput = document.getElementById('search-trx');
+  const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+  const filterBulan = document.getElementById('filter-bulan')?.value || 'all';
+  const filterTahun = document.getElementById('filter-tahun')?.value || 'all';
+  const loadMoreBtn = document.getElementById('btn-load-more') || document.getElementById('load-more-container');
 
   const filteredTrx = [...state.transaksi].reverse().filter((trx) => {
     const tglObj = new Date(trx.Timestamp);

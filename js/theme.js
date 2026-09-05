@@ -27,6 +27,11 @@ export const applyHeaderStatsPreference = () => {
   if (iconHdr) {
     iconHdr.className = isHeaderStats ? 'ph ph-rows fs-18' : 'ph ph-layout fs-18';
   }
+
+  const iconMobile = document.getElementById('icon-toggle-stats-mobile');
+  if (iconMobile) {
+    iconMobile.className = isHeaderStats ? 'ph ph-rows fs-18' : 'ph ph-layout fs-18';
+  }
 };
 
 /**

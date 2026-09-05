@@ -4,7 +4,7 @@ import { sendAdminPayload, fetchAuditLogApi } from "../api.js";
 import { showToast, escapeHtml } from "../utils.js";
 import { openModal, closeModal } from "../modal.js";
 import { renderAll, renderSkippedMonthsList } from "../render.js";
-import { initApp } from "../app.js";
+const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 
 export const openSkippedMonthsModal = () => {
   renderSkippedMonthsList();
@@ -185,7 +185,7 @@ export const submitTambahAnggota = async (e) => {
     showToast('Anggota berhasil ditambahkan!', 'success');
     document.getElementById('input-nama-anggota').value = '';
     document.getElementById('input-wa-anggota').value = '';
-    await initApp();
+    await refreshAppData();
     renderMasterAnggotaTable();
   } else {
     showToast(res?.message || 'Gagal menambah anggota.', 'error');
@@ -196,7 +196,7 @@ export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
   const res = await sendAdminPayload({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
   if (res && res.status) {
     showToast(`Status anggota diubah ke ${nextStatus}.`, 'success');
-    await initApp();
+    await refreshAppData();
     renderMasterAnggotaTable();
   } else {
     showToast(res?.message || 'Gagal mengubah status anggota.', 'error');
@@ -208,7 +208,7 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
   const res = await sendAdminPayload({ action: 'hapusAnggota', idAnggota });
   if (res && res.status) {
     showToast('Anggota berhasil dihapus.', 'success');
-    await initApp();
+    await refreshAppData();
     renderMasterAnggotaTable();
   } else {
     showToast(res?.message || 'Gagal menghapus anggota.', 'error');
@@ -229,7 +229,7 @@ export const submitTambahKategori = async (e) => {
   if (res && res.status) {
     showToast('Kategori berhasil ditambahkan!', 'success');
     document.getElementById('input-nama-kategori').value = '';
-    await initApp();
+    await refreshAppData();
     renderMasterKategoriTable();
   } else {
     showToast(res?.message || 'Gagal menambah kategori.', 'error');
@@ -241,7 +241,7 @@ export const hapusMasterKategoriAction = async (idKategori) => {
   const res = await sendAdminPayload({ action: 'hapusKategori', idKategori });
   if (res && res.status) {
     showToast('Kategori berhasil dihapus.', 'success');
-    await initApp();
+    await refreshAppData();
     renderMasterKategoriTable();
   } else {
     showToast(res?.message || 'Gagal menghapus kategori.', 'error');

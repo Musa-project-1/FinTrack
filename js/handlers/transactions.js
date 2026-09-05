@@ -5,7 +5,7 @@ import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../uti
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
 import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran, filterKategori } from "../modal.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
-import { initApp } from "../app.js";
+const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 
 export const openQuickPaySheet = (idAnggota, bulan) => {
   if (!idAnggota || !bulan) return;
@@ -188,7 +188,7 @@ export const submitIuran = async (e) => {
       if (inserted === 0) {
         showToast(resJSON.message || 'Semua anggota yang dipilih sudah lunas.', 'warning');
         closeModal('modal-transaksi');
-        initApp();
+        refreshAppData();
       } else {
         showToast(resJSON.message || 'Iuran berhasil dicatat!', skipped.length ? 'warning' : 'success');
         closeModal('modal-transaksi');
@@ -331,7 +331,7 @@ export const submitEditTransaksi = async (e) => {
     if (resJSON.status) {
       showToast('Data berhasil diperbarui!');
       closeModal('modal-edit-transaksi');
-      initApp();
+      refreshAppData();
     } else {
       showToast(resJSON.message, 'error');
     }
@@ -361,7 +361,7 @@ export const eksekusiHapus = async () => {
     if (resJSON.status) {
       showToast('Data dihapus!');
       closeModal('modal-hapus');
-      initApp();
+      refreshAppData();
       renderChart();
     } else {
       showToast(resJSON.message, 'error');

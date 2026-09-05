@@ -46,8 +46,9 @@ import {
 
 let isLoading = false;
 
-/* ── Expose renderChart to window for theme toggle callback ────── */
+/* ── Expose renderChart & initApp to window for callbacks ─────────── */
 window.__renderChart = renderChart;
+window.__initApp = () => initApp();
 
 /* ── Expose helpers for inline HTML onchange callbacks ─────────── */
 window.__updateCounterIuran = updateCounterIuran;

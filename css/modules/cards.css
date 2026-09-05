@@ -113,33 +113,62 @@ body.header-stats-active .dashboard {
 
 @media (max-width: 900px) {
   .header-stats {
-    display: none !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    margin-top: 10px;
+    order: 3;
   }
-  body.header-stats-active .dashboard {
-    display: grid !important;
+  .header-stat-pill {
+    flex: 1 1 auto;
+    padding: 4px 8px;
+    justify-content: center;
+  }
+  .header-stat-pill i {
+    font-size: 13px;
+  }
+  .header-stat-val {
+    font-size: 12px;
   }
 }
+/* Connection status indicator: DOT ONLY (minimalist live pulse) */
 .status-badge { 
   display: inline-flex; 
   align-items: center; 
-  gap: 6px; 
-  padding: 6px 12px; 
-  border-radius: 100px; 
-  font-size: 12px; 
-  font-weight: 700; 
-  background: rgba(16, 185, 129, 0.1); 
-  color: var(--primary); 
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  margin-right: 8px;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12); 
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  margin-left: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
+
+.status-badge:hover {
+  transform: scale(1.1);
+}
+
 .status-badge.offline {
-  background: rgba(225, 29, 72, 0.1);
-  color: var(--danger);
-  border-color: rgba(225, 29, 72, 0.2);
+  background: rgba(225, 29, 72, 0.12);
+  border-color: rgba(225, 29, 72, 0.25);
 }
-.status-badge i { font-size: 8px; }
-.status-badge .queue-count { font-size: 11px; font-weight: 700; margin-left: 8px; opacity: 0.95; }
-.status-badge.offline .queue-count { color: var(--danger); }
+
+.status-badge i { 
+  font-size: 8px; 
+  color: #10b981;
+}
+
+.status-badge.offline i { 
+  color: var(--danger); 
+}
+
+.status-badge .status-text {
+  display: none !important;
+}
+
+.status-badge .queue-count { font-size: 10px; font-weight: 700; margin-left: 4px; color: var(--danger); }
 
 /* Pending item card in offline modal */
 .pending-item { padding: 12px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); }

@@ -78,14 +78,8 @@ export const setConnectionStatus = (isOnline) => {
       icon.className = 'ph-fill ph-circle';
       badge.prepend(icon);
     }
-    let statusTextEl = badge.querySelector('.status-text');
-    if (!statusTextEl) {
-      statusTextEl = document.createElement('span');
-      statusTextEl.className = 'status-text';
-      badge.appendChild(statusTextEl);
-    }
-    statusTextEl.textContent = isOnline ? 'Online' : 'Offline';
     badge.classList.toggle('offline', !isOnline);
+    badge.title = isOnline ? 'Status: Online' : 'Status: Offline (klik untuk melihat antrean offline)';
   });
 };
 

@@ -19,21 +19,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=71">
-  <link rel="stylesheet" href="style.css?v=71">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=75">
+  <link rel="stylesheet" href="style.css?v=75">
 </head>
 <body>
 
   <main class="container">
     <header class="header">
       <div class="header-left">
-        <a href="#" class="brand-link">
+        <a href="#" class="brand-link" title="Finkas" aria-label="Finkas">
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
-          <span class="brand-title">Finkas</span>
         </a>
-        <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status Koneksi: Online. Klik untuk melihat transaksi tertunda.">
-          <i class="ph-fill ph-circle"></i> <span class="status-text">Online</span>
+        <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status: Online. Klik untuk melihat transaksi tertunda.">
+          <i class="ph-fill ph-circle"></i>
         </div>
       </div>
 
@@ -83,8 +82,12 @@
           </button>
         </div>
 
-        <!-- Mobile-only top icons -->
+          <!-- Mobile-only top icons -->
         <div class="header-mobile-top">
+          <button class="btn btn-icon" id="btn-toggle-stats-mobile" data-action="toggle-header-stats" aria-label="Alihkan Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
+            <i class="ph ph-layout fs-18" id="icon-toggle-stats-mobile"></i>
+          </button>
+
           <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
@@ -199,11 +202,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=71"></script>
+  <script type="module" src="js/app.js?v=75"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=71', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=75', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

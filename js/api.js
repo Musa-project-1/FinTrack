@@ -56,6 +56,19 @@ export const fetchInitialData = async () => {
   }
 };
 
+const deleteDocumentSecurely = async (col, id, pwd) => {
+  try {
+    const res = await fetch('/api/delete-transaction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passwordHash: pwd || getAdminPassword(), idTransaksi: id, targetCollection: col })
+    });
+    return await res.json();
+  } catch (_) {
+    return { status: false, message: 'Gagal terhubung ke endpoint serverless.' };
+  }
+};
+
 /**
  * Unified mutation handler for adding, updating, and deleting transactions.
  * @param {object} payload
@@ -224,12 +237,9 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusTransaksi') {
       const idTarget = (payload.idTransaksi || '').trim();
       if (!idTarget) return { status: false, message: 'ID transaksi tidak valid untuk dihapus.', data: null };
-      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, { method: 'DELETE' });
-      if (res.ok) {
-        logAuditEvent('HAPUS_TRANSAKSI', `ID: ${idTarget}`);
-        return { status: true, message: 'Transaksi berhasil dihapus.', data: null };
-      }
-      return { status: false, message: 'Gagal menghapus transaksi.', data: null };
+      const sRes = await deleteDocumentSecurely('transaksi', idTarget, payload.adminPassword);
+      if (sRes?.status) { logAuditEvent('HAPUS_TRANSAKSI', `ID: ${idTarget}`); return sRes; }
+      return { status: false, message: sRes?.message || 'Gagal menghapus transaksi.', data: null };
     }
 
     if (action === 'addSkippedMonth' || action === 'removeSkippedMonth') {
@@ -285,12 +295,9 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusAnggota') {
       const idAnggota = (payload.idAnggota || '').trim();
       if (!idAnggota) return { status: false, message: 'ID anggota tidak valid untuk dihapus.', data: null };
-      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, { method: 'DELETE' });
-      if (res.ok) {
-        logAuditEvent('HAPUS_ANGGOTA', idAnggota);
-        return { status: true, message: 'Anggota berhasil dihapus.', data: null };
-      }
-      return { status: false, message: 'Gagal menghapus anggota.', data: null };
+      const sRes = await deleteDocumentSecurely('anggota', idAnggota, payload.adminPassword);
+      if (sRes?.status) { logAuditEvent('HAPUS_ANGGOTA', idAnggota); return sRes; }
+      return { status: false, message: sRes?.message || 'Gagal menghapus anggota.', data: null };
     }
 
     if (action === 'tambahKategori') {
@@ -316,12 +323,9 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusKategori') {
       const idKategori = (payload.idKategori || '').trim();
       if (!idKategori) return { status: false, message: 'ID kategori tidak valid untuk dihapus.', data: null };
-      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, { method: 'DELETE' });
-      if (res.ok) {
-        logAuditEvent('HAPUS_KATEGORI', idKategori);
-        return { status: true, message: 'Kategori berhasil dihapus.', data: null };
-      }
-      return { status: false, message: 'Gagal menghapus kategori.', data: null };
+      const sRes = await deleteDocumentSecurely('kategori', idKategori, payload.adminPassword);
+      if (sRes?.status) { logAuditEvent('HAPUS_KATEGORI', idKategori); return sRes; }
+      return { status: false, message: sRes?.message || 'Gagal menghapus kategori.', data: null };
     }
 
     return { status: false, message: 'Aksi tidak dikenal.', data: null };
@@ -366,14 +370,11 @@ export const loginAdminApi = async (pwd) => {
     // 1. Coba serverless authentication endpoint (Vercel)
     try {
       const sRes = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: trimmed })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: trimmed })
       });
       if (sRes.status !== 404) {
         const json = await sRes.json();
-        if (json.status) logAuditEvent('LOGIN_ADMIN', 'Login via serverless auth');
-        else logAuditEvent('LOGIN_GAGAL', 'Password salah (serverless)');
+        logAuditEvent(json.status ? 'LOGIN_ADMIN' : 'LOGIN_GAGAL', json.status ? 'Login via serverless auth' : 'Password salah (serverless)');
         return json;
       }
     } catch (_) {}

@@ -19,28 +19,28 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Transaksi collection (Schema validation on write)
+    // Transaksi collection (Schema validation on write, delete locked down to serverless only)
     match /transaksi/{trxId} {
       allow read: if true;
       allow create, update: if isValidTransaction(request.resource.data);
-      allow delete: if true;
+      allow delete: if false;
     }
 
-    // Anggota collection
+    // Anggota collection (Delete locked down to serverless only)
     match /anggota/{angId} {
       allow read: if true;
       allow create, update: if request.resource.data.Nama_Anggota is string
         && request.resource.data.Nama_Anggota.size() > 0
         && request.resource.data.Status_Aktif in ['Aktif', 'Nonaktif'];
-      allow delete: if true;
+      allow delete: if false;
     }
 
-    // Kategori collection
+    // Kategori collection (Delete locked down to serverless only)
     match /kategori/{katId} {
       allow read: if true;
       allow create, update: if request.resource.data.Nama_Kategori is string
         && request.resource.data.Tipe in ['Masuk', 'Keluar'];
-      allow delete: if true;
+      allow delete: if false;
     }
 
     // Audit Log collection (Append-only: immutable audit trail)

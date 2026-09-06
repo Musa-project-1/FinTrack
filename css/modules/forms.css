@@ -187,6 +187,7 @@ select option { background-color: var(--surface); color: var(--text-main); }
   box-shadow: var(--shadow-sm);
 }
 .chip-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.chip-btn:active { transform: scale(0.96); }
 
 .chip-btn.active { 
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);

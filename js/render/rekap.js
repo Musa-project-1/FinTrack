@@ -73,7 +73,7 @@ export const renderTableRekap = () => {
         if (isSkipped) {
           tdBulan.className = 'text-center td-skipped';
           tdBulan.innerHTML = '<span class="skipped-month-label">-</span>';
-          tdBulan.title = 'Bulan Libur — tidak dihitung sebagai tunggakan';
+          tdBulan.title = 'Bulan Libur (tidak dihitung sebagai tunggakan)';
         } else {
           tdBulan.className = 'text-center td-clickable';
           if (isLunas) {
@@ -138,7 +138,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
       const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
       const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : 'belum';
-      const title = isSkipped ? 'Bulan Libur — tidak dihitung' : isLunas ? 'Lunas' : 'Klik untuk bayar';
+      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : 'Klik untuk bayar';
       const allowAction = !!getAdminPassword() && !isSkipped && !isLunas;
       const onclick = allowAction ? `data-action="quickpay-card" data-anggota="${ang.ID_Anggota}" data-bulan="${bulan}"` : '';
       return `

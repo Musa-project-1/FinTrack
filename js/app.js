@@ -57,7 +57,7 @@ window.__resetItemsToShow = () => setItemsToShow(20);
 window.__renderTableTransaksi = renderTableTransaksi;
 
 /* ══════════════════════════════════════════════════════════════════
-   EVENT DELEGATION — replaces inline onclick handlers
+   EVENT DELEGATION: replaces inline onclick handlers
    ══════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('click', (e) => {

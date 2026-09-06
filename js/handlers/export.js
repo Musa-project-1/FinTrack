@@ -109,7 +109,7 @@ export const copyMonthlyRecap = async () => {
     `Saldo kas: ${formatRp(totalMasuk - totalKeluar)}`
   ];
   if (isSkipped) {
-    lines.push('(Bulan libur — tidak ada iuran)');
+    lines.push('(Bulan libur: tidak ada iuran)');
   } else if (belum.length > 0) {
     lines.push(`Belum bayar: ${belum.join(', ')}`);
   } else {

@@ -21,8 +21,8 @@ export const renderOfflineQueueList = async () => {
         <div class="pending-card-row">
           <div class="flex-1">
             <div class="pending-card-action">${escapeHtml(action)}</div>
-            <div class="pending-card-time">${t}</div>
-            <div class="pending-card-payload">${JSON.stringify(item.payload.dataForm || item.payload || {})}</div>
+            <div class="pending-card-time">${escapeHtml(t)}</div>
+            <div class="pending-card-payload">${escapeHtml(JSON.stringify(item.payload.dataForm || item.payload || {}))}</div>
           </div>
           <div class="flex-align-gap">
             <button class="btn btn-outline" data-action="delete-offline-item" data-item-id="${item.id}">Hapus</button>

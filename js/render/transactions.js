@@ -1,5 +1,5 @@
 import { NAMA_BULAN } from "../config.js";
-import { getState, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, getAdminPassword } from "../state.js";
+import { getState, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, getIsAdminSession } from "../state.js";
 import { formatRp, escapeHtml } from "../utils.js";
 
 /* ── Transaction history table ─────────────────────────────────── */
@@ -115,7 +115,7 @@ export const renderTableTransaksi = () => {
 
     const tglTime = `${tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} • ${tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
 
-    const isAdmin = !!getAdminPassword();
+    const isAdmin = getIsAdminSession();
     const aksiHtml = isAdmin ? `
           <button class="btn-icon admin-only text-muted" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer fs-16"></i></button>
           <button class="btn-icon admin-only text-warning" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple fs-16"></i></button>

@@ -339,11 +339,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   const qpNominal = document.getElementById('qp-nominal');
   if (qpNominal) qpNominal.addEventListener('input', function() { handleNominalInput(this); });
 
+  const editNominal = document.getElementById('edit-nominal');
+  if (editNominal) editNominal.addEventListener('input', function() { handleNominalInput(this); });
+
   const iuranBulan = document.getElementById('iuran-bulan');
   if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
 
   const iuranTahun = document.getElementById('iuran-tahun');
-  if (iuranTahun) iuranTahun.addEventListener('input', renderCheckboxIuran);
+  if (iuranTahun) {
+    iuranTahun.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+      renderCheckboxIuran();
+    });
+  }
 
   const opsTipe = document.getElementById('ops-tipe');
   if (opsTipe) opsTipe.addEventListener('change', function() { filterKategori('ops-tipe', 'ops-kategori'); updateCounterOps(); });

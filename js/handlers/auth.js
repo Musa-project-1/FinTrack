@@ -48,13 +48,20 @@ export const renderAdminUI = () => {
    ══════════════════════════════════════════════════════════════════ */
 
 export const submitLoginAdmin = async (e) => {
+  const pwdInput = document.getElementById('input-admin-pwd');
+  const pwd = (pwdInput?.value || '').trim();
+  if (!pwd) {
+    showToast('Masukkan password admin terlebih dahulu.', 'error');
+    pwdInput?.focus();
+    return;
+  }
+
   const form = e.target;
   const btn = form.querySelector('button[type="submit"]');
   const originalText = btn.innerHTML;
   btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Mengecek...';
   btn.disabled = true;
 
-  const pwd = document.getElementById('input-admin-pwd').value;
   const hashedPwd = await hashText(pwd);
   const resJSON = await loginAdminApi(pwd);
 
@@ -63,14 +70,16 @@ export const submitLoginAdmin = async (e) => {
     handleUI(true);
     renderAdminUI();
     closeModal('modal-login');
-    document.getElementById('input-admin-pwd').value = '';
+    if (pwdInput) pwdInput.value = '';
     renderAll();
     renderChart();
     showToast('Berhasil Login sebagai Admin!', 'success');
   } else {
     showToast(resJSON ? resJSON.message : 'Gagal terhubung ke server.', 'error');
-    document.getElementById('input-admin-pwd').value = '';
-    document.getElementById('input-admin-pwd').focus();
+    if (pwdInput) {
+      pwdInput.value = '';
+      pwdInput.focus();
+    }
   }
 
   btn.innerHTML = originalText;

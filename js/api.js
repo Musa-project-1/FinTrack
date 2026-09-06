@@ -5,7 +5,7 @@
  */
 
 import { FIREBASE_CONFIG } from './config.js';
-import { getAdminPassword } from './state.js';
+import { getState, getAdminPassword } from './state.js';
 import { hashText } from './utils.js';
 
 const PROJECT_ID = FIREBASE_CONFIG.projectId;
@@ -86,7 +86,7 @@ export const fetchInitialData = async () => {
     };
   } catch (error) {
     console.error('Fetch initial data error:', error);
-    return null;
+    return { status: false, message: error?.message || 'Gagal memuat data dari Firestore.', data: null };
   }
 };
 
@@ -97,19 +97,32 @@ export const fetchInitialData = async () => {
  */
 export const postToBackend = async (payload) => {
   try {
+    if (!payload || typeof payload !== 'object') {
+      return { status: false, message: 'Payload tidak valid.', data: null };
+    }
     const action = payload.action;
 
     if (action === 'tambahTransaksi') {
       const dataForm = payload.dataForm || {};
+      const nominal = Number(dataForm.nominal);
+      if (isNaN(nominal) || nominal <= 0) {
+        return { status: false, message: 'Nominal transaksi harus lebih besar dari 0.', data: null };
+      }
+      if (!['Masuk', 'Keluar'].includes(dataForm.tipeArus)) {
+        return { status: false, message: 'Tipe arus harus Masuk atau Keluar.', data: null };
+      }
+      if (!dataForm.idKategori || dataForm.idKategori === '-') {
+        return { status: false, message: 'Kategori transaksi harus dipilih.', data: null };
+      }
 
       // Idempotency / Deduplication:
       // If adding an iuran payment, check if the member already paid for the exact same month & year.
       if (dataForm.idAnggota && dataForm.idAnggota !== '-' && dataForm.bulanIuran && dataForm.bulanIuran !== '-' && dataForm.tahunIuran && dataForm.tahunIuran !== '-') {
         const state = getState();
-        const isDuplicate = state.transaksi.some((t) => 
+        const isDuplicate = (state.transaksi || []).some((t) => 
           t.ID_Anggota === dataForm.idAnggota &&
           t.Bulan_Iuran === dataForm.bulanIuran &&
-          t.Tahun_Iuran.toString() === dataForm.tahunIuran.toString()
+          String(t.Tahun_Iuran) === String(dataForm.tahunIuran)
         );
         if (isDuplicate) {
           return {
@@ -124,12 +137,12 @@ export const postToBackend = async (payload) => {
       const doc = {
         ID_Transaksi: idTrx,
         Timestamp: new Date().toISOString(),
-        Tipe_Arus: dataForm.tipeArus || 'Masuk',
-        ID_Kategori: dataForm.idKategori || '-',
+        Tipe_Arus: dataForm.tipeArus,
+        ID_Kategori: dataForm.idKategori,
         ID_Anggota: dataForm.idAnggota || '-',
         Bulan_Iuran: dataForm.bulanIuran || '-',
         Tahun_Iuran: dataForm.tahunIuran || '-',
-        Nominal: Number(dataForm.nominal) || 0,
+        Nominal: nominal,
         Keterangan: dataForm.keterangan || ''
       };
 
@@ -138,36 +151,61 @@ export const postToBackend = async (payload) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: toFirestoreFields(doc) })
       });
-      if (res.ok) return { status: true, message: 'Transaksi disimpan ke Firestore.', data: null };
-      return { status: false, message: 'Gagal menyimpan transaksi.', data: null };
+      if (res.ok) return { status: true, message: 'Transaksi disimpan ke Firestore.', data: doc };
+      return { status: false, message: 'Gagal menyimpan transaksi ke Firestore.', data: null };
     }
 
     if (action === 'tambahTransaksiMassal') {
-      const listTrx = payload.listTrx || [];
-      const state = getState();
+      let listTrx = Array.isArray(payload.listTrx) ? payload.listTrx : [];
+      if (!listTrx.length && payload.dataForm?.arrIdAnggota) {
+        const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan } = payload.dataForm;
+        listTrx = (arrIdAnggota || []).map((idAng) => ({
+          tipeArus: tipeArus || 'Masuk',
+          idKategori: idKategori || '-',
+          idAnggota: idAng,
+          bulanIuran: bulanIuran || '-',
+          tahunIuran: tahunIuran || '-',
+          nominal: Number(nominal) || 0,
+          keterangan: keterangan || 'Iuran Anggota'
+        }));
+      }
 
-      // Filter out any items that are already paid (idempotency)
-      const nonDuplicateList = listTrx.filter((dataForm) => {
-        if (!dataForm.idAnggota || dataForm.idAnggota === '-' || !dataForm.bulanIuran || dataForm.bulanIuran === '-') {
-          return true;
-        }
-        const alreadyPaid = state.transaksi.some((t) => 
+      if (!listTrx.length) {
+        return { status: false, message: 'Daftar transaksi massal tidak boleh kosong.', data: null };
+      }
+
+      const validList = listTrx.filter((t) => Number(t.nominal) > 0 && t.idAnggota && t.idAnggota !== '-');
+      if (!validList.length) {
+        return { status: false, message: 'Data transaksi massal tidak valid atau nominal 0.', data: null };
+      }
+
+      const state = getState();
+      const existingTrx = state.transaksi || [];
+      const nonDuplicateList = [];
+      const skippedIds = [];
+
+      validList.forEach((dataForm) => {
+        const isPaid = existingTrx.some((t) => 
           t.ID_Anggota === dataForm.idAnggota &&
           t.Bulan_Iuran === dataForm.bulanIuran &&
-          t.Tahun_Iuran.toString() === (dataForm.tahunIuran || '').toString()
+          String(t.Tahun_Iuran) === String(dataForm.tahunIuran)
         );
-        return !alreadyPaid;
+        if (isPaid) {
+          skippedIds.push(dataForm.idAnggota);
+        } else {
+          nonDuplicateList.push(dataForm);
+        }
       });
 
-      if (nonDuplicateList.length === 0 && listTrx.length > 0) {
+      if (nonDuplicateList.length === 0) {
         return {
           status: true,
-          data: { duplicate: true },
+          data: { duplicate: true, inserted: 0, skipped: skippedIds },
           message: 'Semua iuran dalam daftar massal sudah lunas tercatat sebelumnya.'
         };
       }
 
-      const writes = nonDuplicateList.map((dataForm) => {
+      const writePromises = nonDuplicateList.map(async (dataForm) => {
         const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const doc = {
           ID_Transaksi: idTrx,
@@ -180,19 +218,45 @@ export const postToBackend = async (payload) => {
           Nominal: Number(dataForm.nominal) || 0,
           Keterangan: dataForm.keterangan || ''
         };
-        return fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
+        const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: toFirestoreFields(doc) })
         });
+        return { ok: res.ok, idAnggota: dataForm.idAnggota };
       });
-      await Promise.all(writes);
-      return { status: true, message: `${listTrx.length} transaksi massal berhasil disimpan.`, data: null };
+
+      const results = await Promise.all(writePromises);
+      const successful = results.filter((r) => r.ok);
+      const failed = results.filter((r) => !r.ok);
+
+      if (successful.length === 0) {
+        return { status: false, message: 'Gagal menyimpan transaksi massal.', data: null };
+      }
+
+      const msg = failed.length
+        ? `${successful.length} transaksi massal disimpan, ${failed.length} gagal.`
+        : `${successful.length} transaksi massal berhasil disimpan.`;
+
+      return {
+        status: true,
+        message: msg,
+        data: {
+          inserted: successful.length,
+          skipped: skippedIds
+        }
+      };
     }
 
     if (action === 'editTransaksi') {
       const dataForm = payload.dataForm || {};
-      const idTarget = payload.idTransaksi;
+      const idTarget = (payload.idTransaksi || dataForm.idTransaksi || '').trim();
+      const nominal = Number(dataForm.nominal);
+      if (!idTarget) return { status: false, message: 'ID transaksi tidak valid.', data: null };
+      if (isNaN(nominal) || nominal <= 0) return { status: false, message: 'Nominal transaksi harus lebih dari 0.', data: null };
+      if (!['Masuk', 'Keluar'].includes(dataForm.tipeArus)) return { status: false, message: 'Tipe arus harus Masuk atau Keluar.', data: null };
+      if (!dataForm.idKategori || dataForm.idKategori === '-') return { status: false, message: 'Kategori transaksi harus dipilih.', data: null };
+
       const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -204,7 +268,7 @@ export const postToBackend = async (payload) => {
             ID_Anggota: dataForm.idAnggota || '-',
             Bulan_Iuran: dataForm.bulanIuran || '-',
             Tahun_Iuran: dataForm.tahunIuran || '-',
-            Nominal: Number(dataForm.nominal) || 0,
+            Nominal: nominal,
             Keterangan: dataForm.keterangan || ''
           })
         })
@@ -214,45 +278,37 @@ export const postToBackend = async (payload) => {
     }
 
     if (action === 'hapusTransaksi') {
-      const idTarget = payload.idTransaksi;
-      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, {
-        method: 'DELETE'
-      });
+      const idTarget = (payload.idTransaksi || '').trim();
+      if (!idTarget) return { status: false, message: 'ID transaksi tidak valid untuk dihapus.', data: null };
+      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, { method: 'DELETE' });
       if (res.ok) return { status: true, message: 'Transaksi berhasil dihapus.', data: null };
       return { status: false, message: 'Gagal menghapus transaksi.', data: null };
     }
 
     if (action === 'addSkippedMonth' || action === 'removeSkippedMonth') {
-      const month = String(payload.month || '');
+      const month = String(payload.month || '').trim();
+      if (!/^\d{2}-\d{4}$/.test(month)) return { status: false, message: 'Format bulan libur harus MM-YYYY.', data: null };
       const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
       const cur = fromFirestoreFields(cfgRes.fields).skippedMonths || [];
-      let updated = [...cur];
-      if (action === 'addSkippedMonth' && !updated.includes(month)) {
-        updated.push(month);
-      } else if (action === 'removeSkippedMonth') {
-        updated = updated.filter((m) => m !== month);
-      }
+      let updated = action === 'addSkippedMonth'
+        ? (!cur.includes(month) ? [...cur, month] : cur)
+        : cur.filter((m) => m !== month);
       await fetch(`${FIRESTORE_BASE}/settings/app_config?updateMask.fieldPaths=skippedMonths`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fields: {
-            skippedMonths: { arrayValue: { values: updated.map((m) => ({ stringValue: m })) } }
-          }
+          fields: { skippedMonths: { arrayValue: { values: updated.map((m) => ({ stringValue: m })) } } }
         })
       });
       return { status: true, message: 'Pengaturan bulan libur diperbarui.', data: { skippedMonths: updated } };
     }
 
     if (action === 'tambahAnggota') {
-      const { nama, noWa } = payload;
+      const nama = (typeof payload.nama === 'string' ? payload.nama : '').trim();
+      const noWa = (typeof payload.noWa === 'string' ? payload.noWa : '').trim();
+      if (!nama) return { status: false, message: 'Nama anggota wajib diisi.', data: null };
       const idAnggota = 'ANG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-      const doc = {
-        ID_Anggota: idAnggota,
-        Nama_Anggota: nama,
-        Nomor_WA: noWa || '',
-        Status_Aktif: 'Aktif'
-      };
+      const doc = { ID_Anggota: idAnggota, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' };
       const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -263,7 +319,10 @@ export const postToBackend = async (payload) => {
     }
 
     if (action === 'updateStatusAnggota') {
-      const { idAnggota, statusAktif } = payload;
+      const idAnggota = (payload.idAnggota || '').trim();
+      const statusAktif = payload.statusAktif;
+      if (!idAnggota) return { status: false, message: 'ID anggota tidak valid.', data: null };
+      if (!['Aktif', 'Nonaktif'].includes(statusAktif)) return { status: false, message: 'Status anggota harus Aktif atau Nonaktif.', data: null };
       const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}?updateMask.fieldPaths=Status_Aktif`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -274,23 +333,21 @@ export const postToBackend = async (payload) => {
     }
 
     if (action === 'hapusAnggota') {
-      const { idAnggota } = payload;
-      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, {
-        method: 'DELETE'
-      });
+      const idAnggota = (payload.idAnggota || '').trim();
+      if (!idAnggota) return { status: false, message: 'ID anggota tidak valid untuk dihapus.', data: null };
+      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, { method: 'DELETE' });
       if (res.ok) return { status: true, message: 'Anggota berhasil dihapus.', data: null };
       return { status: false, message: 'Gagal menghapus anggota.', data: null };
     }
 
     if (action === 'tambahKategori') {
-      const { nama, tipe } = payload;
+      const nama = (typeof payload.nama === 'string' ? payload.nama : '').trim();
+      const tipe = payload.tipe;
+      if (!nama) return { status: false, message: 'Nama kategori wajib diisi.', data: null };
+      if (!['Masuk', 'Keluar'].includes(tipe)) return { status: false, message: 'Tipe kategori harus Masuk atau Keluar.', data: null };
       const prefix = tipe === 'Masuk' ? 'KAT-M' : 'KAT-K';
       const idKategori = prefix + Math.random().toString(36).substring(2, 6).toUpperCase();
-      const doc = {
-        ID_Kategori: idKategori,
-        Nama_Kategori: nama,
-        Tipe: tipe
-      };
+      const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe };
       const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -301,10 +358,9 @@ export const postToBackend = async (payload) => {
     }
 
     if (action === 'hapusKategori') {
-      const { idKategori } = payload;
-      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, {
-        method: 'DELETE'
-      });
+      const idKategori = (payload.idKategori || '').trim();
+      if (!idKategori) return { status: false, message: 'ID kategori tidak valid untuk dihapus.', data: null };
+      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, { method: 'DELETE' });
       if (res.ok) return { status: true, message: 'Kategori berhasil dihapus.', data: null };
       return { status: false, message: 'Gagal menghapus kategori.', data: null };
     }
@@ -312,7 +368,7 @@ export const postToBackend = async (payload) => {
     return { status: false, message: 'Aksi tidak dikenal.', data: null };
   } catch (err) {
     console.error('postToBackend error:', err);
-    return null;
+    return { status: false, message: err?.message || 'Terjadi kesalahan pada backend.', data: null };
   }
 };
 
@@ -330,7 +386,9 @@ export const sendAdminPayload = async (payload) => {
  */
 export const loginAdminApi = async (pwd) => {
   try {
-    const inputHash = await hashText(pwd);
+    const trimmed = (pwd || '').trim();
+    if (!trimmed) return { status: false, message: 'Password tidak boleh kosong.', data: null };
+    const inputHash = await hashText(trimmed);
     const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
     const storedHash = fromFirestoreFields(cfgRes.fields).admin_password_hash || '';
 
@@ -341,7 +399,7 @@ export const loginAdminApi = async (pwd) => {
     return { status: false, message: 'Password Salah!', data: null };
   } catch (error) {
     console.error('Login error:', error);
-    return null;
+    return { status: false, message: 'Gagal terhubung ke server autentikasi.', data: null };
   }
 };
 

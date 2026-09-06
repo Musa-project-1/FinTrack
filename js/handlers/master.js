@@ -69,7 +69,7 @@ export const addSkippedMonth = async () => {
   const el = document.getElementById('input-skip-month');
   if (!el || !el.value) return showToast('Pilih bulan terlebih dahulu.', 'error');
   const parts = el.value.split('-');
-  if (parts.length !== 2) return showToast('Format bulan salah.', 'error');
+  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return showToast('Format bulan salah.', 'error');
   const key = `${parts[1].padStart(2, '0')}-${parts[0]}`;
 
   const res = await sendAdminPayload({ action: 'addSkippedMonth', month: key });
@@ -85,6 +85,9 @@ export const addSkippedMonth = async () => {
 };
 
 export const removeSkippedMonth = async (key) => {
+  if (!key || typeof key !== 'string' || !/^\d{2}-\d{4}$/.test(key)) {
+    return showToast('Format bulan libur tidak valid.', 'error');
+  }
   const res = await sendAdminPayload({ action: 'removeSkippedMonth', month: key });
   if (!res) return showToast('Gagal terhubung ke server.', 'error');
   if (res.status) {
@@ -172,9 +175,10 @@ export const openKelolaMasterModal = () => {
 
 export const submitTambahAnggota = async (e) => {
   e.preventDefault();
-  const nama = document.getElementById('input-nama-anggota').value.trim();
-  const noWa = document.getElementById('input-wa-anggota').value.trim();
+  const nama = (document.getElementById('input-nama-anggota')?.value || '').trim();
+  const noWa = (document.getElementById('input-wa-anggota')?.value || '').trim();
   if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
+  if (nama.length < 2) return showToast('Nama anggota minimal 2 karakter.', 'error');
 
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true;
@@ -193,6 +197,9 @@ export const submitTambahAnggota = async (e) => {
 };
 
 export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
+  if (!idAnggota || !['Aktif', 'Nonaktif'].includes(nextStatus)) {
+    return showToast('Parameter status anggota tidak valid.', 'error');
+  }
   const res = await sendAdminPayload({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
   if (res && res.status) {
     showToast(`Status anggota diubah ke ${nextStatus}.`, 'success');
@@ -204,6 +211,7 @@ export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
 };
 
 export const hapusMasterAnggotaAction = async (idAnggota) => {
+  if (!idAnggota) return showToast('ID anggota tidak valid.', 'error');
   if (!confirm('Yakin ingin menghapus anggota ini?')) return;
   const res = await sendAdminPayload({ action: 'hapusAnggota', idAnggota });
   if (res && res.status) {
@@ -217,8 +225,9 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
 
 export const submitTambahKategori = async (e) => {
   e.preventDefault();
-  const tipe = document.getElementById('input-tipe-kategori').value;
-  const nama = document.getElementById('input-nama-kategori').value.trim();
+  const tipe = document.getElementById('input-tipe-kategori')?.value;
+  const nama = (document.getElementById('input-nama-kategori')?.value || '').trim();
+  if (!['Masuk', 'Keluar'].includes(tipe)) return showToast('Pilih tipe kategori yang valid.', 'error');
   if (!nama) return showToast('Nama kategori tidak boleh kosong.', 'error');
 
   const btn = e.target.querySelector('button[type="submit"]');
@@ -237,6 +246,7 @@ export const submitTambahKategori = async (e) => {
 };
 
 export const hapusMasterKategoriAction = async (idKategori) => {
+  if (!idKategori) return showToast('ID kategori tidak valid.', 'error');
   if (!confirm('Yakin ingin menghapus kategori ini?')) return;
   const res = await sendAdminPayload({ action: 'hapusKategori', idKategori });
   if (res && res.status) {

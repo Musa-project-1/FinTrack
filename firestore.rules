@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper to validate incoming transaction data
+    function isValidTransaction(data) {
+      return data.ID_Transaksi is string
+        && data.Tipe_Arus in ['Masuk', 'Keluar']
+        && data.Nominal is number
+        && data.Nominal > 0
+        && data.ID_Kategori is string
+        && data.ID_Anggota is string
+        && data.Timestamp is string;
+    }
+
+    // Settings collection (Public read, client write locked down)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Transaksi collection (Schema validation on write)
+    match /transaksi/{trxId} {
+      allow read: if true;
+      allow create, update: if isValidTransaction(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Anggota collection
+    match /anggota/{angId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.Nama_Anggota is string
+        && request.resource.data.Nama_Anggota.size() > 0
+        && request.resource.data.Status_Aktif in ['Aktif', 'Nonaktif'];
+      allow delete: if true;
+    }
+
+    // Kategori collection
+    match /kategori/{katId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.Nama_Kategori is string
+        && request.resource.data.Tipe in ['Masuk', 'Keluar'];
+      allow delete: if true;
+    }
+
+    // Audit Log collection (Append-only: immutable audit trail)
+    match /audit_log/{logId} {
+      allow read: if true;
+      allow create: if request.resource.data.Aksi is string && request.resource.data.Timestamp is string;
+      allow update, delete: if false;
+    }
+  }
+}

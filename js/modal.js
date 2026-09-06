@@ -9,6 +9,25 @@ import { showToast, handleNominalInput, getRawNominal, formatRp, escapeHtml } fr
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
+let previousActiveElement = null;
+
+const trapFocus = (e, modalEl) => {
+  if (e.key !== 'Tab') return;
+  const focusables = Array.from(modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+    .filter((el) => !el.disabled && el.offsetParent !== null);
+  if (focusables.length === 0) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+};
+
 /**
  * Open a modal by its element ID.
  * @param {string} id
@@ -25,8 +44,18 @@ export const openModal = (id) => {
     window.__resetItemsToShow && window.__resetItemsToShow();
     window.__renderTableTransaksi && window.__renderTableTransaksi();
   }
+  previousActiveElement = document.activeElement;
   el.classList.add('active');
   document.body.classList.add('modal-open');
+
+  if (el._focusHandler) el.removeEventListener('keydown', el._focusHandler);
+  el._focusHandler = (e) => trapFocus(e, el);
+  el.addEventListener('keydown', el._focusHandler);
+
+  setTimeout(() => {
+    const first = el.querySelector('input:not([disabled]), select:not([disabled]), button:not([disabled])');
+    if (first) first.focus();
+  }, 50);
 };
 
 /**
@@ -34,12 +63,23 @@ export const openModal = (id) => {
  * @param {string} id
  */
 export const closeModal = (id) => {
-  document.getElementById(id).classList.remove('active');
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('active');
+    if (el._focusHandler) {
+      el.removeEventListener('keydown', el._focusHandler);
+      delete el._focusHandler;
+    }
+  }
   if (!document.querySelector('.modal-overlay.active')) {
     document.body.classList.remove('modal-open');
     document.querySelectorAll('.bottom-nav-item').forEach((b) => {
       b.classList.toggle('active', b.getAttribute('data-action') === 'nav-home');
     });
+    if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+      previousActiveElement.focus();
+      previousActiveElement = null;
+    }
   }
 };
 

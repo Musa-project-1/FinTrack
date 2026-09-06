@@ -33,6 +33,17 @@
           </div>
         </button>
         <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
+        <div class="admin-only" style="margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--border);">
+          <div style="display: flex; gap: 8px; justify-content: space-between;">
+            <button class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px;" data-action="export-json-backup" title="Download snapshot JSON database">
+              <i class="ph ph-floppy-disk"></i> Backup JSON
+            </button>
+            <label class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px; cursor: pointer; text-align: center;" title="Restore snapshot JSON database">
+              <i class="ph ph-upload-simple"></i> Restore JSON
+              <input type="file" id="input-restore-json" accept=".json" style="display: none;">
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </div>

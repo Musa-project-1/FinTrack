@@ -4,7 +4,7 @@
  */
 
 import { OFFLINE_DB_NAME, OFFLINE_DB_VERSION, OFFLINE_STORE_NAME } from './config.js';
-import { postToBackend } from './api.js';
+import { postToBackend, logAuditEvent } from './api.js';
 import { showToast } from './utils.js';
 
 /**
@@ -103,6 +103,7 @@ export const syncOfflineTransactions = async (onSuccess) => {
     if (!queued.length) return;
 
     let successCount = 0;
+    let duplicateCount = 0;
 
     for (const item of queued) {
       const payloadToSend = { ...item.payload };
@@ -117,7 +118,7 @@ export const syncOfflineTransactions = async (onSuccess) => {
       if (resJSON.status || resJSON.data?.duplicate) {
         await deleteOfflineTransaction(item.id);
         if (resJSON.data?.duplicate) {
-          showToast(`Transaksi duplikat dilewati: ${resJSON.message}`, 'success');
+          duplicateCount += 1;
         } else {
           successCount += 1;
         }
@@ -127,8 +128,12 @@ export const syncOfflineTransactions = async (onSuccess) => {
       }
     }
 
-    if (successCount > 0) {
-      showToast(`Terkirim ${successCount} transaksi tertunda.`, 'success');
+    if (successCount > 0 || duplicateCount > 0) {
+      logAuditEvent('OFFLINE_SYNC', `Rekonsiliasi: ${successCount} tersimpan, ${duplicateCount} duplikat dilewati`);
+      const msg = duplicateCount > 0
+        ? `Sinkronisasi selesai: ${successCount} transaksi dicatat, ${duplicateCount} dilewati (sudah lunas).`
+        : `Terkirim ${successCount} transaksi tertunda.`;
+      showToast(msg, 'success');
       if (onSuccess) onSuccess();
     }
   } catch (error) {

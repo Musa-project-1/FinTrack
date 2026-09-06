@@ -43,6 +43,7 @@ import {
 import {
   cetakStruk, cetakLaporanTahunan, copyMonthlyRecap, exportToCSV, createGroupReminderMessage
 } from "./handlers/export.js";
+import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 
 let isLoading = false;
 
@@ -82,6 +83,7 @@ document.addEventListener('click', (e) => {
     case 'toggle-mobile-menu':
     case 'open-menu-modal':  openModal('modal-menu'); break;
     case 'toggle-dropdown':  openModal('modal-menu'); break;
+    case 'install-pwa':      if (window.__pwaPrompt) window.__pwaPrompt.prompt(); else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info'); break;
     case 'close-dropdown':   closeHeaderDropdown(); break;
     case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;
@@ -143,6 +145,7 @@ document.addEventListener('click', (e) => {
     /* ── Export / Print ───────────────────────────── */
     case 'copy-monthly-recap': copyMonthlyRecap(); break;
     case 'export-csv':       exportToCSV(); break;
+    case 'export-json-backup': exportJSONBackup(); break;
     case 'print-annual':     cetakLaporanTahunan(); break;
     case 'print-reminder':   createGroupReminderMessage(); break;
 
@@ -317,26 +320,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window.__pwaPrompt = e;
+    const btn = document.getElementById('btn-pwa-install');
+    if (btn) btn.style.display = 'flex';
+  });
+
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 
   // Attach input listeners for dynamic updates
-  const btnMenuDesktop = document.getElementById('btn-header-menu');
-  if (btnMenuDesktop) {
-    btnMenuDesktop.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      openModal('modal-menu');
-    });
-  }
-
-  const btnMenuMobile = document.getElementById('btn-header-menu-mobile');
-  if (btnMenuMobile) {
-    btnMenuMobile.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      openModal('modal-menu');
-    });
-  }
+  [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openModal('modal-menu'); });
+  });
 
   const iuranNominal = document.getElementById('iuran-nominal');
   if (iuranNominal) iuranNominal.addEventListener('input', function() { handleNominalInput(this); resetChipAktif(); updateCounterIuran(); });
@@ -398,6 +394,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const formTambahKategori = document.getElementById('form-tambah-kategori');
   if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
+
+  const inputRestore = document.getElementById('input-restore-json');
+  if (inputRestore) inputRestore.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      restoreJSONBackup(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
 
   const btnTogglePwd = document.getElementById('btn-toggle-pwd');
   if (btnTogglePwd) {

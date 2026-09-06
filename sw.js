@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v85';
+const CACHE_NAME = 'finkas-v86';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -33,6 +33,14 @@ const LOCAL_ASSETS = [
   'js/app.js'
 ];
 
+// Third-party CDN domains to cache for reliable offline usage
+const CDN_HOSTS = [
+  'unpkg.com',
+  'cdn.jsdelivr.net',
+  'fonts.googleapis.com',
+  'fonts.gstatic.com'
+];
+
 // Install — cache local assets, fail gracefully
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -59,11 +67,11 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch — network-first for local files (always fresh when online),
-// fall back to cache when offline. External requests go to network.
+// Fetch handler
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // 1. Local origin assets: Network-first, fallback to cache with ignoreSearch: true
   if (url.origin === location.origin && event.request.method === 'GET') {
     event.respondWith(
       fetch(event.request)
@@ -74,116 +82,52 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
     );
+    return;
+  }
+
+  // 2. External CDN assets (Chart.js, Phosphor Icons, Google Fonts): Cache-first
+  if (CDN_HOSTS.includes(url.hostname) && event.request.method === 'GET') {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request)
+          .then((response) => {
+            if (response && response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            }
+            return response;
+          })
+          .catch(() => cached || new Response('', { status: 408, statusText: 'Offline' }));
+      })
+    );
+    return;
   }
 });
 
-/* ── Offline queue sync ────────────────────────────────────────── */
-
-const OFFLINE_DB_NAME = 'finkas-offline-db';
-const OFFLINE_DB_VERSION = 1;
-const OFFLINE_STORE_NAME = 'offline-transactions';
-
-// Firebase Firestore Project Configuration for Background Sync
-const FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/finkas-kas/databases/(default)/documents';
-
-const toFirestoreFields = (obj) => {
-  const fields = {};
-  for (const [key, val] of Object.entries(obj)) {
-    if (val === null || val === undefined) fields[key] = { nullValue: null };
-    else if (typeof val === 'boolean') fields[key] = { booleanValue: val };
-    else if (typeof val === 'number') fields[key] = { doubleValue: val };
-    else if (Array.isArray(val)) {
-      fields[key] = { arrayValue: { values: val.map((v) => ({ stringValue: String(v) })) } };
-    } else {
-      fields[key] = { stringValue: String(val) };
-    }
-  }
-  return fields;
-};
-
-const openOfflineDB = () => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(OFFLINE_STORE_NAME)) {
-        db.createObjectStore(OFFLINE_STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-};
-
-const getOfflineTransactions = async () => {
-  const db = await openOfflineDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(OFFLINE_STORE_NAME, 'readonly');
-    const store = tx.objectStore(OFFLINE_STORE_NAME);
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result || []);
-    request.onerror = () => reject(request.error);
-  });
-};
-
-const deleteOfflineTransaction = async (id) => {
-  const db = await openOfflineDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(OFFLINE_STORE_NAME, 'readwrite');
-    const store = tx.objectStore(OFFLINE_STORE_NAME);
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-};
-
-const sendQueuedOfflineTransactions = async () => {
-  try {
-    const queued = await getOfflineTransactions();
-    if (!queued.length) return;
-
-    for (const item of queued) {
-      const payload = item.payload || {};
-      const dataForm = payload.dataForm || {};
-      const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-      const doc = {
-        ID_Transaksi: idTrx,
-        Timestamp: new Date().toISOString(),
-        Tipe_Arus: dataForm.tipeArus || 'Masuk',
-        ID_Kategori: dataForm.idKategori || '-',
-        ID_Anggota: dataForm.idAnggota || '-',
-        Bulan_Iuran: dataForm.bulanIuran || '-',
-        Tahun_Iuran: dataForm.tahunIuran || '-',
-        Nominal: Number(dataForm.nominal) || 0,
-        Keterangan: dataForm.keterangan || ''
-      };
-
-      const response = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: toFirestoreFields(doc) })
-      });
-
-      if (response.ok) {
-        await deleteOfflineTransaction(item.id);
-      }
-    }
-  } catch (error) {
-    console.warn('Service Worker sync failed:', error);
-    throw error;
-  }
-};
-
+// Sync handler — notify active window clients to sync the offline queue cleanly via offline.js
 self.addEventListener('sync', (event) => {
   if (event.tag === 'finkas-sync-offline') {
-    event.waitUntil(sendQueuedOfflineTransactions());
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        if (clientList && clientList.length > 0) {
+          clientList.forEach((client) => client.postMessage({ type: 'SYNC_OFFLINE_QUEUE' }));
+        }
+      })
+    );
   }
 });
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SYNC_OFFLINE') {
-    event.waitUntil(sendQueuedOfflineTransactions());
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        if (clientList && clientList.length > 0) {
+          clientList.forEach((client) => client.postMessage({ type: 'SYNC_OFFLINE_QUEUE' }));
+        }
+      })
+    );
   }
 });

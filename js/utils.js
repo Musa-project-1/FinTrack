@@ -116,8 +116,14 @@ export const hashText = async (text) => {
 };
 
 /** @private entity map for escapeHtml */
-const _ESCAPE_MAP = { '&': String.fromCharCode(38), '<': String.fromCharCode(60), '>': String.fromCharCode(62), '"': String.fromCharCode(34), "'": String.fromCharCode(39) };
-const _ESCAPE_RE = /[&<"']/g;
+const _ESCAPE_MAP = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
+const _ESCAPE_RE = /[&<>"']/g;
 
 export const escapeHtml = (str) => {
   if (str == null) return '';

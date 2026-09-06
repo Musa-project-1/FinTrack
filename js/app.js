@@ -309,6 +309,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     showToast('Anda sedang offline. Transaksi akan disimpan lokal.', 'error');
   });
 
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'SYNC_OFFLINE_QUEUE') {
+        syncOfflineTransactions(() => { initApp(true); renderChart(); });
+      }
+    });
+  }
+
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 
   // Attach input listeners for dynamic updates

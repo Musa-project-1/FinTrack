@@ -11,23 +11,29 @@ import { fromFirestoreFields, toFirestoreFields, hashText } from './utils.js';
 const PROJECT_ID = FIREBASE_CONFIG.projectId;
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
+let quotaCooldownUntil = 0;
+
 /**
  * Fetch initial data (anggota, kategori, transaksi, settings).
  * @returns {Promise<{status: boolean, data: object, message: string}|null>}
  */
 export const fetchInitialData = async () => {
   try {
+    if (Date.now() < quotaCooldownUntil) {
+      return { status: false, message: 'Batas kuota Firestore tercapai. Menggunakan data cache offline.' };
+    }
+
     const [resAng, resKat, resTrx, resSet] = await Promise.all([
       fetch(`${FIRESTORE_BASE}/anggota?pageSize=300`).then((r) => r.json()),
       fetch(`${FIRESTORE_BASE}/kategori?pageSize=100`).then((r) => r.json()),
-      fetch(`${FIRESTORE_BASE}/transaksi?pageSize=500`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/transaksi?pageSize=300&orderBy=Timestamp%20desc`).then((r) => r.json()),
       fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json())
     ]);
 
     // Check for API errors (e.g. 429 Quota Exceeded)
     if (resAng.error || resKat.error || resTrx.error) {
       const err = resAng.error || resKat.error || resTrx.error;
-      console.warn('Firestore API Warning/Error:', err);
+      if (err.code === 429) quotaCooldownUntil = Date.now() + 600000;
       return {
         status: false,
         message: err.code === 429 ? 'Batas kuota Firestore tercapai. Menggunakan data cache offline.' : (err.message || 'Gagal memuat data dari Firestore.')
@@ -157,40 +163,34 @@ export const postToBackend = async (payload) => {
         };
       }
 
-      const writePromises = nonDuplicateList.map(async (dataForm) => {
+      const writes = nonDuplicateList.map((dataForm) => {
         const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-        const doc = {
-          ID_Transaksi: idTrx, Timestamp: new Date().toISOString(), Tipe_Arus: dataForm.tipeArus || 'Masuk',
-          ID_Kategori: dataForm.idKategori || '-', ID_Anggota: dataForm.idAnggota || '-',
-          Bulan_Iuran: dataForm.bulanIuran || '-', Tahun_Iuran: dataForm.tahunIuran || '-',
-          Nominal: Number(dataForm.nominal) || 0, Keterangan: dataForm.keterangan || ''
+        return {
+          update: {
+            name: `projects/${PROJECT_ID}/databases/(default)/documents/transaksi/${idTrx}`,
+            fields: toFirestoreFields({
+              ID_Transaksi: idTrx, Timestamp: new Date().toISOString(), Tipe_Arus: dataForm.tipeArus || 'Masuk',
+              ID_Kategori: dataForm.idKategori || '-', ID_Anggota: dataForm.idAnggota || '-',
+              Bulan_Iuran: dataForm.bulanIuran || '-', Tahun_Iuran: dataForm.tahunIuran || '-',
+              Nominal: Number(dataForm.nominal) || 0, Keterangan: dataForm.keterangan || ''
+            })
+          }
         };
-        const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fields: toFirestoreFields(doc) })
-        });
-        return { ok: res.ok, idAnggota: dataForm.idAnggota };
       });
 
-      const results = await Promise.all(writePromises);
-      const successful = results.filter((r) => r.ok);
-      const failed = results.filter((r) => !r.ok);
+      const commitRes = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:commit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ writes })
+      });
 
-      if (successful.length === 0) return { status: false, message: 'Gagal menyimpan transaksi massal.', data: null };
-      logAuditEvent('TAMBAH_IURAN_MASSAL', `${successful.length} iuran dicatat`);
-
-      const msg = failed.length
-        ? `${successful.length} transaksi massal disimpan, ${failed.length} gagal.`
-        : `${successful.length} transaksi massal berhasil disimpan.`;
+      if (!commitRes.ok) return { status: false, message: 'Gagal menyimpan transaksi massal (commit ditolak).', data: null };
+      logAuditEvent('TAMBAH_IURAN_MASSAL', `${nonDuplicateList.length} iuran dicatat (atomic commit)`);
 
       return {
         status: true,
-        message: msg,
-        data: {
-          inserted: successful.length,
-          skipped: skippedIds
-        }
+        message: `${nonDuplicateList.length} transaksi massal berhasil disimpan secara atomic.`,
+        data: { inserted: nonDuplicateList.length, skipped: skippedIds }
       };
     }
 

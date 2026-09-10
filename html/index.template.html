@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=87">
-  <link rel="stylesheet" href="style.css?v=87">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=91">
+  <link rel="stylesheet" href="style.css?v=91">
 </head>
 <body>
 
@@ -121,7 +121,7 @@
           <div class="year-pill">
             <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
             <label for="ui-tahun-rekap-select">Tahun: </label>
-            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
+            <select id="ui-tahun-rekap-select" class="cdrop" aria-label="Pilih tahun rekap iuran">
             </select>
           </div>
           <div class="member-search-wrapper">
@@ -147,7 +147,7 @@
             <div class="year-pill">
               <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
               <label for="ui-tahun-rekap-select-mobile">Tahun: </label>
-              <select id="ui-tahun-rekap-select-mobile" aria-label="Pilih tahun rekap iuran">
+              <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
               </select>
             </div>
             <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
@@ -217,11 +217,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=87"></script>
+  <script type="module" src="js/app.js?v=91"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=87', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=91', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

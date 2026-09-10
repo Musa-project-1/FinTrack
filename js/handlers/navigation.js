@@ -1,6 +1,7 @@
 import { NAMA_BULAN } from "../config.js";
 import { getState, currentHistoryFilter, setCurrentHistoryFilter, setItemsToShow } from "../state.js";
 import { openModal, closeModal } from "../modal.js";
+import { syncCdrop } from "../cdrop.js";
 import { renderTableTransaksi, renderTableRekap } from "../render.js";
 
 /* ── Bottom nav helpers ────────────────────────────────────────── */
@@ -62,6 +63,8 @@ export const applyRiwayatPreset = (preset, btn) => {
     bulanSel.value = String(monthIdx);
     tahunSel.value = yearStr;
   }
+  syncCdrop('filter-bulan');
+  syncCdrop('filter-tahun');
 
   clearRiwayatPresetHighlight();
   btn.classList.add('active');

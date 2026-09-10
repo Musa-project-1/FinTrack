@@ -4,6 +4,7 @@ import { postToBackend, sendAdminPayload } from "../api.js";
 import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../utils.js";
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
 import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran, filterKategori } from "../modal.js";
+import { syncCdrop } from "../cdrop.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 
@@ -108,11 +109,16 @@ export const bukaModalTransaksi = () => {
   document.getElementById('search-anggota-iuran').value = '';
   document.getElementById('iuran-tahun').value = new Date().getFullYear();
   document.getElementById('iuran-bulan').value = NAMA_BULAN[new Date().getMonth()];
+  syncCdrop('iuran-bulan');
+  syncCdrop('iuran-kategori');
   renderCheckboxIuran();
   document.getElementById('tab-operasional').querySelector('form').reset();
   document.getElementById('ops-anggota').value = '-';
   document.getElementById('ops-tipe').value = 'Keluar';
   filterKategori('ops-tipe', 'ops-kategori');
+  syncCdrop('ops-anggota');
+  syncCdrop('ops-tipe');
+  syncCdrop('ops-kategori');
   document.getElementById('iuran-nominal').value = new Intl.NumberFormat('id-ID').format(10000);
   resetChipAktif();
   const firstChip = document.querySelector('#chip-group-iuran .chip-btn');
@@ -264,6 +270,9 @@ export const submitOperasional = async (e) => {
     document.getElementById('ops-anggota').value = '-';
     document.getElementById('ops-tipe').value = 'Keluar';
     filterKategori('ops-tipe', 'ops-kategori');
+    syncCdrop('ops-anggota');
+    syncCdrop('ops-tipe');
+    syncCdrop('ops-kategori');
   };
 
   const resetBtn = () => { btn.innerHTML = 'SIMPAN OPERASIONAL'; btn.disabled = false; };
@@ -316,10 +325,14 @@ export const bukaModalEdit = (idTrx) => {
   document.getElementById('edit-id').value = trx.ID_Transaksi;
   document.getElementById('edit-tipe').value = trx.Tipe_Arus;
   filterKategori('edit-tipe', 'edit-kategori');
-  setTimeout(() => { document.getElementById('edit-kategori').value = trx.ID_Kategori; }, 50);
+  syncCdrop('edit-tipe');
+  syncCdrop('edit-kategori');
+  setTimeout(() => { document.getElementById('edit-kategori').value = trx.ID_Kategori; syncCdrop('edit-kategori'); }, 50);
   document.getElementById('edit-nominal').value = new Intl.NumberFormat('id-ID').format(trx.Nominal || 0);
   document.getElementById('edit-anggota').value = trx.ID_Anggota || '-';
   document.getElementById('edit-bulan').value = trx.Bulan_Iuran || '-';
+  syncCdrop('edit-anggota');
+  syncCdrop('edit-bulan');
   document.getElementById('edit-tahun').value = trx.Tahun_Iuran || '';
   document.getElementById('edit-keterangan').value = trx.Keterangan || '';
   document.getElementById('modal-riwayat').classList.remove('active');

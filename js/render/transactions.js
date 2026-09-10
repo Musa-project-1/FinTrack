@@ -106,7 +106,7 @@ export const renderTableTransaksi = () => {
     if (trx.ID_Anggota && trx.ID_Anggota !== '-') {
       const angObj = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
       const namaAnggota = angObj ? angObj.Nama_Anggota : trx.ID_Anggota;
-      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong> (Iuran ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}) <br> <span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
+      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong><span class="trx-period">Iuran • ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}</span><span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
     } else {
       const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
       const namaKat = objKat ? objKat.Nama_Kategori : 'Operasional';

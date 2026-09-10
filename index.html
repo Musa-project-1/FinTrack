@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=87">
-  <link rel="stylesheet" href="style.css?v=87">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=91">
+  <link rel="stylesheet" href="style.css?v=91">
 </head>
 <body>
 
@@ -121,7 +121,7 @@
           <div class="year-pill">
             <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
             <label for="ui-tahun-rekap-select">Tahun: </label>
-            <select id="ui-tahun-rekap-select" aria-label="Pilih tahun rekap iuran">
+            <select id="ui-tahun-rekap-select" class="cdrop" aria-label="Pilih tahun rekap iuran">
             </select>
           </div>
           <div class="member-search-wrapper">
@@ -147,7 +147,7 @@
             <div class="year-pill">
               <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
               <label for="ui-tahun-rekap-select-mobile">Tahun: </label>
-              <select id="ui-tahun-rekap-select-mobile" aria-label="Pilih tahun rekap iuran">
+              <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
               </select>
             </div>
             <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
@@ -421,7 +421,7 @@
       <div id="tab-master-kategori" class="tab-content">
         <form id="form-tambah-kategori" class="form-row-flex mb-16">
           <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
-          <select id="input-tipe-kategori" class="form-control w-140" required aria-label="Tipe Kategori Kas">
+          <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
             <option value="Masuk">Kas Masuk</option>
             <option value="Keluar">Kas Keluar</option>
           </select>
@@ -659,7 +659,7 @@
         <div class="riwayat-selectors">
           <div class="select-pill-wrap">
             <i class="ph ph-calendar"></i>
-            <select id="filter-bulan" class="riwayat-select" aria-label="Filter Bulan">
+            <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
               <option value="all">Semua Bulan</option>
               <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
               <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
@@ -670,7 +670,7 @@
 
           <div class="select-pill-wrap">
             <i class="ph ph-calendar-blank"></i>
-            <select id="filter-tahun" class="riwayat-select" aria-label="Filter Tahun">
+            <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
               <option value="all">Semua Tahun</option>
             </select>
           </div>
@@ -763,7 +763,7 @@
             <div class="modal-side-info">
               <div class="form-group">
                 <label for="iuran-kategori">Kategori</label>
-                <select id="iuran-kategori" class="form-control" required aria-label="Kategori Iuran"></select>
+                <select id="iuran-kategori" class="form-control cdrop" required aria-label="Kategori Iuran"></select>
               </div>
               
               <div class="form-group">
@@ -782,7 +782,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="iuran-bulan">Bulan</label>
-                  <select id="iuran-bulan" class="form-control" required aria-label="Bulan Iuran">
+                  <select id="iuran-bulan" class="form-control cdrop" required aria-label="Bulan Iuran">
                     <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
                     <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
                     <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
@@ -833,7 +833,7 @@
             <div class="modal-side-info">
               <div class="form-group">
                 <label for="ops-tipe">Tipe Kas</label>
-                <select id="ops-tipe" class="form-control" required aria-label="Tipe Kas">
+                <select id="ops-tipe" class="form-control cdrop" required aria-label="Tipe Kas">
                   <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
@@ -841,7 +841,7 @@
               
               <div class="form-group">
                 <label for="ops-kategori">Kategori</label>
-                <select id="ops-kategori" class="form-control" required aria-label="Kategori Transaksi Kas"></select>
+                <select id="ops-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi Kas"></select>
               </div>
 
               <div class="form-group">
@@ -863,7 +863,7 @@
             <div class="modal-main-selection">
               <div class="form-group">
                 <label for="ops-anggota">Terkait Anggota (Opsional)</label>
-                <select id="ops-anggota" class="form-control" aria-label="Terkait Anggota"></select>
+                <select id="ops-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
               </div>
 
               <div class="form-group">
@@ -898,14 +898,14 @@
         <div class="form-row">
           <div class="form-group">
             <label for="edit-tipe">Tipe Transaksi</label>
-            <select id="edit-tipe" class="form-control" required aria-label="Tipe Transaksi">
+            <select id="edit-tipe" class="form-control cdrop" required aria-label="Tipe Transaksi">
               <option value="Masuk">Pemasukan (+)</option>
               <option value="Keluar">Pengeluaran (-)</option>
             </select>
           </div>
           <div class="form-group">
             <label for="edit-kategori">Kategori</label>
-            <select id="edit-kategori" class="form-control" required aria-label="Kategori Transaksi"></select>
+            <select id="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
           </div>
         </div>
         <div class="form-group">
@@ -914,12 +914,12 @@
         </div>
         <div class="form-group">
           <label for="edit-anggota">Terkait Anggota</label>
-          <select id="edit-anggota" class="form-control" aria-label="Terkait Anggota"></select>
+          <select id="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
         </div>
         <div class="form-row">
            <div class="form-group">
             <label for="edit-bulan">Bulan</label>
-            <select id="edit-bulan" class="form-control" aria-label="Bulan Iuran">
+            <select id="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
               <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
               <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
               <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
@@ -982,11 +982,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=87"></script>
+  <script type="module" src="js/app.js?v=91"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=87', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=91', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

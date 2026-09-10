@@ -44,6 +44,7 @@ import {
   cetakStruk, cetakLaporanTahunan, copyMonthlyRecap, exportToCSV, createGroupReminderMessage
 } from "./handlers/export.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
+import { initCustomDropdowns, syncCdrop } from "./cdrop.js";
 
 let isLoading = false;
 
@@ -296,6 +297,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderAdminUI();
 
   initApp();
+  initCustomDropdowns();
   setupRekapSearchListener();
 
   document.querySelectorAll('.connection-status').forEach((el) => {
@@ -364,7 +366,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (editTipe) editTipe.addEventListener('change', function() { filterKategori('edit-tipe', 'edit-kategori'); });
 
   const searchTrx = document.getElementById('search-trx');
-  if (searchTrx) searchTrx.addEventListener('keyup', renderTableTransaksi);
+  if (searchTrx) searchTrx.addEventListener('input', renderTableTransaksi);
 
   const filterBulan = document.getElementById('filter-bulan');
   if (filterBulan) filterBulan.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
@@ -385,6 +387,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       setCurrentRekapYear(e.target.value);
       if (tahunRekapSelect) tahunRekapSelect.value = e.target.value;
       if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = e.target.value;
+      syncCdrop('ui-tahun-rekap-select');
+      syncCdrop('ui-tahun-rekap-select-mobile');
       renderTableRekap();
     });
   });

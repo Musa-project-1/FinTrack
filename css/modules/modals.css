@@ -214,3 +214,16 @@ body.dark-mode .modal-badge-icon.slate {
   background: #64748b !important;
   color: white !important;
 }
+
+/* 7. Desktop growth-safe centering: margin auto keeps the box centered
+   while it grows, and the overlay itself scrolls past 90vh. Mobile keeps
+   its bottom-sheet / top-anchor behavior untouched. */
+@media (min-width: 769px) {
+  .modal-overlay {
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    margin: auto;
+  }
+}

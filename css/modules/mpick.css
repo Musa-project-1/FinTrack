@@ -1,0 +1,166 @@
+/* === UNIVERSAL MONTH/YEAR PICKER (custom popup, no native input) === */
+
+.mpick {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.mpick > input.mpick {
+  display: none !important;
+}
+
+.mpick-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mpick-field:hover {
+  border-color: var(--primary);
+}
+
+.mpick.open .mpick-field,
+.mpick-field:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  outline: none;
+}
+
+.mpick-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mpick-label.is-placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.mpick-cal {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--primary);
+}
+
+/* In-flow popup: pushes modal content down instead of floating over it,
+   so rounded corners stay intact and nothing ever gets clipped. */
+.mpick-pop {
+  position: static;
+  margin: 8px 0 0;
+  z-index: 70;
+  width: 100%;
+  max-width: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dropdown);
+  padding: 12px;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+.mpick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mpick-year {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mpick-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-color);
+  color: var(--text-main);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+
+.mpick-nav:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.mpick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.mpick-m {
+  padding: 9px 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.mpick-m:hover {
+  background: var(--bg-color);
+}
+
+.mpick-m.selected {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.mpick-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.mpick-link {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.mpick-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -22,6 +22,15 @@ const setOpen = (ui, open) => {
     const rect = ui.wrap.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     ui.wrap.classList.toggle('cdrop--up', spaceBelow < 260);
+    // Hard-align list to the trigger button by measurement, so the popup
+    // stays glued even if an ancestor creates another containing block.
+    const parentRect = ui.list.offsetParent
+      ? ui.list.offsetParent.getBoundingClientRect()
+      : { left: 0 };
+    const btnRect = ui.btn.getBoundingClientRect();
+    ui.list.style.left = `${Math.max(0, btnRect.left - parentRect.left)}px`;
+    ui.list.style.right = 'auto';
+    ui.list.style.minWidth = `${btnRect.width}px`;
     if (ui.searchInput) {
       ui.searchInput.value = '';
       filterItems(ui, '');
@@ -223,6 +232,8 @@ export const initCustomDropdowns = () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAll();
   });
+  // Measured alignment goes stale on layout change, so just close.
+  window.addEventListener('resize', () => closeAll());
 };
 
 /** Re-read native select state into the custom UI. Call after programmatic .value sets. */

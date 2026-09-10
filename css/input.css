@@ -15,5 +15,8 @@
 @import "./modules/view-iuran.css";
 @import "./modules/view-riwayat.css";
 @import "./modules/cdrop.css";
+@import "./modules/navmenu.css";
+@import "./modules/queue.css";
+@import "./modules/mpick.css";
 @import "./modules/responsive-tablet.css";
 @import "./modules/responsive-mobile.css";

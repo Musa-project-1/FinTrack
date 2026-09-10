@@ -45,6 +45,7 @@ import {
 } from "./handlers/export.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./cdrop.js";
+import { initMonthPickers } from "./mpick.js";
 
 let isLoading = false;
 
@@ -298,6 +299,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   initApp();
   initCustomDropdowns();
+  initMonthPickers();
   setupRekapSearchListener();
 
   document.querySelectorAll('.connection-status').forEach((el) => {

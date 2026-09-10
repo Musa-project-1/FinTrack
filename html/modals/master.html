@@ -51,7 +51,7 @@
 
       <div class="skip-month-body">
         <div class="skip-month-input-row">
-          <input type="month" id="input-skip-month" class="form-control flex-1" />
+          <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
           <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
         </div>
 
@@ -142,8 +142,8 @@
 
   <!-- 6. Modal Transaksi Tertunda / Offline Queue -->
   <div class="modal-overlay modal-top" id="modal-offline-queue">
-    <div class="modal-content modal-lg">
-      <div class="modal-header-standard">
+    <div class="modal-content modal-sm queue-sheet">
+      <div class="queue-head">
         <div class="modal-header-left">
           <div class="modal-badge-icon warning">
             <i class="ph-fill ph-cloud-arrow-up"></i>
@@ -153,11 +153,12 @@
             <p>Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
           </div>
         </div>
-        <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
-          <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> Sinkron Sekarang</button>
-          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
-        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="queue-actions">
+        <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
+        <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> Sinkron Sekarang</button>
       </div>
 
       <div id="offline-queue-list" class="offline-queue-container">

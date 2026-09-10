@@ -1,0 +1,98 @@
+/* === OFFLINE QUEUE SHEET (two-row header, airy status, card rows) === */
+
+.queue-sheet {
+  border-radius: var(--radius-lg);
+}
+
+.queue-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.queue-head .modal-header-left {
+  min-width: 0;
+  flex: 1;
+}
+
+.queue-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.queue-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.queue-empty,
+.queue-error {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 20px;
+  background: var(--bg-color);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.queue-empty > i {
+  font-size: 30px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.queue-error > i {
+  font-size: 30px;
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.queue-empty strong,
+.queue-error strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.queue-empty p,
+.queue-error p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.queue-sheet .pending-item {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.queue-sheet .pending-card-payload {
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.queue-sheet .pending-card-row > .flex-1 {
+  min-width: 0;
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .queue-empty,
+  .queue-error {
+    padding: 22px 16px;
+  }
+}

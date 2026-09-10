@@ -147,12 +147,15 @@ button.desktop-only { display: inline-flex !important; }
   display: none;
 }
 
+/* Desktop: every modal centers both axes. Mobile keeps its own
+   top-anchor / bottom-sheet rules further down. */
 .modal-overlay.modal-top {
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-overlay.modal-top .modal-content {
-  max-height: 94vh;
+  max-height: 90vh;
 }
 
 /* === QUICK PAY BOTTOM SHEET === */

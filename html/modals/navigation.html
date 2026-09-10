@@ -1,33 +1,75 @@
   <!-- 7. Navigation Menu Modal Sheet -->
   <div class="modal-overlay" id="modal-menu">
-    <div class="modal-content modal-md menu-sheet">
+    <div class="modal-content modal-md menu-sheet nav-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon">
-            <i class="ph-fill ph-list"></i>
-          </div>
-          <div class="modal-title-wrap">
-            <h2>Menu Navigasi</h2>
-            <p>Akses fitur pembukuan dan pengaturan kas</p>
-          </div>
+      <div class="nav-sheet-head">
+        <div class="modal-title-wrap">
+          <h2>Menu Navigasi</h2>
+          <p>Akses fitur pembukuan dan pengaturan kas</p>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
       </div>
-      <div class="menu-sheet-list">
-        <button class="dropdown-item" id="btn-login-menu-sheet" data-action="open-login"><i class="ph ph-lock-key"></i> Login Admin</button>
-        <button class="dropdown-item admin-only" data-action="logout"><i class="ph ph-sign-out icon-danger"></i> Logout Admin</button>
-        <button class="dropdown-item admin-only" data-action="open-kelola-master"><i class="ph ph-users-three"></i> Kelola Anggota & Kategori</button>
-        <button class="dropdown-item admin-only" data-action="open-skipped-months"><i class="ph ph-calendar-x icon-warning"></i> Bulan Libur</button>
-        <button class="dropdown-item admin-only" data-action="open-audit-log"><i class="ph ph-detective icon-muted"></i> Log Aktivitas</button>
-        <button class="dropdown-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
-          <i class="ph ph-layout" id="icon-toggle-stats-pos"></i>
-          <span id="text-toggle-stats-pos">Pindah Kartu ke Header</span>
+
+      <button class="nav-item" id="btn-login-menu-sheet" data-action="open-login">
+        <span class="nav-ico is-slate"><i class="ph-fill ph-lock-key"></i></span>
+        <span class="nav-txt">Login Admin</span>
+        <i class="ph-bold ph-caret-right nav-chev"></i>
+      </button>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Kelola data</div>
+        <button class="nav-item admin-only" data-action="open-kelola-master">
+          <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
+          <span class="nav-txt">Kelola Anggota &amp; Kategori</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
-        <button class="dropdown-item" data-action="open-history"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</button>
-        <button class="dropdown-item" data-action="open-statistik"><i class="ph ph-chart-bar"></i> Statistik Keuangan</button>
-        <button class="dropdown-item" data-action="open-export"><i class="ph ph-export"></i> Export Data (Excel/PDF)</button>
-        <button class="dropdown-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;"><i class="ph ph-download-simple"></i> Pasang Aplikasi Finkas</button>
+        <button class="nav-item admin-only" data-action="open-skipped-months">
+          <span class="nav-ico is-amber"><i class="ph-fill ph-calendar-x"></i></span>
+          <span class="nav-txt">Bulan Libur</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item admin-only" data-action="open-audit-log">
+          <span class="nav-ico is-slate"><i class="ph-fill ph-detective"></i></span>
+          <span class="nav-txt">Log Aktivitas</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
+          <span class="nav-ico is-blue"><i class="ph ph-layout" id="icon-toggle-stats-pos"></i></span>
+          <span class="nav-txt" id="text-toggle-stats-pos">Pindah Kartu ke Header</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Laporan</div>
+        <button class="nav-item" data-action="open-history">
+          <span class="nav-ico is-green"><i class="ph-fill ph-clock-counter-clockwise"></i></span>
+          <span class="nav-txt">Riwayat Transaksi</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item" data-action="open-statistik">
+          <span class="nav-ico is-green"><i class="ph-fill ph-chart-bar"></i></span>
+          <span class="nav-txt">Statistik Keuangan</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item" data-action="open-export">
+          <span class="nav-ico is-green"><i class="ph-fill ph-export"></i></span>
+          <span class="nav-txt">Ekspor Data (Excel/PDF)</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;">
+          <span class="nav-ico is-slate"><i class="ph-fill ph-download-simple"></i></span>
+          <span class="nav-txt">Pasang Aplikasi Finkas</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item nav-danger admin-only" data-action="logout">
+          <span class="nav-ico is-red"><i class="ph-fill ph-sign-out"></i></span>
+          <span class="nav-txt">Logout Admin</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
       </div>
     </div>
   </div>

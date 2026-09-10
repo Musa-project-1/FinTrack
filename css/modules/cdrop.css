@@ -196,7 +196,10 @@ body.dark-mode .cdrop-chevron {
 }
 
 .year-pill .cdrop {
-  min-width: 90px;
+  position: relative;
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .year-pill .cdrop-btn {
@@ -206,4 +209,17 @@ body.dark-mode .cdrop-chevron {
   padding: 0 16px 0 0;
   font-size: 13px;
   font-weight: 600;
+  width: auto;
+}
+
+.year-pill .cdrop-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: auto;
+  margin-top: 8px;
+  min-width: 120px;
+  width: max-content;
+  max-width: 60vw;
+  z-index: 80;
 }

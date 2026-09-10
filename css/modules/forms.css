@@ -10,7 +10,8 @@
   opacity: 0; 
   visibility: hidden; 
   transition: opacity 0.22s ease, visibility 0.22s ease; 
-  padding: 20px; 
+  padding: 24px; 
+  overscroll-behavior: contain;
 }
 
 body.dark-mode .modal-overlay {

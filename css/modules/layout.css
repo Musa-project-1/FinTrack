@@ -24,11 +24,9 @@
   letter-spacing: -0.5px; 
 }
 
+/* Deprecated: header-mobile-top removed from template (kept hidden for stale SW cache) */
 .header-mobile-top {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
+  display: none !important;
 }
 
 .mobile-menu-btn { display: none; }

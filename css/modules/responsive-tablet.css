@@ -77,24 +77,17 @@ body { padding: 6px 0 40px 0; }
   .header h1 { 
     display: none;
   }
+  /* Deprecated: header-mobile-top removed from template; keep hidden for stale SW-cached HTML */
   .header-mobile-top {
-    display: flex !important;
-    order: 1;
-    gap: 6px;
-    padding: 0;
-    margin: 0;
-    flex: 1;
-    align-items: center;
-  }
-  /* No status badge in header-mobile-top on mobile (badge is in header-left only) */
-  .header-mobile-top .btn {
-    padding: 4px 6px;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  /* Hide header actions on small screens — replaced by bottom navigation */
-  .header-actions { 
     display: none !important;
+  }
+  /* Unified header actions stay visible on mobile in compact icon mode */
+  .header-actions {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
   }
   
   .btn-export { display: none; }

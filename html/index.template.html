@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=86">
-  <link rel="stylesheet" href="style.css?v=86">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=87">
+  <link rel="stylesheet" href="style.css?v=87">
 </head>
 <body>
 
@@ -62,13 +62,13 @@
           </div>
         </div>
 
-        <!-- Desktop Actions -->
+        <!-- Unified Actions (single set for desktop + mobile) -->
         <div class="header-actions" id="header-actions">
-          <button class="btn btn-icon desktop-only" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+          <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <button class="btn btn-icon desktop-only" id="btn-toggle-stats-header" data-action="toggle-header-stats" aria-label="Alihkan Posisi Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
+          <button class="btn btn-icon" id="btn-toggle-stats-header" data-action="toggle-header-stats" aria-label="Alihkan Posisi Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
             <i class="ph ph-layout fs-18" id="icon-toggle-stats-header"></i>
           </button>
 
@@ -79,21 +79,6 @@
 
           <button class="btn btn-primary admin-only" data-action="buka-transaksi">
             <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
-          </button>
-        </div>
-
-          <!-- Mobile-only top icons -->
-        <div class="header-mobile-top">
-          <button class="btn btn-icon" id="btn-toggle-stats-mobile" data-action="toggle-header-stats" aria-label="Alihkan Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
-            <i class="ph ph-layout fs-18" id="icon-toggle-stats-mobile"></i>
-          </button>
-
-          <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-            <i class="ph ph-moon theme-icon fs-18"></i>
-          </button>
-
-          <button class="btn btn-icon" data-action="open-menu-modal" id="btn-header-menu-mobile" aria-label="Buka menu" title="Menu">
-            <i class="ph ph-list fs-22"></i>
           </button>
         </div>
       </div>
@@ -232,11 +217,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=86"></script>
+  <script type="module" src="js/app.js?v=87"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=86', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=87', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

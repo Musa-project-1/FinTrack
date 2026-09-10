@@ -1,7 +1,7 @@
-import { NAMA_BULAN } from "../config.js";
-import { getState } from "../state.js";
-import { formatRp, escapeHtml } from "../utils.js";
-import { openModal } from "../modal.js";
+import { NAMA_BULAN } from "../core/config.js";
+import { getState } from "../core/state.js";
+import { formatRp, escapeHtml } from "../core/utils.js";
+import { openModal } from "../ui/modal.js";
 
 /* ── Member profile modal ──────────────────────────────────────── */
 

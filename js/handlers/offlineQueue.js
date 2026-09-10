@@ -1,6 +1,6 @@
-import { getOfflineTransactions, deleteOfflineTransaction, syncOfflineTransactions } from "../offline.js";
-import { formatRp, showToast, escapeHtml } from "../utils.js";
-import { openModal, closeModal } from "../modal.js";
+import { getOfflineTransactions, deleteOfflineTransaction, syncOfflineTransactions } from "../core/offline.js";
+import { formatRp, showToast, escapeHtml } from "../core/utils.js";
+import { openModal, closeModal } from "../ui/modal.js";
 
 export const renderOfflineQueueList = async () => {
   const container = document.getElementById('offline-queue-list');

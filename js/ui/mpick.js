@@ -6,7 +6,7 @@
  * Multiple instances per page are fully independent (registry by id).
  */
 
-import { NAMA_BULAN } from './config.js';
+import { NAMA_BULAN } from '../core/config.js';
 
 const SHORT = NAMA_BULAN.map((m) => m.slice(0, 3));
 

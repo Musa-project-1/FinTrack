@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRp, getInitials, escapeHtml, hashText } from '../js/utils.js';
+import { formatRp, getInitials, escapeHtml, hashText } from '../js/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
   const formatted = formatRp(50000);

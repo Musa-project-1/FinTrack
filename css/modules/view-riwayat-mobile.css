@@ -1,0 +1,218 @@
+/* === RIWAYAT: CARD VIEW (MOBILE <=768px) ===
+   Restyles the history table rows into tappable cards on small screens.
+   Desktop keeps the real table. */
+/* === RIWAYAT CARD VIEW (MOBILE) ===
+   Restyles the history table rows into tappable cards on small screens.
+   Desktop keeps the real table. */
+@media (max-width: 768px) {
+  #table-riwayat-data {
+    min-width: 0 !important;
+  }
+
+  /* Hide desktop table head on mobile (tbody id cannot contain thead) */
+  #table-riwayat thead,
+  #table-riwayat .sticky-thead {
+    display: none !important;
+  }
+  /* Cards exactly as wide as the visible table area: kill 860px desktop min-width */
+  #table-riwayat {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .riwayat-table-wrapper,
+  .riwayat-table-wrapper .table-responsive {
+    overflow-x: visible !important;
+    width: 100% !important;
+  }
+
+  #table-riwayat-data,
+  #table-riwayat-data tbody {
+    display: block;
+    width: 100%;
+  }
+
+  #table-riwayat-data tbody {
+    padding: 4px 2px 8px;
+  }
+
+  /* Transaction row -> card */
+  #table-riwayat-data tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-card-flat);
+    break-inside: avoid;
+  }
+
+  .riwayat-modal-content {
+    padding: 12px 12px;
+    width: calc(100vw - 16px);
+  }
+
+  .riwayat-header {
+    margin-bottom: 14px;
+  }
+
+  .riwayat-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .riwayat-selectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .select-pill-wrap {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .select-pill-wrap select {
+    width: 100%;
+  }
+
+  /* Chips split to 2 rows on mobile: preset row + filter row */
+  .riwayat-chips-bar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  .riwayat-chips-bar .chips-group {
+    flex-basis: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .riwayat-chips-bar .chips-divider {
+    display: none;
+  }
+
+  /* Date section header stays a slim full-width strip */
+  #table-riwayat-data tr.date-group-header {
+    display: block;
+    padding: 8px 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  #table-riwayat-data tr.date-group-header td {
+    display: block;
+    padding: 0;
+  }
+
+  /* All cells reset */
+  #table-riwayat-data td {
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent !important;
+    min-height: 0;
+    white-space: normal;
+    font-size: 13px;
+  }
+
+  /* Empty / skeleton rows (single colspan cell) */
+  #table-riwayat-data td[colspan] {
+    grid-column: 1 / -1;
+    padding: 18px;
+    text-align: center;
+  }
+
+  /* Flow accent on card left edge */
+  #table-riwayat-data tr.row-masuk {
+    border-left: 3px solid var(--primary);
+  }
+  #table-riwayat-data tr.row-keluar {
+    border-left: 3px solid var(--danger);
+  }
+
+  /* Row 1 left: name block + period pill + note, all left-aligned */
+  #table-riwayat-data td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  #table-riwayat-data td:nth-child(2) .clickable-name {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  #table-riwayat-data td:nth-child(2) .trx-period {
+    margin-left: 0;
+    margin-bottom: 2px;
+  }
+
+  #table-riwayat-data td:nth-child(2) .trx-subnote {
+    margin-top: 2px;
+  }
+
+  /* Row 1 right: nominal */
+  #table-riwayat-data td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    font-size: 16px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  /* Row 2 left: time */
+  #table-riwayat-data td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Row 2 right: tipe arus badge */
+  #table-riwayat-data td:nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  #table-riwayat-data td:nth-child(4) .badge {
+    padding: 3px 10px;
+    font-size: 10px;
+  }
+
+  /* Row 3: action buttons (slim, no divider, right-aligned 32px icons) */
+  #table-riwayat-data td:nth-child(5) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    gap: 6px;
+    padding-top: 2px;
+    margin-top: 0;
+    border-top: none;
+    justify-content: flex-end;
+  }
+
+  #table-riwayat-data td:nth-child(5) .btn-icon {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* Hide actions row entirely when empty (non-admin) */
+  #table-riwayat-data td:nth-child(5):empty {
+    display: none;
+  }
+}

@@ -1,10 +1,10 @@
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../config.js";
-import { getState, setState, addTransaction, saveCache, getIsAdminSession, getAdminPassword, currentRekapYear } from "../state.js";
-import { postToBackend, sendAdminPayload } from "../api.js";
-import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../utils.js";
-import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
-import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori } from "../modal.js";
-import { syncCdrop } from "../cdrop.js";
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { getState, setState, addTransaction, saveCache, getIsAdminSession, getAdminPassword, currentRekapYear } from "../core/state.js";
+import { postToBackend, sendAdminPayload } from "../core/api.js";
+import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../core/utils.js";
+import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../core/offline.js";
+import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori } from "../ui/modal.js";
+import { syncCdrop } from "../ui/cdrop.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 

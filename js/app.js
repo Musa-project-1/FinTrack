@@ -5,17 +5,17 @@
 
 import {
   setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setIsAdminSession, setCurrentRekapYear
-} from "./state.js";
-import { fetchInitialData, checkAdminSessionApi } from "./api.js";
-import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./utils.js";
-import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./offline.js";
-import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./theme.js";
+} from "./core/state.js";
+import { fetchInitialData, checkAdminSessionApi } from "./core/api.js";
+import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
+import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
+import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
   renderCheckboxIuran, filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
   toggleHeaderDropdown, closeHeaderDropdown
-} from "./modal.js";
+} from "./ui/modal.js";
 import {
   renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
 } from "./render.js";
@@ -44,8 +44,8 @@ import {
   cetakStruk, cetakLaporanTahunan, copyMonthlyRecap, exportToCSV, createGroupReminderMessage
 } from "./handlers/export.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
-import { initCustomDropdowns, syncCdrop } from "./cdrop.js";
-import { initMonthPickers } from "./mpick.js";
+import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
+import { initMonthPickers } from "./ui/mpick.js";
 
 let isLoading = false;
 

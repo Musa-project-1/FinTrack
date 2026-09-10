@@ -1,7 +1,7 @@
-import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../config.js";
-import { getState, currentRekapYear } from "../state.js";
-import { formatRp, showToast, escapeHtml } from "../utils.js";
-import { closeModal } from "../modal.js";
+import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { getState, currentRekapYear } from "../core/state.js";
+import { formatRp, showToast, escapeHtml } from "../core/utils.js";
+import { closeModal } from "../ui/modal.js";
 
 export const cetakStruk = (idTrx) => {
   const state = getState();

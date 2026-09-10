@@ -1,7 +1,7 @@
-import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE } from "../config.js";
-import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart } from "../state.js";
-import { formatRp, escapeHtml } from "../utils.js";
-import { filterKategori } from "../modal.js";
+import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart } from "../core/state.js";
+import { formatRp, escapeHtml } from "../core/utils.js";
+import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
 

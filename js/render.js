@@ -12,7 +12,7 @@ import { populateTahunRekap } from './render/rekap.js';
 import { populateFilterTahunHistory, renderTableTransaksi } from './render/transactions.js';
 import { renderDashboard, renderDropdowns, renderChart } from './render/dashboard.js';
 import { renderTableRekap } from './render/rekap.js';
-import { syncCdrop } from './cdrop.js';
+import { syncCdrop } from './ui/cdrop.js';
 
 /**
  * Re-render every major UI section.

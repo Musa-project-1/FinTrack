@@ -3,11 +3,11 @@
  * Disaster Recovery: Full JSON Snapshot Backup & Restore.
  */
 
-import { getState, setState, saveCache, getIsAdminSession } from '../state.js';
-import { postToBackend, logAuditEvent } from '../api.js';
-import { showToast, escapeHtml } from '../utils.js';
+import { getState, setState, saveCache, getIsAdminSession } from '../core/state.js';
+import { postToBackend, logAuditEvent } from '../core/api.js';
+import { showToast, escapeHtml } from '../core/utils.js';
 import { renderAll } from '../render.js';
-import { closeModal } from '../modal.js';
+import { closeModal } from '../ui/modal.js';
 
 /**
  * Export full JSON snapshot of Finkas database for disaster recovery.

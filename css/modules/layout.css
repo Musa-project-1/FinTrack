@@ -4,13 +4,13 @@
   justify-content: space-between; 
   align-items: center; 
   margin-bottom: 30px; 
-  flex-wrap: wrap; 
-  gap: 20px;
+  flex-wrap: nowrap; 
+  gap: 12px;
   position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 24px;
+  padding: 14px 20px;
   box-shadow: var(--shadow-sm);
   z-index: 100;
 }

@@ -82,6 +82,7 @@ document.addEventListener('click', (e) => {
     /* ── Navigation / menus ───────────────────────── */
     case 'toggle-theme':     toggleTheme(); break;
     case 'toggle-header-stats': toggleHeaderStats(); break;
+    case 'open-about':       openModal('modal-about'); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':  openModal('modal-menu'); break;
     case 'toggle-dropdown':  openModal('modal-menu'); break;
@@ -300,12 +301,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   initCustomDropdowns();
   initMonthPickers();
   setupRekapSearchListener();
-
-  document.querySelectorAll('.connection-status').forEach((el) => {
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', () => openOfflineQueueModal());
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') openOfflineQueueModal(); });
-  });
 
   window.addEventListener('online', () => {
     showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');

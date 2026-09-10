@@ -72,14 +72,9 @@ export const showToast = (message, type = 'success') => {
  */
 export const setConnectionStatus = (isOnline) => {
   document.querySelectorAll('.connection-status').forEach((badge) => {
-    let icon = badge.querySelector('i');
-    if (!icon) {
-      icon = document.createElement('i');
-      icon.className = 'ph-fill ph-circle';
-      badge.prepend(icon);
-    }
     badge.classList.toggle('offline', !isOnline);
-    badge.title = isOnline ? 'Status: Online' : 'Status: Offline (klik untuk melihat antrean offline)';
+    const statusLabel = isOnline ? 'Online' : 'Offline';
+    badge.setAttribute('aria-label', `Finkas — ${statusLabel}`);
   });
 };
 

@@ -8,17 +8,6 @@ body { padding: 6px 0 100px 0; }
   .header h1 { display: none; }
   
   .status-text { display: none; }
-  /* On very small screens, show badge as icon-only dot with tooltip */
-  .connection-status.status-badge {
-    padding: 5px 7px;
-    font-size: 10px;
-    border-radius: 100px;
-    gap: 4px;
-  }
-  .connection-status.status-badge:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-  }
   
   .header-actions { 
     width: 100%;

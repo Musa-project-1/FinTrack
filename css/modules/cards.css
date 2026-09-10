@@ -113,59 +113,55 @@ body.header-stats-active .dashboard {
 
 @media (max-width: 900px) {
   .header-stats {
-    flex-wrap: wrap;
     gap: 6px;
-    width: 100%;
-    margin-top: 10px;
-    order: 3;
   }
   .header-stat-pill {
-    flex: 1 1 auto;
     padding: 4px 8px;
-    justify-content: center;
+    gap: 5px;
   }
   .header-stat-pill i {
     font-size: 13px;
+  }
+  .header-stat-label {
+    display: none;
   }
   .header-stat-val {
     font-size: 12px;
   }
 }
-/* Connection status indicator: DOT ONLY (minimalist live pulse) */
-.status-badge { 
-  display: inline-flex; 
-  align-items: center; 
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+/* Connection status: avatar-style dot pinned to logo corner */
+.brand-link {
+  position: relative;
+  display: inline-flex;
+}
+
+.status-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.12); 
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  margin-left: 4px;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  background: #10b981;
+  border: 2px solid var(--surface);
+  animation: pulse-online 2.4s ease-in-out infinite;
+  pointer-events: none;
 }
 
-.status-badge:hover {
-  transform: scale(1.1);
+/* Offline state */
+.connection-status.offline .status-dot {
+  background: var(--danger);
+  animation: pulse-offline 1.6s ease-in-out infinite;
 }
 
-.status-badge.offline {
-  background: rgba(225, 29, 72, 0.12);
-  border-color: rgba(225, 29, 72, 0.25);
+@keyframes pulse-online {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
 }
 
-.status-badge i { 
-  font-size: 8px; 
-  color: #10b981;
-}
-
-.status-badge.offline i { 
-  color: var(--danger); 
-}
-
-.status-badge .status-text {
-  display: none !important;
+@keyframes pulse-offline {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
+  50%       { box-shadow: 0 0 0 4px rgba(244, 63, 94, 0); }
 }
 
 .status-badge .queue-count { font-size: 10px; font-weight: 700; margin-left: 4px; color: var(--danger); }

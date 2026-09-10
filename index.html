@@ -27,13 +27,11 @@
   <main class="container">
     <header class="header">
       <div class="header-left">
-        <a href="#" class="brand-link" title="Finkas" aria-label="Finkas">
+        <a href="#" class="brand-link connection-status" id="btn-about" data-action="open-about" tabindex="0" role="button" title="Tentang Finkas" aria-label="Finkas — Status: Online">
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
+          <span class="status-dot"></span>
         </a>
-        <div class="status-badge connection-status" aria-hidden="false" tabindex="0" role="button" title="Status: Online. Klik untuk melihat transaksi tertunda.">
-          <i class="ph-fill ph-circle"></i>
-        </div>
       </div>
 
       <div class="header-right">
@@ -77,7 +75,7 @@
             <i class="ph ph-list fs-22"></i>
           </button>
 
-          <button class="btn btn-primary admin-only" data-action="buka-transaksi">
+          <button class="btn btn-primary btn-catat admin-only" data-action="buka-transaksi">
             <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
           </button>
         </div>
@@ -295,6 +293,11 @@
         <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;">
           <span class="nav-ico is-slate"><i class="ph-fill ph-download-simple"></i></span>
           <span class="nav-txt">Pasang Aplikasi Finkas</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item" data-action="open-offline-queue">
+          <span class="nav-ico is-slate"><i class="ph-fill ph-cloud-slash"></i></span>
+          <span class="nav-txt">Antrean Offline</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item nav-danger admin-only" data-action="logout">
@@ -1033,5 +1036,40 @@
       });
     }
   </script>
+
+  <!-- Modal About -->
+  <div class="modal-overlay modal-top" id="modal-about">
+    <div class="modal-content modal-sm about-sheet">
+      <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+
+      <div class="about-logo-wrap">
+        <img src="icons/icon-192.svg" alt="Logo Finkas" class="about-logo brand-logo-dark">
+        <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="about-logo brand-logo-light">
+      </div>
+
+      <div class="about-body">
+        <h2 class="about-name">Finkas</h2>
+        <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
+
+        <div class="about-meta">
+          <div class="about-meta-row">
+            <span class="about-meta-label">Versi</span>
+            <span class="about-meta-val">1.0.0</span>
+          </div>
+          <div class="about-meta-row">
+            <span class="about-meta-label">Platform</span>
+            <span class="about-meta-val">Progressive Web App</span>
+          </div>
+          <div class="about-meta-row">
+            <span class="about-meta-label">Backend</span>
+            <span class="about-meta-val">Firestore (finkas-kas)</span>
+          </div>
+        </div>
+
+        <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

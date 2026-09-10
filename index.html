@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=101">
-  <link rel="stylesheet" href="style.css?v=101">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=103">
+  <link rel="stylesheet" href="style.css?v=103">
 </head>
 <body>
 
@@ -811,11 +811,6 @@
               
               <div class="form-group">
                 <label>Nominal (per orang)</label>
-                <div class="chip-group" id="chip-group-iuran">
-                  <button type="button" class="chip-btn active" data-action="pilih-nominal" data-nilai="10000">10K</button>
-                  <button type="button" class="chip-btn" data-action="pilih-nominal" data-nilai="20000">20K</button>
-                  <button type="button" class="chip-btn" data-action="pilih-nominal" data-nilai="50000">50K</button>
-                </div>
                 <div class="input-with-prefix">
                   <span>Rp</span>
                   <input type="text" id="iuran-nominal" class="form-control" required inputmode="numeric" value="10.000">
@@ -1025,11 +1020,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=101"></script>
+  <script type="module" src="js/app.js?v=103"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=101', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=103', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

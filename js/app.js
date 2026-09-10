@@ -11,7 +11,7 @@ import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput 
 import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./offline.js";
 import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./theme.js";
 import {
-  openModal, closeModal, switchTab, pilihNominalCepat, resetChipAktif,
+  openModal, closeModal, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
   renderCheckboxIuran, filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
   toggleHeaderDropdown, closeHeaderDropdown
@@ -100,7 +100,6 @@ document.addEventListener('click', (e) => {
     case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
     case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;
     case 'buka-transaksi':   bukaModalTransaksi(); break;
-    case 'pilih-nominal':    e.stopPropagation(); pilihNominalCepat(parseInt(target.getAttribute('data-nilai')), target, updateCounterIuran); break;
 
     /* ── Bottom navigation (mobile) ───────────────── */
     case 'nav-home':         closeActiveModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); setBottomNavActive('nav-home'); break;
@@ -339,7 +338,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 
   const iuranNominal = document.getElementById('iuran-nominal');
-  if (iuranNominal) iuranNominal.addEventListener('input', function() { handleNominalInput(this); resetChipAktif(); updateCounterIuran(); });
+  if (iuranNominal) iuranNominal.addEventListener('input', function() { handleNominalInput(this); updateCounterIuran(); });
 
   const opsNominal = document.getElementById('ops-nominal');
   if (opsNominal) opsNominal.addEventListener('input', function() { handleNominalInput(this); updateCounterOps(); });

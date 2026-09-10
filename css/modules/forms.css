@@ -156,9 +156,11 @@ select.form-control:focus {
 .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: var(--text-muted); }
 .summary-total { display: flex; justify-content: space-between; margin-top: 14px; font-size: 16px; font-weight: 800; color: var(--primary); }
 
-.tab-header { display: flex; gap: 6px; background: var(--bg-color); padding: 6px; border-radius: 100px; margin-bottom: 28px; border: 1px solid var(--border); max-width: 450px; margin-left: auto; margin-right: auto; }
+.tab-header { display: flex; gap: 6px; background: var(--bg-color); padding: 6px; border-radius: 100px; margin-bottom: 20px; border: 1px solid var(--border); max-width: 100%; margin-left: 0; margin-right: 0; }
 .tab-btn { flex: 1; background: transparent; border: none; padding: 12px; font-weight: 600; font-size: 14px; color: var(--text-muted); border-radius: 100px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .tab-btn.active { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.35); transform: scale(1.02); }
+.tab-header .tab-btn { padding: 12px 10px; white-space: nowrap; }
+.tab-header .tab-btn.active { transform: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); }
 .tab-btn:hover:not(.active) { color: var(--text-main); background: rgba(0, 0, 0, 0.03); }
 body.dark-mode .tab-btn:hover:not(.active) { background: rgba(255, 255, 255, 0.05); }
 

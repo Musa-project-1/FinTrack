@@ -3,7 +3,7 @@ import { getState, setState, addTransaction, saveCache, getIsAdminSession, getAd
 import { postToBackend, sendAdminPayload } from "../api.js";
 import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../utils.js";
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../offline.js";
-import { openModal, closeModal, switchTab, resetChipAktif, renderCheckboxIuran, filterKategori } from "../modal.js";
+import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori } from "../modal.js";
 import { syncCdrop } from "../cdrop.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
@@ -120,9 +120,6 @@ export const bukaModalTransaksi = () => {
   syncCdrop('ops-tipe');
   syncCdrop('ops-kategori');
   document.getElementById('iuran-nominal').value = new Intl.NumberFormat('id-ID').format(10000);
-  resetChipAktif();
-  const firstChip = document.querySelector('#chip-group-iuran .chip-btn');
-  if (firstChip) firstChip.classList.add('active');
   openModal('modal-transaksi');
 };
 
@@ -173,9 +170,6 @@ export const submitIuran = async (e) => {
     populateTahunRekap(); renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
     renderCheckboxIuran();
     document.getElementById('iuran-nominal').value = new Intl.NumberFormat('id-ID').format(10000);
-    resetChipAktif();
-    const firstChip = document.querySelector('#chip-group-iuran .chip-btn:first-child');
-    if (firstChip) firstChip.classList.add('active');
   };
 
   const resetBtn = () => { btn.innerHTML = 'SIMPAN IURAN'; btn.disabled = false; };

@@ -102,29 +102,6 @@ export const switchTab = (tabName, modalId) => {
   });
 };
 
-/* ── Nominal chip quick-picks ─────────────────────────────────── */
-
-/**
- * Select a quick-pick nominal chip.
- * @param {number} nilai
- * @param {HTMLElement} btnElement
- * @param {Function} updateCounterFn
- */
-export const pilihNominalCepat = (nilai, btnElement, updateCounterFn) => {
-  const el = document.getElementById('iuran-nominal');
-  el.value = new Intl.NumberFormat('id-ID').format(nilai);
-  document.querySelectorAll('#chip-group-iuran .chip-btn').forEach((btn) => btn.classList.remove('active'));
-  btnElement.classList.add('active');
-  updateCounterFn();
-};
-
-/**
- * Reset all active chips in the iuran nominal group.
- */
-export const resetChipAktif = () => {
-  document.querySelectorAll('#chip-group-iuran .chip-btn').forEach((btn) => btn.classList.remove('active'));
-};
-
 /* ── Category filter ───────────────────────────────────────────── */
 
 /**

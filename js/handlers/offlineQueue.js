@@ -28,11 +28,12 @@ export const renderOfflineQueueList = async () => {
       const summary = form.keterangan
         || [form.bulanIuran, form.tahunIuran].filter((v) => v && v !== '-').join(' ')
         || '-';
+      const itemGid = item.payload?.groupId || '-';
       card.innerHTML = `
         <div class="pending-card-row">
           <div class="flex-1">
             <div class="pending-card-action">${escapeHtml(actionLabels[action] || action)} • ${formatRp(nominal)}</div>
-            <div class="pending-card-time">${escapeHtml(t)}</div>
+            <div class="pending-card-time">${escapeHtml(t)} • ${escapeHtml(itemGid)}</div>
             <div class="pending-card-payload">${escapeHtml(summary)}</div>
           </div>
           <div class="flex-align-gap">

@@ -57,7 +57,11 @@ export const showToast = (message, type = 'success') => {
       : 'ph-fill ph-warning-circle toast-icon-danger';
 
   toast.className = `toast ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
-  toast.innerHTML = `<i class="${iconClass}"></i> <span>${message}</span>`;
+  const icon = document.createElement('i');
+  icon.className = iconClass;
+  const label = document.createElement('span');
+  label.textContent = message;
+  toast.append(icon, document.createTextNode(' '), label);
   container.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 30);
   setTimeout(() => {

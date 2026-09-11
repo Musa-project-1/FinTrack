@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=103">
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=107">
+  <link rel="stylesheet" href="style.css?v=107">
 </head>
 <body>
 
@@ -32,6 +32,10 @@
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
           <span class="status-dot"></span>
         </a>
+        <button class="btn btn-icon" data-action="open-groups" aria-label="Pilih Grup" title="Pilih Grup">
+          <i class="ph ph-users-three fs-18"></i>
+        </button>
+        <span class="group-name" id="app-group-name" title="Grup aktif"></span>
       </div>
 
       <div class="header-right">
@@ -215,11 +219,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=103"></script>
+  <script type="module" src="js/app.js?v=107"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=103', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=107', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

@@ -6,6 +6,7 @@
 import { OFFLINE_DB_NAME, OFFLINE_DB_VERSION, OFFLINE_STORE_NAME } from './config.js';
 import { postToBackend, logAuditEvent } from './api.js';
 import { showToast } from './utils.js';
+import { getActiveGroupId } from './state.js';
 
 /**
  * Open (or create) the IndexedDB for offline transactions.
@@ -73,12 +74,13 @@ export const deleteOfflineTransaction = async (id) => {
 };
 
 /**
- * Queue a payload for later sync. Attempts to register Background Sync.
+ * Queue a payload for later sync. Stempel groupId agar replay tidak
+ * nyasar ke grup lain bila user pindah grup sebelum online.
  * @param {object} payload
  */
 export const queueOfflinePayload = async (payload) => {
   const queuedPayload = {
-    payload,
+    payload: { ...payload, groupId: payload.groupId || getActiveGroupId() },
     queuedAt: new Date().toISOString()
   };
   await addOfflineTransaction(queuedPayload);
@@ -104,8 +106,16 @@ export const syncOfflineTransactions = async (onSuccess) => {
 
     let successCount = 0;
     let duplicateCount = 0;
+    let skippedOtherGroup = 0;
+    const activeGid = getActiveGroupId();
 
     for (const item of queued) {
+      // Jangan replay antrean grup lain ke grup aktif — biarkan menunggu
+      // sampai user kembali ke grup pemiliknya.
+      if (item.payload?.groupId && item.payload.groupId !== activeGid) {
+        skippedOtherGroup += 1;
+        continue;
+      }
       const payloadToSend = { ...item.payload };
       delete payloadToSend.queuedAt;
 
@@ -133,8 +143,10 @@ export const syncOfflineTransactions = async (onSuccess) => {
       const msg = duplicateCount > 0
         ? `Sinkronisasi selesai: ${successCount} transaksi dicatat, ${duplicateCount} dilewati (sudah lunas).`
         : `Terkirim ${successCount} transaksi tertunda.`;
-      showToast(msg, 'success');
+      showToast(skippedOtherGroup > 0 ? `${msg} ${skippedOtherGroup} antrean grup lain menunggu.` : msg, 'success');
       if (onSuccess) onSuccess();
+    } else if (skippedOtherGroup > 0) {
+      showToast(`${skippedOtherGroup} antrean milik grup lain — pindah grup untuk mengirim.`, 'info');
     }
   } catch (error) {
     console.error('Sync offline transactions failed', error);

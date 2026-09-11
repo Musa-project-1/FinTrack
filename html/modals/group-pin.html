@@ -1,0 +1,27 @@
+  <!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
+  <div class="modal-overlay modal-top" id="modal-group-pin">
+    <div class="modal-content modal-sm">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-lock-key"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2 id="group-pin-name">Grup</h2>
+            <p>Ketik PIN 4 angka grup ini</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="pin-row">
+        <input id="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="0">
+        <input id="pin1" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="1">
+        <input id="pin2" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="2">
+        <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
+      </div>
+      <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
+      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%">Masuk Grup</button>
+      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px">Ganti Grup</button>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Salah 5 kali, kunci 1 menit.</p>
+    </div>
+  </div>

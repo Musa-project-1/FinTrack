@@ -4,12 +4,12 @@
  * Fast, serverless, and 100% free under the Spark tier.
  */
 
-import { FIREBASE_CONFIG } from './config.js';
-import { getState, getAdminPassword } from './state.js';
-import { fromFirestoreFields, toFirestoreFields, hashText } from './utils.js';
+import { getState, getAdminPassword, getActiveGroupId } from './state.js';
+import { fromFirestoreFields, toFirestoreFields } from './utils.js';
+import { FIRESTORE_BASE, PROJECT_ID, resolveGroupId, scopedCol, scopedDoc, scopedSettingsPath, logAuditEvent } from './api-scope.js';
 
-const PROJECT_ID = FIREBASE_CONFIG.projectId;
-const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+export { loginAdminApi, checkAdminSessionApi, logoutAdminApi } from './api-auth.js';
+export { logAuditEvent };
 
 let quotaCooldownUntil = 0;
 
@@ -23,11 +23,12 @@ export const fetchInitialData = async () => {
       return { status: false, message: 'Batas kuota Firestore tercapai. Menggunakan data cache offline.' };
     }
 
+    const gid = getActiveGroupId();
     const [resAng, resKat, resTrx, resSet] = await Promise.all([
-      fetch(`${FIRESTORE_BASE}/anggota?pageSize=300`).then((r) => r.json()),
-      fetch(`${FIRESTORE_BASE}/kategori?pageSize=100`).then((r) => r.json()),
-      fetch(`${FIRESTORE_BASE}/transaksi?pageSize=300&orderBy=Timestamp%20desc`).then((r) => r.json()),
-      fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json())
+      fetch(`${FIRESTORE_BASE}/${scopedCol('anggota', gid)}?pageSize=300`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/${scopedCol('kategori', gid)}?pageSize=100`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/${scopedCol('transaksi', gid)}?pageSize=300&orderBy=Timestamp%20desc`).then((r) => r.json()),
+      fetch(`${FIRESTORE_BASE}/${scopedSettingsPath(gid)}`).then((r) => r.json())
     ]);
 
     // Check for API errors (e.g. 429 Quota Exceeded)
@@ -56,12 +57,13 @@ export const fetchInitialData = async () => {
   }
 };
 
-const deleteDocumentSecurely = async (col, id, pwd) => {
+const deleteDocumentSecurely = async (col, id, pwd, gid) => {
   try {
+    const groupId = gid || getActiveGroupId();
     const res = await fetch('/api/delete-transaction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passwordHash: pwd || getAdminPassword(), idTransaksi: id, targetCollection: col })
+      body: JSON.stringify({ passwordHash: pwd || getAdminPassword(), idTransaksi: id, targetCollection: col, targetPath: scopedCol(col, groupId), groupId })
     });
     return await res.json();
   } catch (_) {
@@ -80,6 +82,7 @@ export const postToBackend = async (payload) => {
       return { status: false, message: 'Payload tidak valid.', data: null };
     }
     const action = payload.action;
+    const gid = resolveGroupId(payload);
 
     if (action === 'tambahTransaksi') {
       const dataForm = payload.dataForm || {};
@@ -114,7 +117,7 @@ export const postToBackend = async (payload) => {
         Nominal: nominal, Keterangan: dataForm.keterangan || ''
       };
 
-      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTrx}`, {
+      const res = await fetch(scopedDoc('transaksi', idTrx, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: toFirestoreFields(doc) })
@@ -180,7 +183,7 @@ export const postToBackend = async (payload) => {
         const idTrx = 'TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         return {
           update: {
-            name: `projects/${PROJECT_ID}/databases/(default)/documents/transaksi/${idTrx}`,
+            name: `projects/${PROJECT_ID}/databases/(default)/documents/${scopedCol('transaksi', gid)}/${idTrx}`,
             fields: toFirestoreFields({
               ID_Transaksi: idTrx, Timestamp: new Date().toISOString(), Tipe_Arus: dataForm.tipeArus || 'Masuk',
               ID_Kategori: dataForm.idKategori || '-', ID_Anggota: dataForm.idAnggota || '-',
@@ -216,7 +219,7 @@ export const postToBackend = async (payload) => {
       if (!['Masuk', 'Keluar'].includes(dataForm.tipeArus)) return { status: false, message: 'Tipe arus harus Masuk atau Keluar.', data: null };
       if (!dataForm.idKategori || dataForm.idKategori === '-') return { status: false, message: 'Kategori transaksi harus dipilih.', data: null };
 
-      const res = await fetch(`${FIRESTORE_BASE}/transaksi/${idTarget}`, {
+      const res = await fetch(scopedDoc('transaksi', idTarget, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,7 +240,7 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusTransaksi') {
       const idTarget = (payload.idTransaksi || '').trim();
       if (!idTarget) return { status: false, message: 'ID transaksi tidak valid untuk dihapus.', data: null };
-      const sRes = await deleteDocumentSecurely('transaksi', idTarget, payload.adminPassword);
+      const sRes = await deleteDocumentSecurely('transaksi', idTarget, payload.adminPassword, gid);
       if (sRes?.status) { logAuditEvent('HAPUS_TRANSAKSI', `ID: ${idTarget}`); return sRes; }
       return { status: false, message: sRes?.message || 'Gagal menghapus transaksi.', data: null };
     }
@@ -245,10 +248,10 @@ export const postToBackend = async (payload) => {
     if (action === 'addSkippedMonth' || action === 'removeSkippedMonth') {
       const month = String(payload.month || '').trim();
       if (!/^\d{2}-\d{4}$/.test(month)) return { status: false, message: 'Format bulan libur harus MM-YYYY.', data: null };
-      const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
+      const cfgRes = await fetch(`${FIRESTORE_BASE}/${scopedSettingsPath(gid)}`).then((r) => r.json());
       const cur = fromFirestoreFields(cfgRes.fields).skippedMonths || [];
       const updated = action === 'addSkippedMonth' ? (!cur.includes(month) ? [...cur, month] : cur) : cur.filter((m) => m !== month);
-      await fetch(`${FIRESTORE_BASE}/settings/app_config?updateMask.fieldPaths=skippedMonths`, {
+      await fetch(`${FIRESTORE_BASE}/${scopedSettingsPath(gid)}?updateMask.fieldPaths=skippedMonths`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: { skippedMonths: { arrayValue: { values: updated.map((m) => ({ stringValue: m })) } } } })
@@ -263,7 +266,7 @@ export const postToBackend = async (payload) => {
       if (!nama) return { status: false, message: 'Nama anggota wajib diisi.', data: null };
       const idAnggota = 'ANG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
       const doc = { ID_Anggota: idAnggota, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' };
-      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}`, {
+      const res = await fetch(scopedDoc('anggota', idAnggota, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: toFirestoreFields(doc) })
@@ -280,7 +283,7 @@ export const postToBackend = async (payload) => {
       const statusAktif = payload.statusAktif;
       if (!idAnggota) return { status: false, message: 'ID anggota tidak valid.', data: null };
       if (!['Aktif', 'Nonaktif'].includes(statusAktif)) return { status: false, message: 'Status anggota harus Aktif atau Nonaktif.', data: null };
-      const res = await fetch(`${FIRESTORE_BASE}/anggota/${idAnggota}?updateMask.fieldPaths=Status_Aktif`, {
+      const res = await fetch(`${scopedDoc('anggota', idAnggota, gid)}?updateMask.fieldPaths=Status_Aktif`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: { Status_Aktif: { stringValue: statusAktif } } })
@@ -295,7 +298,7 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusAnggota') {
       const idAnggota = (payload.idAnggota || '').trim();
       if (!idAnggota) return { status: false, message: 'ID anggota tidak valid untuk dihapus.', data: null };
-      const sRes = await deleteDocumentSecurely('anggota', idAnggota, payload.adminPassword);
+      const sRes = await deleteDocumentSecurely('anggota', idAnggota, payload.adminPassword, gid);
       if (sRes?.status) { logAuditEvent('HAPUS_ANGGOTA', idAnggota); return sRes; }
       return { status: false, message: sRes?.message || 'Gagal menghapus anggota.', data: null };
     }
@@ -308,7 +311,7 @@ export const postToBackend = async (payload) => {
       const prefix = tipe === 'Masuk' ? 'KAT-M' : 'KAT-K';
       const idKategori = prefix + Math.random().toString(36).substring(2, 6).toUpperCase();
       const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe };
-      const res = await fetch(`${FIRESTORE_BASE}/kategori/${idKategori}`, {
+      const res = await fetch(scopedDoc('kategori', idKategori, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: toFirestoreFields(doc) })
@@ -323,7 +326,7 @@ export const postToBackend = async (payload) => {
     if (action === 'hapusKategori') {
       const idKategori = (payload.idKategori || '').trim();
       if (!idKategori) return { status: false, message: 'ID kategori tidak valid untuk dihapus.', data: null };
-      const sRes = await deleteDocumentSecurely('kategori', idKategori, payload.adminPassword);
+      const sRes = await deleteDocumentSecurely('kategori', idKategori, payload.adminPassword, gid);
       if (sRes?.status) { logAuditEvent('HAPUS_KATEGORI', idKategori); return sRes; }
       return { status: false, message: sRes?.message || 'Gagal menghapus kategori.', data: null };
     }
@@ -335,20 +338,7 @@ export const postToBackend = async (payload) => {
   }
 };
 
-/**
- * Log administrative activity to Firestore audit_log collection.
- * @param {string} aksi - Activity tag
- * @param {string} detail - Description
- */
-export const logAuditEvent = (aksi, detail) => {
-  const idLog = 'LOG-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-  const doc = { ID_Log: idLog, Timestamp: new Date().toISOString(), Aksi: aksi, Detail: detail || '' };
-  fetch(`${FIRESTORE_BASE}/audit_log/${idLog}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: toFirestoreFields(doc) })
-  }).catch(() => {});
-};
+/* Auth admin pemilik pindah ke ./api-auth.js (re-export di kepala file). */
 
 /**
  * Send an authenticated payload.
@@ -359,65 +349,12 @@ export const sendAdminPayload = async (payload) => {
 };
 
 /**
- * Login admin with hybrid serverless auth and direct fallback.
- * @param {string} pwd
- */
-export const loginAdminApi = async (pwd) => {
-  try {
-    const trimmed = (pwd || '').trim();
-    if (!trimmed) return { status: false, message: 'Password tidak boleh kosong.', data: null };
-
-    // 1. Coba serverless authentication endpoint (Vercel)
-    try {
-      const sRes = await fetch('/api/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: trimmed })
-      });
-      if (sRes.status !== 404) {
-        const json = await sRes.json();
-        logAuditEvent(json.status ? 'LOGIN_ADMIN' : 'LOGIN_GAGAL', json.status ? 'Login via serverless auth' : 'Password salah (serverless)');
-        return json;
-      }
-    } catch (_) {}
-
-    // 2. Fallback direct Firestore (jika di host statis murni / offline)
-    const inputHash = await hashText(trimmed);
-    const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`).then((r) => r.json());
-    const storedHash = fromFirestoreFields(cfgRes.fields).admin_password_hash || '';
-
-    if (storedHash && inputHash === storedHash) {
-      logAuditEvent('LOGIN_ADMIN', 'Login Sukses (fallback)');
-      return { status: true, message: 'Login Sukses', data: null };
-    }
-    logAuditEvent('LOGIN_GAGAL', 'Password salah (fallback)');
-    return { status: false, message: 'Password Salah!', data: null };
-  } catch (error) {
-    console.error('Login error:', error);
-    return { status: false, message: 'Gagal terhubung ke server autentikasi.', data: null };
-  }
-};
-
-/**
- * Check if admin session is active.
- */
-export const checkAdminSessionApi = async () => {
-  const pwd = getAdminPassword();
-  return { status: true, data: { isAdmin: !!pwd } };
-};
-
-/**
- * Logout admin session.
- */
-export const logoutAdminApi = async () => {
-  logAuditEvent('LOGOUT_ADMIN', 'Admin logout');
-  return { status: true, message: 'Logout Sukses', data: null };
-};
-
-/**
  * Fetch audit log from Firestore collection.
  */
 export const fetchAuditLogApi = async () => {
   try {
-    const res = await fetch(`${FIRESTORE_BASE}/audit_log?pageSize=50`).then((r) => r.json());
+    const gid = getActiveGroupId();
+    const res = await fetch(`${FIRESTORE_BASE}/${scopedCol('audit_log', gid)}?pageSize=50`).then((r) => r.json());
     if (res.error) return { status: false, message: 'Gagal memuat log audit.', data: { log: [] } };
     const log = (res.documents || []).map((d) => fromFirestoreFields(d.fields));
     log.sort((a, b) => new Date(b.Timestamp || 0) - new Date(a.Timestamp || 0));

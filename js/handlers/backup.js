@@ -3,7 +3,7 @@
  * Disaster Recovery: Full JSON Snapshot Backup & Restore.
  */
 
-import { getState, setState, saveCache, getIsAdminSession } from '../core/state.js';
+import { getState, setState, saveCache, getIsAdminSession, getActiveGroupId, getGroups } from '../core/state.js';
 import { postToBackend, logAuditEvent } from '../core/api.js';
 import { showToast, escapeHtml } from '../core/utils.js';
 import { renderAll } from '../render.js';
@@ -18,10 +18,13 @@ export const exportJSONBackup = () => {
   }
 
   const state = getState();
+  const gid = getActiveGroupId();
+  const gname = getGroups().find((g) => g.id === gid)?.nama || gid;
   const backupData = {
     app: 'Finkas',
     version: 1,
     exportedAt: new Date().toISOString(),
+    group: { id: gid, nama: gname },
     stats: {
       totalAnggota: state.anggota.length,
       totalKategori: state.kategori.length,
@@ -38,7 +41,7 @@ export const exportJSONBackup = () => {
 
   const jsonStr = JSON.stringify(backupData, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
-  const filename = `Finkas_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  const filename = `Finkas_Backup_${gid}_${new Date().toISOString().slice(0, 10)}.json`;
 
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
@@ -76,9 +79,15 @@ export const restoreJSONBackup = (file) => {
       const { anggota, kategori, transaksi, skippedMonths } = content.data;
       const countTrx = transaksi.length;
       const countAng = anggota.length;
+      const srcGroup = content.group?.nama || content.group?.id || 'tak diketahui';
+      const activeGid = getActiveGroupId();
+      const activeName = getGroups().find((g) => g.id === activeGid)?.nama || activeGid;
 
-      const confirmMsg = `Pulihkan database dari file backup?\n• ${countAng} Anggota\n• ${kategori.length} Kategori\n• ${countTrx} Transaksi\n\nData lokal akan diperbarui dan diselaraskan.`;
+      const confirmMsg = `Pulihkan database dari file backup?\n• Grup asal: ${srcGroup}\n• Grup aktif: ${activeName}\n• ${countAng} Anggota\n• ${kategori.length} Kategori\n• ${countTrx} Transaksi\n\nData lokal akan diperbarui dan diselaraskan.`;
       if (!window.confirm(confirmMsg)) return;
+      if (content.group?.id && content.group.id !== activeGid) {
+        if (!window.confirm(`Backup milik grup "${srcGroup}", tujuan "${activeName}". Tetap lanjutkan ke grup aktif?`)) return;
+      }
 
       // Update state and save cache immediately
       setState({

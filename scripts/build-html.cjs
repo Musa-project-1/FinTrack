@@ -11,6 +11,9 @@ const outputPath = path.join(rootDir, 'index.html');
 
 const modalFiles = [
   'auth.html',
+  'groups.html',
+  'group-pin.html',
+  'group-admin.html',
   'navigation.html',
   'master.html',
   'reports.html',

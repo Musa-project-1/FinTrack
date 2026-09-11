@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=103">
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=107">
+  <link rel="stylesheet" href="style.css?v=107">
 </head>
 <body>
 
@@ -32,6 +32,10 @@
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
           <span class="status-dot"></span>
         </a>
+        <button class="btn btn-icon" data-action="open-groups" aria-label="Pilih Grup" title="Pilih Grup">
+          <i class="ph ph-users-three fs-18"></i>
+        </button>
+        <span class="group-name" id="app-group-name" title="Grup aktif"></span>
       </div>
 
       <div class="header-right">
@@ -261,6 +265,86 @@
     </div>
   </div>
 
+  <!-- === Modal Module: groups.html === -->
+<!-- 0. Modal Pilih Grup (multi-grup tahap 1) -->
+  <div class="modal-overlay modal-top" id="modal-groups">
+    <div class="modal-content modal-sm">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-users-three"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Pilih Grup</h2>
+            <p>Tiap grup ruangannya sendiri — data tidak campur</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <div id="group-picker-list" class="group-picker-list"></div>
+      <div class="group-picker-actions">
+        <a class="btn btn-outline" href="onboarding.html" style="width:100%;margin-top:8px;text-align:center;text-decoration:none;display:block">Buka halaman sambutan</a>
+        <button class="btn btn-outline" data-action="exit-group" style="width:100%;margin-top:8px">Keluar grup aktif</button>
+      </div>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
+    </div>
+  </div>
+
+  <!-- === Modal Module: group-pin.html === -->
+<!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
+  <div class="modal-overlay modal-top" id="modal-group-pin">
+    <div class="modal-content modal-sm">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-lock-key"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2 id="group-pin-name">Grup</h2>
+            <p>Ketik PIN 4 angka grup ini</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="pin-row">
+        <input id="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="0">
+        <input id="pin1" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="1">
+        <input id="pin2" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="2">
+        <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
+      </div>
+      <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
+      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%">Masuk Grup</button>
+      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px">Ganti Grup</button>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Salah 5 kali, kunci 1 menit.</p>
+    </div>
+  </div>
+
+  <!-- === Modal Module: group-admin.html === -->
+<!-- 0c. Modal Kelola Grup — khusus admin pemilik (tahap 4) -->
+  <div class="modal-overlay modal-top" id="modal-group-admin">
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-users-three"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Kelola Grup</h2>
+            <p>Buat grup baru, atur PIN, atau hapus grup</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="form-create-group" class="form-row-flex mb-16">
+        <input type="text" id="input-group-nama" class="form-control flex-1 min-w-200" placeholder="Nama grup baru..." maxlength="60" required>
+        <input type="text" id="input-group-pin" class="form-control w-160" inputmode="numeric" maxlength="4" placeholder="PIN 4 angka..." required>
+        <button type="submit" class="btn btn-primary">Buat</button>
+      </form>
+      <div id="group-admin-list" class="group-admin-list"></div>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Grup "utama" bawaan tidak bisa dihapus. Hapus grup butuh 2x konfirmasi.</p>
+    </div>
+  </div>
+
   <!-- === Modal Module: navigation.html === -->
 <!-- 7. Navigation Menu Modal Sheet -->
   <div class="modal-overlay" id="modal-menu">
@@ -295,6 +379,11 @@
         <button class="nav-item admin-only" data-action="open-audit-log">
           <span class="nav-ico is-slate"><i class="ph-fill ph-detective"></i></span>
           <span class="nav-txt">Log Aktivitas</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
+        <button class="nav-item admin-only" data-action="open-group-admin">
+          <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
+          <span class="nav-txt">Kelola Grup</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
@@ -1057,11 +1146,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=103"></script>
+  <script type="module" src="js/app.js?v=107"></script>
   <script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=103', { updateViaCache: 'none' })
+  navigator.serviceWorker.register('sw.js?v=107', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

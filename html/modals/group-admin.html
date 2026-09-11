@@ -1,0 +1,24 @@
+  <!-- 0c. Modal Kelola Grup — khusus admin pemilik (tahap 4) -->
+  <div class="modal-overlay modal-top" id="modal-group-admin">
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-users-three"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Kelola Grup</h2>
+            <p>Buat grup baru, atur PIN, atau hapus grup</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+      <form id="form-create-group" class="form-row-flex mb-16">
+        <input type="text" id="input-group-nama" class="form-control flex-1 min-w-200" placeholder="Nama grup baru..." maxlength="60" required>
+        <input type="text" id="input-group-pin" class="form-control w-160" inputmode="numeric" maxlength="4" placeholder="PIN 4 angka..." required>
+        <button type="submit" class="btn btn-primary">Buat</button>
+      </form>
+      <div id="group-admin-list" class="group-admin-list"></div>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Grup "utama" bawaan tidak bisa dihapus. Hapus grup butuh 2x konfirmasi.</p>
+    </div>
+  </div>

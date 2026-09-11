@@ -49,5 +49,45 @@ service cloud.firestore {
       allow create: if request.resource.data.Aksi is string && request.resource.data.Timestamp is string;
       allow update, delete: if false;
     }
+
+    // Group private config (PIN hash — hanya server service account)
+    match /groups/{groupId}/private/{docId} {
+      allow read, write: if false;
+    }
+
+    // Groups registry (tahap 1-2: daftar grup publik-terbaca, tulis via admin pemilik)
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Group-scoped subcollections (tahap 3: cermin aturan top-level per grup)
+    match /groups/{groupId}/settings/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /groups/{groupId}/transaksi/{trxId} {
+      allow read: if true;
+      allow create, update: if isValidTransaction(request.resource.data);
+      allow delete: if false;
+    }
+    match /groups/{groupId}/anggota/{angId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.Nama_Anggota is string
+        && request.resource.data.Nama_Anggota.size() > 0
+        && request.resource.data.Status_Aktif in ['Aktif', 'Nonaktif'];
+      allow delete: if false;
+    }
+    match /groups/{groupId}/kategori/{katId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.Nama_Kategori is string
+        && request.resource.data.Tipe in ['Masuk', 'Keluar'];
+      allow delete: if false;
+    }
+    match /groups/{groupId}/audit_log/{logId} {
+      allow read: if true;
+      allow create: if request.resource.data.Aksi is string && request.resource.data.Timestamp is string;
+      allow update, delete: if false;
+    }
   }
 }

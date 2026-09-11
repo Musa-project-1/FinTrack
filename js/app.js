@@ -46,6 +46,7 @@ import {
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
+import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction } from "./handlers/groups.js";
 
 let isLoading = false;
 
@@ -79,6 +80,14 @@ document.addEventListener('click', (e) => {
   const bulan = target.getAttribute('data-bulan');
 
   switch (action) {
+    /* ── Multi-grup: pilih + PIN + kelola ─────────────── */
+    case 'open-groups':     openGroupPicker(); break;
+    case 'exit-group':      exitGroup(); break;
+    case 'request-group-pin': requestGroupPin(id); break;
+    case 'submit-group-pin': submitGroupPin(); break;
+    case 'open-group-admin': closeHeaderDropdown(); openGroupAdmin(); break;
+    case 'reset-group-pin': resetGroupPinAction(id); break;
+    case 'remove-group':   removeGroupAction(id); break;
     /* ── Navigation / menus ───────────────────────── */
     case 'toggle-theme':     toggleTheme(); break;
     case 'toggle-header-stats': toggleHeaderStats(); break;
@@ -161,7 +170,7 @@ document.addEventListener('click', (e) => {
     case 'cancel-delete':    closeModal('modal-hapus'); break;
 
     /* ── Offline sync ─────────────────────────────── */
-    case 'sync-now':         syncOfflineTransactions(() => { initApp(true); renderChart(); }); break;
+    case 'sync-now':         syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
     case 'refresh-offline':  renderOfflineQueueList(); break;
     case 'delete-offline-item': {
       const itemId = parseInt(target.getAttribute('data-item-id'), 10);
@@ -229,7 +238,7 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
 
 
 export const initApp = async (forceRemote = false) => {
-  if (isLoading) return;
+  if (isLoading || (!forceRemote && !sessionStorage.getItem('finkas_group_open'))) return;
 
   const hasCache = loadCache();
   if (hasCache) {
@@ -297,14 +306,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   renderAdminUI();
 
-  initApp();
+  // Data dimuat setelah grup dipilih — data asli tidak dirender sebelum masuk grup.
   initCustomDropdowns();
   initMonthPickers();
   setupRekapSearchListener();
-
+  initGroupsUI(() => initApp(true));
   window.addEventListener('online', () => {
     showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
-    syncOfflineTransactions(() => { initApp(true); renderChart(); });
+    syncOfflineTransactions(() => { initApp(); renderChart(); });
   });
   window.addEventListener('offline', () => {
     showToast('Anda sedang offline. Transaksi akan disimpan lokal.', 'error');
@@ -313,7 +322,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data?.type === 'SYNC_OFFLINE_QUEUE') {
-        syncOfflineTransactions(() => { initApp(true); renderChart(); });
+        syncOfflineTransactions(() => { initApp(); renderChart(); });
       }
     });
   }

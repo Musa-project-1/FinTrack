@@ -84,7 +84,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const { password, passwordHash, idTransaksi, targetCollection = 'transaksi' } = body || {};
+    const { password, passwordHash, idTransaksi, targetCollection = 'transaksi', targetPath, groupId } = body || {};
     const trimmedPwd = (password || '').trim();
     const trimmedHash = (passwordHash || '').trim();
     const trimmedId = (idTransaksi || '').trim();
@@ -126,8 +126,19 @@ export default async function handler(req, res) {
       return res.status(500).json({ status: false, message: 'Gagal mengotentikasi ke Google Cloud IAM.' });
     }
 
-    // 3. Execute Delete using IAM Admin Token
-    const deleteUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${targetCollection}/${trimmedId}`;
+    // 3. Execute Delete using IAM Admin Token (jalur scoped grup tahap 3)
+    const ALLOWED_COLS = ['transaksi', 'anggota', 'kategori'];
+    const rawPath = (targetPath || targetCollection || 'transaksi').replace(/^\/+|\/+$/g, '');
+    const segs = rawPath.split('/');
+    const isScoped = segs.length === 3 && segs[0] === 'groups' && ALLOWED_COLS.includes(segs[2]) && /^[A-Za-z0-9-]+$/.test(segs[1]);
+    const isTop = segs.length === 1 && ALLOWED_COLS.includes(segs[0]);
+    if (!isScoped && !isTop) {
+      return res.status(400).json({ status: false, message: 'Jalur koleksi tidak diizinkan.' });
+    }
+    if (!/^[A-Za-z0-9-]+$/.test(trimmedId)) {
+      return res.status(400).json({ status: false, message: 'ID dokumen tidak valid.' });
+    }
+    const deleteUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${rawPath}/${trimmedId}`;
     const delRes = await fetch(deleteUrl, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` }

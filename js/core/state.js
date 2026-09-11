@@ -3,7 +3,7 @@
  * Centralized application state with cache persistence.
  */
 
-import { CACHE_KEY, ADMIN_PWD_KEY } from './config.js';
+import { CACHE_KEY, ADMIN_PWD_KEY, ACTIVE_GROUP_KEY, DEFAULT_GROUP_ID } from './config.js';
 
 /** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[] }} AppState */
 
@@ -41,18 +41,21 @@ export const addTransaction = (trx) => {
 };
 
 /**
- * Save current state to localStorage.
+ * Save current state to localStorage (per grup aktif — cache grup A
+ * tidak terbaca di grup B).
  */
 export const saveCache = () => {
-  localStorage.setItem(CACHE_KEY, JSON.stringify(state));
+  localStorage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
 };
 
 /**
- * Load state from localStorage. Returns true if cache was found.
+ * Load state from localStorage (cache grup aktif). Returns true if found.
  * @returns {boolean}
  */
 export const loadCache = () => {
-  const cached = localStorage.getItem(CACHE_KEY);
+  const cached = localStorage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
+    // Sekali migrasi: cache lama tanpa sufiks grup milik Grup Utama.
+    || (getActiveGroupId() === 'utama' ? localStorage.getItem(CACHE_KEY) : null);
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
@@ -64,6 +67,43 @@ export const loadCache = () => {
   }
   return false;
 };
+
+/* ── Active group (multi-grup tahap 1: pilih + ingat) ─────────────── */
+
+/** @type {string} ID grup aktif, tersimpan di localStorage. */
+let activeGroupId = localStorage.getItem(ACTIVE_GROUP_KEY) || '';
+
+/** @type {Array} Daftar grup yang tersedia. */
+let groups = [];
+
+/**
+ * Get ID grup aktif. Fallback ke Grup Utama bila belum pernah pilih
+ * (misal user lama yang localStorage-nya format sebelum multi-grup).
+ * @returns {string}
+ */
+export const getActiveGroupId = () => activeGroupId || DEFAULT_GROUP_ID;
+
+/**
+ * Set grup aktif dan ingat di localStorage.
+ * @param {string} id
+ */
+export const setActiveGroupId = (id) => {
+  activeGroupId = id || '';
+  if (activeGroupId) localStorage.setItem(ACTIVE_GROUP_KEY, activeGroupId);
+  else localStorage.removeItem(ACTIVE_GROUP_KEY);
+};
+
+/**
+ * Get daftar grup.
+ * @returns {Array}
+ */
+export const getGroups = () => groups;
+
+/**
+ * Set daftar grup.
+ * @param {Array} list
+ */
+export const setGroups = (list) => { groups = Array.isArray(list) ? list : []; };
 
 /* ── Admin password (client-side session) ──────────────────────── */
 

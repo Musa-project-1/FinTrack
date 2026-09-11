@@ -42,3 +42,7 @@ export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
 export const ADMIN_PWD_KEY = 'finkas_admin_pwd';
 export const HEADER_STATS_KEY = 'finkas_header_stats';
+export const ACTIVE_GROUP_KEY = 'finkas_active_group';
+/** ID grup bawaan untuk data lama sebelum multi-grup (fallback bila kosong). */
+export const DEFAULT_GROUP_ID = 'utama';
+export const DEFAULT_GROUP_NAME = 'Grup Utama';

@@ -49,3 +49,7 @@ export const ACTIVE_GROUP_KEY = 'finkas_active_group';
 /** ID grup bawaan untuk data lama sebelum multi-grup (fallback bila kosong). */
 export const DEFAULT_GROUP_ID = 'utama';
 export const DEFAULT_GROUP_NAME = 'Grup Utama';
+
+/** Google OAuth Web Client ID */
+export const GOOGLE_CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
+

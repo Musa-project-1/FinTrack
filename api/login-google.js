@@ -39,22 +39,27 @@ export default async function handler(req, res) {
     const headers = await getFirestoreHeaders();
     const action = body?.action || 'login';
 
-    // ── AKSI 1: Login via Google ID Token ────────────────────────────────
+    // ── AKSI 1: Login via Google ID Token / Access Token ────────────────
     if (action === 'login') {
-      const idToken = String(body?.idToken || '').trim();
+      const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
       const directEmail = String(body?.email || '').trim().toLowerCase();
 
       let verifiedEmail = '';
       let userName = '';
 
-      if (idToken) {
-        // Verifikasi langsung ke server Google Token Info
-        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+      if (rawToken) {
+        // Cek apakah berupa OAuth2 access_token (biasanya diawali 'ya29.') atau ID token JWT
+        const isAccessToken = rawToken.startsWith('ya29.');
+        const tokenQuery = isAccessToken
+          ? `access_token=${encodeURIComponent(rawToken)}`
+          : `id_token=${encodeURIComponent(rawToken)}`;
+        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?${tokenQuery}`);
         if (!googleRes.ok) {
           return res.status(401).json({ status: false, message: 'Token Google tidak valid atau sudah kedaluwarsa.' });
         }
         const gData = await googleRes.json();
-        if (gData.email_verified !== 'true' && gData.email_verified !== true) {
+        const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
+        if (!isVerified) {
           return res.status(401).json({ status: false, message: 'Email Google belum diverifikasi.' });
         }
         verifiedEmail = (gData.email || '').toLowerCase().trim();

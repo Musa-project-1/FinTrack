@@ -22,7 +22,7 @@ import {
 
 // Import modular handlers
 import {
-  handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction
+  handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener
@@ -102,6 +102,7 @@ document.addEventListener('click', (e) => {
     case 'install-pwa':      if (window.__pwaPrompt) window.__pwaPrompt.prompt(); else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info'); break;
     case 'close-dropdown':   closeHeaderDropdown(); break;
     case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
+    case 'stealth-badge-click': handleStealthBadgeClick(); break;
     case 'login-google-superadmin': loginGoogleSuperAdminAction(); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;
     case 'open-skipped-months': openSkippedMonthsModal(); break;
@@ -193,8 +194,15 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* Close dropdown on Escape */
+/* Keyboard Shortcuts */
 document.addEventListener('keydown', (e) => {
+  /* Stealth Super Admin shortcut: Ctrl + Shift + G */
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
+    e.preventDefault();
+    loginGoogleSuperAdminAction();
+    return;
+  }
+
   if (e.key === 'Escape') {
     const dd = document.getElementById('header-dropdown');
     if (dd) closeHeaderDropdown();

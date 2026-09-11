@@ -22,7 +22,7 @@ import {
 
 // Import modular handlers
 import {
-  handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction
+  handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener
@@ -46,7 +46,7 @@ import {
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
-import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction, renameGroupAction } from "./handlers/groups.js";
+import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction, renameGroupAction, manageGroupCredsAction, copyGroupWhatsAppAction, removeSuperAdminAction } from "./handlers/groups.js";
 
 let isLoading = false;
 
@@ -88,6 +88,9 @@ document.addEventListener('click', (e) => {
     case 'open-group-admin': closeHeaderDropdown(); openGroupAdmin(); break;
     case 'rename-group':    renameGroupAction(id); break;
     case 'reset-group-pin': resetGroupPinAction(id); break;
+    case 'manage-group-creds': manageGroupCredsAction(id); break;
+    case 'copy-cred-wa':    copyGroupWhatsAppAction(); break;
+    case 'remove-superadmin-email': removeSuperAdminAction(target.getAttribute('data-email')); break;
     case 'remove-group':   removeGroupAction(id); break;
     /* ── Navigation / menus ───────────────────────── */
     case 'toggle-theme':     toggleTheme(); break;
@@ -99,6 +102,7 @@ document.addEventListener('click', (e) => {
     case 'install-pwa':      if (window.__pwaPrompt) window.__pwaPrompt.prompt(); else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info'); break;
     case 'close-dropdown':   closeHeaderDropdown(); break;
     case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
+    case 'login-google-superadmin': loginGoogleSuperAdminAction(); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;
     case 'open-skipped-months': openSkippedMonthsModal(); break;
     case 'open-audit-log':   closeHeaderDropdown(); openAuditLogModal(); break;

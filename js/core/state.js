@@ -3,7 +3,7 @@
  * Centralized application state with cache persistence.
  */
 
-import { CACHE_KEY, ADMIN_PWD_KEY, ACTIVE_GROUP_KEY, DEFAULT_GROUP_ID } from './config.js';
+import { CACHE_KEY, ADMIN_PWD_KEY, SUPERADMIN_KEY, ADMIN_ROLE_KEY, ADMIN_EMAIL_KEY, ACTIVE_GROUP_KEY, DEFAULT_GROUP_ID } from './config.js';
 
 /** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[] }} AppState */
 
@@ -104,7 +104,7 @@ export const getGroups = () => groups;
  */
 export const setGroups = (list) => { groups = Array.isArray(list) ? list : []; };
 
-/* ── Admin password (client-side session) ──────────────────────── */
+/* ── Admin password & session (client-side session) ────────────── */
 
 /** @type {string} The SHA-256 hash of the admin password, stored in localStorage. */
 let adminPassword = localStorage.getItem(ADMIN_PWD_KEY) || '';
@@ -112,39 +112,60 @@ let adminPassword = localStorage.getItem(ADMIN_PWD_KEY) || '';
 /** @type {boolean} Whether the current session is admin. */
 let isAdminSession = false;
 
-/**
- * Get the current admin password hash.
- * @returns {string}
- */
-export const getAdminPassword = () => adminPassword;
+/** @type {boolean} Whether the current session is superadmin. */
+let isSuperAdminSession = sessionStorage.getItem(SUPERADMIN_KEY) === '1';
 
-/**
- * Set the admin password hash in state and persist to localStorage.
- * @param {string} hash
- */
+/** @type {string} Role: 'superadmin' | 'group_admin' | '' */
+let adminRole = sessionStorage.getItem(ADMIN_ROLE_KEY) || (isSuperAdminSession ? 'superadmin' : '');
+
+/** @type {string} Admin user email */
+let adminUserEmail = sessionStorage.getItem(ADMIN_EMAIL_KEY) || '';
+
+export const getAdminPassword = () => adminPassword;
 export const setAdminPassword = (hash) => {
   adminPassword = hash;
   localStorage.setItem(ADMIN_PWD_KEY, hash);
 };
 
-/**
- * Clear the admin password hash from state and localStorage.
- */
+export const getIsSuperAdmin = () => isSuperAdminSession;
+export const setIsSuperAdmin = (val) => {
+  isSuperAdminSession = !!val;
+  if (val) {
+    sessionStorage.setItem(SUPERADMIN_KEY, '1');
+  } else {
+    sessionStorage.removeItem(SUPERADMIN_KEY);
+  }
+};
+
+export const getAdminRole = () => adminRole;
+export const setAdminRole = (role) => {
+  adminRole = role || '';
+  if (role) {
+    sessionStorage.setItem(ADMIN_ROLE_KEY, role);
+  } else {
+    sessionStorage.removeItem(ADMIN_ROLE_KEY);
+  }
+};
+
+export const getAdminEmail = () => adminUserEmail;
+export const setAdminEmail = (email) => {
+  adminUserEmail = email || '';
+  if (email) {
+    sessionStorage.setItem(ADMIN_EMAIL_KEY, email);
+  } else {
+    sessionStorage.removeItem(ADMIN_EMAIL_KEY);
+  }
+};
+
 export const clearAdminPassword = () => {
   adminPassword = '';
   localStorage.removeItem(ADMIN_PWD_KEY);
+  setIsSuperAdmin(false);
+  setAdminRole('');
+  setAdminEmail('');
 };
 
-/**
- * Get the current admin session status.
- * @returns {boolean}
- */
 export const getIsAdminSession = () => isAdminSession;
-
-/**
- * Set the admin session status.
- * @param {boolean} val
- */
 export const setIsAdminSession = (val) => {
   isAdminSession = !!val;
 };

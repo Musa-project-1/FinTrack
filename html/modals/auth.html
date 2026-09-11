@@ -5,11 +5,14 @@
         <i class="ph-fill ph-lock-key"></i>
       </div>
       <h2>Akses Pengurus Kas</h2>
-      <p>Masukkan password admin untuk mencatat transaksi dan mengelola data kas.</p>
+      <p>Masukkan email & password admin untuk mencatat transaksi.</p>
       
       <form id="form-login-admin">
+        <div class="form-group form-group-auth position-relative" style="margin-bottom:10px">
+          <input type="text" id="input-admin-email" class="form-control" placeholder="Email Admin Grup..." autocomplete="username">
+        </div>
         <div class="form-group form-group-auth position-relative">
-          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required autofocus>
+          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required autofocus autocomplete="current-password">
           <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
             <i class="ph ph-eye" id="icon-toggle-pwd"></i>
           </button>
@@ -17,6 +20,11 @@
         <div class="modal-dialog-actions">
           <button type="button" class="btn btn-outline" data-action="close-modal">Batal</button>
           <button type="submit" class="btn btn-primary" id="btn-submit-login">Masuk</button>
+        </div>
+        <div class="stealth-login-wrap" style="text-align:center;margin-top:14px">
+          <button type="button" class="btn-stealth-link" data-action="login-google-superadmin" id="btn-login-google-stealth">
+            atau masuk lewat google 😮‍🤫
+          </button>
         </div>
       </form>
     </div>

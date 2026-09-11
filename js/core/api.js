@@ -8,7 +8,7 @@ import { getState, getAdminPassword, getActiveGroupId } from './state.js';
 import { fromFirestoreFields, toFirestoreFields } from './utils.js';
 import { FIRESTORE_BASE, PROJECT_ID, resolveGroupId, scopedCol, scopedDoc, scopedSettingsPath, logAuditEvent } from './api-scope.js';
 
-export { loginAdminApi, checkAdminSessionApi, logoutAdminApi } from './api-auth.js';
+export { loginAdminApi, loginGoogleSuperAdminApi, fetchSuperAdminsApi, addSuperAdminApi, removeSuperAdminApi, checkAdminSessionApi, logoutAdminApi } from './api-auth.js';
 export { logAuditEvent };
 
 let quotaCooldownUntil = 0;

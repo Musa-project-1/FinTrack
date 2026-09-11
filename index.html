@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=109">
-  <link rel="stylesheet" href="style.css?v=109">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=110">
+  <link rel="stylesheet" href="style.css?v=110">
 </head>
 <body>
 
@@ -199,11 +199,14 @@
         <i class="ph-fill ph-lock-key"></i>
       </div>
       <h2>Akses Pengurus Kas</h2>
-      <p>Masukkan password admin untuk mencatat transaksi dan mengelola data kas.</p>
+      <p>Masukkan email & password admin untuk mencatat transaksi.</p>
       
       <form id="form-login-admin">
+        <div class="form-group form-group-auth position-relative" style="margin-bottom:10px">
+          <input type="text" id="input-admin-email" class="form-control" placeholder="Email Admin Grup..." autocomplete="username">
+        </div>
         <div class="form-group form-group-auth position-relative">
-          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required autofocus>
+          <input type="password" id="input-admin-pwd" class="form-control input-admin-code" placeholder="Password Admin..." required autofocus autocomplete="current-password">
           <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
             <i class="ph ph-eye" id="icon-toggle-pwd"></i>
           </button>
@@ -211,6 +214,11 @@
         <div class="modal-dialog-actions">
           <button type="button" class="btn btn-outline" data-action="close-modal">Batal</button>
           <button type="submit" class="btn btn-primary" id="btn-submit-login">Masuk</button>
+        </div>
+        <div class="stealth-login-wrap" style="text-align:center;margin-top:14px">
+          <button type="button" class="btn-stealth-link" data-action="login-google-superadmin" id="btn-login-google-stealth">
+            atau masuk lewat google 😮‍🤫
+          </button>
         </div>
       </form>
     </div>
@@ -342,19 +350,42 @@
           <i class="ph-bold ph-plus-circle text-primary"></i>
           <span>Tambah Grup Baru</span>
         </div>
-        <form id="form-create-group" class="group-create-grid">
-          <div class="input-with-icon flex-1 min-w-200">
-            <i class="ph ph-users group-input-icon"></i>
-            <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+        <form id="form-create-group">
+          <div class="group-create-grid">
+            <div class="input-with-icon flex-1 min-w-200">
+              <i class="ph ph-users group-input-icon"></i>
+              <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+            </div>
+            <div class="input-with-icon w-140">
+              <i class="ph ph-lock-key group-input-icon"></i>
+              <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary btn-create-submit">
+              <i class="ph-bold ph-plus"></i>
+              <span>Buat</span>
+            </button>
           </div>
-          <div class="input-with-icon w-140">
-            <i class="ph ph-lock-key group-input-icon"></i>
-            <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
+
+          <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
+          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-color, #e2e8f0)">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main, #334155)">
+              <input type="checkbox" id="chk-group-admin-auto" checked>
+              <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
+            </label>
+            <div id="box-group-admin-creds" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <div class="input-with-icon flex-1 min-w-160">
+                <i class="ph ph-envelope group-input-icon"></i>
+                <input type="email" id="input-group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
+              </div>
+              <div class="input-with-icon w-140">
+                <i class="ph ph-key group-input-icon"></i>
+                <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
+              </div>
+              <button type="button" class="btn btn-outline" id="btn-refresh-admin-pwd" title="Acak ulang password" style="padding:0 12px">
+                <i class="ph-bold ph-arrows-clockwise"></i>
+              </button>
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-create-submit">
-            <i class="ph-bold ph-plus"></i>
-            <span>Buat</span>
-          </button>
         </form>
       </div>
 
@@ -366,9 +397,59 @@
 
       <div id="group-admin-list" class="group-admin-list"></div>
 
-      <div class="group-admin-footer-notice">
+      <!-- Bagian Kelola Akses Super Admin (Google Whitelist) -->
+      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:10px;background:var(--bg-card-subtle, rgba(241,245,249,0.6));border:1px solid var(--border-color, #e2e8f0)">
+        <div class="group-section-header" style="margin-bottom:8px">
+          <i class="ph-bold ph-shield-check text-primary"></i>
+          <span style="font-weight:600;font-size:13px">Daftar Super Admin (Google Login)</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted, #64748b);margin-bottom:10px">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
+        
+        <div id="superadmin-emails-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+
+        <form id="form-add-superadmin" style="display:flex;gap:8px">
+          <input type="email" id="input-add-superadmin" class="form-control" placeholder="tambah.email.google@gmail.com" required style="font-size:12px">
+          <button type="submit" class="btn btn-outline btn-sm" style="white-space:nowrap">
+            <i class="ph-bold ph-plus"></i> Tambah
+          </button>
+        </form>
+      </div>
+
+      <div class="group-admin-footer-notice" style="margin-top:12px">
         <i class="ph-fill ph-shield-check"></i>
         <span>Data tiap grup terisolasi aman. Hapus grup memerlukan konfirmasi nama.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 0d. Modal Kartu Kredensial Grup (Siap Kirim WhatsApp) -->
+  <div class="modal-overlay modal-top" id="modal-group-credentials">
+    <div class="modal-content modal-sm">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon" style="background:rgba(16,185,129,0.15);color:#10b981">
+            <i class="ph-fill ph-check-circle"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Kredensial Grup</h2>
+            <p id="cred-modal-subtitle">Akun siap dibagikan ke pengurus</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="cred-card-box" style="margin:12px 0;padding:14px;border-radius:10px;background:var(--bg-card-subtle, rgba(241,245,249,0.8));border:1px solid var(--border-color, #e2e8f0);font-size:13px;line-height:1.6">
+        <div style="margin-bottom:6px"><strong>Grup:</strong> <span id="cred-disp-nama">-</span></div>
+        <div style="margin-bottom:6px"><strong>PIN Warga:</strong> <code id="cred-disp-pin" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">1234</code></div>
+        <div style="margin-bottom:6px"><strong>Email Admin:</strong> <span id="cred-disp-email" style="word-break:break-all">-</span></div>
+        <div><strong>Password Admin:</strong> <code id="cred-disp-pwd" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">-</code></div>
+      </div>
+
+      <div class="modal-dialog-actions" style="display:flex;flex-direction:column;gap:8px">
+        <button type="button" class="btn btn-primary" id="btn-copy-cred-wa" data-action="copy-cred-wa" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+          <i class="ph-bold ph-whatsapp-logo" style="font-size:18px"></i> Salin Format WhatsApp
+        </button>
+        <button type="button" class="btn btn-outline" data-action="close-modal" style="width:100%">Tutup</button>
       </div>
     </div>
   </div>
@@ -409,7 +490,7 @@
           <span class="nav-txt">Log Aktivitas</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
-        <button class="nav-item admin-only" data-action="open-group-admin">
+        <button class="nav-item superadmin-only" data-action="open-group-admin">
           <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
           <span class="nav-txt">Kelola Grup</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
@@ -1174,11 +1255,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=109"></script>
+  <script type="module" src="js/app.js?v=110"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=109', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=110', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

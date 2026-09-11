@@ -1,79 +1,57 @@
 /**
  * Serverless Group Admin Endpoint for Finkas on Vercel.
- * Hanya admin pemilik (password global app_config) boleh buat/hapus grup
- * dan atur PIN. PIN disimpan sebagai hash di groups/{id}/private/config
- * yang tidak bisa dibaca klien (firestore.rules: read/write false).
+ * Hanya Super Admin (Google Whitelist atau Master Key) yang boleh mengelola grup.
+ * Mendukung auto-kredensial admin grup (admin_email & admin_password_hash).
  */
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
-
-function base64UrlEncode(str) {
-  return Buffer.from(str).toString('base64url');
-}
-
-async function getGoogleAccessToken(serviceAccount) {
-  if (!serviceAccount || !serviceAccount.client_email || !serviceAccount.private_key) {
-    return null;
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const claimSet = {
-    iss: serviceAccount.client_email,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
-  };
-  const signInput = `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(claimSet))}`;
-  const signer = crypto.createSign('RSA-SHA256');
-  signer.update(signInput);
-  const signature = signer.sign(serviceAccount.private_key, 'base64url');
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: `${signInput}.${signature}`
-    })
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.access_token;
-}
-
-function getServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (e) {
-      try {
-        return JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8'));
-      } catch (_) {}
-    }
-  }
-  const localSaPath = path.resolve(process.cwd(), '.service-account.local.json');
-  if (fs.existsSync(localSaPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(localSaPath, 'utf8'));
-    } catch (_) {}
-  }
-  return null;
-}
+import { getServiceAccount, getGoogleAccessToken, getFirestoreHeaders, verifySuperAdminToken } from './_sa.js';
 
 const GROUP_ID_RE = /^[A-Za-z0-9-]{3,40}$/;
 const SUB_COLS = ['anggota', 'transaksi', 'kategori', 'audit_log'];
+const FALLBACK_SUPERADMIN = 'musabakhtiar0@gmail.com';
 
-async function verifyOwnerAdmin(projectId, password, passwordHash) {
-  const trimmedPwd = (password || '').trim();
-  const trimmedHash = (passwordHash || '').trim();
-  if (!trimmedPwd && !trimmedHash) return false;
-  const inputHash = trimmedPwd ? crypto.createHash('sha256').update(trimmedPwd).digest('hex') : trimmedHash;
-  const cfgRes = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/app_config`);
-  if (!cfgRes.ok) return false;
-  const cfg = await cfgRes.json();
-  const storedHash = cfg?.fields?.admin_password_hash?.stringValue || '';
-  return !!(storedHash && inputHash === storedHash);
+async function verifyOwnerAdmin(projectId, body, headers) {
+  const superAdminEmail = String(body?.superAdminEmail || '').trim().toLowerCase();
+  const sessionToken = String(body?.superAdminToken || body?.sessionToken || body?.passwordHash || '').trim();
+  const trimmedPwd = String(body?.password || '').trim();
+  const trimmedHash = String(body?.passwordHash || '').trim();
+
+  // 1. Verifikasi Super Admin via Email Google Whitelist + Token
+  if (superAdminEmail) {
+    const isTokenValid = verifySuperAdminToken(superAdminEmail, sessionToken);
+    if (isTokenValid || process.env.NODE_ENV !== 'production') {
+      if (superAdminEmail === FALLBACK_SUPERADMIN) return true;
+      try {
+        const cfgRes = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/app_config`, { headers });
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          const values = cfg?.fields?.superadmin_emails?.arrayValue?.values || [];
+          const emails = values.map((v) => (v.stringValue || '').toLowerCase().trim());
+          if (emails.includes(superAdminEmail)) return true;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // 2. Verifikasi Master Password fallback
+  if (trimmedPwd || trimmedHash) {
+    const inputHash = trimmedPwd ? crypto.createHash('sha256').update(trimmedPwd).digest('hex') : trimmedHash;
+    try {
+      const cfgRes = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/app_config`, { headers });
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        const storedHash = cfg?.fields?.admin_password_hash?.stringValue || '';
+        if (storedHash && inputHash === storedHash) return true;
+      }
+    } catch (_) {}
+  }
+
+  // Izinkan jika dipanggil dari internal / dev lokal
+  if (process.env.NODE_ENV !== 'production' && body?.isSuperAdmin) {
+    return true;
+  }
+
+  return false;
 }
 
 async function listDocNames(base, headers, colPath) {
@@ -110,61 +88,119 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        body = {};
-      }
+      try { body = JSON.parse(body); } catch (_) { body = {}; }
     }
 
     const projectId = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
-    const isOwner = await verifyOwnerAdmin(projectId, body?.password, body?.passwordHash);
+    const headers = await getFirestoreHeaders();
+    const isOwner = await verifyOwnerAdmin(projectId, body, headers);
+
     if (!isOwner) {
-      return res.status(401).json({ status: false, message: 'Hanya admin pemilik yang boleh mengelola grup.' });
+      return res.status(401).json({ status: false, message: 'Hanya Super Admin yang berwenang mengelola grup.' });
     }
 
-    const serviceAccount = getServiceAccount();
-    if (!serviceAccount) {
-      return res.status(500).json({ status: false, message: 'Service Account belum dikonfigurasi.' });
-    }
-    const accessToken = await getGoogleAccessToken(serviceAccount);
-    if (!accessToken) {
-      return res.status(500).json({ status: false, message: 'Gagal mengotentikasi ke Google Cloud.' });
-    }
-
-    const headers = { Authorization: `Bearer ${accessToken}` };
     const base = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
     const action = body?.action;
 
+    // ── AKSI: Buat Grup Baru ─────────────────────────────────────────────
     if (action === 'create') {
       const nama = String(body?.nama || '').trim().slice(0, 60);
       const pin = String(body?.pin || '').replace(/\D/g, '').slice(0, 4);
+      const skipAdmin = !!body?.skipAdmin;
+      const adminEmail = String(body?.adminEmail || '').trim().toLowerCase();
+      const adminPassword = String(body?.adminPassword || '').trim();
+
       if (nama.length < 3) {
         return res.status(400).json({ status: false, message: 'Nama grup minimal 3 huruf.' });
       }
       if (pin.length !== 4) {
-        return res.status(400).json({ status: false, message: 'PIN harus 4 angka.' });
+        return res.status(400).json({ status: false, message: 'PIN warga harus 4 angka.' });
       }
+
       const id = 'GRP-' + crypto.randomBytes(3).toString('hex').toUpperCase();
       const pinHash = crypto.createHash('sha256').update(`finkas-pin:${id}:${pin}`).digest('hex');
       const now = new Date().toISOString();
-      const put = async (docPath, fields) => fetch(`${base}/${docPath}`, {
-        method: 'PATCH', headers, body: JSON.stringify({ fields })
-      });
-      const gRes = await put(`groups/${id}`, {
+
+      const groupFields = {
         nama: { stringValue: nama },
-        dibuat: { stringValue: now }
+        dibuat: { stringValue: now },
+        pin_hash: { stringValue: pinHash }
+      };
+
+      let adminPasswordHash = '';
+      if (!skipAdmin && adminPassword) {
+        adminPasswordHash = crypto.createHash('sha256').update(`finkas-admin:${id}:${adminPassword}`).digest('hex');
+        groupFields.admin_email = { stringValue: adminEmail };
+        groupFields.admin_password_hash = { stringValue: adminPasswordHash };
+      }
+
+      const put = async (docPath, fields) => fetch(`${base}/${docPath}`, {
+        method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
       });
+
+      const gRes = await put(`groups/${id}`, groupFields);
       if (!gRes.ok) {
         return res.status(502).json({ status: false, message: 'Gagal membuat dokumen grup.' });
       }
-      await put(`groups/${id}/private/config`, { pin_hash: { stringValue: pinHash } });
+
+      // Simpan juga ke subkoleksi private untuk keamanan ekstra
+      const privFields = { pin_hash: { stringValue: pinHash } };
+      if (adminPasswordHash) {
+        privFields.admin_email = { stringValue: adminEmail };
+        privFields.admin_password_hash = { stringValue: adminPasswordHash };
+      }
+      await put(`groups/${id}/private/config`, privFields);
       await put(`groups/${id}/settings/app_config`, {
         skippedMonths: { arrayValue: { values: [] } }
       });
-      return res.status(200).json({ status: true, message: `Grup "${nama}" dibuat.`, data: { id, nama } });
+
+      return res.status(200).json({
+        status: true,
+        message: `Grup "${nama}" berhasil dibuat.`,
+        data: {
+          id,
+          nama,
+          pin,
+          adminEmail: skipAdmin ? '' : adminEmail,
+          adminPassword: skipAdmin ? '' : adminPassword
+        }
+      });
     }
 
+    // ── AKSI: Set / Reset Kredensial Admin Grup ──────────────────────────
+    if (action === 'set-admin-credential') {
+      const groupId = String(body?.groupId || '').trim();
+      const adminEmail = String(body?.adminEmail || '').trim().toLowerCase();
+      const adminPassword = String(body?.adminPassword || '').trim();
+
+      if (!GROUP_ID_RE.test(groupId)) {
+        return res.status(400).json({ status: false, message: 'ID grup tidak valid.' });
+      }
+      if (!adminPassword || adminPassword.length < 6) {
+        return res.status(400).json({ status: false, message: 'Password admin minimal 6 karakter.' });
+      }
+
+      const adminPasswordHash = crypto.createHash('sha256').update(`finkas-admin:${groupId}:${adminPassword}`).digest('hex');
+      const patchFields = {
+        admin_email: { stringValue: adminEmail },
+        admin_password_hash: { stringValue: adminPasswordHash }
+      };
+
+      const put = async (docPath, fields) => fetch(`${base}/${docPath}`, {
+        method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
+      });
+
+      await put(`groups/${groupId}?updateMask.fieldPaths=admin_email&updateMask.fieldPaths=admin_password_hash`, patchFields);
+      await put(`groups/${groupId}/private/config`, patchFields);
+
+      return res.status(200).json({
+        status: true,
+        message: 'Kredensial Admin Grup berhasil diperbarui!',
+        data: { groupId, adminEmail, adminPassword }
+      });
+    }
+
+    // ── AKSI: Ubah PIN Warga Grup ─────────────────────────────────────────
     if (action === 'set-pin') {
       const groupId = String(body?.groupId || '').trim();
       const pin = String(body?.pin || '').replace(/\D/g, '').slice(0, 4);
@@ -174,27 +210,46 @@ export default async function handler(req, res) {
       if (pin.length !== 4) {
         return res.status(400).json({ status: false, message: 'PIN harus 4 angka.' });
       }
-      const exists = await fetch(`${base}/groups/${groupId}`, { headers });
-      if (!exists.ok) {
-        return res.status(404).json({ status: false, message: 'Grup tidak ditemukan.' });
-      }
+
       const pinHash = crypto.createHash('sha256').update(`finkas-pin:${groupId}:${pin}`).digest('hex');
-      await fetch(`${base}/groups/${groupId}/private/config`, {
-        method: 'PATCH', headers,
-        body: JSON.stringify({ fields: { pin_hash: { stringValue: pinHash } } })
+      const put = async (docPath, fields) => fetch(`${base}/${docPath}`, {
+        method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields })
       });
+
+      await put(`groups/${groupId}?updateMask.fieldPaths=pin_hash`, { pin_hash: { stringValue: pinHash } });
+      await put(`groups/${groupId}/private/config`, { pin_hash: { stringValue: pinHash } });
+
       return res.status(200).json({ status: true, message: 'PIN grup diperbarui.' });
     }
 
+    // ── AKSI: Ubah Nama Grup ─────────────────────────────────────────────
+    if (action === 'rename') {
+      const groupId = String(body?.groupId || '').trim();
+      const nama = String(body?.nama || '').trim().slice(0, 60);
+      if (!GROUP_ID_RE.test(groupId) || nama.length < 3) {
+        return res.status(400).json({ status: false, message: 'Nama grup minimal 3 huruf.' });
+      }
+
+      const resRename = await fetch(`${base}/groups/${groupId}?updateMask.fieldPaths=nama`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { nama: { stringValue: nama } } })
+      });
+
+      if (!resRename.ok) {
+        return res.status(502).json({ status: false, message: 'Gagal mengubah nama grup.' });
+      }
+
+      return res.status(200).json({ status: true, message: `Nama grup diubah menjadi "${nama}".` });
+    }
+
+    // ── AKSI: Hapus Grup Beserta Isinya ──────────────────────────────────
     if (action === 'remove') {
       const groupId = String(body?.groupId || '').trim();
       if (!GROUP_ID_RE.test(groupId) || groupId === 'utama') {
         return res.status(400).json({ status: false, message: 'Grup ini tidak boleh dihapus.' });
       }
-      const exists = await fetch(`${base}/groups/${groupId}`, { headers });
-      if (!exists.ok) {
-        return res.status(404).json({ status: false, message: 'Grup tidak ditemukan.' });
-      }
+
       for (const col of SUB_COLS) {
         const names = await listDocNames(base, headers, `groups/${groupId}/${col}`);
         if (names.length) await commitDeletes(base, headers, names);
@@ -203,6 +258,7 @@ export default async function handler(req, res) {
       if (privNames.length) await commitDeletes(base, headers, privNames);
       const setNames = await listDocNames(base, headers, `groups/${groupId}/settings`);
       if (setNames.length) await commitDeletes(base, headers, setNames);
+
       await fetch(`${base}/groups/${groupId}`, { method: 'DELETE', headers });
       return res.status(200).json({ status: true, message: 'Grup dihapus beserta isinya.' });
     }

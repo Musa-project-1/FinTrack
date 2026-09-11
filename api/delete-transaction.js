@@ -1,72 +1,74 @@
 /**
  * Serverless Secure Deletion Endpoint for Finkas on Vercel.
- * Verifies admin password and deletes documents using Google Cloud IAM Service Account,
- * bypassing Firestore Security Rules securely on the server side.
+ * Memverifikasi hak admin (Super Admin atau Admin Grup terkait)
+ * sebelum menghapus dokumen menggunakan Google Cloud IAM Service Account.
  */
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
+import { getServiceAccount, getGoogleAccessToken, getFirestoreHeaders, verifySuperAdminToken } from './_sa.js';
 
-function base64UrlEncode(str) {
-  return Buffer.from(str).toString('base64url');
-}
+const ALLOWED_COLS = ['transaksi', 'anggota', 'kategori'];
+const FALLBACK_SUPERADMIN = 'musabakhtiar0@gmail.com';
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
+const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-async function getGoogleAccessToken(serviceAccount) {
-  if (!serviceAccount || !serviceAccount.client_email || !serviceAccount.private_key) {
-    return null;
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const claimSet = {
-    iss: serviceAccount.client_email,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
-  };
+async function isAuthorizedToDelete(body, targetGroupId, headers) {
+  const superAdminEmail = String(body?.superAdminEmail || '').trim().toLowerCase();
+  const sessionToken = String(body?.superAdminToken || body?.sessionToken || body?.passwordHash || '').trim();
+  const trimmedPwd = String(body?.password || '').trim();
+  const trimmedHash = String(body?.passwordHash || '').trim();
 
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedClaimSet = base64UrlEncode(JSON.stringify(claimSet));
-  const signInput = `${encodedHeader}.${encodedClaimSet}`;
-
-  const signer = crypto.createSign('RSA-SHA256');
-  signer.update(signInput);
-  const signature = signer.sign(serviceAccount.private_key, 'base64url');
-  const jwt = `${signInput}.${signature}`;
-
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt
-    })
-  });
-
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.access_token;
-}
-
-function getServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (e) {
+  // 1. Otorisasi via Google Super Admin + Token
+  if (superAdminEmail) {
+    const isTokenValid = verifySuperAdminToken(superAdminEmail, sessionToken);
+    if (isTokenValid || process.env.NODE_ENV !== 'production') {
+      if (superAdminEmail === FALLBACK_SUPERADMIN) return true;
       try {
-        const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8');
-        return JSON.parse(decoded);
+        const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`, { headers });
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          const emails = (cfg?.fields?.superadmin_emails?.arrayValue?.values || []).map((v) => (v.stringValue || '').toLowerCase().trim());
+          if (emails.includes(superAdminEmail)) return true;
+        }
       } catch (_) {}
     }
   }
 
-  const localSaPath = path.resolve(process.cwd(), '.service-account.local.json');
-  if (fs.existsSync(localSaPath)) {
+  // 2. Otorisasi via Admin Grup Scoped
+  if (targetGroupId && (trimmedPwd || trimmedHash)) {
     try {
-      return JSON.parse(fs.readFileSync(localSaPath, 'utf8'));
+      const gRes = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(targetGroupId)}`, { headers });
+      if (gRes.ok) {
+        const gData = await gRes.json();
+        let storedHash = gData?.fields?.admin_password_hash?.stringValue || '';
+        if (!storedHash) {
+          const privRes = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(targetGroupId)}/private/config`, { headers });
+          if (privRes.ok) {
+            const pData = await privRes.json();
+            storedHash = pData?.fields?.admin_password_hash?.stringValue || '';
+          }
+        }
+        if (storedHash) {
+          const inputGroupHash = trimmedPwd ? crypto.createHash('sha256').update(`finkas-admin:${targetGroupId}:${trimmedPwd}`).digest('hex') : trimmedHash;
+          if (inputGroupHash === storedHash) return true;
+        }
+      }
     } catch (_) {}
   }
-  return null;
+
+  // 3. Fallback: Master Password Super Admin
+  if (trimmedPwd || trimmedHash) {
+    const inputHash = trimmedPwd ? crypto.createHash('sha256').update(trimmedPwd).digest('hex') : trimmedHash;
+    try {
+      const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`, { headers });
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        const masterHash = cfg?.fields?.admin_password_hash?.stringValue || '';
+        if (masterHash && inputHash === masterHash) return true;
+      }
+    } catch (_) {}
+  }
+
+  return false;
 }
 
 export default async function handler(req, res) {
@@ -77,47 +79,40 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        body = {};
-      }
+      try { body = JSON.parse(body); } catch (_) { body = {}; }
     }
 
-    const { password, passwordHash, idTransaksi, targetCollection = 'transaksi', targetPath, groupId } = body || {};
-    const trimmedPwd = (password || '').trim();
-    const trimmedHash = (passwordHash || '').trim();
-    const trimmedId = (idTransaksi || '').trim();
-
-    if (!trimmedPwd && !trimmedHash) {
-      return res.status(400).json({ status: false, message: 'Password admin wajib diisi.' });
-    }
+    const { idTransaksi, targetCollection = 'transaksi', targetPath, groupId } = body || {};
+    const trimmedId = String(idTransaksi || '').trim();
     if (!trimmedId) {
       return res.status(400).json({ status: false, message: 'ID dokumen wajib diisi.' });
     }
 
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
+    const rawPath = (targetPath || targetCollection || 'transaksi').replace(/^\/+|\/+$/g, '');
+    const segs = rawPath.split('/');
+    const isScoped = segs.length === 3 && segs[0] === 'groups' && ALLOWED_COLS.includes(segs[2]) && /^[A-Za-z0-9-]+$/.test(segs[1]);
+    const isTop = segs.length === 1 && ALLOWED_COLS.includes(segs[0]);
 
-    // 1. Verify Password against Firestore app_config
-    const inputHash = trimmedPwd ? crypto.createHash('sha256').update(trimmedPwd).digest('hex') : trimmedHash;
-    const cfgUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/app_config`;
-    const cfgRes = await fetch(cfgUrl);
-    if (!cfgRes.ok) {
-      return res.status(502).json({ status: false, message: 'Gagal memverifikasi ke database konfigurasi.' });
+    if (!isScoped && !isTop) {
+      return res.status(400).json({ status: false, message: 'Jalur koleksi tidak diizinkan.' });
     }
-    const cfgData = await cfgRes.json();
-    const storedHash = cfgData?.fields?.admin_password_hash?.stringValue || '';
-
-    if (!storedHash || inputHash !== storedHash) {
-      return res.status(401).json({ status: false, message: 'Password Admin Salah!' });
+    if (!/^[A-Za-z0-9-]+$/.test(trimmedId)) {
+      return res.status(400).json({ status: false, message: 'ID dokumen tidak valid.' });
     }
 
-    // 2. Obtain Google Cloud IAM Access Token
+    const targetGroupId = groupId || (isScoped ? segs[1] : '');
+    const headers = await getFirestoreHeaders();
+    const authorized = await isAuthorizedToDelete(body, targetGroupId, headers);
+
+    if (!authorized) {
+      return res.status(401).json({ status: false, message: 'Tidak memiliki izin untuk menghapus data di grup ini.' });
+    }
+
     const serviceAccount = getServiceAccount();
     if (!serviceAccount) {
       return res.status(500).json({
         status: false,
-        message: 'Serverless Service Account belum dikonfigurasi di Environment Variable (FIREBASE_SERVICE_ACCOUNT).'
+        message: 'Serverless Service Account belum dikonfigurasi.'
       });
     }
 
@@ -126,19 +121,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ status: false, message: 'Gagal mengotentikasi ke Google Cloud IAM.' });
     }
 
-    // 3. Execute Delete using IAM Admin Token (jalur scoped grup tahap 3)
-    const ALLOWED_COLS = ['transaksi', 'anggota', 'kategori'];
-    const rawPath = (targetPath || targetCollection || 'transaksi').replace(/^\/+|\/+$/g, '');
-    const segs = rawPath.split('/');
-    const isScoped = segs.length === 3 && segs[0] === 'groups' && ALLOWED_COLS.includes(segs[2]) && /^[A-Za-z0-9-]+$/.test(segs[1]);
-    const isTop = segs.length === 1 && ALLOWED_COLS.includes(segs[0]);
-    if (!isScoped && !isTop) {
-      return res.status(400).json({ status: false, message: 'Jalur koleksi tidak diizinkan.' });
-    }
-    if (!/^[A-Za-z0-9-]+$/.test(trimmedId)) {
-      return res.status(400).json({ status: false, message: 'ID dokumen tidak valid.' });
-    }
-    const deleteUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${rawPath}/${trimmedId}`;
+    const deleteUrl = `${FIRESTORE_BASE}/${rawPath}/${trimmedId}`;
     const delRes = await fetch(deleteUrl, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` }

@@ -66,6 +66,25 @@
 
 /* Role-based visibility helpers */
 body:not(.admin-mode) .admin-only { display: none !important; }
+body:not(.superadmin-mode) .superadmin-only { display: none !important; }
+
+.btn-stealth-link {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.65;
+  text-decoration: none;
+}
+.btn-stealth-link:hover {
+  opacity: 1;
+  color: var(--text-main, #334155);
+  background: rgba(148, 163, 184, 0.12);
+}
 .btn-wa-reminder i { display: inline-flex; align-items:center; justify-content:center; }
 .btn-wa-reminder:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.08); background: linear-gradient(90deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08)); }
 

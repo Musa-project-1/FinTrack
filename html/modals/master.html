@@ -33,54 +33,26 @@
     </div>
   </div>
 
-  <!-- 4. Modal Bulan Libur (Skipped Months) -->
-  <div class="modal-overlay" id="modal-skipped-months">
-    <div class="modal-content modal-md">
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon warning">
-            <i class="ph-fill ph-calendar-x"></i>
-          </div>
-          <div class="modal-title-wrap">
-            <h2>Bulan Libur (Kas Bebas)</h2>
-            <p>Bulan yang ditandai tidak dihitung sebagai tunggakan anggota</p>
-          </div>
-        </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
-      </div>
-
-      <div class="skip-month-body">
-        <div class="skip-month-input-row">
-          <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
-          <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
-        </div>
-
-        <div id="skipped-months-list" class="skipped-months-container">
-          <div class="text-muted">Memuat data bulan libur...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. Modal Kelola Master (Anggota & Kategori) -->
+  <!-- 5. Modal Kelola Data Master (Anggota, Kategori, Bulan Libur) -->
   <div class="modal-overlay modal-top" id="modal-kelola-master">
     <div class="modal-content modal-lg">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
-            <i class="ph-fill ph-users-three"></i>
+            <i class="ph-fill ph-sliders"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Kelola Anggota & Kategori</h2>
-            <p>Pengaturan master data keanggotaan dan pos aliran kas</p>
+            <h2>Data Master</h2>
+            <p>Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
-        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Daftar Anggota</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori Kas</button>
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped">Bulan Libur</button>
       </div>
 
       <!-- Tab 1: Anggota -->
@@ -91,8 +63,8 @@
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> Tambah</button>
         </form>
 
-        <div class="table-responsive table-scrollable max-h-45vh">
-          <table>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
             <thead>
               <tr>
                 <th class="w-100">ID</th>
@@ -111,7 +83,7 @@
 
       <!-- Tab 2: Kategori -->
       <div id="tab-master-kategori" class="tab-content">
-        <form id="form-tambah-kategori" class="form-row-flex mb-16">
+        <form id="form-tambah-kategori" class="form-row-flex mb-16 master-add-form">
           <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
           <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
             <option value="Masuk">Kas Masuk</option>
@@ -121,8 +93,8 @@
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
         </form>
 
-        <div class="table-responsive table-scrollable max-h-45vh">
-          <table>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
             <thead>
               <tr>
                 <th class="w-110">ID</th>
@@ -135,6 +107,21 @@
               <tr><td colspan="4" class="td-muted-center">Memuat data kategori...</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Bulan Libur -->
+      <div id="tab-master-skipped" class="tab-content">
+        <div class="skip-month-body">
+          <p class="text-muted mb-16" style="font-size:13px">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
+          <div class="skip-month-input-row mb-16" style="display:flex;gap:10px">
+            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
+            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
+          </div>
+
+          <div id="skipped-months-list" class="skipped-months-container">
+            <div class="text-muted">Memuat data bulan libur...</div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, setState, addTransaction, saveCache, getIsAdminSession, getAdminPassword, currentRekapYear } from "../core/state.js";
 import { postToBackend, sendAdminPayload } from "../core/api.js";
-import { formatRp, showToast, isOnline, getRawNominal, escapeHtml } from "../core/utils.js";
+import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, escapeHtml } from "../core/utils.js";
 import { openOfflineDB, addOfflineTransaction, queueOfflinePayload } from "../core/offline.js";
-import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori } from "../ui/modal.js";
+import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import { renderAll, renderDashboard, renderTableTransaksi, renderTableRekap, renderChart, populateTahunRekap } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
@@ -45,59 +45,76 @@ export const submitQuickPay = async (e) => {
   const kat = state.kategori.find((k) => k.Tipe === 'Masuk');
   if (!kat) return showToast('Buat kategori Masuk terlebih dahulu.', 'error');
 
-  const btn = document.getElementById('btn-submit-quickpay');
-  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
-  btn.disabled = true;
+  const angName = state.anggota.find((a) => a.ID_Anggota === idAnggota)?.Nama_Anggota || 'Anggota';
 
-  const payload = {
-    action: 'tambahTransaksi',
-    dataForm: {
-      tipeArus: 'Masuk', idKategori: kat.ID_Kategori, idAnggota,
-      bulanIuran: bulan, tahunIuran: tahun, nominal, keterangan: 'Iuran Anggota'
+  showConfirmDialog({
+    title: 'Catat Iuran Kas?',
+    message: `Simpan iuran ${bulan} ${tahun} untuk ${angName} sebesar ${formatRp(nominal)} ke database?`,
+    icon: 'ph-fill ph-hand-coins',
+    confirmText: 'Ya, Simpan Iuran',
+    onConfirm: async () => {
+      const btn = document.getElementById('btn-submit-quickpay');
+      if (btn) {
+        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
+        btn.disabled = true;
+      }
+
+      const payload = {
+        action: 'tambahTransaksi',
+        dataForm: {
+          tipeArus: 'Masuk', idKategori: kat.ID_Kategori, idAnggota,
+          bulanIuran: bulan, tahunIuran: tahun, nominal, keterangan: 'Iuran Anggota'
+        }
+      };
+
+      const optimisticUpdate = () => {
+        addTransaction({
+          ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: new Date().toISOString(),
+          Tipe_Arus: 'Masuk', ID_Kategori: kat.ID_Kategori, ID_Anggota: idAnggota,
+          Bulan_Iuran: bulan, Tahun_Iuran: tahun, Nominal: nominal, Keterangan: 'Iuran Anggota'
+        });
+        renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
+      };
+
+      const resetBtn = () => {
+        if (btn) {
+          btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG';
+          btn.disabled = false;
+        }
+      };
+
+      if (!isOnline()) {
+        await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+        showDatabaseToast('Iuran Kas Disimpan (Offline)', `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
+        closeModal('modal-quickpay');
+        optimisticUpdate();
+        resetBtn();
+        return;
+      }
+
+      try {
+        const resJSON = await sendAdminPayload(payload);
+        if (!resJSON) {
+          await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+          showDatabaseToast('Iuran Kas Disimpan (Offline)', `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
+          closeModal('modal-quickpay');
+          optimisticUpdate();
+          return;
+        }
+        if (resJSON.status) {
+          showDatabaseToast('Iuran Kas Disimpan', `Iuran ${bulan} ${tahun} untuk ${angName} (${formatRp(nominal)}) berhasil dicatat.`);
+          closeModal('modal-quickpay');
+          optimisticUpdate();
+        } else {
+          showToast(resJSON.message, 'error');
+        }
+      } catch (error) {
+        showToast('Gagal menyimpan data.', 'error');
+      } finally {
+        resetBtn();
+      }
     }
-  };
-
-  const optimisticUpdate = () => {
-    addTransaction({
-      ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: new Date().toISOString(),
-      Tipe_Arus: 'Masuk', ID_Kategori: kat.ID_Kategori, ID_Anggota: idAnggota,
-      Bulan_Iuran: bulan, Tahun_Iuran: tahun, Nominal: nominal, Keterangan: 'Iuran Anggota'
-    });
-    renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
-  };
-
-  const resetBtn = () => { btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG'; btn.disabled = false; };
-
-  if (!isOnline()) {
-    await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-    showToast('Offline: pembayaran disimpan lokal untuk sinkronisasi nanti.', 'success');
-    closeModal('modal-quickpay');
-    optimisticUpdate();
-    resetBtn();
-    return;
-  }
-
-  try {
-    const resJSON = await sendAdminPayload(payload);
-    if (!resJSON) {
-      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-      showToast('Offline atau server tidak tersedia. Pembayaran disimpan lokal.', 'success');
-      closeModal('modal-quickpay');
-      optimisticUpdate();
-      return;
-    }
-    if (resJSON.status) {
-      showToast(`Iuran ${bulan} ${tahun} untuk ${getState().anggota.find((a) => a.ID_Anggota === idAnggota)?.Nama_Anggota || 'anggota'} berhasil dicatat!`);
-      closeModal('modal-quickpay');
-      optimisticUpdate();
-    } else {
-      showToast(resJSON.message, 'error');
-    }
-  } catch (error) {
-    showToast('Gagal menyimpan data.', 'error');
-  } finally {
-    resetBtn();
-  }
+  });
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -140,84 +157,100 @@ export const submitIuran = async (e) => {
   if (!formKategori || formKategori === '-') return showToast('Pilih kategori iuran terlebih dahulu.', 'error');
   if (!formBulan || !formTahun) return showToast('Bulan dan tahun iuran wajib dipilih.', 'error');
 
-  const btn = document.getElementById('btn-submit-iuran');
-  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
-  btn.disabled = true;
-
   const arrIdAnggota = Array.from(checkboxes).map((chk) => chk.value);
+  const totalNominal = formNominal * arrIdAnggota.length;
 
-  const payload = {
-    action: 'tambahTransaksiMassal',
-    dataForm: {
-      tipeArus: 'Masuk', idKategori: formKategori, arrIdAnggota,
-      bulanIuran: formBulan, tahunIuran: formTahun, nominal: formNominal, keterangan: 'Iuran Anggota'
-    },
-    listTrx: arrIdAnggota.map((idAng) => ({
-      tipeArus: 'Masuk', idKategori: formKategori, idAnggota: idAng,
-      bulanIuran: formBulan, tahunIuran: formTahun, nominal: formNominal, keterangan: 'Iuran Anggota'
-    }))
-  };
-
-  const optimisticUpdate = (idsToAdd) => {
-    const timestamp = new Date().toISOString();
-    idsToAdd.forEach((idAng) => {
-      addTransaction({
-        ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: timestamp,
-        Tipe_Arus: 'Masuk', ID_Kategori: formKategori, ID_Anggota: idAng,
-        Bulan_Iuran: formBulan, Tahun_Iuran: formTahun, Nominal: formNominal, Keterangan: 'Iuran Anggota'
-      });
-    });
-    populateTahunRekap(); renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
-    renderCheckboxIuran();
-    document.getElementById('iuran-nominal').value = new Intl.NumberFormat('id-ID').format(10000);
-  };
-
-  const resetBtn = () => { btn.innerHTML = 'SIMPAN IURAN'; btn.disabled = false; };
-
-  if (!isOnline()) {
-    await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-    showToast('Offline: transaksi iuran disimpan lokal untuk sinkronisasi nanti.', 'success');
-    closeModal('modal-transaksi');
-    optimisticUpdate(arrIdAnggota);
-    resetBtn();
-    return;
-  }
-
-  try {
-    const resJSON = await sendAdminPayload(payload);
-    if (!resJSON) {
-      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-      showToast('Offline atau server tidak tersedia. Transaksi disimpan lokal.', 'success');
-      closeModal('modal-transaksi');
-      resetBtn();
-      return;
-    }
-    if (resJSON.status) {
-      const inserted = Number(resJSON.data?.inserted ?? arrIdAnggota.length);
-      const skipped = Array.isArray(resJSON.data?.skipped) ? resJSON.data.skipped : [];
-      if (inserted === 0) {
-        showToast(resJSON.message || 'Semua anggota yang dipilih sudah lunas.', 'warning');
-        closeModal('modal-transaksi');
-        refreshAppData();
-      } else {
-        showToast(resJSON.message || 'Iuran berhasil dicatat!', skipped.length ? 'warning' : 'success');
-        closeModal('modal-transaksi');
-        optimisticUpdate(arrIdAnggota.filter((id) => !skipped.includes(id)));
+  showConfirmDialog({
+    title: 'Simpan Iuran Kas?',
+    message: `Catat iuran ${formBulan} ${formTahun} untuk ${arrIdAnggota.length} anggota terpilih (Total: ${formatRp(totalNominal)}) ke database?`,
+    icon: 'ph-fill ph-hand-coins',
+    confirmText: 'Ya, Simpan Iuran',
+    onConfirm: async () => {
+      const btn = document.getElementById('btn-submit-iuran');
+      if (btn) {
+        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
+        btn.disabled = true;
       }
-    } else {
-      showToast(resJSON.message, 'error');
+
+      const payload = {
+        action: 'tambahTransaksiMassal',
+        dataForm: {
+          tipeArus: 'Masuk', idKategori: formKategori, arrIdAnggota,
+          bulanIuran: formBulan, tahunIuran: formTahun, nominal: formNominal, keterangan: 'Iuran Anggota'
+        },
+        listTrx: arrIdAnggota.map((idAng) => ({
+          tipeArus: 'Masuk', idKategori: formKategori, idAnggota: idAng,
+          bulanIuran: formBulan, tahunIuran: formTahun, nominal: formNominal, keterangan: 'Iuran Anggota'
+        }))
+      };
+
+      const optimisticUpdate = (idsToAdd) => {
+        const timestamp = new Date().toISOString();
+        idsToAdd.forEach((idAng) => {
+          addTransaction({
+            ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: timestamp,
+            Tipe_Arus: 'Masuk', ID_Kategori: formKategori, ID_Anggota: idAng,
+            Bulan_Iuran: formBulan, Tahun_Iuran: formTahun, Nominal: formNominal, Keterangan: 'Iuran Anggota'
+          });
+        });
+        populateTahunRekap(); renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
+        renderCheckboxIuran();
+        document.getElementById('iuran-nominal').value = new Intl.NumberFormat('id-ID').format(10000);
+      };
+
+      const resetBtn = () => {
+        if (btn) {
+          btn.innerHTML = 'SIMPAN IURAN';
+          btn.disabled = false;
+        }
+      };
+
+      if (!isOnline()) {
+        await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+        showDatabaseToast('Iuran Kas Disimpan (Offline)', `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
+        closeModal('modal-transaksi');
+        optimisticUpdate(arrIdAnggota);
+        resetBtn();
+        return;
+      }
+
+      try {
+        const resJSON = await sendAdminPayload(payload);
+        if (!resJSON) {
+          await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+          showDatabaseToast('Iuran Kas Disimpan (Offline)', `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
+          closeModal('modal-transaksi');
+          resetBtn();
+          return;
+        }
+        if (resJSON.status) {
+          const inserted = Number(resJSON.data?.inserted ?? arrIdAnggota.length);
+          const skipped = Array.isArray(resJSON.data?.skipped) ? resJSON.data.skipped : [];
+          if (inserted === 0) {
+            showToast(resJSON.message || 'Semua anggota yang dipilih sudah lunas.', 'warning');
+            closeModal('modal-transaksi');
+            refreshAppData();
+          } else {
+            showDatabaseToast('Iuran Kas Disimpan', `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
+            closeModal('modal-transaksi');
+            optimisticUpdate(arrIdAnggota.filter((id) => !skipped.includes(id)));
+          }
+        } else {
+          showToast(resJSON.message, 'error');
+        }
+      } catch (error) {
+        if (!isOnline()) {
+          await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+          showDatabaseToast('Iuran Kas Disimpan (Offline)', `Iuran disimpan lokal.`);
+          closeModal('modal-transaksi');
+        } else {
+          showToast('Gagal menyimpan data.', 'error');
+        }
+      } finally {
+        resetBtn();
+      }
     }
-  } catch (error) {
-    if (!isOnline()) {
-      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-      showToast('Offline: transaksi iuran disimpan lokal untuk sinkronisasi nanti.', 'success');
-      closeModal('modal-transaksi');
-    } else {
-      showToast('Gagal menyimpan data.', 'error');
-    }
-  } finally {
-    resetBtn();
-  }
+  });
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -241,72 +274,88 @@ export const submitOperasional = async (e) => {
     return showToast('Nominal operasional harus lebih dari 0.', 'error');
   }
 
-  const btn = document.getElementById('btn-submit-ops');
-  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
-  btn.disabled = true;
+  showConfirmDialog({
+    title: `Catat ${formTipe === 'Masuk' ? 'Pemasukan' : 'Pengeluaran'}?`,
+    message: `Simpan transaksi ${formTipe} sebesar ${formatRp(formNominal)} ke database kas?`,
+    icon: formTipe === 'Masuk' ? 'ph-fill ph-trend-up' : 'ph-fill ph-trend-down',
+    badgeClass: formTipe === 'Masuk' ? '' : 'warning',
+    confirmText: 'Ya, Simpan Transaksi',
+    onConfirm: async () => {
+      const btn = document.getElementById('btn-submit-ops');
+      if (btn) {
+        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...';
+        btn.disabled = true;
+      }
 
-  const payload = {
-    action: 'tambahTransaksi',
-    dataForm: {
-      tipeArus: formTipe, idKategori: formKategori, idAnggota: formAnggota,
-      bulanIuran: '-', tahunIuran: '-', nominal: formNominal, keterangan: formKeterangan
+      const payload = {
+        action: 'tambahTransaksi',
+        dataForm: {
+          tipeArus: formTipe, idKategori: formKategori, idAnggota: formAnggota,
+          bulanIuran: '-', tahunIuran: '-', nominal: formNominal, keterangan: formKeterangan
+        }
+      };
+
+      const optimisticUpdate = () => {
+        addTransaction({
+          ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: new Date().toISOString(),
+          Tipe_Arus: formTipe, ID_Kategori: formKategori, ID_Anggota: formAnggota,
+          Bulan_Iuran: '-', Tahun_Iuran: '-', Nominal: formNominal, Keterangan: formKeterangan
+        });
+        populateTahunRekap(); renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
+        document.getElementById('tab-operasional').querySelector('form').reset();
+        document.getElementById('ops-anggota').value = '-';
+        document.getElementById('ops-tipe').value = 'Keluar';
+        filterKategori('ops-tipe', 'ops-kategori');
+        syncCdrop('ops-anggota');
+        syncCdrop('ops-tipe');
+        syncCdrop('ops-kategori');
+      };
+
+      const resetBtn = () => {
+        if (btn) {
+          btn.innerHTML = 'SIMPAN OPERASIONAL';
+          btn.disabled = false;
+        }
+      };
+
+      if (!isOnline()) {
+        await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+        showDatabaseToast('Operasional Disimpan (Offline)', `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
+        closeModal('modal-transaksi');
+        optimisticUpdate();
+        resetBtn();
+        return;
+      }
+
+      try {
+        const resJSON = await sendAdminPayload(payload);
+        if (!resJSON) {
+          await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+          showDatabaseToast('Operasional Disimpan (Offline)', `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
+          closeModal('modal-transaksi');
+          resetBtn();
+          return;
+        }
+        if (resJSON.status) {
+          showDatabaseToast('Transaksi Kas Dicatat', `${formTipe}: ${formatRp(formNominal)} berhasil disimpan.`);
+          closeModal('modal-transaksi');
+          optimisticUpdate();
+        } else {
+          showToast(resJSON.message, 'error');
+        }
+      } catch (error) {
+        if (!isOnline()) {
+          await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
+          showDatabaseToast('Operasional Disimpan (Offline)', `Transaksi disimpan lokal.`);
+          closeModal('modal-transaksi');
+        } else {
+          showToast('Gagal menyimpan data.', 'error');
+        }
+      } finally {
+        resetBtn();
+      }
     }
-  };
-
-  const optimisticUpdate = () => {
-    addTransaction({
-      ID_Transaksi: 'TRX-TEMP-' + Math.floor(Math.random() * 100000), Timestamp: new Date().toISOString(),
-      Tipe_Arus: formTipe, ID_Kategori: formKategori, ID_Anggota: formAnggota,
-      Bulan_Iuran: '-', Tahun_Iuran: '-', Nominal: formNominal, Keterangan: formKeterangan
-    });
-    populateTahunRekap(); renderDashboard(); renderTableTransaksi(); renderTableRekap(); renderChart();
-    document.getElementById('tab-operasional').querySelector('form').reset();
-    document.getElementById('ops-anggota').value = '-';
-    document.getElementById('ops-tipe').value = 'Keluar';
-    filterKategori('ops-tipe', 'ops-kategori');
-    syncCdrop('ops-anggota');
-    syncCdrop('ops-tipe');
-    syncCdrop('ops-kategori');
-  };
-
-  const resetBtn = () => { btn.innerHTML = 'SIMPAN OPERASIONAL'; btn.disabled = false; };
-
-  if (!isOnline()) {
-    await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-    showToast('Offline: transaksi operasional disimpan lokal untuk sinkronisasi nanti.', 'success');
-    closeModal('modal-transaksi');
-    optimisticUpdate();
-    resetBtn();
-    return;
-  }
-
-  try {
-    const resJSON = await sendAdminPayload(payload);
-    if (!resJSON) {
-      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-      showToast('Offline atau server tidak tersedia. Transaksi disimpan lokal.', 'success');
-      closeModal('modal-transaksi');
-      resetBtn();
-      return;
-    }
-    if (resJSON.status) {
-      showToast('Transaksi Operasional dicatat!');
-      closeModal('modal-transaksi');
-      optimisticUpdate();
-    } else {
-      showToast(resJSON.message, 'error');
-    }
-  } catch (error) {
-    if (!isOnline()) {
-      await queueOfflinePayload({ ...payload, adminPassword: getAdminPassword() });
-      showToast('Offline: transaksi operasional disimpan lokal untuk sinkronisasi nanti.', 'success');
-      closeModal('modal-transaksi');
-    } else {
-      showToast('Gagal menyimpan data.', 'error');
-    }
-  } finally {
-    resetBtn();
-  }
+  });
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -344,41 +393,53 @@ export const submitEditTransaksi = async (e) => {
   if (!idKategori || idKategori === '-') return showToast('Pilih kategori transaksi.', 'error');
   if (isNaN(nominal) || nominal <= 0) return showToast('Nominal transaksi harus lebih dari 0.', 'error');
 
-  const btn = document.getElementById('btn-submit-edit');
-  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Updating...';
-  btn.disabled = true;
+  showConfirmDialog({
+    title: 'Perbarui Data Transaksi?',
+    message: `Simpan pembaruan transaksi ${idTransaksi} (${formatRp(nominal)}) ke database?`,
+    icon: 'ph-fill ph-pencil-simple',
+    confirmText: 'Ya, Perbarui',
+    onConfirm: async () => {
+      const btn = document.getElementById('btn-submit-edit');
+      if (btn) {
+        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Updating...';
+        btn.disabled = true;
+      }
 
-  const payload = {
-    action: 'editTransaksi',
-    idTransaksi,
-    dataForm: {
-      idTransaksi,
-      tipeArus,
-      idKategori,
-      idAnggota: document.getElementById('edit-anggota')?.value || '-',
-      bulanIuran: document.getElementById('edit-bulan')?.value || '-',
-      tahunIuran: document.getElementById('edit-tahun')?.value || '-',
-      nominal,
-      keterangan: (document.getElementById('edit-keterangan')?.value || '').trim()
-    }
-  };
+      const payload = {
+        action: 'editTransaksi',
+        idTransaksi,
+        dataForm: {
+          idTransaksi,
+          tipeArus,
+          idKategori,
+          idAnggota: document.getElementById('edit-anggota')?.value || '-',
+          bulanIuran: document.getElementById('edit-bulan')?.value || '-',
+          tahunIuran: document.getElementById('edit-tahun')?.value || '-',
+          nominal,
+          keterangan: (document.getElementById('edit-keterangan')?.value || '').trim()
+        }
+      };
 
-  try {
-    const resJSON = await sendAdminPayload(payload);
-    if (!resJSON) return;
-    if (resJSON.status) {
-      showToast('Data berhasil diperbarui!');
-      closeModal('modal-edit-transaksi');
-      refreshAppData();
-    } else {
-      showToast(resJSON.message, 'error');
+      try {
+        const resJSON = await sendAdminPayload(payload);
+        if (!resJSON) return;
+        if (resJSON.status) {
+          showDatabaseToast('Transaksi Diperbarui', `Data transaksi ${idTransaksi} berhasil diperbarui di database.`);
+          closeModal('modal-edit-transaksi');
+          refreshAppData();
+        } else {
+          showToast(resJSON.message, 'error');
+        }
+      } catch (error) {
+        showToast('Sistem (Backend) belum mendukung fitur Edit.', 'error');
+      } finally {
+        if (btn) {
+          btn.innerHTML = 'UPDATE DATA';
+          btn.disabled = false;
+        }
+      }
     }
-  } catch (error) {
-    showToast('Sistem (Backend) belum mendukung fitur Edit.', 'error');
-  } finally {
-    btn.innerHTML = 'UPDATE DATA';
-    btn.disabled = false;
-  }
+  });
 };
 
 export const konfirmasiHapus = (idTrx) => {
@@ -398,7 +459,7 @@ export const eksekusiHapus = async () => {
     const resJSON = await sendAdminPayload({ action: 'hapusTransaksi', idTransaksi: idTarget });
     if (!resJSON) return;
     if (resJSON.status) {
-      showToast('Data dihapus!');
+      showDatabaseToast('Transaksi Dihapus', `Data transaksi ${idTarget} telah dihapus dari database.`);
       closeModal('modal-hapus');
       refreshAppData();
       renderChart();

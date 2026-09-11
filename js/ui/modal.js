@@ -34,6 +34,9 @@ const trapFocus = (e, modalEl) => {
  */
 export const openModal = (id) => {
   closeMobileMenu();
+  if (id !== 'modal-menu') {
+    closeModal('modal-menu');
+  }
   const el = document.getElementById(id);
   if (!el) {
     console.error('openModal: Element not found with id:', id);
@@ -80,6 +83,61 @@ export const closeModal = (id) => {
       previousActiveElement.focus();
       previousActiveElement = null;
     }
+  }
+};
+
+/* ── Unified Database Confirmation Dialog ────────────────────────── */
+let pendingConfirmAction = null;
+
+/**
+ * Buka dialog konfirmasi aksi database.
+ * @param {object} options
+ */
+export const showConfirmDialog = ({
+  title = 'Konfirmasi Perubahan',
+  message = 'Apakah Anda yakin ingin menyimpan perubahan ini ke database?',
+  icon = 'ph-fill ph-database',
+  badgeClass = '',
+  confirmText = 'Ya, Lanjutkan',
+  confirmClass = 'btn-primary',
+  onConfirm
+}) => {
+  const modal = document.getElementById('modal-confirm-action');
+  if (!modal) {
+    if (confirm(message)) onConfirm?.();
+    return;
+  }
+
+  const titleEl = document.getElementById('confirm-title');
+  const msgEl = document.getElementById('confirm-message');
+  const iconEl = document.getElementById('confirm-icon');
+  const badgeEl = document.getElementById('confirm-badge-icon');
+  const submitBtn = document.getElementById('btn-confirm-action-submit');
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+  if (iconEl) iconEl.className = icon;
+  if (badgeEl) badgeEl.className = 'modal-badge-icon ' + (badgeClass || '');
+
+  if (submitBtn) {
+    submitBtn.textContent = confirmText;
+    submitBtn.className = `btn ${confirmClass}`;
+  }
+
+  pendingConfirmAction = onConfirm;
+  openModal('modal-confirm-action');
+};
+
+export const closeConfirmDialog = () => {
+  pendingConfirmAction = null;
+  closeModal('modal-confirm-action');
+};
+
+export const executeConfirmAction = async () => {
+  const action = pendingConfirmAction;
+  closeConfirmDialog();
+  if (typeof action === 'function') {
+    await action();
   }
 };
 

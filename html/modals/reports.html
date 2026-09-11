@@ -82,19 +82,22 @@
           <div class="stat-card-title">Jumlah Anggota Lunas</div>
           <div id="stat-fully-paid" class="stat-card-value">0</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Anggota Menunggak</div>
-          <div id="stat-with-arrears" class="stat-card-value">0</div>
+        <div class="stat-card stat-card-interactive" id="card-stat-menunggak" data-action="action-salin-tagihan-wa" style="cursor:pointer" title="Klik untuk salin daftar tagihan WhatsApp">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span class="stat-card-title" style="margin:0">Anggota Menunggak</span>
+            <span class="badge" style="font-size:10px;padding:2px 6px;background:rgba(16,185,129,0.12);color:#059669"><i class="ph-bold ph-whatsapp-logo"></i> Salin</span>
+          </div>
+          <div id="stat-with-arrears" class="stat-card-value" style="color:var(--warning,#d97706)">0</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-title">Potensi Belum Tertagih</div>
-          <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
+          <div id="stat-uncollected" class="stat-card-value" style="color:var(--danger,#e11d48)">Rp 0</div>
         </div>
       </div>
       <div class="chart-section chart-grid-section">
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title">Tren Kas Iuran Bulanan</h3>
+            <h3 class="chart-card-title">Tren Arus Kas (Masuk vs Keluar)</h3>
             <div class="chart-update-text">Update: <span id="last-update">-</span></div>
           </div>
           <div class="chart-wrapper chart-wrapper-compact">
@@ -104,7 +107,7 @@
 
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h3>
+            <h3 class="chart-card-title" id="expense-chart-title">Distribusi Pengeluaran Kas</h3>
           </div>
           <div class="chart-wrapper chart-wrapper-compact flex-center">
             <canvas id="expenseChart"></canvas>

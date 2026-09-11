@@ -14,7 +14,7 @@ import {
   openModal, closeModal, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
   renderCheckboxIuran, filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
-  toggleHeaderDropdown, closeHeaderDropdown
+  toggleHeaderDropdown, closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
   renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
@@ -165,15 +165,17 @@ document.addEventListener('click', (e) => {
     case 'export-json-backup': exportJSONBackup(); break;
     case 'print-annual':     cetakLaporanTahunan(); break;
     case 'print-reminder':   createGroupReminderMessage(); break;
+    case 'action-salin-tagihan-wa': createGroupReminderMessage(); break;
 
     /* ── Login/Logout ─────────────────────────────── */
-    case 'logout':           closeHeaderDropdown(); openModal('modal-logout'); break;
+    case 'logout':           closeHeaderDropdown(); closeModal('modal-menu'); openModal('modal-logout'); break;
     case 'confirm-logout':   logoutAdminAction(); break;
     case 'cancel-logout':    closeModal('modal-logout'); break;
 
     /* ── Delete confirmation ──────────────────────── */
     case 'confirm-delete':   eksekusiHapus(); break;
     case 'cancel-delete':    closeModal('modal-hapus'); break;
+    case 'cancel-confirm-action': closeConfirmDialog(); break;
 
     /* ── Offline sync ─────────────────────────────── */
     case 'sync-now':         syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
@@ -246,6 +248,10 @@ document.getElementById('modal-edit-transaksi')?.addEventListener('submit', (e) 
 
 document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
   submitQuickPay(e);
+});
+
+document.getElementById('btn-confirm-action-submit')?.addEventListener('click', () => {
+  executeConfirmAction();
 });
 
 

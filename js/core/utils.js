@@ -35,11 +35,12 @@ export const getRawNominal = (id) => {
 };
 
 /**
- * Show a toast notification.
- * @param {string} message - Message to display.
- * @param {'success'|'error'|'warning'} [type='success'] - Toast type.
+ * Show a floating toast notification.
+ * @param {string} message - Message text.
+ * @param {'success'|'error'|'warning'|'info'} [type='success'] - Toast type.
+ * @param {object} [options] - Additional options (title, badge, icon, duration).
  */
-export const showToast = (message, type = 'success') => {
+export const showToast = (message, type = 'success', options = {}) => {
   const container = document.getElementById('toast-container');
   if (!container) return;
 
@@ -54,22 +55,51 @@ export const showToast = (message, type = 'success') => {
   const safeType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
   toast.className = `toast ${safeType}`;
 
+  // Icon badge
   const iconWrap = document.createElement('span');
   iconWrap.className = `toast-icon-wrap ${safeType}`;
   const icon = document.createElement('i');
-  icon.className =
-    safeType === 'success'
-      ? 'ph-fill ph-check-circle'
-      : safeType === 'warning'
-      ? 'ph-fill ph-warning'
-      : safeType === 'info'
-      ? 'ph-fill ph-info'
-      : 'ph-fill ph-warning-circle';
+  
+  let defaultIcon = 'ph-fill ph-check-circle';
+  if (options?.icon) {
+    defaultIcon = options.icon;
+  } else if (safeType === 'warning') {
+    defaultIcon = 'ph-fill ph-warning';
+  } else if (safeType === 'info') {
+    defaultIcon = 'ph-fill ph-info';
+  } else if (safeType === 'error') {
+    defaultIcon = 'ph-fill ph-warning-circle';
+  }
+  icon.className = defaultIcon;
   iconWrap.appendChild(icon);
+
+  // Body container
+  const body = document.createElement('div');
+  body.className = 'toast-body';
+
+  const badgeText = options?.badge || (safeType === 'success' ? 'SUKSES' : safeType.toUpperCase());
+  const titleText = options?.title || '';
+
+  const headerRow = document.createElement('div');
+  headerRow.className = 'toast-header-row';
+
+  const badgeTag = document.createElement('span');
+  badgeTag.className = 'toast-badge-tag';
+  badgeTag.textContent = `● ${badgeText}`;
+  headerRow.appendChild(badgeTag);
+
+  if (titleText) {
+    const titleEl = document.createElement('span');
+    titleEl.className = 'toast-title';
+    titleEl.textContent = titleText;
+    headerRow.appendChild(titleEl);
+  }
+  body.appendChild(headerRow);
 
   const label = document.createElement('span');
   label.className = 'toast-label';
   label.textContent = text;
+  body.appendChild(label);
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
@@ -77,14 +107,19 @@ export const showToast = (message, type = 'success') => {
   closeBtn.setAttribute('aria-label', 'Tutup');
   closeBtn.innerHTML = '<i class="ph ph-x"></i>';
 
-  toast.append(iconWrap, label, closeBtn);
+  const duration = options?.duration || 3500;
+  const progress = document.createElement('div');
+  progress.className = 'toast-progress';
+  progress.style.animationDuration = `${duration}ms`;
+
+  toast.append(iconWrap, body, closeBtn, progress);
 
   let timer = null;
   const hide = () => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 280);
   };
-  const startTimer = () => { timer = setTimeout(hide, 3500); };
+  const startTimer = () => { timer = setTimeout(hide, duration); };
   const stopTimer = () => { if (timer) clearTimeout(timer); };
 
   closeBtn.addEventListener('click', (e) => {
@@ -92,12 +127,32 @@ export const showToast = (message, type = 'success') => {
     stopTimer();
     hide();
   });
-  toast.addEventListener('mouseenter', stopTimer);
-  toast.addEventListener('mouseleave', startTimer);
+  toast.addEventListener('mouseenter', () => {
+    stopTimer();
+    progress.style.animationPlayState = 'paused';
+  });
+  toast.addEventListener('mouseleave', () => {
+    startTimer();
+    progress.style.animationPlayState = 'running';
+  });
 
   container.appendChild(toast);
   requestAnimationFrame(() => toast.classList.add('show'));
   startTimer();
+};
+
+/**
+ * Toast peringatan khusus untuk aktivitas admin yang merubah database.
+ * @param {string} title - Judul perubahan (misal: "Iuran Kas Disimpan")
+ * @param {string} detail - Rincian data yang diubah
+ * @param {'success'|'warning'|'error'} [type='success']
+ */
+export const showDatabaseToast = (title, detail, type = 'success') => {
+  showToast(detail || title, type, {
+    title,
+    badge: 'DATABASE',
+    icon: type === 'error' ? 'ph-fill ph-warning-circle' : 'ph-fill ph-database'
+  });
 };
 
 /**

@@ -109,27 +109,26 @@ export const renderChart = async () => {
   const skipSet = new Set(state.skippedMonths || []);
   const activeMembers = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
   const monthlyFee = DEFAULT_MONTHLY_FEE;
+  const numActive = activeMembers.length || 1;
 
-  const expectedThisMonth = months.map((m) =>
-    skipSet.has(`${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`) ? 0 : monthlyFee
-  );
-
-  const paidByMonth = months.map((m) =>
-    state.transaksi
-      .filter((t) => {
-        const tgl = new Date(t.Timestamp);
-        return tgl.getMonth() === m.monthIndex && tgl.getFullYear() === m.year && t.Tipe_Arus === 'Masuk';
-      })
-      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0)
-  );
+  // Target iuran bulanan riil (jumlah anggota aktif x nominal iuran per bulan wajib)
+  const expectedThisMonth = months.map((m) => {
+    const key = `${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`;
+    return skipSet.has(key) ? 0 : monthlyFee * numActive;
+  });
 
   const totalExpected = expectedThisMonth.reduce((sum, val) => sum + val, 0);
-  const totalCollected = paidByMonth.reduce((sum, val) => sum + val, 0);
+
+  // Total iuran yang terkumpul dari seluruh anggota aktif
+  const totalCollected = state.transaksi
+    .filter((t) => t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran && t.Bulan_Iuran !== '-')
+    .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
+
   const healthPct = totalExpected === 0 ? 100 : Math.min(100, Math.round((totalCollected / totalExpected) * 100));
 
   document.getElementById('stat-health-pct').innerText = `${healthPct}%`;
   document.getElementById('stat-health-fill').style.width = `${healthPct}%`;
-  document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari target ${formatRp(totalExpected)}.`;
+  document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari target iuran ${formatRp(totalExpected)} (${healthPct}% kepatuhan).`;
   const noteEl = document.getElementById('stat-health-note');
   if (noteEl) noteEl.innerText = '';
 
@@ -152,11 +151,22 @@ export const renderChart = async () => {
   document.getElementById('stat-with-arrears').innerText = withArrearsCount.toString();
   document.getElementById('stat-uncollected').innerText = formatRp(potentialUncollected);
 
+  // Data Pemasukan (Iuran + Operasional Masuk)
   const dataMasuk = months.map((m) =>
     state.transaksi
       .filter((t) => {
         const tgl = new Date(t.Timestamp);
         return tgl.getMonth() === m.monthIndex && tgl.getFullYear() === m.year && t.Tipe_Arus === 'Masuk';
+      })
+      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0)
+  );
+
+  // Data Pengeluaran Kas
+  const dataKeluar = months.map((m) =>
+    state.transaksi
+      .filter((t) => {
+        const tgl = new Date(t.Timestamp);
+        return tgl.getMonth() === m.monthIndex && tgl.getFullYear() === m.year && t.Tipe_Arus === 'Keluar';
       })
       .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0)
   );
@@ -171,25 +181,60 @@ export const renderChart = async () => {
     type: 'line',
     data: {
       labels: monthLabels,
-      datasets: [{
-        label: 'Masuk',
-        data: dataMasuk,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.14)',
-        tension: 0.35,
-        pointRadius: 4,
-        fill: true,
-        borderWidth: 3,
-        pointBackgroundColor: '#10b981',
-        pointBorderColor: '#fff',
-      }]
+      datasets: [
+        {
+          label: 'Pemasukan',
+          data: dataMasuk,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#10b981',
+          pointBorderColor: '#fff',
+        },
+        {
+          label: 'Pengeluaran',
+          data: dataKeluar,
+          borderColor: '#f43f5e',
+          backgroundColor: 'rgba(244, 63, 94, 0.12)',
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#f43f5e',
+          pointBorderColor: '#fff',
+        }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${formatRp(ctx.raw)}` } }
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            boxWidth: 10,
+            boxHeight: 10,
+            usePointStyle: true,
+            color: textColor,
+            font: { family: 'Inter', size: 11, weight: 600 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${formatRp(ctx.raw)}`
+          }
+        }
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
@@ -218,19 +263,32 @@ const renderExpenseChart = (isDark, textColor) => {
   const ctx = chartEl.getContext('2d');
   const state = getState();
   const now = new Date();
-  const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  const expenses = state.transaksi.filter((t) => {
+  // Ambil seluruh pengeluaran tahun berjalan (atau sepanjang masa jika tahun ini kosong)
+  let expenses = state.transaksi.filter((t) => {
     const tgl = new Date(t.Timestamp);
-    return tgl.getMonth() === currentMonth && tgl.getFullYear() === currentYear && t.Tipe_Arus === 'Keluar';
+    return tgl.getFullYear() === currentYear && t.Tipe_Arus === 'Keluar';
   });
+  let periodLabel = `Tahun ${currentYear}`;
+  if (expenses.length === 0) {
+    expenses = state.transaksi.filter((t) => t.Tipe_Arus === 'Keluar');
+    periodLabel = 'Seluruh Transaksi';
+  }
+
+  const titleEl = document.getElementById('expense-chart-title');
+  if (titleEl) {
+    titleEl.textContent = `Distribusi Pengeluaran (${periodLabel})`;
+  }
 
   const categoryTotals = {};
+  let grandTotalExpense = 0;
   expenses.forEach((t) => {
     const cat = state.kategori.find((k) => k.ID_Kategori === t.ID_Kategori);
     const catName = cat ? cat.Nama_Kategori : 'Lainnya';
-    categoryTotals[catName] = (categoryTotals[catName] || 0) + (Number(t.Nominal) || 0);
+    const nom = Number(t.Nominal) || 0;
+    categoryTotals[catName] = (categoryTotals[catName] || 0) + nom;
+    grandTotalExpense += nom;
   });
 
   const labels = Object.keys(categoryTotals);
@@ -242,9 +300,9 @@ const renderExpenseChart = (isDark, textColor) => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = textColor;
-    ctx.font = '14px Inter';
+    ctx.font = '13px Inter';
     ctx.clearRect(0, 0, chartEl.width, chartEl.height);
-    ctx.fillText('Tidak ada pengeluaran bulan ini', chartEl.width / 2, chartEl.height / 2);
+    ctx.fillText('Belum ada data pengeluaran kas', chartEl.width / 2, chartEl.height / 2);
     return;
   }
 
@@ -266,11 +324,34 @@ const renderExpenseChart = (isDark, textColor) => {
       plugins: {
         legend: {
           position: isMobileView ? 'bottom' : 'right',
-          labels: { color: textColor, font: { family: 'Inter', size: 11 }, padding: isMobileView ? 12 : 20, boxWidth: isMobileView ? 14 : 40 }
+          labels: {
+            color: textColor,
+            font: { family: 'Inter', size: 11, weight: 500 },
+            padding: isMobileView ? 10 : 16,
+            boxWidth: 12,
+            boxHeight: 12,
+            generateLabels: (chart) => {
+              const orig = Chart.overrides.doughnut.plugins.legend.labels.generateLabels(chart);
+              return orig.map((item) => {
+                const val = data[item.index] || 0;
+                const pct = grandTotalExpense ? Math.round((val / grandTotalExpense) * 100) : 0;
+                item.text = `${item.text} (${pct}%)`;
+                return item;
+              });
+            }
+          }
         },
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatRp(ctx.raw)}` } }
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.raw || 0;
+              const pct = grandTotalExpense ? Math.round((val / grandTotalExpense) * 100) : 0;
+              return ` ${ctx.label}: ${formatRp(val)} (${pct}%)`;
+            }
+          }
+        }
       },
-      cutout: '70%'
+      cutout: '68%'
     }
   });
   setExpenseChart(expenseChart);

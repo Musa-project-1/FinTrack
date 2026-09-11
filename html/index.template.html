@@ -20,8 +20,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=112">
-  <link rel="stylesheet" href="style.css?v=112">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=113">
+  <link rel="stylesheet" href="style.css?v=113">
 </head>
 <body>
 
@@ -220,11 +220,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=112"></script>
+  <script type="module" src="js/app.js?v=113"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=112', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=113', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

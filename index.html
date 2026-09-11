@@ -20,8 +20,8 @@
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=112">
-  <link rel="stylesheet" href="style.css?v=112">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=113">
+  <link rel="stylesheet" href="style.css?v=113">
 </head>
 <body>
 
@@ -488,13 +488,8 @@
       <div class="nav-group">
         <div class="nav-group-label">Kelola data</div>
         <button class="nav-item admin-only" data-action="open-kelola-master">
-          <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
-          <span class="nav-txt">Kelola Anggota &amp; Kategori</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item admin-only" data-action="open-skipped-months">
-          <span class="nav-ico is-amber"><i class="ph-fill ph-calendar-x"></i></span>
-          <span class="nav-txt">Bulan Libur</span>
+          <span class="nav-ico is-blue"><i class="ph-fill ph-sliders"></i></span>
+          <span class="nav-txt">Data Master</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item admin-only" data-action="open-audit-log">
@@ -630,54 +625,26 @@
     </div>
   </div>
 
-  <!-- 4. Modal Bulan Libur (Skipped Months) -->
-  <div class="modal-overlay" id="modal-skipped-months">
-    <div class="modal-content modal-md">
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon warning">
-            <i class="ph-fill ph-calendar-x"></i>
-          </div>
-          <div class="modal-title-wrap">
-            <h2>Bulan Libur (Kas Bebas)</h2>
-            <p>Bulan yang ditandai tidak dihitung sebagai tunggakan anggota</p>
-          </div>
-        </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
-      </div>
-
-      <div class="skip-month-body">
-        <div class="skip-month-input-row">
-          <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
-          <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
-        </div>
-
-        <div id="skipped-months-list" class="skipped-months-container">
-          <div class="text-muted">Memuat data bulan libur...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. Modal Kelola Master (Anggota & Kategori) -->
+  <!-- 5. Modal Kelola Data Master (Anggota, Kategori, Bulan Libur) -->
   <div class="modal-overlay modal-top" id="modal-kelola-master">
     <div class="modal-content modal-lg">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
-            <i class="ph-fill ph-users-three"></i>
+            <i class="ph-fill ph-sliders"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Kelola Anggota & Kategori</h2>
-            <p>Pengaturan master data keanggotaan dan pos aliran kas</p>
+            <h2>Data Master</h2>
+            <p>Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
-        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Daftar Anggota</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori Kas</button>
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped">Bulan Libur</button>
       </div>
 
       <!-- Tab 1: Anggota -->
@@ -688,8 +655,8 @@
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> Tambah</button>
         </form>
 
-        <div class="table-responsive table-scrollable max-h-45vh">
-          <table>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
             <thead>
               <tr>
                 <th class="w-100">ID</th>
@@ -708,7 +675,7 @@
 
       <!-- Tab 2: Kategori -->
       <div id="tab-master-kategori" class="tab-content">
-        <form id="form-tambah-kategori" class="form-row-flex mb-16">
+        <form id="form-tambah-kategori" class="form-row-flex mb-16 master-add-form">
           <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
           <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
             <option value="Masuk">Kas Masuk</option>
@@ -718,8 +685,8 @@
           <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
         </form>
 
-        <div class="table-responsive table-scrollable max-h-45vh">
-          <table>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
             <thead>
               <tr>
                 <th class="w-110">ID</th>
@@ -732,6 +699,21 @@
               <tr><td colspan="4" class="td-muted-center">Memuat data kategori...</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Bulan Libur -->
+      <div id="tab-master-skipped" class="tab-content">
+        <div class="skip-month-body">
+          <p class="text-muted mb-16" style="font-size:13px">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
+          <div class="skip-month-input-row mb-16" style="display:flex;gap:10px">
+            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
+            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
+          </div>
+
+          <div id="skipped-months-list" class="skipped-months-container">
+            <div class="text-muted">Memuat data bulan libur...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -849,19 +831,22 @@
           <div class="stat-card-title">Jumlah Anggota Lunas</div>
           <div id="stat-fully-paid" class="stat-card-value">0</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Anggota Menunggak</div>
-          <div id="stat-with-arrears" class="stat-card-value">0</div>
+        <div class="stat-card stat-card-interactive" id="card-stat-menunggak" data-action="action-salin-tagihan-wa" style="cursor:pointer" title="Klik untuk salin daftar tagihan WhatsApp">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span class="stat-card-title" style="margin:0">Anggota Menunggak</span>
+            <span class="badge" style="font-size:10px;padding:2px 6px;background:rgba(16,185,129,0.12);color:#059669"><i class="ph-bold ph-whatsapp-logo"></i> Salin</span>
+          </div>
+          <div id="stat-with-arrears" class="stat-card-value" style="color:var(--warning,#d97706)">0</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-title">Potensi Belum Tertagih</div>
-          <div id="stat-uncollected" class="stat-card-value">Rp 0</div>
+          <div id="stat-uncollected" class="stat-card-value" style="color:var(--danger,#e11d48)">Rp 0</div>
         </div>
       </div>
       <div class="chart-section chart-grid-section">
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title">Tren Kas Iuran Bulanan</h3>
+            <h3 class="chart-card-title">Tren Arus Kas (Masuk vs Keluar)</h3>
             <div class="chart-update-text">Update: <span id="last-update">-</span></div>
           </div>
           <div class="chart-wrapper chart-wrapper-compact">
@@ -871,7 +856,7 @@
 
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title">Kategori Pengeluaran (Bulan Ini)</h3>
+            <h3 class="chart-card-title" id="expense-chart-title">Distribusi Pengeluaran Kas</h3>
           </div>
           <div class="chart-wrapper chart-wrapper-compact flex-center">
             <canvas id="expenseChart"></canvas>
@@ -1241,6 +1226,21 @@
     </div>
   </div>
 
+  <!-- 15b. Modal Konfirmasi Mutasi Database -->
+  <div class="modal-overlay" id="modal-confirm-action">
+    <div class="modal-content modal-sm modal-center-dialog">
+      <div class="modal-badge-icon" id="confirm-badge-icon">
+        <i class="ph-fill ph-database" id="confirm-icon"></i>
+      </div>
+      <h2 id="confirm-title">Konfirmasi Perubahan</h2>
+      <p id="confirm-message">Apakah Anda yakin ingin menyimpan perubahan ini ke database?</p>
+      <div class="modal-dialog-actions">
+        <button type="button" class="btn btn-outline" data-action="cancel-confirm-action">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-action-submit">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
   <!-- Bottom Navigation (mobile only) -->
@@ -1267,11 +1267,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=112"></script>
+  <script type="module" src="js/app.js?v=113"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=112', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('sw.js?v=113', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

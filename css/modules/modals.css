@@ -2,23 +2,47 @@
 
 /* 1. Standard Modal Sizes */
 .modal-sm {
-  max-width: 420px;
+  max-width: 440px;
   width: 100%;
 }
 
 .modal-md {
-  max-width: 560px;
+  max-width: 600px;
   width: 100%;
 }
 
 .modal-lg {
-  max-width: 840px;
+  max-width: 920px;
   width: 100%;
 }
 
 .modal-xl {
   max-width: 1040px;
   width: calc(100vw - 32px);
+}
+
+/* Stable workspace modal height on desktop (Zero-jump sizing) */
+@media (min-width: 769px) {
+  #modal-kelola-master .modal-content,
+  #modal-transaksi .modal-content,
+  #modal-statistik .modal-content,
+  #modal-riwayat .modal-content,
+  #modal-audit-log .modal-content {
+    min-height: 540px;
+  }
+}
+
+/* Stable tab container height (prevents vertical bounce on tab switch) */
+.tab-content {
+  min-height: 380px;
+}
+
+#tab-master-anggota,
+#tab-master-kategori,
+#tab-master-skipped,
+#tab-iuran,
+#tab-operasional {
+  min-height: 380px;
 }
 
 /* 2. Unified Header Pattern across ALL 15 modals */
@@ -319,3 +343,11 @@ body.dark-mode .modal-badge-icon.slate {
   color: #f43f5e;
   font-size: 13px;
 }
+
+/* Priority z-index for confirmation dialogs */
+#modal-logout,
+#modal-hapus,
+#modal-confirm-action {
+  z-index: 1000010 !important;
+}
+

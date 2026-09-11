@@ -43,31 +43,61 @@ export const showToast = (message, type = 'success') => {
   const container = document.getElementById('toast-container');
   if (!container) return;
 
-  // Prevent duplicate spam: if the exact same message is currently showing, don't stack another one
-  const existingToasts = Array.from(container.querySelectorAll('.toast'));
-  const isDuplicate = existingToasts.some((t) => t.textContent.trim().includes(message.trim()));
-  if (isDuplicate) return;
+  const text = String(message || '').trim();
+  if (!text) return;
+
+  // Cegah duplikasi notifikasi yang sama menumpuk
+  const existingToasts = Array.from(container.querySelectorAll('.toast-label'));
+  if (existingToasts.some((t) => t.textContent.trim() === text)) return;
 
   const toast = document.createElement('div');
-  const iconClass =
-    type === 'success'
-      ? 'ph-fill ph-check-circle toast-icon-success'
-      : type === 'warning'
-      ? 'ph-fill ph-warning toast-icon-warning text-warning'
-      : 'ph-fill ph-warning-circle toast-icon-danger';
+  const safeType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
+  toast.className = `toast ${safeType}`;
 
-  toast.className = `toast ${type === 'error' ? 'error' : type === 'warning' ? 'warning' : ''}`;
+  const iconWrap = document.createElement('span');
+  iconWrap.className = `toast-icon-wrap ${safeType}`;
   const icon = document.createElement('i');
-  icon.className = iconClass;
+  icon.className =
+    safeType === 'success'
+      ? 'ph-fill ph-check-circle'
+      : safeType === 'warning'
+      ? 'ph-fill ph-warning'
+      : safeType === 'info'
+      ? 'ph-fill ph-info'
+      : 'ph-fill ph-warning-circle';
+  iconWrap.appendChild(icon);
+
   const label = document.createElement('span');
-  label.textContent = message;
-  toast.append(icon, document.createTextNode(' '), label);
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 30);
-  setTimeout(() => {
+  label.className = 'toast-label';
+  label.textContent = text;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'toast-close-btn';
+  closeBtn.setAttribute('aria-label', 'Tutup');
+  closeBtn.innerHTML = '<i class="ph ph-x"></i>';
+
+  toast.append(iconWrap, label, closeBtn);
+
+  let timer = null;
+  const hide = () => {
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 350);
-  }, 3500);
+    setTimeout(() => toast.remove(), 280);
+  };
+  const startTimer = () => { timer = setTimeout(hide, 3500); };
+  const stopTimer = () => { if (timer) clearTimeout(timer); };
+
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopTimer();
+    hide();
+  });
+  toast.addEventListener('mouseenter', stopTimer);
+  toast.addEventListener('mouseleave', startTimer);
+
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  startTimer();
 };
 
 /**

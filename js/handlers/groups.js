@@ -1,31 +1,23 @@
 /**
  * @module handlers/groups
- * Multi-grup tahap 2: PIN 4 angka per grup + kunci 1 menit setelah 5x salah.
+ * Multi-grup: PIN 4 angka per grup + kunci 1 menit setelah 5x salah.
  * PIN disimpan sebagai hash SHA-256 di dokumen groups/{id} (field pin_hash).
  */
 
 import { FIREBASE_CONFIG } from "../core/config.js";
 import { getGroups, setGroups, getActiveGroupId, setActiveGroupId, getAdminPassword } from "../core/state.js";
-import { fromFirestoreFields, hashText, escapeHtml } from "../core/utils.js";
-import { showToast } from "../core/utils.js";
+import { fromFirestoreFields, hashText, escapeHtml, showToast } from "../core/utils.js";
 import { openModal, closeModal } from "../ui/modal.js";
 
-/** Maksimal salah PIN sebelum dikunci. */
 export const PIN_MAX_ATTEMPTS = 5;
-/** Durasi kunci dalam ms (1 menit). */
 export const PIN_LOCK_MS = 60 * 1000;
-/** Kunci localStorage untuk info kunci per grup. */
 const PIN_LOCK_PREFIX = "finkas_pin_lock_";
-/** Grup yang sedang diminta PIN-nya. */
 let pendingGroupId = "";
 
 const PROJECT_ID = FIREBASE_CONFIG.projectId;
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-/**
- * Ambil daftar grup dari koleksi `groups` (publik: id + nama saja).
- * @returns {Promise<Array>}
- */
+/** Ambil daftar grup dari koleksi `groups` (publik: id + nama saja). */
 export const fetchGroups = async () => {
   try {
     const res = await fetch(`${FIRESTORE_BASE}/groups?pageSize=100`);
@@ -40,11 +32,7 @@ export const fetchGroups = async () => {
   }
 };
 
-/**
- * Ambil hash PIN grup dari Firestore (tidak pernah tampilkan ke user).
- * @param {string} id
- * @returns {Promise<string>}
- */
+/** Ambil hash PIN grup dari Firestore. */
 export const fetchGroupPinHash = async (id) => {
   try {
     const res = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(id)}`);
@@ -56,11 +44,7 @@ export const fetchGroupPinHash = async (id) => {
   }
 };
 
-/**
- * Cek apakah grup sedang dikunci (salah 5x).
- * @param {string} id
- * @returns {{locked: boolean, remainingSec: number}}
- */
+/** Cek apakah grup sedang dikunci (salah 5x). */
 export const checkPinLock = (id) => {
   try {
     const raw = localStorage.getItem(PIN_LOCK_PREFIX + id);
@@ -78,11 +62,7 @@ export const checkPinLock = (id) => {
   }
 };
 
-/**
- * Catat 1x salah PIN; kunci 1 menit bila mencapai batas.
- * @param {string} id
- * @returns {{locked: boolean, attemptsLeft: number}}
- */
+/** Catat 1x salah PIN; kunci 1 menit bila mencapai batas. */
 export const recordPinFail = (id) => {
   let fails = 0;
   try {
@@ -97,21 +77,12 @@ export const recordPinFail = (id) => {
   return { locked: false, attemptsLeft: PIN_MAX_ATTEMPTS - fails };
 };
 
-/**
- * Hapus catatan salah PIN (setelah berhasil masuk).
- * @param {string} id
- */
+/** Hapus catatan salah PIN (setelah berhasil masuk). */
 export const clearPinFail = (id) => {
   localStorage.removeItem(PIN_LOCK_PREFIX + id);
 };
 
-/**
- * Verifikasi PIN 4 angka: lewat endpoint server dulu (hash tak dibaca klien),
- * fallback baca hash langsung bila endpoint tak ada (hosting statis murni).
- * @param {string} id
- * @param {string} pin 4 digit
- * @returns {Promise<{status: boolean, message: string}>}
- */
+/** Verifikasi PIN 4 angka (lewat API serverless bila ada, fallback Firestore langsung). */
 export const verifyGroupPin = async (id, pin) => {
   const clean = String(pin || "").replace(/\D/g, "").slice(0, 4);
   if (clean.length !== 4) return { status: false, message: "Ketik 4 angka PIN grup." };
@@ -136,8 +107,7 @@ export const verifyGroupPin = async (id, pin) => {
   } catch (_) {}
   const storedHash = await fetchGroupPinHash(id);
   if (!storedHash) {
-    // Grup lama tanpa PIN: izinkan masuk sekali (migrasi tahap 5 pasang PIN).
-    return { status: true, message: "Grup ini belum punya PIN — masuk langsung." };
+    return { status: true, message: "Grup ini belum punya PIN, langsung masuk." };
   }
   const inputHash = await hashText(`finkas-pin:${id}:${clean}`);
   if (inputHash !== storedHash) {
@@ -149,10 +119,7 @@ export const verifyGroupPin = async (id, pin) => {
   return { status: true, message: "PIN benar." };
 };
 
-/**
- * Buka layar PIN untuk grup yang dipilih.
- * @param {string} id
- */
+/** Buka layar PIN untuk grup yang dipilih. */
 export const requestGroupPin = (id) => {
   const found = getGroups().find((g) => g.id === id);
   if (!found) {
@@ -170,13 +137,12 @@ export const requestGroupPin = (id) => {
   if (msg) msg.replaceChildren();
   closeModal("modal-groups");
   openModal("modal-group-pin");
-  setTimeout(() => document.getElementById("pin0")?.focus(), 120);
+  setTimeout(() => { document.getElementById("pin0")?.focus(); }, 120);
 };
 
-/**
- * Ambil PIN dari 4 kotak dan coba masuk grup.
- */
+/** Kirim PIN yang diketik user. */
 export const submitGroupPin = async () => {
+  if (!pendingGroupId) return;
   const pin = ["pin0", "pin1", "pin2", "pin3"].map((p) => document.getElementById(p)?.value || "").join("");
   const msg = document.getElementById("group-pin-msg");
   const res = await verifyGroupPin(pendingGroupId, pin);
@@ -187,9 +153,8 @@ export const submitGroupPin = async () => {
   }
   enterGroup(pendingGroupId);
 };
-/**
- * Muat daftar grup lalu tampilkan layar pilih grup.
- */
+
+/** Muat daftar grup lalu tampilkan layar pilih grup. */
 export const openGroupPicker = async () => {
   const list = await fetchGroups();
   setGroups(list);
@@ -197,9 +162,7 @@ export const openGroupPicker = async () => {
   openModal("modal-groups");
 };
 
-/**
- * Gambar daftar grup ke dalam modal pilih grup.
- */
+/** Gambar daftar grup ke dalam modal pilih grup. */
 export const renderGroupPicker = () => {
   const box = document.getElementById("group-picker-list");
   if (!box) return;
@@ -221,63 +184,102 @@ export const renderGroupPicker = () => {
   }).join("");
 };
 
-/**
- * Masuk grup setelah PIN lolos: simpan aktif, ingat di HP, tutup modal.
- * @param {string} id
- */
+/** Masuk grup setelah PIN lolos: simpan aktif, ingat di HP, tutup modal. */
 export const enterGroup = (id) => {
   const found = getGroups().find((g) => g.id === id);
-  if (!found) {
-    showToast("Grup tidak ditemukan.", "error");
-    return;
-  }
+  if (!found) return;
   setActiveGroupId(id);
+  try {
+    sessionStorage.setItem("finkas_group_open", "1");
+    localStorage.setItem("finkas_active_group_name", found.nama);
+  } catch (_) {}
   closeModal("modal-groups");
   closeModal("modal-group-pin");
-  document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(found.nama));
-  try { localStorage.setItem("finkas_active_group_name", found.nama); } catch (_) {}
-  try { sessionStorage.setItem("finkas_group_open", "1"); } catch (_) {}
-  showToast(`Masuk grup ${found.nama}.`, "success");
+  const nameEl = document.getElementById("app-group-name");
+  if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
   window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id } }));
 };
 
-export const pickGroup = enterGroup;
-
-/**
- * Keluar dari grup aktif (kembali ke layar pilih grup).
- */
+/** Keluar dari grup aktif (kembali ke layar pilih grup). */
 export const exitGroup = () => {
   setActiveGroupId("");
-  try { sessionStorage.removeItem("finkas_group_open"); } catch (_) {}
+  try {
+    sessionStorage.removeItem("finkas_group_open");
+    localStorage.removeItem("finkas_active_group_name");
+  } catch (_) {}
   openGroupPicker();
 };
 
-/* ── Admin pemilik: kelola grup (tahap 4) ────────────────────────── */
+/* ── Admin pemilik: kelola grup ────────────────────────── */
 
-/**
- * Panggil endpoint admin grup (buat/hapus/atur PIN).
- * @param {object} body
- * @returns {Promise<{status: boolean, message: string, data: object|null}>}
- */
+/** Panggil endpoint admin grup (buat/rename/hapus/atur PIN) dengan fallback Firestore langsung. */
 const callGroupAdmin = async (body) => {
+  const action = body?.action;
   try {
     const res = await fetch("/api/create-group", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...body, passwordHash: getAdminPassword() })
     });
-    if (res.status === 404) {
-      return { status: false, message: "Endpoint admin grup tak ada (butuh deploy Vercel).", data: null };
+    if (res.status !== 404) {
+      const json = await res.json();
+      if (json && typeof json.status === "boolean") return json;
     }
-    return await res.json();
-  } catch (_) {
-    return { status: false, message: "Gagal terhubung ke server.", data: null };
+  } catch (_) {}
+
+  // Fallback client-direct Firestore REST API
+  try {
+    if (action === "create") {
+      const nama = String(body?.nama || "").trim().slice(0, 60);
+      const pin = String(body?.pin || "").replace(/\D/g, "").slice(0, 4);
+      if (nama.length < 3) return { status: false, message: "Nama grup minimal 3 huruf.", data: null };
+      if (pin.length !== 4) return { status: false, message: "PIN harus 4 angka.", data: null };
+      const id = "GRP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const pinHash = await hashText(`finkas-pin:${id}:${pin}`);
+      const fields = { nama: { stringValue: nama }, dibuat: { stringValue: new Date().toISOString() }, pin_hash: { stringValue: pinHash } };
+      const gRes = await fetch(`${FIRESTORE_BASE}/groups/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields }) });
+      if (!gRes.ok) return { status: false, message: "Gagal menyimpan grup ke Firestore.", data: null };
+      await fetch(`${FIRESTORE_BASE}/groups/${id}/settings/app_config`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: { skippedMonths: { arrayValue: { values: [] } } } }) });
+      return { status: true, message: `Grup "${nama}" berhasil dibuat.`, data: { id, nama } };
+    }
+    if (action === "rename") {
+      const groupId = String(body?.groupId || "").trim();
+      const nama = String(body?.nama || "").trim().slice(0, 60);
+      if (!groupId) return { status: false, message: "ID grup tidak valid.", data: null };
+      if (nama.length < 3) return { status: false, message: "Nama grup minimal 3 huruf.", data: null };
+      const res = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(groupId)}?updateMask.fieldPaths=nama`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: { nama: { stringValue: nama } } }) });
+      if (res.ok) {
+        if (getActiveGroupId() === groupId) {
+          try {
+            localStorage.setItem("finkas_active_group_name", nama);
+            document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(nama));
+          } catch (_) {}
+        }
+        return { status: true, message: `Nama grup diubah menjadi "${nama}".`, data: { id: groupId, nama } };
+      }
+      return { status: false, message: "Gagal mengubah nama grup.", data: null };
+    }
+    if (action === "set-pin") {
+      const groupId = String(body?.groupId || "").trim();
+      const pin = String(body?.pin || "").replace(/\D/g, "").slice(0, 4);
+      if (!groupId || pin.length !== 4) return { status: false, message: "Data PIN tidak valid.", data: null };
+      const pinHash = await hashText(`finkas-pin:${groupId}:${pin}`);
+      const res = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(groupId)}?updateMask.fieldPaths=pin_hash`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: { pin_hash: { stringValue: pinHash } } }) });
+      return { status: res.ok, message: res.ok ? "PIN grup berhasil diperbarui." : "Gagal memperbarui PIN grup.", data: null };
+    }
+    if (action === "remove") {
+      const groupId = String(body?.groupId || "").trim();
+      if (!groupId) return { status: false, message: "ID grup tidak valid.", data: null };
+      const res = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(groupId)}`, { method: "DELETE" });
+      return { status: res.ok, message: res.ok ? "Grup berhasil dihapus." : "Gagal menghapus grup.", data: null };
+    }
+  } catch (err) {
+    return { status: false, message: err?.message || "Gagal memproses data grup.", data: null };
   }
+  return { status: false, message: "Aksi grup tidak dikenal.", data: null };
 };
 
-/**
- * Buka modal kelola grup (khusus admin pemilik).
- */
+/** Buka modal kelola grup (khusus admin pemilik). */
 export const openGroupAdmin = async () => {
   const list = await fetchGroups();
   setGroups(list);
@@ -285,45 +287,80 @@ export const openGroupAdmin = async () => {
   openModal("modal-group-admin");
 };
 
-/**
- * Gambar daftar grup + form buat di modal admin.
- */
+/** Gambar daftar grup + form buat di modal admin (Linear Card Spec). */
 export const renderGroupAdmin = () => {
   const box = document.getElementById("group-admin-list");
   if (!box) return;
   const list = getGroups();
-  box.innerHTML = list.length ? list.map((g) => {
+  const countEl = document.getElementById("group-admin-count");
+  if (countEl) countEl.textContent = `${list.length} Grup`;
+
+  if (!list.length) {
+    box.innerHTML = `
+      <div class="group-empty-state">
+        <i class="ph-fill ph-users-three"></i>
+        <p>Belum ada grup terdaftar. Buat grup pertama di atas.</p>
+      </div>`;
+    return;
+  }
+
+  const activeId = getActiveGroupId();
+  box.innerHTML = list.map((g, idx) => {
     const safeName = escapeHtml(g.nama || "?");
     const safeId = escapeHtml(g.id);
+    const isActive = g.id === activeId;
+    const initial = safeName.charAt(0).toUpperCase();
     return `
-    <div class="group-admin-row" data-id="${safeId}">
-      <span class="avatar">${safeName.charAt(0).toUpperCase()}</span>
-      <span class="min-w-0"><h3>${safeName}</h3><small>${safeId}${g.id === "utama" ? " · bawaan (tak bisa dihapus)" : ""}</small></span>
-      <span class="group-admin-ops">
-        <input class="form-control pin-reset" inputmode="numeric" maxlength="4" placeholder="PIN" aria-label="PIN baru ${safeName}">
-        <button class="btn btn-outline btn-compact-action" data-action="reset-group-pin" data-id="${safeId}">PIN</button>
-        ${g.id === "utama" ? "" : `<button class="btn btn-danger btn-compact-action" data-action="remove-group" data-id="${safeId}" aria-label="Hapus ${safeName}"><i class="ph-bold ph-trash"></i></button>`}
-      </span>
+    <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}">
+      <div class="group-card-main">
+        <span class="group-card-avatar" data-index="${idx % 4}">${initial}</span>
+        <div class="group-card-details">
+          <div class="group-card-title-row">
+            <h3 class="group-card-title">${safeName}</h3>
+            ${isActive ? `<span class="group-badge-active"><i class="ph-fill ph-check-circle"></i> Aktif</span>` : ""}
+          </div>
+          <span class="group-card-id-pill"><i class="ph ph-hash"></i> ${safeId}</span>
+        </div>
+      </div>
+      <div class="group-card-actions">
+        <button class="btn-group-chip" data-action="rename-group" data-id="${safeId}" title="Ubah Nama Grup">
+          <i class="ph-bold ph-pencil-simple"></i>
+          <span>Nama</span>
+        </button>
+        <button class="btn-group-chip" data-action="reset-group-pin" data-id="${safeId}" title="Ubah PIN Grup">
+          <i class="ph-bold ph-key"></i>
+          <span>PIN</span>
+        </button>
+        <button class="btn-group-chip danger" data-action="remove-group" data-id="${safeId}" title="Hapus Grup" aria-label="Hapus ${safeName}">
+          <i class="ph-bold ph-trash"></i>
+        </button>
+      </div>
     </div>`;
-  }).join("") : '<p class="text-muted" style="text-align:center;padding:12px">Belum ada grup.</p>';
+  }).join("");
 };
 
-/**
- * Buat grup baru dari form admin.
- * @param {Event} e
- */
+/** Buat grup baru dari form admin dengan validasi input. */
 export const submitCreateGroup = async (e) => {
   e?.preventDefault?.();
   const namaEl = document.getElementById("input-group-nama");
   const pinEl = document.getElementById("input-group-pin");
-  const nama = (namaEl?.value || "").trim();
-  const pin = (pinEl?.value || "").replace(/\D/g, "").slice(0, 4);
+  const nama = (namaEl?.value || "").trim().slice(0, 60);
+  const rawPin = (pinEl?.value || "").trim();
+  const pin = rawPin.replace(/\D/g, "").slice(0, 4);
   if (nama.length < 3) {
-    showToast("Nama grup minimal 3 huruf.", "error");
+    showToast("Nama grup minimal 3 karakter.", "error");
+    namaEl?.focus();
     return;
   }
-  if (pin.length !== 4) {
-    showToast("PIN harus 4 angka.", "error");
+  if (!/^\d{4}$/.test(rawPin)) {
+    showToast("PIN wajib tepat 4 digit angka.", "error");
+    pinEl?.focus();
+    return;
+  }
+  const isDuplicate = getGroups().some((g) => g.nama.toLowerCase() === nama.toLowerCase());
+  if (isDuplicate) {
+    showToast(`Grup "${nama}" sudah ada. Gunakan nama lain.`, "warning");
+    namaEl?.focus();
     return;
   }
   const res = await callGroupAdmin({ action: "create", nama, pin });
@@ -337,68 +374,94 @@ export const submitCreateGroup = async (e) => {
   }
 };
 
-/**
- * Atur ulang PIN grup dari baris admin.
- * @param {string} id
- */
-export const resetGroupPinAction = async (id) => {
-  const row = document.querySelector(`.group-admin-row[data-id="${id}"] .pin-reset`);
-  const pin = (row?.value || "").replace(/\D/g, "").slice(0, 4);
-  if (pin.length !== 4) {
-    showToast("Ketik 4 angka PIN baru di kolom grup itu.", "error");
-    row?.focus();
+/** Ubah nama grup dengan validasi input & konfirmasi. */
+export const renameGroupAction = async (id) => {
+  const found = getGroups().find((g) => g.id === id);
+  const currentName = found ? found.nama : "";
+  const input = window.prompt(`Ubah nama grup "${currentName}":`, currentName);
+  if (input === null) return;
+  const newName = input.trim().slice(0, 60);
+  if (!newName || newName === currentName) return;
+  if (newName.length < 3) {
+    showToast("Nama grup minimal 3 huruf.", "error");
     return;
   }
-  const res = await callGroupAdmin({ action: "set-pin", groupId: id, pin });
-  showToast(res.message, res.status ? "success" : "error");
-  if (res.status && row) row.value = "";
-};
-
-/**
- * Hapus grup beserta isinya (konfirmasi 2 langkah).
- * @param {string} id
- */
-export const removeGroupAction = async (id) => {
-  const found = getGroups().find((g) => g.id === id);
-  const label = found ? found.nama : id;
-  if (!window.confirm(`Hapus grup "${label}" beserta SEMUA anggotanya? Tidak bisa dibatalkan.`)) return;
-  if (!window.confirm(`Yakin hapus "${label}"? Ketuk OK untuk hapus permanen.`)) return;
-  const res = await callGroupAdmin({ action: "remove", groupId: id });
+  const isDuplicate = getGroups().some((g) => g.id !== id && g.nama.toLowerCase() === newName.toLowerCase());
+  if (isDuplicate) {
+    showToast(`Nama grup "${newName}" sudah digunakan.`, "warning");
+    return;
+  }
+  const res = await callGroupAdmin({ action: "rename", groupId: id, nama: newName });
   showToast(res.message, res.status ? "success" : "error");
   if (res.status) {
-    if (getActiveGroupId() === id) setActiveGroupId("");
     const list = await fetchGroups();
     setGroups(list);
     renderGroupAdmin();
   }
 };
 
-/**
- * Init UI multi-grup saat boot: buka picker bila belum ada grup tersimpan,
- * refresh data saat grup berganti, dan pasang perilaku PIN 4 kotak
- * (ketik loncat otomatis, penuh langsung cek).
- * @param {() => void} onGroupChanged
- */
+/** Atur ulang PIN grup dengan konfirmasi ganda & validasi 4 digit. */
+export const resetGroupPinAction = async (id) => {
+  const found = getGroups().find((g) => g.id === id);
+  const label = found ? found.nama : id;
+  const p1 = window.prompt(`PERINGATAN: Mengubah PIN berlaku untuk semua yang login.\nKetik 4 digit PIN baru untuk "${label}":`);
+  if (p1 === null) return;
+  const pin1 = p1.replace(/\D/g, "").slice(0, 4);
+  if (pin1.length !== 4) {
+    showToast("PIN wajib berupa 4 angka.", "error");
+    return;
+  }
+  const p2 = window.prompt("Ketik ulang 4 angka PIN baru untuk konfirmasi:");
+  if (p2 === null) return;
+  const pin2 = p2.replace(/\D/g, "").slice(0, 4);
+  if (pin1 !== pin2) {
+    showToast("PIN konfirmasi tidak cocok.", "error");
+    return;
+  }
+  const res = await callGroupAdmin({ action: "set-pin", groupId: id, pin: pin1 });
+  showToast(res.message, res.status ? "success" : "error");
+};
+
+/** Hapus grup dengan konfirmasi ketik nama (proteksi data permanen). */
+export const removeGroupAction = async (id) => {
+  const found = getGroups().find((g) => g.id === id);
+  const label = found ? found.nama : id;
+  if (!window.confirm(`PERINGATAN HAPUS: Seluruh data anggota, kas, dan transaksi "${label}" akan terhapus permanen!\n\nLanjutkan?`)) return;
+  const typed = window.prompt(`Ketik persis nama grup "${label}" untuk konfirmasi penghapusan:`);
+  if (typed === null) return;
+  if (typed.trim().toLowerCase() !== label.trim().toLowerCase()) {
+    showToast("Penghapusan dibatalkan (nama tidak cocok).", "warning");
+    return;
+  }
+  const res = await callGroupAdmin({ action: "remove", groupId: id });
+  showToast(res.message, res.status ? "success" : "error");
+  if (res.status) {
+    if (getActiveGroupId() === id) {
+      setActiveGroupId("");
+      try {
+        localStorage.removeItem("finkas_active_group_name");
+        sessionStorage.removeItem("finkas_group_open");
+      } catch (_) {}
+    }
+    const list = await fetchGroups();
+    setGroups(list);
+    renderGroupAdmin();
+    if (!getActiveGroupId()) openGroupPicker();
+  }
+};
+
+/** Init UI multi-grup saat boot: ingat grup aktif di HP agar tidak perlu bolak-balik pilih/PIN. */
 export const initGroupsUI = (onGroupChanged) => {
   window.addEventListener("finkas:group-changed", () => { onGroupChanged?.(); });
-  // Selalu tampilkan picker saat aplikasi dibuka — tidak ada grup yang
-  // otomatis dimasuki (data asli di Grup Utama tidak terbuka sendiri).
-  // Pengecualian sekali jalan: baru dari halaman sambutan.
-  let skipped = false;
-  try {
-    skipped = sessionStorage.getItem("finkas_skip_picker") === "1";
-    if (skipped) sessionStorage.removeItem("finkas_skip_picker");
-  } catch (_) {}
-  if (skipped) {
-    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id: getActiveGroupId() } }));
+  const activeGid = getActiveGroupId();
+  const savedName = localStorage.getItem("finkas_active_group_name") || "";
+  if (savedName) document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(savedName));
+  if (activeGid) {
+    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id: activeGid } }));
   } else {
     openGroupPicker();
   }
   document.getElementById("form-create-group")?.addEventListener("submit", submitCreateGroup);
-  try {
-    const savedName = localStorage.getItem("finkas_active_group_name") || "";
-    if (savedName) document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(savedName));
-  } catch (_) {}
   document.querySelectorAll(".pin-box").forEach((box) => {
     box.addEventListener("input", () => {
       box.value = box.value.replace(/\D/g, "").slice(0, 1);

@@ -6,7 +6,7 @@
   <title>Finkas</title>
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
   <meta name="theme-color" content="#10b981">
-  
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=107">
-  <link rel="stylesheet" href="style.css?v=107">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=109">
+  <link rel="stylesheet" href="style.css?v=109">
 </head>
 <body>
 
@@ -164,7 +164,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="table-responsive">
         <table class="table-matriks">
           <thead>
@@ -179,7 +179,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Mobile Card View -->
       <div class="iuran-cards-container" id="iuran-cards-mobile">
         <div class="mobile-loading-wrap">
@@ -322,7 +322,7 @@
   <!-- === Modal Module: group-admin.html === -->
 <!-- 0c. Modal Kelola Grup — khusus admin pemilik (tahap 4) -->
   <div class="modal-overlay modal-top" id="modal-group-admin">
-    <div class="modal-content modal-md">
+    <div class="modal-content modal-md group-admin-modal">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -330,18 +330,46 @@
           </div>
           <div class="modal-title-wrap">
             <h2>Kelola Grup</h2>
-            <p>Buat grup baru, atur PIN, atau hapus grup</p>
+            <p>Atur kelas atau buat ruang kas baru</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
-      <form id="form-create-group" class="form-row-flex mb-16">
-        <input type="text" id="input-group-nama" class="form-control flex-1 min-w-200" placeholder="Nama grup baru..." maxlength="60" required>
-        <input type="text" id="input-group-pin" class="form-control w-160" inputmode="numeric" maxlength="4" placeholder="PIN 4 angka..." required>
-        <button type="submit" class="btn btn-primary">Buat</button>
-      </form>
+
+      <!-- Form Tambah Grup Baru (Linear / Vercel Card Style) -->
+      <div class="group-admin-create-box">
+        <div class="group-section-header">
+          <i class="ph-bold ph-plus-circle text-primary"></i>
+          <span>Tambah Grup Baru</span>
+        </div>
+        <form id="form-create-group" class="group-create-grid">
+          <div class="input-with-icon flex-1 min-w-200">
+            <i class="ph ph-users group-input-icon"></i>
+            <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+          </div>
+          <div class="input-with-icon w-140">
+            <i class="ph ph-lock-key group-input-icon"></i>
+            <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
+          </div>
+          <button type="submit" class="btn btn-primary btn-create-submit">
+            <i class="ph-bold ph-plus"></i>
+            <span>Buat</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Daftar Grup Terdaftar -->
+      <div class="group-section-title-row">
+        <span class="group-section-title">Grup Terdaftar</span>
+        <span class="badge-count-pill" id="group-admin-count">Memuat...</span>
+      </div>
+
       <div id="group-admin-list" class="group-admin-list"></div>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Grup "utama" bawaan tidak bisa dihapus. Hapus grup butuh 2x konfirmasi.</p>
+
+      <div class="group-admin-footer-notice">
+        <i class="ph-fill ph-shield-check"></i>
+        <span>Data tiap grup terisolasi aman. Hapus grup memerlukan konfirmasi nama.</span>
+      </div>
     </div>
   </div>
 
@@ -1146,11 +1174,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=107"></script>
+  <script type="module" src="js/app.js?v=109"></script>
   <script>
-  if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=107', { updateViaCache: 'none' })
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=109', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

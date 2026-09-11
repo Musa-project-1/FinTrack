@@ -6,7 +6,7 @@
   <title>Finkas</title>
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
   <meta name="theme-color" content="#10b981">
-  
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=107">
-  <link rel="stylesheet" href="style.css?v=107">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=109">
+  <link rel="stylesheet" href="style.css?v=109">
 </head>
 <body>
 
@@ -164,7 +164,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="table-responsive">
         <table class="table-matriks">
           <thead>
@@ -179,7 +179,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Mobile Card View -->
       <div class="iuran-cards-container" id="iuran-cards-mobile">
         <div class="mobile-loading-wrap">
@@ -219,11 +219,11 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=107"></script>
+  <script type="module" src="js/app.js?v=109"></script>
   <script>
-  if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-  navigator.serviceWorker.register('sw.js?v=107', { updateViaCache: 'none' })
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=109', { updateViaCache: 'none' })
           .then(reg => {
             console.log('Service Worker Registered');
             reg.update();

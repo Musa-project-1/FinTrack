@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Helper to validate incoming transaction data
     function isValidTransaction(data) {
       return data.ID_Transaksi is string
@@ -13,58 +13,17 @@ service cloud.firestore {
         && data.Timestamp is string;
     }
 
-    // Settings collection (Public read, client write locked down)
-    match /settings/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // Transaksi collection (Schema validation on write, delete locked down to serverless only)
-    match /transaksi/{trxId} {
-      allow read: if true;
-      allow create, update: if isValidTransaction(request.resource.data);
-      allow delete: if false;
-    }
-
-    // Anggota collection (Delete locked down to serverless only)
-    match /anggota/{angId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.Nama_Anggota is string
-        && request.resource.data.Nama_Anggota.size() > 0
-        && request.resource.data.Status_Aktif in ['Aktif', 'Nonaktif'];
-      allow delete: if false;
-    }
-
-    // Kategori collection (Delete locked down to serverless only)
-    match /kategori/{katId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.Nama_Kategori is string
-        && request.resource.data.Tipe in ['Masuk', 'Keluar'];
-      allow delete: if false;
-    }
-
-    // Audit Log collection (Append-only: immutable audit trail)
-    match /audit_log/{logId} {
-      allow read: if true;
-      allow create: if request.resource.data.Aksi is string && request.resource.data.Timestamp is string;
-      allow update, delete: if false;
-    }
-
-    // Group private config (PIN hash — hanya server service account)
-    match /groups/{groupId}/private/{docId} {
-      allow read, write: if false;
-    }
-
-    // Groups registry (tahap 1-2: daftar grup publik-terbaca, tulis via admin pemilik)
+    // Groups registry
     match /groups/{groupId} {
       allow read: if true;
-      allow write: if false;
+      allow create, update: if request.resource.data.nama is string
+        && request.resource.data.nama.size() >= 3;
+      allow delete: if true;
     }
 
-    // Group-scoped subcollections (tahap 3: cermin aturan top-level per grup)
+    // Group-scoped subcollections
     match /groups/{groupId}/settings/{docId} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if true;
     }
     match /groups/{groupId}/transaksi/{trxId} {
       allow read: if true;

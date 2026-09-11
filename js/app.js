@@ -46,7 +46,7 @@ import {
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
-import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction } from "./handlers/groups.js";
+import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction, renameGroupAction } from "./handlers/groups.js";
 
 let isLoading = false;
 
@@ -86,6 +86,7 @@ document.addEventListener('click', (e) => {
     case 'request-group-pin': requestGroupPin(id); break;
     case 'submit-group-pin': submitGroupPin(); break;
     case 'open-group-admin': closeHeaderDropdown(); openGroupAdmin(); break;
+    case 'rename-group':    renameGroupAction(id); break;
     case 'reset-group-pin': resetGroupPinAction(id); break;
     case 'remove-group':   removeGroupAction(id); break;
     /* ── Navigation / menus ───────────────────────── */

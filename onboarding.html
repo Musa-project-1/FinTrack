@@ -4,112 +4,135 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Selamat Datang di Finkas</title>
-<meta name="description" content="Selamat datang di Finkas — pilih grup kas untuk mulai">
+<meta name="description" content="Selamat datang di Finkas - pembukuan kas komunitas yang sederhana dan jujur">
 <meta name="theme-color" content="#10b981">
-<link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=107">
-<style>
-:root{--primary:#10b981;--primary-gradient:linear-gradient(135deg,#10b981 0%,#059669 100%);--secondary:#6366f1;--surface:#0f172a;--bg-color:#070a12;--text-main:#f8fafc;--text-muted:#94a3b8;--border:#ffffff14;--radius-lg:16px;--radius-md:12px;--shadow-lg:0 10px 15px -3px #00000014,0 4px 6px -4px #0000000a;--shadow-glow-green:0 8px 24px -4px #10b98159}
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-html{scrollbar-gutter:stable}
-body{background-color:var(--bg-color);background-image:radial-gradient(at 15% 10%,#10b9811f 0px,transparent 50%),radial-gradient(at 85% 25%,#6366f11a 0px,transparent 55%),radial-gradient(#ffffff0d 1px,transparent 1px);background-size:100% 100%,100% 100%,24px 24px;background-attachment:fixed;color:var(--text-main);min-height:100dvh;padding:24px 16px;display:flex;align-items:center;justify-content:center}
-.wrap{max-width:440px;margin:0 auto;width:100%}
-.brand{text-align:center;margin-bottom:20px}
-.brand-logo{width:64px;height:64px;object-fit:cover;border-radius:18px;margin:0 auto 12px;display:block;box-shadow:var(--shadow-glow-green)}
-.brand-logo-dark{display:block}
-.brand-logo-light{display:none}
-.brand h1{font-size:28px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;width:max-content;margin:0 auto}
-.welcome-hero{text-align:center;margin-bottom:20px}
-.welcome-hero h2{font-size:19px;margin:0 0 6px;letter-spacing:-.01em}
-.welcome-hero p{color:var(--text-muted);font-size:13px;line-height:1.6}
-.section-label{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--text-muted);margin:0 0 8px 12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-lg),inset 0 3px 0 0 #10b981}
-.group-item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;cursor:pointer;margin-bottom:10px;font:inherit;color:inherit;box-shadow:0 1px 2px #0000000d;transition:background .15s,transform .15s,border-color .15s}
-.group-item:hover{background:#10b98112;border-color:var(--primary);transform:translate(4px)}
-.group-item:active{transform:translate(2px) scale(.99)}
-.avatar{width:38px;height:38px;border-radius:12px;background:#10b98121;color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;flex-shrink:0}
-.group-item h3{font-size:14px;margin-bottom:2px;font-weight:600}
-.group-item small{color:var(--text-muted);font-size:12px}
-.chev{margin-left:auto;color:var(--text-muted);font-size:13px;flex-shrink:0}
-.group-item:hover .chev{color:var(--primary)}
-.pin-card{max-width:400px;margin:0 auto}
-.pin-head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
-.pin-badge{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10b98126,#3b82f61a);border:1px solid #10b98140;color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0}
-.pin-title{font-size:18px;font-weight:800;letter-spacing:-.01em}
-.pin-sub{color:var(--text-muted);font-size:12px;margin-top:2px}
-.pin-row{display:flex;gap:10px;justify-content:center;margin:16px 0 8px}
-.pin-box{width:56px;height:64px;text-align:center;font-size:26px;font-weight:800;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text-main);outline:none}
-.pin-box:focus{border-color:var(--primary);box-shadow:0 0 0 3px #10b98126}
-.pin-msg{min-height:20px;text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:12px}
-.btn{width:100%;border:none;border-radius:12px;padding:12px;min-height:44px;font:inherit;font-weight:700;cursor:pointer;touch-action:manipulation}
-.btn-primary{background:var(--primary-gradient);color:#fff;box-shadow:var(--shadow-glow-green)}
-.btn-outline{background:#ffffff0a;border:1px solid #ffffff0f;color:var(--text-main);margin-top:8px}
-.btn:disabled{opacity:.6;cursor:wait}
-.hidden{display:none}
-.note{font-size:12px;color:var(--text-muted);margin-top:12px;line-height:1.6;text-align:center}
-.note a{color:#818cf8;font-weight:700;text-decoration:none}
-.note a:hover{color:#34d399;text-decoration:underline;text-underline-offset:3px}
-.loading{text-align:center;color:var(--text-muted);padding:24px;font-size:14px;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-h2.group-title{font-size:18px;margin-bottom:4px;text-align:center}
-.badge{display:block;width:max-content;margin:0 auto 8px;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px;background:#10b9811a;color:#34d399;border:1px solid #10b9814d}
-@media (prefers-color-scheme:light){
-:root{--surface:#fff;--bg-color:#f1f5f9;--text-main:#0f172a;--text-muted:#64748b;--border:#e2e8f0;--shadow-glow-green:0 8px 24px -4px #10b98140}
-body{background-image:radial-gradient(at 15% 10%,#10b98114 0px,transparent 45%),radial-gradient(at 85% 25%,#6366f112 0px,transparent 50%),radial-gradient(#64748b1f 1px,transparent 1px)}
-.brand-logo-dark{display:none}
-.brand-logo-light{display:block}
-.btn-outline{background:#fff;border-color:#e6e6e6}
-.note a{color:var(--secondary)}
-.note a:hover{color:var(--primary)}
-.badge{color:#059669}
-.avatar{background:#10b98121}
-}
-</style>
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=108">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+<link rel="stylesheet" href="css/onboarding.css?v=108">
 </head>
 <body>
+
 <div class="wrap">
-  <div class="brand">
-    <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo brand-logo-light">
-    <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo brand-logo-dark">
+  <!-- Brand Header (Konsisten di semua layar) -->
+  <header class="brand">
+    <div class="brand-logo-wrap">
+      <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img">
+    </div>
     <h1>Finkas</h1>
-  </div>
+    <p class="brand-tagline">Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.</p>
+  </header>
 
-  <div class="welcome-hero" id="hero">
-    <h2>Selamat datang di Finkas</h2>
-    <p>Pembukuan kas kelompok yang sederhana dan jujur.<br>Tiap grup punya ruangan sendiri yang aman.</p>
-  </div>
-
+  <!-- Layar 1: Onboarding Welcome -->
   <section id="state-welcome">
-    <button class="btn btn-primary" id="btn-to-list">Pilih Grup</button>
+    <div class="card" id="hero">
+      <div class="welcome-badge-row">
+        <span class="badge-pill badge-blue">
+          <i class="ph-fill ph-users-three"></i> Kas RT/RW, Arisan, & Kas Kelas
+        </span>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon-box icon-gradient-purple-blue">
+            <i class="ph-fill ph-vault"></i>
+          </div>
+          <div class="feature-texts">
+            <h3>Pencatatan Rapi & Transparan</h3>
+            <p>Pemasukan dan pengeluaran tercatat jelas dengan saldo kas terkini.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-box icon-gradient-blue">
+            <i class="ph-fill ph-calendar-check"></i>
+          </div>
+          <div class="feature-texts">
+            <h3>Status Iuran Teratur</h3>
+            <p>Pantau siapa yang sudah bayar iuran bulanan dan siapa yang belum.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-box icon-gradient-emerald">
+            <i class="ph-fill ph-shield-check"></i>
+          </div>
+          <div class="feature-texts">
+            <h3>Ruang Grup Terpisah</h3>
+            <p>Tiap grup memiliki ruang kas sendiri dengan perlindungan PIN.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-to-list">
+      <i class="ph-bold ph-arrow-right"></i> Pilih Grup
+    </button>
     <p class="note">Sudah di dalam? <a href="index.html">Buka aplikasi</a></p>
   </section>
 
-  <p class="section-label hidden" id="subtitle">Pilih grup</p>
-
+  <!-- Layar 2: Pilih Grup -->
   <section id="state-list" class="hidden">
-    <div id="group-list"><p class="loading">Memuat daftar grup...</p></div>
-    <button class="btn btn-outline" id="btn-to-welcome">Kembali</button>
-    <p class="note">Grup baru hanya dibuat admin pemilik.<br>Sudah di dalam? <a href="index.html">Buka aplikasi</a></p>
+    <div class="card">
+      <div class="screen-header">
+        <div class="screen-header-icon">
+          <i class="ph-fill ph-users-three"></i>
+        </div>
+        <h2>Pilih Grup Kas</h2>
+        <p>Pilih kelompok kas untuk membuka pembukuan</p>
+      </div>
+
+      <div id="group-list" class="group-list-container">
+        <p class="loading-state">Memuat daftar grup...</p>
+      </div>
+
+      <button class="btn btn-outline" id="btn-to-welcome">
+        <i class="ph-bold ph-arrow-left"></i> Kembali
+      </button>
+    </div>
+
+    <p class="note">
+      Grup baru hanya dibuat admin pemilik.<br>
+      Sudah di dalam? <a href="index.html">Buka aplikasi</a>
+    </p>
   </section>
 
+  <!-- Layar 3: Masuk PIN Grup -->
   <section id="state-pin" class="hidden">
-    <div class="card pin-card">
-      <div class="pin-head">
-        <div class="pin-badge">···</div>
-        <div>
-          <div class="pin-title" id="pin-name">Grup</div>
-          <div class="pin-sub">Ketik PIN 4 angka grup ini</div>
+    <div class="card">
+      <div class="pin-card-header">
+        <div class="pin-avatar-icon">
+          <i class="ph-fill ph-lock-key"></i>
+        </div>
+        <h2 class="pin-group-title" id="pin-name">Nama Grup</h2>
+        <p class="pin-group-sub">Ketik PIN 4 angka grup ini untuk masuk</p>
+      </div>
+
+      <div class="pin-box-panel">
+        <div class="pin-box-label">PIN 4 Angka</div>
+        <div class="pin-input-row">
+          <input id="pin0" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 1">
+          <input id="pin1" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 2">
+          <input id="pin2" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 3">
+          <input id="pin3" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 4">
+        </div>
+        <div class="pin-security-hint">
+          <i class="ph-fill ph-shield-check"></i>
+          <span>Salah 5 kali, akses terkunci 1 menit</span>
         </div>
       </div>
-      <p class="note" style="margin-top:8px">Salah 5 kali, kunci 1 menit.</p>
-      <div class="pin-row">
-        <input id="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off">
-        <input id="pin1" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off">
-        <input id="pin2" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off">
-        <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off">
-      </div>
-      <p id="pin-msg" class="pin-msg" aria-live="polite"></p>
-      <button class="btn btn-primary" id="btn-enter">Masuk Grup</button>
-      <button class="btn btn-outline" id="btn-back">Ganti Grup</button>
+
+      <div id="pin-msg" class="pin-msg" aria-live="polite"></div>
+
+      <button class="btn btn-primary" id="btn-enter">
+        <i class="ph-bold ph-sign-in"></i> Masuk Grup
+      </button>
+      <button class="btn btn-outline" id="btn-back">
+        Ganti Grup
+      </button>
     </div>
   </section>
 </div>
@@ -119,6 +142,15 @@ var BASE = 'https://firestore.googleapis.com/v1/projects/finkas-kas/databases/(d
 var groups = [];
 var active = null;
 var lockKey = function(id){ return 'finkas_pin_lock_' + id; };
+
+var AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', // ungu-biru (Status Iuran style)
+  'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', // biru
+  'linear-gradient(135deg, #10b981 0%, #059669 100%)', // emerald
+  'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', // violet
+  'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', // sky
+  'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'  // amber
+];
 
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -134,36 +166,39 @@ function loadGroups(){
     });
     renderList();
   }).catch(function(){
-    document.getElementById('group-list').innerHTML = '<p class="loading">Gagal memuat. Periksa internet lalu muat ulang.</p>';
+    var box = document.getElementById('group-list');
+    if (box) {
+      box.innerHTML = '<p class="loading-state">Gagal memuat. Periksa internet lalu muat ulang.</p>';
+    }
   });
 }
 
 function renderList(){
   var box = document.getElementById('group-list');
+  if (!box) return;
   if (!groups.length) {
-    box.innerHTML = '<p class="loading">Belum ada grup. Minta admin pemilik membuatkan grup.</p>';
+    box.innerHTML = '<p class="loading-state">Belum ada grup. Minta admin pemilik membuatkan grup.</p>';
     return;
   }
-  box.innerHTML = groups.map(function(g){
+  box.innerHTML = groups.map(function(g, idx){
+    var gradient = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
+    var initial = esc(g.nama.charAt(0).toUpperCase());
     return '<button class="group-item" data-id="' + esc(g.id) + '">' +
-      '<span class="avatar">' + esc(g.nama.charAt(0).toUpperCase()) + '</span>' +
-      '<span><h3>' + esc(g.nama) + '</h3><small>Ketuk untuk masuk</small></span>' +
-      '<span class="chev">›</span></button>';
+      '<span class="group-avatar" style="background:' + gradient + '">' + initial + '</span>' +
+      '<span class="group-texts"><h3>' + esc(g.nama) + '</h3><small>Ketuk untuk masuk</small></span>' +
+      '<i class="ph-bold ph-caret-right group-chev"></i></button>';
   }).join('');
+
   box.querySelectorAll('.group-item').forEach(function(b){
     b.addEventListener('click', function(){ pickGroup(b.getAttribute('data-id')); });
   });
 }
 
 function showSlide(name){
-  ['state-welcome','state-list','state-pin'].forEach(function(s){
-    document.getElementById(s).classList.toggle('hidden', s !== 'state-' + name);
+  ['state-welcome', 'state-list', 'state-pin'].forEach(function(s){
+    var el = document.getElementById(s);
+    if (el) el.classList.toggle('hidden', s !== 'state-' + name);
   });
-  var onWelcome = name === 'welcome';
-  document.getElementById('hero').classList.toggle('hidden', !onWelcome);
-  var sub = document.getElementById('subtitle');
-  sub.classList.toggle('hidden', onWelcome);
-  sub.textContent = name === 'pin' ? 'Masuk grup' : 'Pilih grup';
   window.scrollTo(0, 0);
 }
 
@@ -177,10 +212,25 @@ function pickGroup(id){
   ['pin0','pin1','pin2','pin3'].forEach(function(p){ document.getElementById(p).value = ''; });
   setMsg('');
   showSlide('pin');
-  setTimeout(function(){ document.getElementById('pin0').focus(); }, 100);
+  setTimeout(function(){
+    var p0 = document.getElementById('pin0');
+    if (p0) p0.focus();
+  }, 120);
 }
 
-function setMsg(t){ document.getElementById('pin-msg').textContent = t; }
+function setMsg(t, isAlert){
+  var el = document.getElementById('pin-msg');
+  if (!el) return;
+  if (!t) {
+    el.innerHTML = '';
+    return;
+  }
+  if (isAlert) {
+    el.innerHTML = '<span class="pin-msg-alert"><i class="ph-bold ph-warning-circle"></i> ' + esc(t) + '</span>';
+  } else {
+    el.textContent = t;
+  }
+}
 
 function checkLock(){
   try {
@@ -204,7 +254,7 @@ function recordFail(){
   return { locked: false, left: 5 - fails };
 }
 
-function enterApp(msg){
+function enterApp(){
   try {
     localStorage.setItem('finkas_active_group', active.id);
     localStorage.setItem('finkas_active_group_name', active.nama);
@@ -215,50 +265,132 @@ function enterApp(msg){
   location.href = 'index.html';
 }
 
-function submitPin(){
-  if (!active) return;
-  var pin = ['pin0','pin1','pin2','pin3'].map(function(p){ return document.getElementById(p).value; }).join('');
-  if (pin.length < 4) { setMsg('Ketik 4 angka dulu.'); return; }
-  var lockedSec = checkLock();
-  if (lockedSec > 0) { setMsg('Terkunci. Coba lagi ' + lockedSec + ' detik.'); return; }
-  var btn = document.getElementById('btn-enter');
-  btn.disabled = true;
-  fetch('api/verify-group-pin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ groupId: active.id, pin: pin })
-  }).then(function(r){
-    if (r.status === 404) throw new Error('no-endpoint');
-    return r.json().then(function(j){ return { http: r.status, body: j }; });
-  }).then(function(res){
-    if (res.body && res.body.status) { enterApp(); return; }
-    var f = recordFail();
-    if (f.locked) { setMsg('Salah 5 kali. Terkunci 1 menit.'); }
-    else { setMsg(((res.body && res.body.message) || 'PIN salah.') + ' Sisa ' + f.left + ' kali.'); }
-  }).catch(function(){
-    setMsg('Server verifikasi tak ada — hanya grup tanpa PIN yang bisa masuk di sini.');
-  }).finally(function(){
-    btn.disabled = false;
-    ['pin0','pin1','pin2','pin3'].forEach(function(p){ document.getElementById(p).value = ''; });
-    document.getElementById('pin0').focus();
+function hashText(text){
+  var encoder = new TextEncoder();
+  var data = encoder.encode(text);
+  return crypto.subtle.digest('SHA-256', data).then(function(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){
+      return b.toString(16).padStart(2, '0');
+    }).join('');
   });
 }
 
-document.querySelectorAll('.pin-box').forEach(function(box, idx, all){
+function fetchGroupPinHash(id){
+  return fetch(BASE + '/groups/' + encodeURIComponent(id)).then(function(r){
+    return r.json();
+  }).then(function(j){
+    var f = (j && j.fields) || {};
+    return (f.pin_hash && f.pin_hash.stringValue) || '';
+  }).catch(function(){ return ''; });
+}
+
+function verifyPin(id, pin){
+  return fetch('api/verify-group-pin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groupId: id, pin: pin })
+  }).then(function(r){
+    if (r.status === 404) throw new Error('no-endpoint');
+    return r.json().then(function(j){
+      if (j && j.status) return { success: true };
+      return { success: false, message: (j && j.message) || 'PIN salah.' };
+    });
+  }).catch(function(){
+    return fetchGroupPinHash(id).then(function(storedHash){
+      if (!storedHash) {
+        return { success: true };
+      }
+      return hashText('finkas-pin:' + id + ':' + pin).then(function(inputHash){
+        if (inputHash === storedHash) {
+          return { success: true };
+        }
+        return { success: false, message: 'PIN salah.' };
+      });
+    });
+  });
+}
+
+function submitPin(){
+  if (!active) return;
+  var pin = ['pin0','pin1','pin2','pin3'].map(function(p){ return document.getElementById(p).value; }).join('');
+  if (pin.length < 4) {
+    setMsg('Ketik 4 angka PIN dulu.', true);
+    return;
+  }
+  var lockedSec = checkLock();
+  if (lockedSec > 0) {
+    setMsg('Terkunci. Tunggu ' + lockedSec + ' detik lagi.', true);
+    return;
+  }
+  var btn = document.getElementById('btn-enter');
+  btn.disabled = true;
+
+  verifyPin(active.id, pin).then(function(res){
+    if (res.success) {
+      enterApp();
+      return;
+    }
+    var f = recordFail();
+    if (f.locked) {
+      setMsg('Salah 5 kali. Akses terkunci 1 menit.', true);
+    } else {
+      setMsg(res.message + ' Sisa ' + f.left + ' kesempatan.', true);
+    }
+  }).catch(function(){
+    setMsg('Gagal memeriksa PIN. Periksa koneksi internet.', true);
+  }).finally(function(){
+    btn.disabled = false;
+    ['pin0','pin1','pin2','pin3'].forEach(function(p){ document.getElementById(p).value = ''; });
+    var p0 = document.getElementById('pin0');
+    if (p0) p0.focus();
+  });
+}
+
+var pinBoxes = document.querySelectorAll('.pin-digit-box');
+pinBoxes.forEach(function(box, idx, all){
   box.addEventListener('input', function(){
     box.value = box.value.replace(/\D/g, '').slice(0, 1);
     if (box.value && idx < 3) all[idx + 1].focus();
     var pin = Array.prototype.map.call(all, function(b){ return b.value; }).join('');
     if (pin.length === 4) submitPin();
   });
+
   box.addEventListener('keydown', function(e){
-    if (e.key === 'Backspace' && !box.value && idx > 0) all[idx - 1].focus();
+    if (e.key === 'Backspace' && !box.value && idx > 0) {
+      all[idx - 1].focus();
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      all[idx - 1].focus();
+    } else if (e.key === 'ArrowRight' && idx < 3) {
+      all[idx + 1].focus();
+    }
+  });
+
+  box.addEventListener('paste', function(e){
+    var pasteData = (e.clipboardData || window.clipboardData).getData('text');
+    var digits = (pasteData || '').replace(/\D/g, '').slice(0, 4);
+    if (digits.length > 0) {
+      e.preventDefault();
+      digits.split('').forEach(function(d, i){
+        if (all[i]) all[i].value = d;
+      });
+      if (digits.length === 4) {
+        submitPin();
+      } else if (all[digits.length]) {
+        all[digits.length].focus();
+      }
+    }
+  });
+
+  box.addEventListener('focus', function(){
+    box.select();
   });
 });
+
 document.getElementById('btn-enter').addEventListener('click', submitPin);
 document.getElementById('btn-to-list').addEventListener('click', function(){ showSlide('list'); });
 document.getElementById('btn-to-welcome').addEventListener('click', function(){ showSlide('welcome'); });
 document.getElementById('btn-back').addEventListener('click', function(){ showSlide('list'); });
+
 loadGroups();
 </script>
 </body>

@@ -24,6 +24,9 @@ export const fetchInitialData = async () => {
     }
 
     const gid = getActiveGroupId();
+    if (!gid) {
+      return { status: true, data: { anggota: [], kategori: [], transaksi: [], settings: { skippedMonths: [] } } };
+    }
     const [resAng, resKat, resTrx, resSet] = await Promise.all([
       fetch(`${FIRESTORE_BASE}/${scopedCol('anggota', gid)}?pageSize=300`).then((r) => r.json()),
       fetch(`${FIRESTORE_BASE}/${scopedCol('kategori', gid)}?pageSize=100`).then((r) => r.json()),
@@ -95,7 +98,7 @@ export const postToBackend = async (payload) => {
       // If adding an iuran payment, check if the member already paid for the exact same month & year.
       if (dataForm.idAnggota && dataForm.idAnggota !== '-' && dataForm.bulanIuran && dataForm.bulanIuran !== '-' && dataForm.tahunIuran && dataForm.tahunIuran !== '-') {
         const state = getState();
-        const isDuplicate = (state.transaksi || []).some((t) => 
+        const isDuplicate = (state.transaksi || []).some((t) =>
           t.ID_Anggota === dataForm.idAnggota &&
           t.Bulan_Iuran === dataForm.bulanIuran &&
           String(t.Tahun_Iuran) === String(dataForm.tahunIuran)
@@ -114,7 +117,8 @@ export const postToBackend = async (payload) => {
         ID_Transaksi: idTrx, Timestamp: new Date().toISOString(), Tipe_Arus: dataForm.tipeArus,
         ID_Kategori: dataForm.idKategori, ID_Anggota: dataForm.idAnggota || '-',
         Bulan_Iuran: dataForm.bulanIuran || '-', Tahun_Iuran: dataForm.tahunIuran || '-',
-        Nominal: nominal, Keterangan: dataForm.keterangan || ''
+        Nominal: nominal, Keterangan: dataForm.keterangan || '',
+        groupId: gid
       };
 
       const res = await fetch(scopedDoc('transaksi', idTrx, gid), {
@@ -159,7 +163,7 @@ export const postToBackend = async (payload) => {
       const skippedIds = [];
 
       validList.forEach((dataForm) => {
-        const isPaid = existingTrx.some((t) => 
+        const isPaid = existingTrx.some((t) =>
           t.ID_Anggota === dataForm.idAnggota &&
           t.Bulan_Iuran === dataForm.bulanIuran &&
           String(t.Tahun_Iuran) === String(dataForm.tahunIuran)
@@ -265,7 +269,7 @@ export const postToBackend = async (payload) => {
       const noWa = (typeof payload.noWa === 'string' ? payload.noWa : '').trim();
       if (!nama) return { status: false, message: 'Nama anggota wajib diisi.', data: null };
       const idAnggota = 'ANG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-      const doc = { ID_Anggota: idAnggota, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' };
+      const doc = { ID_Anggota: idAnggota, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif', groupId: gid };
       const res = await fetch(scopedDoc('anggota', idAnggota, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -310,7 +314,7 @@ export const postToBackend = async (payload) => {
       if (!['Masuk', 'Keluar'].includes(tipe)) return { status: false, message: 'Tipe kategori harus Masuk atau Keluar.', data: null };
       const prefix = tipe === 'Masuk' ? 'KAT-M' : 'KAT-K';
       const idKategori = prefix + Math.random().toString(36).substring(2, 6).toUpperCase();
-      const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe };
+      const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe, groupId: gid };
       const res = await fetch(scopedDoc('kategori', idKategori, gid), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

@@ -1,53 +1,141 @@
-/* === TOASTS === */
-#toast-container { 
-  position: fixed; 
-  top: 24px; 
-  right: 24px; 
-  z-index: 9999999; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 10px; 
+/* === TOASTS (MODERN FLOATING PILL SPEC) === */
+#toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   pointer-events: none;
+  max-width: 440px;
 }
 
-.toast { 
-  background: var(--surface); 
-  color: var(--text-main); 
-  padding: 14px 20px; 
-  border-radius: var(--radius-md); 
-  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08); 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  transform: translateY(-20px) scale(0.95); 
+.toast {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-main);
+  padding: 8px 12px 8px 8px;
+  border-radius: 999px;
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-14px) scale(0.96);
   opacity: 0;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; 
-  font-weight: 600; 
-  font-size: 14px; 
-  border: 1px solid var(--border); 
-  border-left: 4px solid #10b981; 
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
   pointer-events: auto;
+  user-select: none;
 }
 
 body.dark-mode .toast {
-  box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  background: #0f172a;
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.toast.show { 
-  transform: translateY(0) scale(1); 
+.toast.show {
+  transform: translateY(0) scale(1);
   opacity: 1;
 }
 
-.toast.error { 
-  border-left-color: var(--danger); 
+/* Icon badge within toast */
+.toast-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
 }
 
-.toast.warning {
-  border-left-color: var(--warning);
+.toast-icon-wrap.success,
+.toast.success .toast-icon-wrap {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-/* === PREMIUM STATUS VISUALS === */
+.toast-icon-wrap.error,
+.toast.error .toast-icon-wrap {
+  background: rgba(244, 63, 94, 0.14);
+  color: #e11d48;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+.toast-icon-wrap.warning,
+.toast.warning .toast-icon-wrap {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.toast-icon-wrap.info,
+.toast.info .toast-icon-wrap {
+  background: rgba(99, 102, 241, 0.14);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+/* Toast text */
+.toast-label {
+  line-height: 1.4;
+  color: var(--text-main);
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Toast close button */
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.toast-close-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-main);
+}
+
+body.dark-mode .toast-close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  #toast-container {
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    align-items: center;
+    max-width: none;
+  }
+  .toast {
+    width: 100%;
+    max-width: 420px;
+    justify-content: space-between;
+  }
+}
+
+/* === STATUS LUNAS DOT === */
 .status-lunas-dot {
   width: 24px;
   height: 24px;
@@ -66,4 +154,3 @@ body.dark-mode .toast {
   from { transform: scale(0); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-

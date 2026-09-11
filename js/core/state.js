@@ -77,11 +77,10 @@ let activeGroupId = localStorage.getItem(ACTIVE_GROUP_KEY) || '';
 let groups = [];
 
 /**
- * Get ID grup aktif. Fallback ke Grup Utama bila belum pernah pilih
- * (misal user lama yang localStorage-nya format sebelum multi-grup).
+ * Get ID grup aktif dari sesi/localStorage.
  * @returns {string}
  */
-export const getActiveGroupId = () => activeGroupId || DEFAULT_GROUP_ID;
+export const getActiveGroupId = () => activeGroupId;
 
 /**
  * Set grup aktif dan ingat di localStorage.

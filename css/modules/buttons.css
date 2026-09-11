@@ -68,22 +68,29 @@
 body:not(.admin-mode) .admin-only { display: none !important; }
 body:not(.superadmin-mode) .superadmin-only { display: none !important; }
 
-.btn-stealth-link {
+.btn-stealth-link,
+.btn-stealth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: transparent;
-  border: none;
-  color: var(--text-muted, #94a3b8);
-  font-size: 11px;
+  border: 1px solid transparent;
+  color: var(--text-muted, #64748b);
+  font-size: 11.5px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
   transition: all 0.2s ease;
-  opacity: 0.65;
+  opacity: 0.8;
   text-decoration: none;
 }
-.btn-stealth-link:hover {
+.btn-stealth-link:hover,
+.btn-stealth-pill:hover {
   opacity: 1;
-  color: var(--text-main, #334155);
-  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-main, #1e293b);
+  background: var(--bg-card-subtle, rgba(241, 245, 249, 0.85));
+  border-color: var(--border-color, #e2e8f0);
 }
 .btn-wa-reminder i { display: inline-flex; align-items:center; justify-content:center; }
 .btn-wa-reminder:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.08); background: linear-gradient(90deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08)); }

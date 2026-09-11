@@ -648,6 +648,11 @@ export const initGroupsUI = (onGroupChanged) => {
   if (activeGid) {
     window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id: activeGid } }));
   } else {
+    const hasSeenOnboarding = localStorage.getItem("finkas_onboarding_seen");
+    if (!hasSeenOnboarding) {
+      window.location.replace("onboarding.html");
+      return;
+    }
     openGroupPicker();
   }
 

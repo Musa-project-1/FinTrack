@@ -6,13 +6,13 @@
 <title>Selamat Datang di Finkas</title>
 <meta name="description" content="Selamat datang di Finkas - pembukuan kas komunitas yang sederhana dan jujur">
 <meta name="theme-color" content="#10b981">
-<link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=108">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=110">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
-<link rel="stylesheet" href="css/onboarding.css?v=108">
+<link rel="stylesheet" href="css/onboarding.css?v=110">
 </head>
 <body>
 
@@ -258,6 +258,7 @@ function enterApp(){
   try {
     localStorage.setItem('finkas_active_group', active.id);
     localStorage.setItem('finkas_active_group_name', active.nama);
+    localStorage.setItem('finkas_onboarding_seen', '1');
     sessionStorage.setItem('finkas_group_open', '1');
     sessionStorage.setItem('finkas_skip_picker', '1');
     localStorage.removeItem(lockKey(active.id));
@@ -390,6 +391,12 @@ document.getElementById('btn-enter').addEventListener('click', submitPin);
 document.getElementById('btn-to-list').addEventListener('click', function(){ showSlide('list'); });
 document.getElementById('btn-to-welcome').addEventListener('click', function(){ showSlide('welcome'); });
 document.getElementById('btn-back').addEventListener('click', function(){ showSlide('list'); });
+
+document.querySelectorAll('a[href="index.html"]').forEach(function(a){
+  a.addEventListener('click', function(){
+    try { localStorage.setItem('finkas_onboarding_seen', '1'); } catch (e) {}
+  });
+});
 
 loadGroups();
 </script>

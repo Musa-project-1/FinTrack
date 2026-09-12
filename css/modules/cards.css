@@ -255,7 +255,7 @@ body.header-stats-active .dashboard {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #10b981, #3b82f6, #6366f1);
+  background: var(--primary);
   transition: width 0.5s ease;
 }
 .stat-card-note {

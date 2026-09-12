@@ -163,7 +163,7 @@ export const setConnectionStatus = (isOnline) => {
   document.querySelectorAll('.connection-status').forEach((badge) => {
     badge.classList.toggle('offline', !isOnline);
     const statusLabel = isOnline ? 'Online' : 'Offline';
-    badge.setAttribute('aria-label', `Finkas — ${statusLabel}`);
+    badge.setAttribute('aria-label', `Finkas: ${statusLabel}`);
   });
 };
 

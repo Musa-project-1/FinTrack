@@ -2,6 +2,16 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* === ACCESSIBILITY FOCUS RING (WCAG AA) === */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
 body { 
   background-color: var(--bg-color); 
   background-image: radial-gradient(var(--bg-pattern-dot) 1px, transparent 1px);
@@ -91,10 +101,7 @@ body.dark-mode {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-main);
 }
 
 .brand-logo-light { display: block; }

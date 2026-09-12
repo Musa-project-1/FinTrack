@@ -8,6 +8,15 @@ test('formatRp formats numbers to IDR correctly', () => {
   assert.ok(formatted.includes('Rp'), `Expected formatted string to contain Rp, got: ${formatted}`);
 });
 
+test('formatRp safely handles zero, null, and large numbers', () => {
+  const zero = formatRp(0);
+  assert.ok(zero.includes('0'), `Expected Rp 0, got: ${zero}`);
+  const empty = formatRp(null);
+  assert.ok(empty.includes('0'), `Expected fallback to 0, got: ${empty}`);
+  const large = formatRp(25000000);
+  assert.ok(large.includes('25.000.000'), `Expected formatted 25.000.000, got: ${large}`);
+});
+
 test('getInitials extracts initials accurately', () => {
   assert.equal(getInitials('Musa Bakhtiar'), 'MB');
   assert.equal(getInitials('Ahmad'), 'AH');

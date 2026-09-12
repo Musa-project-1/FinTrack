@@ -1,8 +1,10 @@
 {
   "name": "Finkas",
-  "short_name": "FinKas",
+  "short_name": "Finkas",
   "description": "Aplikasi Manajemen Kas & Iuran Anggota",
+  "id": "/",
   "start_url": "index.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f1f5f9",
   "theme_color": "#10b981",

@@ -117,13 +117,13 @@
 
 .iuran-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+  background: var(--primary);
   transition: width 0.4s ease;
   border-radius: 100px;
 }
 
 .iuran-progress-fill.fill-lunas {
-  background: linear-gradient(90deg, #10b981 0%, #059669 60%, #3b82f6 100%);
+  background: var(--primary);
 }
 
 .iuran-card-toggle {

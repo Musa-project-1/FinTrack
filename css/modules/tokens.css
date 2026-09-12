@@ -1,11 +1,9 @@
 /* === CSS RESET & PREMIUM LIGHT TOKENS === */
 :root {
   --primary: #10b981; /* Emerald 500 */
-  --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --primary-hover: #059669; /* Emerald 600 */
   --secondary: #6366f1; /* Indigo 500 */
-  --secondary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   --danger: #f43f5e; /* Rose 500 */
-  --danger-gradient: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
   --warning: #f59e0b; /* Amber 500 */
   
   --bg-color: #f1f5f9; /* Slate 100 rich backdrop */

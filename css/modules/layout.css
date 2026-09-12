@@ -364,11 +364,11 @@ body.dark-mode .header-dropdown .dropdown-menu {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--primary);
     border-radius: 50%;
     font-size: 22px;
     color: #fff;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
+    box-shadow: var(--shadow-sm);
   }
 
   .bottom-nav-cta span {

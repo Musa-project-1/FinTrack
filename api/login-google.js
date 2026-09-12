@@ -1,219 +1,232 @@
 /**
- * Serverless Google Sign-In & Super Admin Endpoint for Finkas on Vercel.
- * Memverifikasi ID Token Google dan mencocokkan email dengan whitelist superadmin.
+ * Google Sign-In and Super Admin management for Finkas.
+ *
+ * Authorization flows:
+ *   login  — verify a Google ID/access token, check the email against the
+ *            superadmin whitelist, and return a signed session.
+ *   list   — return the superadmin email list (requires an active SA session).
+ *   add    — grant SA access to another Google account (requires SA session).
+ *   remove — revoke SA access (requires SA session; the primary owner cannot
+ *            be removed).
+ *
+ * Every mutating action requires a valid, non-expired Super Admin session.
+ * There is no `NODE_ENV` bypass and no body-supplied `isSuperAdmin` shortcut.
  */
-import crypto from 'node:crypto';
-import { getFirestoreHeaders, generateSuperAdminToken, verifySuperAdminToken } from './_sa.js';
+import { fsGet, fsPatch, requireFirestoreHeaders } from './_sa.js';
+import { APP_CONFIG_DOC, writeAuditLog } from './_store.js';
+import {
+  ROLES,
+  SUPERADMIN_SESSION_TTL,
+  clientIp,
+  readSession,
+  signSession
+} from './_session.js';
 
-const FALLBACK_SUPERADMIN = 'musabakhtiar0@gmail.com';
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
-const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const PRIMARY_OWNER = 'musabakhtiar0@gmail.com';
 
+const sendJson = (res, status, payload) => {
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(status).json(payload);
+};
+
+const parseBody = (req) => {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch (err) {
+      return {};
+    }
+  }
+  return {};
+};
+
+/* ── Superadmin whitelist helpers ─────────────────────────────────── */
+
+/**
+ * Read the superadmin email list from the server-only config document.
+ * The primary owner is always included.
+ * @returns {Promise<string[]>}
+ */
 async function getSuperadminList(headers) {
   try {
-    const res = await fetch(`${FIRESTORE_BASE}/settings/app_config`, { headers });
-    if (!res.ok) return [FALLBACK_SUPERADMIN];
-    const data = await res.json();
-    const values = data?.fields?.superadmin_emails?.arrayValue?.values || [];
-    const list = values.map((v) => (v.stringValue || '').toLowerCase().trim()).filter(Boolean);
-    if (!list.includes(FALLBACK_SUPERADMIN)) {
-      list.unshift(FALLBACK_SUPERADMIN);
-    }
+    const config = await fsGet(APP_CONFIG_DOC, headers);
+    const raw = config?.superadmin_emails;
+    const list = (Array.isArray(raw) ? raw : [])
+      .map((v) => String(v || '').toLowerCase().trim())
+      .filter(Boolean);
+    if (!list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
     return list;
-  } catch (_) {
-    return [FALLBACK_SUPERADMIN];
+  } catch (err) {
+    console.error('[finkas] Failed to read superadmin list:', err?.message);
+    return [PRIMARY_OWNER];
   }
 }
 
+/**
+ * Persist the superadmin email list.
+ */
+async function saveSuperadminList(list, headers) {
+  await fsPatch(APP_CONFIG_DOC, { superadmin_emails: list }, headers, ['superadmin_emails']);
+}
+
+/* ── Require a valid Super Admin session ─────────────────────────── */
+
+/**
+ * Verify that the request carries a valid, non-expired Super Admin session.
+ * @returns {object|null} The session payload, or null.
+ */
+const requireSuperAdmin = (body) => {
+  const session = readSession(body);
+  if (!session || session.role !== ROLES.SUPERADMIN) return null;
+  return session;
+};
+
+/* ── Actions ─────────────────────────────────────────────────────── */
+
+async function loginWithGoogle(body, headers, ip) {
+  const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
+  if (!rawToken) {
+    return { code: 400, payload: { status: false, message: 'Token otentikasi Google diperlukan.' } };
+  }
+
+  // Verify the token with Google's tokeninfo endpoint.
+  const isAccessToken = rawToken.startsWith('ya29.');
+  const query = isAccessToken
+    ? `access_token=${encodeURIComponent(rawToken)}`
+    : `id_token=${encodeURIComponent(rawToken)}`;
+
+  const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?${query}`);
+  if (!googleRes.ok) {
+    return { code: 401, payload: { status: false, message: 'Token Google tidak valid atau sudah kedaluwarsa.' } };
+  }
+
+  const gData = await googleRes.json();
+  const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
+  if (!isVerified) {
+    return { code: 401, payload: { status: false, message: 'Email Google belum diverifikasi.' } };
+  }
+
+  const verifiedEmail = (gData.email || '').toLowerCase().trim();
+  if (!verifiedEmail) {
+    return { code: 401, payload: { status: false, message: 'Email tidak ditemukan dalam respons Google.' } };
+  }
+
+  const allowedEmails = await getSuperadminList(headers);
+  if (!allowedEmails.includes(verifiedEmail)) {
+    await writeAuditLog('utama', 'LOGIN_GOOGLE_DITOLAK', `${verifiedEmail} dari ${ip}`, headers);
+    return {
+      code: 403,
+      payload: { status: false, message: `Akun Google (${verifiedEmail}) bukan Super Admin pemilik Finkas.` }
+    };
+  }
+
+  const sessionToken = signSession({ role: ROLES.SUPERADMIN, email: verifiedEmail }, SUPERADMIN_SESSION_TTL);
+  await writeAuditLog('utama', 'LOGIN_SUPERADMIN_GOOGLE', `${verifiedEmail} dari ${ip}`, headers);
+
+  return {
+    code: 200,
+    payload: {
+      status: true,
+      message: 'Login Super Admin Sukses!',
+      data: {
+        isSuperAdmin: true,
+        isAdmin: true,
+        role: ROLES.SUPERADMIN,
+        email: verifiedEmail,
+        name: gData.name || '',
+        sessionToken
+      }
+    }
+  };
+}
+
+async function listSuperAdmins(headers) {
+  const emails = await getSuperadminList(headers);
+  return {
+    code: 200,
+    payload: {
+      status: true,
+      data: emails.map((email) => ({ email, isPrimary: email === PRIMARY_OWNER }))
+    }
+  };
+}
+
+async function addSuperAdmin(body, headers) {
+  const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
+  if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    return { code: 400, payload: { status: false, message: 'Format email tidak valid.' } };
+  }
+
+  const current = await getSuperadminList(headers);
+  if (current.includes(newEmail)) {
+    return { code: 400, payload: { status: false, message: 'Email tersebut sudah terdaftar sebagai Super Admin.' } };
+  }
+
+  const updated = [...current, newEmail];
+  await saveSuperadminList(updated, headers);
+  await writeAuditLog('utama', 'TAMBAH_SUPERADMIN', newEmail, headers);
+
+  return { code: 200, payload: { status: true, message: `Email ${newEmail} berhasil ditambahkan sebagai Super Admin.`, data: updated } };
+}
+
+async function removeSuperAdmin(body, headers) {
+  const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
+  if (removeEmail === PRIMARY_OWNER) {
+    return { code: 400, payload: { status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' } };
+  }
+
+  const current = await getSuperadminList(headers);
+  if (!current.includes(removeEmail)) {
+    return { code: 400, payload: { status: false, message: 'Email tersebut bukan Super Admin.' } };
+  }
+
+  const updated = current.filter((em) => em !== removeEmail);
+  await saveSuperadminList(updated, headers);
+  await writeAuditLog('utama', 'HAPUS_SUPERADMIN', removeEmail, headers);
+
+  return { code: 200, payload: { status: true, message: `Akses Super Admin untuk ${removeEmail} telah dicabut.`, data: updated } };
+}
+
+const GUARDED_ACTIONS = {
+  list: listSuperAdmins,
+  add: addSuperAdmin,
+  remove: removeSuperAdmin
+};
+
+/* ── Handler ─────────────────────────────────────────────────────── */
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ status: false, message: 'Method Not Allowed' });
+    return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch (_) { body = {}; }
-    }
+    const body = parseBody(req);
+    const action = String(body?.action || 'login').trim();
+    const headers = await requireFirestoreHeaders();
+    const ip = clientIp(req);
 
-    const headers = await getFirestoreHeaders();
-    const action = body?.action || 'login';
-
-    // ── AKSI 1: Login via Google ID Token / Access Token ────────────────
+    // Login does not require an existing session.
     if (action === 'login') {
-      const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
-      const directEmail = String(body?.email || '').trim().toLowerCase();
-
-      let verifiedEmail = '';
-      let userName = '';
-
-      if (rawToken) {
-        // Cek apakah berupa OAuth2 access_token (biasanya diawali 'ya29.') atau ID token JWT
-        const isAccessToken = rawToken.startsWith('ya29.');
-        const tokenQuery = isAccessToken
-          ? `access_token=${encodeURIComponent(rawToken)}`
-          : `id_token=${encodeURIComponent(rawToken)}`;
-        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?${tokenQuery}`);
-        if (!googleRes.ok) {
-          return res.status(401).json({ status: false, message: 'Token Google tidak valid atau sudah kedaluwarsa.' });
-        }
-        const gData = await googleRes.json();
-        const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
-        if (!isVerified) {
-          return res.status(401).json({ status: false, message: 'Email Google belum diverifikasi.' });
-        }
-        verifiedEmail = (gData.email || '').toLowerCase().trim();
-        userName = gData.name || '';
-      } else if (process.env.NODE_ENV !== 'production' && directEmail) {
-        // Fallback pengujian dev lokal
-        verifiedEmail = directEmail;
-        userName = 'Dev Super Admin';
-      } else {
-        return res.status(400).json({ status: false, message: 'Token otentikasi Google diperlukan.' });
-      }
-
-      const allowedEmails = await getSuperadminList(headers);
-      if (!allowedEmails.includes(verifiedEmail)) {
-        await new Promise((r) => setTimeout(r, 600));
-        return res.status(403).json({
-          status: false,
-          message: `Akun Google (${verifiedEmail}) bukan Super Admin pemilik Finkas.`
-        });
-      }
-
-      const sessionToken = generateSuperAdminToken(verifiedEmail);
-      return res.status(200).json({
-        status: true,
-        message: 'Login Super Admin Sukses!',
-        data: {
-          isSuperAdmin: true,
-          isAdmin: true,
-          role: 'superadmin',
-          email: verifiedEmail,
-          name: userName,
-          sessionToken
-        }
-      });
+      const result = await loginWithGoogle(body, headers, ip);
+      return sendJson(res, result.code, result.payload);
     }
 
-    // ── AKSI 2: Ambil Daftar Super Admin (khusus Super Admin aktif) ───────
-    if (action === 'list') {
-      const callerEmail = String(body?.callerEmail || '').trim().toLowerCase();
-      const sessionToken = String(body?.sessionToken || '').trim();
-      const allowedEmails = await getSuperadminList(headers);
-
-      if (!verifySuperAdminToken(callerEmail, sessionToken) && process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ status: false, message: 'Otorisasi sesi Super Admin tidak valid.' });
-      }
-      if (!allowedEmails.includes(callerEmail)) {
-        return res.status(403).json({ status: false, message: 'Hanya Super Admin yang dapat melihat daftar ini.' });
-      }
-      return res.status(200).json({
-        status: true,
-        data: allowedEmails.map((email) => ({
-          email,
-          isPrimary: email === FALLBACK_SUPERADMIN
-        }))
-      });
+    // Every other action requires a valid Super Admin session.
+    const guardedHandler = GUARDED_ACTIONS[action];
+    if (!guardedHandler) {
+      return sendJson(res, 400, { status: false, message: 'Aksi tidak dikenal.' });
     }
 
-    // ── AKSI 3: Tambah Email Super Admin Baru ─────────────────────────────
-    if (action === 'add') {
-      const callerEmail = String(body?.callerEmail || '').trim().toLowerCase();
-      const sessionToken = String(body?.sessionToken || '').trim();
-      const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
-
-      if (!verifySuperAdminToken(callerEmail, sessionToken) && process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ status: false, message: 'Otorisasi sesi Super Admin tidak valid.' });
-      }
-      if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-        return res.status(400).json({ status: false, message: 'Format email tidak valid.' });
-      }
-
-      const allowedEmails = await getSuperadminList(headers);
-      if (!allowedEmails.includes(callerEmail)) {
-        return res.status(403).json({ status: false, message: 'Hanya Super Admin yang berwenang menambah admin.' });
-      }
-      if (allowedEmails.includes(newEmail)) {
-        return res.status(400).json({ status: false, message: 'Email tersebut sudah terdaftar sebagai Super Admin.' });
-      }
-
-      const updatedList = [...allowedEmails, newEmail];
-      const patchBody = {
-        fields: {
-          superadmin_emails: {
-            arrayValue: {
-              values: updatedList.map((em) => ({ stringValue: em }))
-            }
-          }
-        }
-      };
-
-      const patchRes = await fetch(`${FIRESTORE_BASE}/settings/app_config?updateMask.fieldPaths=superadmin_emails`, {
-        method: 'PATCH',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(patchBody)
-      });
-
-      if (!patchRes.ok) {
-        return res.status(502).json({ status: false, message: 'Gagal memperbarui database konfigurasi.' });
-      }
-
-      return res.status(200).json({
-        status: true,
-        message: `Email ${newEmail} berhasil ditambahkan sebagai Super Admin.`,
-        data: updatedList
-      });
+    if (!requireSuperAdmin(body)) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
     }
 
-    // ── AKSI 4: Hapus Email Super Admin ──────────────────────────────────
-    if (action === 'remove') {
-      const callerEmail = String(body?.callerEmail || '').trim().toLowerCase();
-      const sessionToken = String(body?.sessionToken || '').trim();
-      const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
-
-      if (!verifySuperAdminToken(callerEmail, sessionToken) && process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ status: false, message: 'Otorisasi sesi Super Admin tidak valid.' });
-      }
-      if (removeEmail === FALLBACK_SUPERADMIN) {
-        return res.status(400).json({ status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' });
-      }
-
-      const allowedEmails = await getSuperadminList(headers);
-      if (!allowedEmails.includes(callerEmail)) {
-        return res.status(403).json({ status: false, message: 'Hanya Super Admin yang berwenang menghapus admin.' });
-      }
-
-      const updatedList = allowedEmails.filter((em) => em !== removeEmail);
-      const patchBody = {
-        fields: {
-          superadmin_emails: {
-            arrayValue: {
-              values: updatedList.map((em) => ({ stringValue: em }))
-            }
-          }
-        }
-      };
-
-      const patchRes = await fetch(`${FIRESTORE_BASE}/settings/app_config?updateMask.fieldPaths=superadmin_emails`, {
-        method: 'PATCH',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(patchBody)
-      });
-
-      if (!patchRes.ok) {
-        return res.status(502).json({ status: false, message: 'Gagal memperbarui database konfigurasi.' });
-      }
-
-      return res.status(200).json({
-        status: true,
-        message: `Akses Super Admin untuk ${removeEmail} telah dicabut.`,
-        data: updatedList
-      });
-    }
-
-    return res.status(400).json({ status: false, message: 'Aksi tidak dikenal.' });
-  } catch (err) {
-    return res.status(500).json({ status: false, message: err?.message || 'Terjadi kesalahan server.' });
+    const result = await guardedHandler(body, headers);
+    return sendJson(res, result.code, result.payload);
+  } catch (error) {
+    console.error('[finkas] login-google error:', error?.message);
+    return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan pada server autentikasi.' });
   }
 }

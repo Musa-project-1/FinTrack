@@ -278,7 +278,7 @@ export const renderCheckboxIuran = () => {
       } else {
         htmlParts.push(`
           <label class="checkbox-item">
-            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" onchange="window.__updateCounterIuran && window.__updateCounterIuran()">
+            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}">
             <div class="chk-info-col">
               <span class="chk-name-pending">${escapeHtml(ang.Nama_Anggota)}</span>
               <div class="chk-badge-pending">BELUM BAYAR</div>
@@ -313,26 +313,6 @@ export const filterAnggotaIuran = () => {
 /* ── Mobile menu ───────────────────────────────────────────────── */
 
 /**
- * Toggle the mobile dropdown menu.
- * Also auto-opens the header dropdown so items are visible without a second click.
- */
-export const toggleMobileMenu = () => {
-  const headerActions = document.getElementById('header-actions');
-  if (!headerActions) return;
-  const isOpening = !headerActions.classList.contains('mobile-menu-open');
-  headerActions.classList.toggle('mobile-menu-open');
-
-  const dropdown = document.getElementById('header-dropdown');
-  if (dropdown) {
-    if (isOpening) {
-      dropdown.classList.add('open');
-    } else {
-      dropdown.classList.remove('open');
-    }
-  }
-};
-
-/**
  * Close the mobile menu.
  */
 export const closeMobileMenu = () => {
@@ -341,17 +321,6 @@ export const closeMobileMenu = () => {
 };
 
 /* ── Header dropdown ───────────────────────────────────────────── */
-
-/**
- * Toggle the header dropdown menu.
- */
-export const toggleHeaderDropdown = () => {
-  const el = document.getElementById('header-dropdown');
-  if (!el) return;
-  const isOpen = el.classList.toggle('open');
-  const btn = document.getElementById('btn-header-menu');
-  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-};
 
 /**
  * Close the header dropdown menu.

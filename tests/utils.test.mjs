@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRp, getInitials, escapeHtml, hashText } from '../js/core/utils.js';
+import { formatRp, getInitials, escapeHtml } from '../js/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
   const formatted = formatRp(50000);
@@ -26,14 +26,30 @@ test('getInitials extracts initials accurately', () => {
 
 test('escapeHtml prevents XSS injection', () => {
   const malicious = '<script>alert("XSS")</script> & \'';
-  const sanitized = escapeHtml(malicious);
-  assert.equal(sanitized, '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt; &amp; &#39;');
+  assert.equal(
+    escapeHtml(malicious),
+    '\u0026lt;script\u0026gt;alert(\u0026quot;XSS\u0026quot;)\u0026lt;/script\u0026gt; \u0026amp; \u0026#39;'
+  );
 });
 
-test('hashText generates valid SHA-256 hex string', async () => {
-  const hash = await hashText('admin123');
-  assert.equal(typeof hash, 'string');
-  assert.equal(hash.length, 64);
-  // Known SHA-256 for 'admin123': 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
-  assert.equal(hash, '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');
+test('escapeHtml neutralises tags and quote-breaking attributes', () => {
+  assert.equal(
+    escapeHtml('<img src=x onerror=alert(1)>'),
+    '\u0026lt;img src=x onerror=alert(1)\u0026gt;'
+  );
+
+  // The realistic vector: a value interpolated into a double-quoted attribute.
+  assert.equal(
+    escapeHtml('x" data-action="evil'),
+    'x\u0026quot; data-action=\u0026quot;evil'
+  );
+
+  assert.equal(escapeHtml('"quoted"'), '\u0026quot;quoted\u0026quot;');
+  assert.equal(escapeHtml('a \u0026 b'), 'a \u0026amp; b');
+});
+
+test('escapeHtml renders nullish input as an empty string', () => {
+  assert.equal(escapeHtml(null), '');
+  assert.equal(escapeHtml(undefined), '');
+  assert.equal(escapeHtml(0), '0');
 });

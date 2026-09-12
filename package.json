@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
-    "test": "node --test tests/**/*.test.mjs",
+    "verify": "node scripts/verify.mjs",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "check": "npm run verify && npm test",
     "build:html": "node scripts/build-html.cjs",
     "build:css": "npx @tailwindcss/cli -i ./css/input.css -o ./style.css --minify",
     "build": "npm run build:html && npm run build:css",

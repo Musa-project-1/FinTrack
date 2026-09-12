@@ -1,9 +1,21 @@
 /**
  * @module state
- * Centralized application state with cache persistence.
+ * Centralized application state, cache persistence and session handling.
+ *
+ * Data reads and writes are authorized by short-lived signed session tokens
+ * issued by the API. Tokens live in sessionStorage (scoped to the tab), never
+ * in localStorage, and are sent as `sessionToken` on every request.
  */
 
-import { CACHE_KEY, ADMIN_PWD_KEY, SUPERADMIN_KEY, ADMIN_ROLE_KEY, ADMIN_EMAIL_KEY, ACTIVE_GROUP_KEY, DEFAULT_GROUP_ID } from './config.js';
+import {
+  CACHE_KEY,
+  ADMIN_SESSION_KEY,
+  ADMIN_ROLE_KEY,
+  ADMIN_EMAIL_KEY,
+  GROUP_SESSIONS_KEY,
+  ACTIVE_GROUP_KEY,
+  DEFAULT_GROUP_ID
+} from './config.js';
 
 /** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[] }} AppState */
 
@@ -15,14 +27,11 @@ const state = {
   skippedMonths: []
 };
 
-/**
- * Get a read-only reference to the application state.
- * @returns {AppState}
- */
+/** Read-only reference to the application state. */
 export const getState = () => state;
 
 /**
- * Replace the full application state (e.g. from cache).
+ * Replace the full application state (e.g. from cache or a fetch).
  * @param {Partial<AppState>} newState
  */
 export const setState = (newState) => {
@@ -40,46 +49,24 @@ export const addTransaction = (trx) => {
   state.transaksi.push(trx);
 };
 
-/**
- * Save current state to localStorage (per grup aktif — cache grup A
- * tidak terbaca di grup B).
- */
-export const saveCache = () => {
-  localStorage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
-};
-
-/**
- * Load state from localStorage (cache grup aktif). Returns true if found.
- * @returns {boolean}
- */
-export const loadCache = () => {
-  const cached = localStorage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
-    // Sekali migrasi: cache lama tanpa sufiks grup milik Grup Utama.
-    || (getActiveGroupId() === 'utama' ? localStorage.getItem(CACHE_KEY) : null);
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached);
-      setState(parsed);
-      return true;
-    } catch (e) {
-      return false;
-    }
+/** Safe read helper shared by the session/cache accessors. */
+const safelyRead = (storage, key) => {
+  try {
+    return storage.getItem(key) || '';
+  } catch (err) {
+    return '';
   }
-  return false;
 };
 
-/* ── Active group (multi-grup tahap 1: pilih + ingat) ─────────────── */
+/* ── Active group ────────────────────────────────────────────────── */
 
 /** @type {string} ID grup aktif, tersimpan di localStorage. */
-let activeGroupId = localStorage.getItem(ACTIVE_GROUP_KEY) || '';
+let activeGroupId = safelyRead(localStorage, ACTIVE_GROUP_KEY);
 
 /** @type {Array} Daftar grup yang tersedia. */
 let groups = [];
 
-/**
- * Get ID grup aktif dari sesi/localStorage.
- * @returns {string}
- */
+/** Get ID grup aktif dari sesi/localStorage. */
 export const getActiveGroupId = () => activeGroupId;
 
 /**
@@ -88,14 +75,15 @@ export const getActiveGroupId = () => activeGroupId;
  */
 export const setActiveGroupId = (id) => {
   activeGroupId = id || '';
-  if (activeGroupId) localStorage.setItem(ACTIVE_GROUP_KEY, activeGroupId);
-  else localStorage.removeItem(ACTIVE_GROUP_KEY);
+  try {
+    if (activeGroupId) localStorage.setItem(ACTIVE_GROUP_KEY, activeGroupId);
+    else localStorage.removeItem(ACTIVE_GROUP_KEY);
+  } catch (err) {
+    console.warn('[finkas] Cannot persist active group:', err?.message);
+  }
 };
 
-/**
- * Get daftar grup.
- * @returns {Array}
- */
+/** Get daftar grup. */
 export const getGroups = () => groups;
 
 /**
@@ -104,70 +92,165 @@ export const getGroups = () => groups;
  */
 export const setGroups = (list) => { groups = Array.isArray(list) ? list : []; };
 
-/* ── Admin password & session (client-side session) ────────────── */
+/** Display name for a group id, falling back to the id itself. */
+export const getGroupName = (id) => groups.find((g) => g.id === id)?.nama || id;
 
-/** @type {string} The SHA-256 hash of the admin password, stored in localStorage. */
-let adminPassword = localStorage.getItem(ADMIN_PWD_KEY) || '';
+/* ── Cache ───────────────────────────────────────────────────────── */
 
-/** @type {boolean} Whether the current session is admin. */
-let isAdminSession = false;
+/** Save current state to localStorage, scoped to the active group. */
+export const saveCache = () => {
+  try {
+    localStorage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
+  } catch (err) {
+    console.warn('[finkas] Cache write failed:', err?.message);
+  }
+};
 
-/** @type {boolean} Whether the current session is superadmin. */
-let isSuperAdminSession = sessionStorage.getItem(SUPERADMIN_KEY) === '1';
+/**
+ * Load state from localStorage for the active group.
+ * @returns {boolean} True when a cache was found and applied.
+ */
+export const loadCache = () => {
+  let cached = null;
+  try {
+    cached = localStorage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
+      // One-time migration: pre-scoping caches belong to the default group.
+      || (getActiveGroupId() === DEFAULT_GROUP_ID ? localStorage.getItem(CACHE_KEY) : null);
+  } catch (err) {
+    return false;
+  }
+  if (!cached) return false;
+
+  try {
+    setState(JSON.parse(cached));
+    return true;
+  } catch (err) {
+    console.warn('[finkas] Cache parse failed:', err?.message);
+    return false;
+  }
+};
+
+/* ── Session tokens ──────────────────────────────────────────────── */
+
+/** @type {Record<string, string>} groupId → token authorizing that group. */
+let groupSessions = {};
+
+try {
+  const raw = sessionStorage.getItem(GROUP_SESSIONS_KEY);
+  if (raw) groupSessions = JSON.parse(raw) || {};
+} catch (err) {
+  groupSessions = {};
+}
+
+const persistGroupSessions = () => {
+  try {
+    sessionStorage.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
+  } catch (err) {
+    console.warn('[finkas] Cannot persist group sessions:', err?.message);
+  }
+};
+
+/**
+ * Store the token that authorizes access to a group.
+ * @param {string} gid
+ * @param {string} token
+ */
+export const setGroupSession = (gid, token) => {
+  if (!gid || !token) return;
+  groupSessions[gid] = token;
+  persistGroupSessions();
+};
+
+/** Token authorizing access to a group, or '' when it has not been unlocked. */
+export const getGroupSession = (gid) => groupSessions[gid || ''] || '';
+
+/**
+ * Forget a group's token (on exit, or when the server rejects it).
+ * @param {string} gid
+ */
+export const clearGroupSession = (gid) => {
+  if (!gid) return;
+  delete groupSessions[gid];
+  persistGroupSessions();
+};
+
+/** @type {string} Signed token for the signed-in admin (group admin or superadmin). */
+let adminSessionToken = safelyRead(sessionStorage, ADMIN_SESSION_KEY);
 
 /** @type {string} Role: 'superadmin' | 'group_admin' | '' */
-let adminRole = sessionStorage.getItem(ADMIN_ROLE_KEY) || (isSuperAdminSession ? 'superadmin' : '');
+let adminRole = safelyRead(sessionStorage, ADMIN_ROLE_KEY);
 
 /** @type {string} Admin user email */
-let adminUserEmail = sessionStorage.getItem(ADMIN_EMAIL_KEY) || '';
+let adminUserEmail = safelyRead(sessionStorage, ADMIN_EMAIL_KEY);
 
-export const getAdminPassword = () => adminPassword;
-export const setAdminPassword = (hash) => {
-  adminPassword = hash;
-  localStorage.setItem(ADMIN_PWD_KEY, hash);
-};
-
-export const getIsSuperAdmin = () => isSuperAdminSession;
-export const setIsSuperAdmin = (val) => {
-  isSuperAdminSession = !!val;
-  if (val) {
-    sessionStorage.setItem(SUPERADMIN_KEY, '1');
-  } else {
-    sessionStorage.removeItem(SUPERADMIN_KEY);
+const persistSessionField = (key, value) => {
+  try {
+    if (value) sessionStorage.setItem(key, value);
+    else sessionStorage.removeItem(key);
+  } catch (err) {
+    console.warn('[finkas] Cannot persist session field:', key, err?.message);
   }
 };
+
+/** The admin session token, or '' when not signed in. */
+export const getAdminSession = () => adminSessionToken;
+
+/**
+ * Store the admin session token.
+ * @param {string} token
+ */
+export const setAdminSession = (token) => {
+  adminSessionToken = token || '';
+  persistSessionField(ADMIN_SESSION_KEY, adminSessionToken);
+};
+
+export const getIsSuperAdmin = () => adminRole === 'superadmin';
+
+/** Whether an admin session is active. */
+export const getIsAdminSession = () => Boolean(adminSessionToken);
 
 export const getAdminRole = () => adminRole;
+
+/**
+ * Set the admin role.
+ * @param {string} role 'superadmin' | 'group_admin' | ''
+ */
 export const setAdminRole = (role) => {
   adminRole = role || '';
-  if (role) {
-    sessionStorage.setItem(ADMIN_ROLE_KEY, role);
-  } else {
-    sessionStorage.removeItem(ADMIN_ROLE_KEY);
-  }
+  persistSessionField(ADMIN_ROLE_KEY, adminRole);
 };
 
 export const getAdminEmail = () => adminUserEmail;
+
+/**
+ * Set the admin email.
+ * @param {string} email
+ */
 export const setAdminEmail = (email) => {
   adminUserEmail = email || '';
-  if (email) {
-    sessionStorage.setItem(ADMIN_EMAIL_KEY, email);
-  } else {
-    sessionStorage.removeItem(ADMIN_EMAIL_KEY);
-  }
+  persistSessionField(ADMIN_EMAIL_KEY, adminUserEmail);
 };
 
-export const clearAdminPassword = () => {
-  adminPassword = '';
-  localStorage.removeItem(ADMIN_PWD_KEY);
-  setIsSuperAdmin(false);
+/** Drop the admin session entirely. */
+export const clearAdminSession = () => {
+  setAdminSession('');
   setAdminRole('');
   setAdminEmail('');
 };
 
-export const getIsAdminSession = () => isAdminSession;
-export const setIsAdminSession = (val) => {
-  isAdminSession = !!val;
+/**
+ * The token to present for a request against a group.
+ *
+ * Reads use the group's own token when present (least authority); writes use the
+ * admin token, which covers every group for a superadmin and the admin's own
+ * group otherwise.
+ * @param {string} gid
+ * @param {boolean} [needsWrite]
+ * @returns {string}
+ */
+export const resolveSessionToken = (gid, needsWrite = false) => {
+  if (needsWrite) return adminSessionToken;
+  return getGroupSession(gid) || adminSessionToken;
 };
 
 /* ── Current view state ────────────────────────────────────────── */

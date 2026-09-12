@@ -29,7 +29,7 @@
             <i class="ph-fill ph-shield-check" style="vertical-align:middle;"></i> Apakah data kas kelompok aman?
           </h4>
           <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
-            Data disimpan di Cloud Firestore dan terisolasi per kelompok (<code>groupId</code>). Akses kelompok dilindungi PIN 4-digit unik.
+            Data disimpan di Cloud Firestore dan hanya bisa diakses lewat server aplikasi &mdash; tidak ada koneksi langsung dari browser ke database. Setiap kelompok terisolasi dan dilindungi PIN 4 digit, dengan pembatasan jumlah percobaan di sisi server.
           </p>
         </div>
 

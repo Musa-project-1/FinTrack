@@ -1,224 +1,219 @@
-import {
-  getState,
-  setState,
-  getIsAdminSession,
-  setIsAdminSession,
-  getIsSuperAdmin,
-  setIsSuperAdmin,
-  getAdminRole,
-  setAdminRole,
-  setAdminEmail,
-  getAdminPassword,
-  setAdminPassword,
-  clearAdminPassword,
-  getActiveGroupId
-} from "../core/state.js";
+/**
+ * @module handlers/auth
+ * Admin session UI: login, logout, Google Super Admin, and admin visibility.
+ *
+ * The server issues a signed session token on a successful login (see
+ * core/api-auth.js). This module only reflects that session in the interface —
+ * it never holds or compares credentials.
+ */
+
+import { getIsAdminSession, getIsSuperAdmin, getActiveGroupId, clearAdminSession } from "../core/state.js";
 import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "../core/api.js";
 import { GOOGLE_CLIENT_ID } from "../core/config.js";
-import { showToast, hashText } from "../core/utils.js";
-import { openModal, closeModal } from "../ui/modal.js";
+import { showToast } from "../core/utils.js";
+import { closeModal } from "../ui/modal.js";
 import { renderAll, renderChart } from "../render.js";
 
-export const handleUI = (isAdmin) => {
-  setIsAdminSession(!!isAdmin);
-  const isSuper = getIsSuperAdmin();
-  document.body.classList.toggle('admin-mode', getIsAdminSession());
-  document.body.classList.toggle('superadmin-mode', isSuper);
+const GOOGLE_SDK_SRC = "https://accounts.google.com/gsi/client";
 
-  document.querySelectorAll('.admin-only').forEach((el) => {
-    el.style.display = getIsAdminSession() ? '' : 'none';
-  });
-  document.querySelectorAll('.superadmin-only').forEach((el) => {
-    el.style.display = isSuper ? '' : 'none';
-  });
-  document.querySelectorAll('.non-admin-only').forEach((el) => {
-    el.style.display = getIsAdminSession() ? 'none' : '';
-  });
-
-  const btn = document.getElementById('btn-login-admin');
-  if (btn) {
-    btn.style.display = getIsAdminSession() ? 'none' : '';
-    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
-  }
-  const btnSheet = document.getElementById('btn-login-menu-sheet');
-  if (btnSheet) {
-    btnSheet.style.display = getIsAdminSession() ? 'none' : '';
-  }
-  const logoutBtn = document.getElementById('btn-logout-admin');
-  if (logoutBtn) logoutBtn.style.display = getIsAdminSession() ? '' : 'none';
-};
-
-export const renderAdminUI = () => {
-  const isSuper = getIsSuperAdmin();
+/**
+ * Apply the current session to the interface.
+ *
+ * Admin controls are a presentation concern only — the server authorizes every
+ * request independently, so hiding them is convenience, not security.
+ */
+export const handleUI = () => {
   const isAdmin = getIsAdminSession();
-  const btn = document.getElementById('btn-login-admin');
-  if (btn) {
-    btn.style.display = isAdmin ? 'none' : '';
-    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
-  }
-  const btnSheet = document.getElementById('btn-login-menu-sheet');
-  if (btnSheet) {
-    btnSheet.style.display = isAdmin ? 'none' : '';
-  }
-  document.body.classList.toggle('admin-mode', isAdmin);
-  document.body.classList.toggle('superadmin-mode', isSuper);
+  const isSuper = getIsSuperAdmin();
 
-  const waBtn = document.getElementById('btn-copy-wa-reminder');
-  if (waBtn) waBtn.style.display = isAdmin ? '' : 'none';
-  const waBtnMobile = document.getElementById('btn-copy-wa-reminder-mobile');
-  if (waBtnMobile) waBtnMobile.style.display = isAdmin ? '' : 'none';
+  document.body.classList.toggle("admin-mode", isAdmin);
+  document.body.classList.toggle("superadmin-mode", isSuper);
+
+  document.querySelectorAll(".admin-only").forEach((el) => {
+    el.style.display = isAdmin ? "" : "none";
+  });
+  document.querySelectorAll(".superadmin-only").forEach((el) => {
+    el.style.display = isSuper ? "" : "none";
+  });
+  document.querySelectorAll(".non-admin-only").forEach((el) => {
+    el.style.display = isAdmin ? "none" : "";
+  });
+
+  renderAdminUI();
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   ADMIN LOGIN / LOGOUT
-   ══════════════════════════════════════════════════════════════════ */
+/** Reflect admin state in the header actions and login buttons. */
+export const renderAdminUI = () => {
+  const isAdmin = getIsAdminSession();
 
+  const btn = document.getElementById("btn-login-admin");
+  if (btn) {
+    btn.style.display = isAdmin ? "none" : "";
+    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
+  }
+
+  const btnSheet = document.getElementById("btn-login-menu-sheet");
+  if (btnSheet) btnSheet.style.display = isAdmin ? "none" : "";
+
+  const logoutBtn = document.getElementById("btn-logout-admin");
+  if (logoutBtn) logoutBtn.style.display = isAdmin ? "" : "none";
+
+  const waBtn = document.getElementById("btn-copy-wa-reminder");
+  if (waBtn) waBtn.style.display = isAdmin ? "" : "none";
+
+  const waBtnMobile = document.getElementById("btn-copy-wa-reminder-mobile");
+  if (waBtnMobile) waBtnMobile.style.display = isAdmin ? "" : "none";
+};
+
+/* ── Password login ──────────────────────────────────────────────── */
+
+/**
+ * Submit the admin login form.
+ *
+ * @param {Event} e
+ */
 export const submitLoginAdmin = async (e) => {
-  const emailInput = document.getElementById('input-admin-email');
-  const pwdInput = document.getElementById('input-admin-pwd');
-  const email = (emailInput?.value || '').trim();
-  const pwd = (pwdInput?.value || '').trim();
+  e?.preventDefault?.();
+  const emailInput = document.getElementById("input-admin-email");
+  const pwdInput = document.getElementById("input-admin-pwd");
+  const email = (emailInput?.value || "").trim();
+  const password = (pwdInput?.value || "").trim();
 
-  if (!pwd) {
-    showToast('Masukkan password admin terlebih dahulu.', 'error');
+  if (!password) {
+    showToast("Masukkan password admin terlebih dahulu.", "error");
     pwdInput?.focus();
     return;
   }
 
-  const form = e.target;
-  const btn = form.querySelector('button[type="submit"]');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Mengecek...';
-  btn.disabled = true;
-
-  const hashedPwd = await hashText(pwd);
-  const activeGid = getActiveGroupId();
-  const resJSON = await loginAdminApi(email, pwd, activeGid);
-
-  if (resJSON && resJSON.status) {
-    const isSuper = resJSON.data?.role === 'superadmin' || !!resJSON.data?.isSuperAdmin;
-    setIsSuperAdmin(isSuper);
-    setAdminRole(isSuper ? 'superadmin' : 'group_admin');
-    if (resJSON.data?.email) setAdminEmail(resJSON.data.email);
-    setAdminPassword(hashedPwd);
-
-    handleUI(true);
-    renderAdminUI();
-    closeModal('modal-login');
-    if (emailInput) emailInput.value = '';
-    if (pwdInput) pwdInput.value = '';
-    renderAll();
-    renderChart();
-
-    const roleLabel = isSuper ? 'Super Admin' : 'Admin Grup';
-    showToast(`Berhasil Login sebagai ${roleLabel}!`, 'success');
-  } else {
-    showToast(resJSON ? resJSON.message : 'Gagal terhubung ke server.', 'error');
-    if (pwdInput) {
-      pwdInput.value = '';
-      pwdInput.focus();
-    }
+  const btn = e?.target?.querySelector?.('button[type="submit"]')
+    || document.getElementById("btn-submit-login");
+  const originalHtml = btn ? btn.innerHTML : "";
+  if (btn) {
+    btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Mengecek...';
+    btn.disabled = true;
   }
 
-  btn.innerHTML = originalText;
-  btn.disabled = false;
-};
+  try {
+    const res = await loginAdminApi(email, password, getActiveGroupId());
 
-/**
- * Helper untuk memuat SDK Google Identity Services secara dinamis jika belum ada.
- */
-const loadGoogleGsiScript = () => {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts?.oauth2) return resolve();
-    const existing = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
-    if (existing) {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('Gagal memuat script Google')));
-      if (window.google?.accounts?.oauth2) return resolve();
-      setTimeout(resolve, 1500);
+    if (res && res.status) {
+      if (emailInput) emailInput.value = "";
+      if (pwdInput) pwdInput.value = "";
+      closeModal("modal-login");
+      handleUI();
+      renderAll();
+      renderChart();
+
+      const roleLabel = getIsSuperAdmin() ? "Super Admin" : "Admin Grup";
+      showToast(`Berhasil Login sebagai ${roleLabel}!`, "success");
       return;
     }
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Gagal memuat Google Sign-In SDK.'));
-    document.head.appendChild(script);
-  });
+
+    showToast(res ? res.message : "Gagal terhubung ke server.", "error");
+    if (pwdInput) {
+      pwdInput.value = "";
+      pwdInput.focus();
+    }
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  }
 };
 
+/* ── Google Super Admin ──────────────────────────────────────────── */
+
 /**
- * Stealth Google Login Action untuk Super Admin pemilik.
- * Membuka jendela pop-up resmi pemilih akun Google.
+ * Load the Google Identity Services SDK on demand.
+ * @returns {Promise<void>}
+ */
+const loadGoogleGsiScript = () => new Promise((resolve, reject) => {
+  if (window.google?.accounts?.oauth2) {
+    resolve();
+    return;
+  }
+
+  const existing = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+  if (existing) {
+    existing.addEventListener("load", () => resolve());
+    existing.addEventListener("error", () => reject(new Error("Gagal memuat script Google")));
+    if (window.google?.accounts?.oauth2) resolve();
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = GOOGLE_SDK_SRC;
+  script.async = true;
+  script.defer = true;
+  script.onload = () => resolve();
+  script.onerror = () => reject(new Error("Gagal memuat Google Sign-In SDK."));
+  document.head.appendChild(script);
+});
+
+/**
+ * Stealth Super Admin login: opens the official Google account picker, then
+ * exchanges the returned token for a Super Admin session on the server.
  */
 export const loginGoogleSuperAdminAction = async () => {
-  const stealthBtn = document.getElementById('btn-login-google-stealth');
-  const origText = stealthBtn ? stealthBtn.innerText : '';
+  const stealthBtn = document.getElementById("btn-login-google-stealth");
+  const originalText = stealthBtn ? stealthBtn.innerText : "";
   if (stealthBtn) {
-    stealthBtn.innerText = 'Menghubungkan Google...';
+    stealthBtn.innerText = "Menghubungkan Google...";
     stealthBtn.disabled = true;
   }
 
   try {
-    if (!window.google?.accounts?.oauth2) {
-      await loadGoogleGsiScript();
-    }
+    await loadGoogleGsiScript();
 
     if (!window.google?.accounts?.oauth2) {
-      showToast('Layanan Google Sign-In tidak dapat dimuat. Periksa koneksi internet Anda.', 'error');
+      showToast("Layanan Google Sign-In tidak dapat dimuat. Periksa koneksi internet Anda.", "error");
       return;
     }
 
     await new Promise((resolve, reject) => {
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
-        scope: 'email profile openid',
+        scope: "email profile openid",
         callback: async (tokenResponse) => {
           if (tokenResponse?.error) {
             reject(new Error(tokenResponse.error_description || tokenResponse.error));
             return;
           }
           if (!tokenResponse?.access_token) {
-            reject(new Error('Token otentikasi tidak diterima dari Google.'));
+            reject(new Error("Token otentikasi tidak diterima dari Google."));
             return;
           }
 
-          try {
-            const res = await loginGoogleSuperAdminApi(tokenResponse.access_token);
-            if (res.status) {
-              handleUI(true);
-              renderAdminUI();
-              closeModal('modal-login');
-              renderAll();
-              renderChart();
-              showToast('Selamat datang, Super Admin!', 'success');
-              resolve(res);
-            } else {
-              showToast(res.message, 'error');
-              reject(new Error(res.message));
-            }
-          } catch (e) {
-            showToast('Gagal memproses login Google: ' + e.message, 'error');
-            reject(e);
+          const res = await loginGoogleSuperAdminApi(tokenResponse.access_token);
+          if (!res?.status) {
+            showToast(res ? res.message : "Gagal login via Google.", "error");
+            reject(new Error(res?.message || "Login Google ditolak."));
+            return;
           }
+
+          closeModal("modal-login");
+          handleUI();
+          renderAll();
+          renderChart();
+          showToast("Selamat datang, Super Admin!", "success");
+          resolve(res);
         },
         error_callback: (err) => {
-          reject(new Error(err?.message || 'Jendela Google ditutup atau dibatalkan.'));
+          reject(new Error(err?.message || "Jendela Google ditutup atau dibatalkan."));
         }
       });
 
-      // Buka popup resmi Google (aman & privat, tidak membocorkan email pemilik ke orang lain)
-      client.requestAccessToken({ prompt: 'select_account' });
+      client.requestAccessToken({ prompt: "select_account" });
     });
   } catch (err) {
-    const msg = err?.message || '';
-    if (!msg.includes('user_cancel') && !msg.includes('closed')) {
-      showToast(msg ? `Otentikasi Google: ${msg}` : 'Otentikasi Google dibatalkan.', 'info');
+    const message = err?.message || "";
+    if (!message.includes("user_cancel") && !message.includes("closed")) {
+      showToast(message ? `Otentikasi Google: ${message}` : "Otentikasi Google dibatalkan.", "info");
     }
   } finally {
     if (stealthBtn) {
-      stealthBtn.innerText = origText;
+      stealthBtn.innerText = originalText;
       stealthBtn.disabled = false;
     }
   }
@@ -228,10 +223,10 @@ let stealthBadgeClicks = 0;
 let stealthBadgeTimer = null;
 
 /**
- * Trigger stealth login jika ikon gembok modal login diketuk 3x berturut-turut.
+ * Trigger the stealth login when the login modal's lock badge is tapped 3×.
  */
 export const handleStealthBadgeClick = () => {
-  stealthBadgeClicks++;
+  stealthBadgeClicks += 1;
   if (stealthBadgeTimer) clearTimeout(stealthBadgeTimer);
 
   if (stealthBadgeClicks >= 3) {
@@ -245,17 +240,23 @@ export const handleStealthBadgeClick = () => {
   }, 1200);
 };
 
+/* ── Logout ──────────────────────────────────────────────────────── */
+
+/** End the admin session. */
 export const logoutAdminAction = async () => {
-  closeModal('modal-logout');
+  closeModal("modal-logout");
+
   const res = await logoutAdminApi();
-  if (res && res.status) {
-    setIsAdminSession(false);
-    clearAdminPassword();
-    renderAdminUI();
-    handleUI(false);
+  if (res?.status) {
+    handleUI();
     renderAll();
-    showToast('Berhasil logout.', 'success');
-  } else {
-    showToast('Gagal logout dari server.', 'error');
+    showToast("Berhasil logout.", "success");
+    return;
   }
+
+  // Even if the audit note failed, the local session must not survive.
+  clearAdminSession();
+  handleUI();
+  renderAll();
+  showToast("Berhasil logout.", "success");
 };

@@ -1,30 +1,33 @@
 /**
  * @module app
- * Main application orchestrator and event delegation coordinator.
+ * Main application orchestrator and event-delegation coordinator.
+ *
+ * The UI is driven entirely by delegated `[data-action]` listeners rather than
+ * inline handlers, which keeps the markup compatible with a strict
+ * Content-Security-Policy.
  */
 
 import {
-  setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setIsAdminSession, setCurrentRekapYear
+  setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setCurrentRekapYear
 } from "./core/state.js";
-import { fetchInitialData, checkAdminSessionApi } from "./core/api.js";
-import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
-import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
+import { fetchInitialData } from "./core/api.js";
+import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
+import { syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY } from "./core/config.js";
 import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
-  renderCheckboxIuran, filterAnggotaIuran, toggleMobileMenu, closeMobileMenu,
-  toggleHeaderDropdown, closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
+  renderCheckboxIuran, filterAnggotaIuran, closeMobileMenu,
+  closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
   renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
 } from "./render.js";
 
-// Import modular handlers
 import {
-  handleUI, renderAdminUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
+  handleUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener
@@ -48,22 +51,28 @@ import {
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
-import { openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin, resetGroupPinAction, removeGroupAction, renameGroupAction, manageGroupCredsAction, copyGroupWhatsAppAction, removeSuperAdminAction } from "./handlers/groups.js";
+import {
+  openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin,
+  resetGroupPinAction, removeGroupAction, renameGroupAction, manageGroupCredsAction,
+  copyGroupWhatsAppAction, removeSuperAdminAction
+} from "./handlers/groups.js";
 
 let isLoading = false;
 
-/* ── Expose renderChart & initApp to window for callbacks ─────────── */
+/* ══════════════════════════════════════════════════════════════════
+   Cross-module hooks
+   These break the render ↔ modal import cycle. They are plain JavaScript
+   globals, not inline markup handlers, so they are CSP-safe.
+   ══════════════════════════════════════════════════════════════════ */
+
 window.__renderChart = renderChart;
 window.__initApp = () => initApp();
-
-/* ── Expose helpers for inline HTML onchange callbacks ─────────── */
-window.__updateCounterIuran = updateCounterIuran;
 window.__filterAnggotaIuran = filterAnggotaIuran;
 window.__resetItemsToShow = () => setItemsToShow(20);
 window.__renderTableTransaksi = renderTableTransaksi;
 
 /* ══════════════════════════════════════════════════════════════════
-   EVENT DELEGATION: replaces inline onclick handlers
+   EVENT DELEGATION
    ══════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('click', (e) => {
@@ -83,47 +92,51 @@ document.addEventListener('click', (e) => {
 
   switch (action) {
     /* ── Multi-grup: pilih + PIN + kelola ─────────────── */
-    case 'open-groups':     openGroupPicker(); break;
-    case 'exit-group':      exitGroup(); break;
+    case 'open-groups':       openGroupPicker(); break;
+    case 'exit-group':        exitGroup(); break;
     case 'request-group-pin': requestGroupPin(id); break;
-    case 'submit-group-pin': submitGroupPin(); break;
-    case 'open-group-admin': closeHeaderDropdown(); openGroupAdmin(); break;
-    case 'rename-group':    renameGroupAction(id); break;
-    case 'reset-group-pin': resetGroupPinAction(id); break;
+    case 'submit-group-pin':  submitGroupPin(); break;
+    case 'open-group-admin':  closeHeaderDropdown(); openGroupAdmin(); break;
+    case 'rename-group':      renameGroupAction(id); break;
+    case 'reset-group-pin':   resetGroupPinAction(id); break;
     case 'manage-group-creds': manageGroupCredsAction(id); break;
-    case 'copy-cred-wa':    copyGroupWhatsAppAction(); break;
+    case 'copy-cred-wa':      copyGroupWhatsAppAction(); break;
     case 'remove-superadmin-email': removeSuperAdminAction(target.getAttribute('data-email')); break;
-    case 'remove-group':   removeGroupAction(id); break;
+    case 'remove-group':      removeGroupAction(id); break;
+
     /* ── Navigation / menus ───────────────────────── */
-    case 'toggle-theme':     toggleTheme(); break;
+    case 'toggle-theme':      toggleTheme(); break;
     case 'toggle-header-stats': toggleHeaderStats(); break;
-    case 'open-about':       openModal('modal-about'); break;
-    case 'open-faq':         openModal('modal-faq'); break;
+    case 'open-about':        openModal('modal-about'); break;
+    case 'open-faq':          openModal('modal-faq'); break;
     case 'toggle-mobile-menu':
-    case 'open-menu-modal':  openModal('modal-menu'); break;
-    case 'toggle-dropdown':  openModal('modal-menu'); break;
-    case 'install-pwa':      if (window.__pwaPrompt) window.__pwaPrompt.prompt(); else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info'); break;
-    case 'close-dropdown':   closeHeaderDropdown(); break;
-    case 'open-login':       closeHeaderDropdown(); openModal('modal-login'); break;
+    case 'open-menu-modal':
+    case 'toggle-dropdown':   openModal('modal-menu'); break;
+    case 'install-pwa':
+      if (window.__pwaPrompt) window.__pwaPrompt.prompt();
+      else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info');
+      break;
+    case 'close-dropdown':    closeHeaderDropdown(); break;
+    case 'open-login':        closeHeaderDropdown(); openModal('modal-login'); break;
     case 'stealth-badge-click': handleStealthBadgeClick(); break;
     case 'login-google-superadmin': loginGoogleSuperAdminAction(); break;
     case 'open-offline-queue': openOfflineQueueModal(); break;
     case 'open-skipped-months': openSkippedMonthsModal(); break;
-    case 'open-audit-log':   closeHeaderDropdown(); openAuditLogModal(); break;
+    case 'open-audit-log':    closeHeaderDropdown(); openAuditLogModal(); break;
     case 'refresh-audit-log': renderAuditLogList(); break;
     case 'open-kelola-master': closeHeaderDropdown(); openKelolaMasterModal(); break;
     case 'toggle-status-anggota': toggleStatusAnggotaAction(id, target.getAttribute('data-status')); break;
     case 'hapus-master-anggota': hapusMasterAnggotaAction(id); break;
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
-    case 'open-history':     closeHeaderDropdown(); openModal('modal-riwayat'); break;
-    case 'open-statistik':   closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
-    case 'open-export':      closeHeaderDropdown(); openModal('modal-export'); break;
-    case 'buka-transaksi':   bukaModalTransaksi(); break;
+    case 'open-history':      closeHeaderDropdown(); openModal('modal-riwayat'); break;
+    case 'open-statistik':    closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
+    case 'open-export':       closeHeaderDropdown(); openModal('modal-export'); break;
+    case 'buka-transaksi':    bukaModalTransaksi(); break;
 
     /* ── Bottom navigation (mobile) ───────────────── */
-    case 'nav-home':         closeActiveModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); setBottomNavActive('nav-home'); break;
-    case 'nav-riwayat':      closeActiveModal(); setBottomNavActive('nav-riwayat'); openModal('modal-riwayat'); break;
-    case 'nav-rekap':        closeActiveModal(); setBottomNavActive('nav-rekap'); document.getElementById('section-rekap')?.scrollIntoView({ behavior: 'smooth' }); break;
+    case 'nav-home':          closeActiveModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); setBottomNavActive('nav-home'); break;
+    case 'nav-riwayat':       closeActiveModal(); setBottomNavActive('nav-riwayat'); openModal('modal-riwayat'); break;
+    case 'nav-rekap':         closeActiveModal(); setBottomNavActive('nav-rekap'); document.getElementById('section-rekap')?.scrollIntoView({ behavior: 'smooth' }); break;
     case 'nav-catat':
       setBottomNavActive('nav-catat');
       if (getIsAdminSession()) bukaModalTransaksi();
@@ -135,59 +148,66 @@ document.addEventListener('click', (e) => {
       break;
 
     /* ── Modals ───────────────────────────────────── */
-    case 'close-modal':      closeModal(target.closest('.modal-overlay').id); break;
-    case 'switch-tab':       switchTab(target.getAttribute('data-tab'), target.closest('.modal-content').closest('.modal-overlay').id); break;
+    case 'close-modal':       closeModal(target.closest('.modal-overlay').id); break;
+    case 'switch-tab':        switchTab(target.getAttribute('data-tab'), target.closest('.modal-content').closest('.modal-overlay').id); break;
 
     /* ── Member profile ───────────────────────────── */
-    case 'profil':           e.stopPropagation(); bukaProfilAnggota(id); break;
+    case 'profil':            e.stopPropagation(); bukaProfilAnggota(id); break;
 
     /* ── Transaction actions ──────────────────────── */
-    case 'cetak':            e.stopPropagation(); cetakStruk(id); break;
-    case 'edit':             e.stopPropagation(); bukaModalEdit(id); break;
-    case 'hapus':            e.stopPropagation(); konfirmasiHapus(id); break;
+    case 'cetak':             e.stopPropagation(); cetakStruk(id); break;
+    case 'edit':              e.stopPropagation(); bukaModalEdit(id); break;
+    case 'hapus':             e.stopPropagation(); konfirmasiHapus(id); break;
 
     /* ── Quick pay ────────────────────────────────── */
-    case 'quickpay':         e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
-    case 'quickpay-card':    e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
+    case 'quickpay':
+    case 'quickpay-card':     e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
 
     /* ── Mobile card accordion ────────────────────── */
-    case 'toggle-card':      toggleIuranCard(target.closest('.iuran-member-card')); break;
+    case 'toggle-card':       toggleIuranCard(target.closest('.iuran-member-card')); break;
 
     /* ── Skipped months ───────────────────────────── */
-    case 'add-skip':         addSkippedMonth(); break;
-    case 'remove-skip':      removeSkippedMonth(month); break;
+    case 'add-skip':          addSkippedMonth(); break;
+    case 'remove-skip':       removeSkippedMonth(month); break;
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
     case 'set-riwayat-preset': applyRiwayatPreset(target.getAttribute('data-preset'), target); break;
-    case 'load-more':        loadMoreHistory(); break;
+    case 'load-more':         loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
     case 'copy-monthly-recap': copyMonthlyRecap(); break;
-    case 'export-csv':       exportToCSV(); break;
+    case 'export-csv':        exportToCSV(); break;
     case 'export-json-backup': exportJSONBackup(); break;
-    case 'print-annual':     cetakLaporanTahunan(); break;
-    case 'print-reminder':   createGroupReminderMessage(); break;
+    case 'print-annual':      cetakLaporanTahunan(); break;
+    case 'print-reminder':
     case 'action-salin-tagihan-wa': createGroupReminderMessage(); break;
 
     /* ── Login/Logout ─────────────────────────────── */
-    case 'logout':           closeHeaderDropdown(); closeModal('modal-menu'); openModal('modal-logout'); break;
-    case 'confirm-logout':   logoutAdminAction(); break;
-    case 'cancel-logout':    closeModal('modal-logout'); break;
+    case 'logout':            closeHeaderDropdown(); closeModal('modal-menu'); openModal('modal-logout'); break;
+    case 'confirm-logout':    logoutAdminAction(); break;
+    case 'cancel-logout':     closeModal('modal-logout'); break;
 
     /* ── Delete confirmation ──────────────────────── */
-    case 'confirm-delete':   eksekusiHapus(); break;
-    case 'cancel-delete':    closeModal('modal-hapus'); break;
+    case 'confirm-delete':    eksekusiHapus(); break;
+    case 'cancel-delete':     closeModal('modal-hapus'); break;
     case 'cancel-confirm-action': closeConfirmDialog(); break;
 
     /* ── Offline sync ─────────────────────────────── */
-    case 'sync-now':         syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
-    case 'refresh-offline':  renderOfflineQueueList(); break;
+    case 'sync-now':          syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
+    case 'refresh-offline':   renderOfflineQueueList(); break;
     case 'delete-offline-item': {
       const itemId = parseInt(target.getAttribute('data-item-id'), 10);
       deleteOfflineTransaction(itemId).then(() => { renderOfflineQueueList(); });
       break;
     }
+  }
+});
+
+/* Delegated checkbox changes (replaces the removed inline onchange) */
+document.addEventListener('change', (e) => {
+  if (e.target instanceof Element && e.target.classList.contains('chk-iuran')) {
+    updateCounterIuran();
   }
 });
 
@@ -199,7 +219,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* Keyboard Shortcuts */
+/* Keyboard shortcuts */
 document.addEventListener('keydown', (e) => {
   /* Stealth Super Admin shortcut: Ctrl + Shift + G */
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
@@ -209,8 +229,7 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (e.key === 'Escape') {
-    const dd = document.getElementById('header-dropdown');
-    if (dd) closeHeaderDropdown();
+    closeHeaderDropdown();
     const activeModal = document.querySelector('.modal-overlay.active');
     if (activeModal) closeModal(activeModal.id);
   }
@@ -250,15 +269,18 @@ document.getElementById('modal-edit-transaksi')?.addEventListener('submit', (e) 
 });
 
 document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
+  e.preventDefault();
   submitQuickPay(e);
 });
 
-document.getElementById('btn-confirm-action-submit')?.addEventListener('click', () => {
-  executeConfirmAction();
-});
+/* ══════════════════════════════════════════════════════════════════
+   BOOT + DATA LOADING
+   ══════════════════════════════════════════════════════════════════ */
 
-
-
+/**
+ * Load the active group's data and render it.
+ * @param {boolean} [forceRemote] Skip the cache and always hit the server.
+ */
 export const initApp = async (forceRemote = false) => {
   if (isLoading || (!forceRemote && !sessionStorage.getItem('finkas_group_open'))) return;
 
@@ -270,8 +292,7 @@ export const initApp = async (forceRemote = false) => {
     if (trxList) trxList.innerHTML = '<tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>';
   }
 
-  // If we already have a valid local cache and caller is not explicitly forcing a remote sync,
-  // skip the expensive Firestore multi-hundred document fetch to strictly preserve quota.
+  // A valid cache is enough unless the caller explicitly forces a refresh.
   if (hasCache && !forceRemote) {
     setConnectionStatus(true);
     return;
@@ -292,47 +313,38 @@ export const initApp = async (forceRemote = false) => {
       setConnectionStatus(true);
     } else {
       setConnectionStatus(false);
+      if (resJSON?.unauthorized) {
+        showToast(resJSON.message, 'error');
+        openGroupPicker();
+        return;
+      }
       if (hasCache) {
-        // Keep rendering existing cached data safely
         renderAll();
-        showToast('Firestore sibuk/kuota penuh: Menggunakan data tersimpan (offline).', 'warning');
-      } else {
-        if (resJSON && resJSON.message) showToast(resJSON.message, 'error');
+        showToast('Server sibuk: Menggunakan data tersimpan (offline).', 'warning');
+      } else if (resJSON?.message) {
+        showToast(resJSON.message, 'error');
       }
     }
   } catch (error) {
     setConnectionStatus(false);
-    if (hasCache) {
-      renderAll();
-    } else {
-      showToast('Mode Offline: Belum ada data tersimpan.', 'warning');
-    }
+    console.error('initApp failed:', error);
+    if (hasCache) renderAll();
+    else showToast('Mode Offline: Belum ada data tersimpan.', 'warning');
   } finally {
     isLoading = false;
   }
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   BOOT
-   ══════════════════════════════════════════════════════════════════ */
-
 window.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
   applyHeaderStatsPreference();
+  handleUI();
 
-  try {
-    const sessionResp = await checkAdminSessionApi();
-    handleUI(sessionResp?.status && sessionResp.data ? !!sessionResp.data.isAdmin : false);
-  } catch (e) {
-    handleUI(false);
-  }
-  renderAdminUI();
-
-  // Data dimuat setelah grup dipilih — data asli tidak dirender sebelum masuk grup.
+  // Data loads only after a group is unlocked; nothing renders before that.
   initCustomDropdowns();
   initMonthPickers();
   setupRekapSearchListener();
-  initGroupsUI(() => initApp(true));
+
   window.addEventListener('online', () => {
     showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
     syncOfflineTransactions(() => { initApp(); renderChart(); });
@@ -356,54 +368,63 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btn) btn.style.display = 'flex';
   });
 
+  initGroupsUI(() => initApp(true));
+
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 
   const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
   if (activeGaId) initAnalytics(activeGaId);
 
-  // Attach input listeners for dynamic updates
+  /* ── Input listeners ─────────────────────────────────────────── */
+
   [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openModal('modal-menu'); });
   });
 
   const iuranNominal = document.getElementById('iuran-nominal');
-  if (iuranNominal) iuranNominal.addEventListener('input', function() { handleNominalInput(this); updateCounterIuran(); });
+  if (iuranNominal) iuranNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterIuran(); });
 
   const opsNominal = document.getElementById('ops-nominal');
-  if (opsNominal) opsNominal.addEventListener('input', function() { handleNominalInput(this); updateCounterOps(); });
+  if (opsNominal) opsNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterOps(); });
 
   const qpNominal = document.getElementById('qp-nominal');
-  if (qpNominal) qpNominal.addEventListener('input', function() { handleNominalInput(this); });
+  if (qpNominal) qpNominal.addEventListener('input', function () { handleNominalInput(this); });
 
   const editNominal = document.getElementById('edit-nominal');
-  if (editNominal) editNominal.addEventListener('input', function() { handleNominalInput(this); });
+  if (editNominal) editNominal.addEventListener('input', function () { handleNominalInput(this); });
 
   const iuranBulan = document.getElementById('iuran-bulan');
   if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
 
   const iuranTahun = document.getElementById('iuran-tahun');
   if (iuranTahun) {
-    iuranTahun.addEventListener('input', function() {
+    iuranTahun.addEventListener('input', function () {
       this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
       renderCheckboxIuran();
     });
   }
 
   const opsTipe = document.getElementById('ops-tipe');
-  if (opsTipe) opsTipe.addEventListener('change', function() { filterKategori('ops-tipe', 'ops-kategori'); updateCounterOps(); });
+  if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); updateCounterOps(); });
 
   const editTipe = document.getElementById('edit-tipe');
-  if (editTipe) editTipe.addEventListener('change', function() { filterKategori('edit-tipe', 'edit-kategori'); });
+  if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
+
   const searchTrx = document.getElementById('search-trx');
   if (searchTrx) searchTrx.addEventListener('input', renderTableTransaksi);
+
   const filterBulan = document.getElementById('filter-bulan');
   if (filterBulan) filterBulan.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
+
   const filterTahun = document.getElementById('filter-tahun');
   if (filterTahun) filterTahun.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
+
   const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
   if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('keyup', filterAnggotaIuran);
+
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
+
   const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
   const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
   [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
@@ -414,10 +435,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       syncCdrop('ui-tahun-rekap-select');
       syncCdrop('ui-tahun-rekap-select-mobile');
       renderTableRekap();
+      renderTableTransaksi();
     });
   });
+
   const formTambahAnggota = document.getElementById('form-tambah-anggota');
   if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);
+
   const formTambahKategori = document.getElementById('form-tambah-kategori');
   if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
 
@@ -443,4 +467,10 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+
+  /* Keep the group picker reachable once the session can no longer read the group. */
+  window.addEventListener('finkas:group-changed', () => {
+    renderMasterAnggotaTable();
+    renderMasterKategoriTable();
+  });
 });

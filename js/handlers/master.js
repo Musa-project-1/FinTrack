@@ -1,5 +1,5 @@
 import { NAMA_BULAN } from "../core/config.js";
-import { getState, setState, saveCache, getIsAdminSession } from "../core/state.js";
+import { getState, getIsAdminSession } from "../core/state.js";
 import { sendAdminPayload, fetchAuditLogApi } from "../core/api.js";
 import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
@@ -15,19 +15,48 @@ export const openSkippedMonthsModal = () => {
    AUDIT LOG
    ══════════════════════════════════════════════════════════════════ */
 
+/**
+ * Human-readable labels for every audit action the server can record.
+ * An unknown action falls back to its raw tag (see renderAuditLogList).
+ */
 export const AUDIT_ACTION_LABELS = {
-  LOGIN_ADMIN:        { label: 'Login Admin', color: 'var(--primary)' },
-  LOGIN_GAGAL:        { label: 'Login Gagal', color: 'var(--danger)' },
-  LOGOUT_ADMIN:       { label: 'Logout', color: '#64748b' },
-  TAMBAH_TRANSAKSI:   { label: 'Tambah Transaksi', color: 'var(--primary)' },
-  TAMBAH_IURAN_MASSAL:{ label: 'Iuran Massal', color: 'var(--primary)' },
-  EDIT_TRANSAKSI:     { label: 'Edit Transaksi', color: 'var(--warning)' },
-  HAPUS_TRANSAKSI:    { label: 'Hapus Transaksi', color: 'var(--danger)' },
-  DUPLIKAT_DITOLAK:   { label: 'Duplikat Ditolak', color: 'var(--danger)' },
-  TAMBAH_ANGGOTA:     { label: 'Tambah Anggota', color: 'var(--primary)' },
-  TAMBAH_KATEGORI:    { label: 'Tambah Kategori', color: 'var(--primary)' },
-  TAMBAH_BULAN_LIBUR: { label: 'Bulan Libur +', color: 'var(--warning)' },
-  HAPUS_BULAN_LIBUR:  { label: 'Bulan Libur -', color: 'var(--warning)' }
+  // Sessions & access
+  LOGIN_ADMIN:              { label: 'Login Admin', color: 'var(--primary)' },
+  LOGIN_GAGAL:              { label: 'Login Gagal', color: 'var(--danger)' },
+  LOGIN_SUPERADMIN_GOOGLE:  { label: 'Login Google', color: 'var(--primary)' },
+  LOGOUT_ADMIN:             { label: 'Logout', color: '#64748b' },
+  PIN_BENAR:                { label: 'PIN Benar', color: '#64748b' },
+  PIN_SALAH:                { label: 'PIN Salah', color: 'var(--danger)' },
+  PIN_TIDAK_DISETEL:        { label: 'Tanpa PIN', color: 'var(--warning)' },
+
+  // Transactions
+  TAMBAH_TRANSAKSI:         { label: 'Tambah Transaksi', color: 'var(--primary)' },
+  TAMBAH_IURAN_MASSAL:      { label: 'Iuran Massal', color: 'var(--primary)' },
+  EDIT_TRANSAKSI:           { label: 'Edit Transaksi', color: 'var(--warning)' },
+  HAPUS_TRANSAKSI:          { label: 'Hapus Transaksi', color: 'var(--danger)' },
+  DUPLIKAT_DITOLAK:         { label: 'Duplikat Ditolak', color: 'var(--danger)' },
+  OFFLINE_SYNC:             { label: 'Sinkron Offline', color: '#64748b' },
+
+  // Master data
+  TAMBAH_ANGGOTA:           { label: 'Tambah Anggota', color: 'var(--primary)' },
+  HAPUS_ANGGOTA:            { label: 'Hapus Anggota', color: 'var(--danger)' },
+  STATUS_ANGGOTA:           { label: 'Status Anggota', color: 'var(--warning)' },
+  TAMBAH_KATEGORI:          { label: 'Tambah Kategori', color: 'var(--primary)' },
+  HAPUS_KATEGORI:           { label: 'Hapus Kategori', color: 'var(--danger)' },
+  TAMBAH_BULAN_LIBUR:       { label: 'Bulan Libur +', color: 'var(--warning)' },
+  HAPUS_BULAN_LIBUR:        { label: 'Bulan Libur -', color: 'var(--warning)' },
+
+  // Backup
+  BACKUP_DATABASE:          { label: 'Backup', color: '#64748b' },
+  RESTORE_DATABASE:         { label: 'Restore', color: 'var(--warning)' },
+
+  // Group administration
+  BUAT_GRUP:                { label: 'Buat Grup', color: 'var(--primary)' },
+  UBAH_NAMA:                { label: 'Ubah Nama', color: 'var(--warning)' },
+  UBAH_PIN:                 { label: 'Ubah PIN', color: 'var(--warning)' },
+  UBAH_KREDENSIAL_ADMIN:    { label: 'Ubah Admin', color: 'var(--warning)' },
+  TAMBAH_SUPERADMIN:        { label: 'Super Admin +', color: 'var(--primary)' },
+  HAPUS_SUPERADMIN:         { label: 'Super Admin -', color: 'var(--danger)' }
 };
 
 export const renderAuditLogList = async () => {
@@ -358,4 +387,3 @@ export const hapusMasterKategoriAction = async (idKategori) => {
 /* ══════════════════════════════════════════════════════════════════
    OFFLINE QUEUE UI
    ══════════════════════════════════════════════════════════════════ */
-

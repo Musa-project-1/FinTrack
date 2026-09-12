@@ -1,126 +1,130 @@
 /**
- * Serverless Group PIN Verify Endpoint for Finkas on Vercel.
- * Membandingkan PIN di sisi server agar hash tidak perlu dibaca klien.
- * Fallback klien (baca hash langsung) hanya untuk hosting statis murni.
+ * Group PIN verification.
+ *
+ * The PIN hash lives only in `groups/{gid}/private/config`, which no client can
+ * read. Attempts are counted in Firestore (per group and per IP) so the lockout
+ * cannot be bypassed by calling the API directly. A successful attempt returns a
+ * signed, expiring session token that authorizes reads for that group.
  */
-import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
+import { requireFirestoreHeaders, fsGet, fsPatch } from './_sa.js';
+import { getPrivateConfig, groupDoc, isValidGroupId, setPrivateConfig, writeAuditLog } from './_store.js';
+import {
+  GROUP_SESSION_TTL,
+  ROLES,
+  checkRateLimit,
+  clearRateLimit,
+  clientIp,
+  hashSecret,
+  registerFailedAttempt,
+  secretMatches,
+  signSession
+} from './_session.js';
 
-function base64UrlEncode(str) {
-  return Buffer.from(str).toString('base64url');
-}
+const MAX_ATTEMPTS = 5;
+const LOCK_WINDOW_MS = 5 * 60 * 1000;
+const GENERIC_PIN_ERROR = 'PIN salah.';
 
-async function getGoogleAccessToken(serviceAccount) {
-  if (!serviceAccount || !serviceAccount.client_email || !serviceAccount.private_key) {
-    return null;
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const claimSet = {
-    iss: serviceAccount.client_email,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
-  };
-  const signInput = `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(claimSet))}`;
-  const signer = crypto.createSign('RSA-SHA256');
-  signer.update(signInput);
-  const signature = signer.sign(serviceAccount.private_key, 'base64url');
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: `${signInput}.${signature}`
-    })
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.access_token;
-}
+const sendJson = (res, status, payload) => {
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(status).json(payload);
+};
 
-function getServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+const parseBody = (req) => {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
     try {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (e) {
-      try {
-        return JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8'));
-      } catch (_) {}
+      return JSON.parse(req.body);
+    } catch (err) {
+      return {};
     }
   }
-  const localSaPath = path.resolve(process.cwd(), '.service-account.local.json');
-  if (fs.existsSync(localSaPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(localSaPath, 'utf8'));
-    } catch (_) {}
-  }
-  return null;
-}
+  return {};
+};
 
-const GROUP_ID_RE = /^[A-Za-z0-9-]{3,40}$/;
+/** PIN scope: bound into both the scrypt hash and the legacy digest. */
+const pinScope = (gid) => `finkas-pin:${gid}`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ status: false, message: 'Method Not Allowed' });
+    return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        body = {};
-      }
-    }
-
+    const body = parseBody(req);
     const groupId = String(body?.groupId || '').trim();
     const pin = String(body?.pin || '').replace(/\D/g, '').slice(0, 4);
-    if (!GROUP_ID_RE.test(groupId)) {
-      return res.status(400).json({ status: false, message: 'ID grup tidak valid.' });
+
+    if (!isValidGroupId(groupId)) {
+      return sendJson(res, 400, { status: false, message: 'ID grup tidak valid.' });
     }
     if (pin.length !== 4) {
-      return res.status(400).json({ status: false, message: 'Ketik 4 angka PIN grup.' });
+      return sendJson(res, 400, { status: false, message: 'Ketik 4 angka PIN grup.' });
     }
 
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
-    const serviceAccount = getServiceAccount();
-    if (!serviceAccount) {
-      return res.status(500).json({ status: false, message: 'Service Account belum dikonfigurasi.' });
-    }
-    const accessToken = await getGoogleAccessToken(serviceAccount);
-    if (!accessToken) {
-      return res.status(500).json({ status: false, message: 'Gagal mengotentikasi ke Google Cloud.' });
-    }
-
-    const headers = { Authorization: `Bearer ${accessToken}` };
-    const base = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
-
-    // 1. Baca hash PIN dari sub-koleksi privat (tak bisa dibaca klien).
-    const cfgRes = await fetch(`${base}/groups/${groupId}/private/config`, { headers });
-    if (!cfgRes.ok) {
-      // Grup lama tanpa PIN (pra tahap 4): izinkan masuk sekali.
-      return res.status(200).json({ status: true, message: 'Grup ini belum punya PIN — masuk langsung.', data: { legacy: true } });
-    }
-    const cfg = await cfgRes.json();
-    const storedHash = cfg?.fields?.pin_hash?.stringValue || '';
-    if (!storedHash) {
-      return res.status(200).json({ status: true, message: 'Grup ini belum punya PIN — masuk langsung.', data: { legacy: true } });
+    const ip = clientIp(req);
+    const attemptKey = `pin:${groupId}:${ip}`;
+    const lock = await checkRateLimit(attemptKey);
+    if (lock.locked) {
+      return sendJson(res, 429, {
+        status: false,
+        message: `Terlalu banyak percobaan. Coba lagi dalam ${lock.retryAfterSec} detik.`,
+        data: { retryAfterSec: lock.retryAfterSec }
+      });
     }
 
-    // 2. Bandingkan hash salt-per-grup.
-    const inputHash = crypto.createHash('sha256').update(`finkas-pin:${groupId}:${pin}`).digest('hex');
-    if (inputHash !== storedHash) {
-      // Perlambat brute-force: jeda sebelum menjawab salah.
-      await new Promise((r) => setTimeout(r, 700));
-      return res.status(401).json({ status: false, message: 'PIN salah.' });
+    const headers = await requireFirestoreHeaders();
+    const config = await getPrivateConfig(groupId, headers);
+    const storedPin = config?.pin_hash || '';
+
+    // Legacy groups stored the hash on the group document itself; migrate on use.
+    let legacyStored = '';
+    if (!storedPin) {
+      const group = await fsGet(groupDoc(groupId), headers);
+      legacyStored = group?.pin_hash || '';
     }
-    const sessionToken = crypto.createHash('sha256').update(`${storedHash}:${Date.now()}`).digest('hex');
-    return res.status(200).json({ status: true, message: 'PIN benar.', data: { sessionToken } });
+
+    const candidate = storedPin || legacyStored;
+
+    if (!candidate) {
+      // Group predates PINs entirely — allow entry, but record it.
+      await writeAuditLog(groupId, 'PIN_TIDAK_DISETEL', `Masuk tanpa PIN dari ${ip}`, headers);
+      return sendJson(res, 200, {
+        status: true,
+        message: 'Grup ini belum punya PIN — masuk langsung.',
+        data: { sessionToken: signSession({ role: ROLES.MEMBER, gid: groupId }, GROUP_SESSION_TTL), legacy: true }
+      });
+    }
+
+    if (!secretMatches(pin, candidate, pinScope(groupId), pinScope(groupId))) {
+      const attempt = await registerFailedAttempt(attemptKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
+      await writeAuditLog(groupId, 'PIN_SALAH', `Percobaan gagal dari ${ip}`, headers);
+      if (attempt.locked) {
+        return sendJson(res, 429, {
+          status: false,
+          message: `Salah ${MAX_ATTEMPTS} kali. Terkunci ${attempt.retryAfterSec} detik.`,
+          data: { retryAfterSec: attempt.retryAfterSec }
+        });
+      }
+      return sendJson(res, 401, { status: false, message: GENERIC_PIN_ERROR });
+    }
+
+    // Upgrade a legacy hash to scrypt now that we hold the plaintext PIN.
+    if (!storedPin && legacyStored) {
+      await setPrivateConfig(groupId, { pin_hash: hashSecret(pin, pinScope(groupId)) }, headers);
+      await fsPatch(groupDoc(groupId), { pin_hash: null }, headers, ['pin_hash']).catch((err) =>
+        console.error('[finkas] Legacy pin_hash cleanup failed:', err?.message));
+    }
+
+    await clearRateLimit(attemptKey);
+    await writeAuditLog(groupId, 'PIN_BENAR', `Masuk grup dari ${ip}`, headers);
+
+    return sendJson(res, 200, {
+      status: true,
+      message: 'PIN benar.',
+      data: { sessionToken: signSession({ role: ROLES.MEMBER, gid: groupId }, GROUP_SESSION_TTL) }
+    });
   } catch (error) {
-    return res.status(500).json({ status: false, message: error?.message || 'Terjadi kesalahan server.' });
+    console.error('[finkas] verify-group-pin error:', error?.message);
+    return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan server.' });
   }
 }

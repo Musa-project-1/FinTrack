@@ -1,101 +1,200 @@
 /**
- * Serverless Authentication Endpoint for Finkas on Vercel.
- * Mendukung login Admin Grup (scoped per grup) dan fallback master key.
+ * Admin authentication.
+ *
+ * Two paths, both scrypt-verified and rate limited server-side:
+ *   1. Group admin — password scoped to the group (`finkas-admin:{gid}`).
+ *   2. Master admin — the owner password stored in the server-only
+ *      `settings/app_config` document.
+ *
+ * The password is never echoed back, never compared with a bare SHA-256 (except
+ * to accept a legacy hash once and immediately upgrade it), and never sent to
+ * the client as a credential: the caller receives a signed, expiring session.
  */
-import crypto from 'node:crypto';
-import { getFirestoreHeaders } from './_sa.js';
+import { requireFirestoreHeaders, fsGet, fsPatch } from './_sa.js';
+import {
+  APP_CONFIG_DOC,
+  getPrivateConfig,
+  groupDoc,
+  isValidGroupId,
+  setPrivateConfig,
+  writeAuditLog
+} from './_store.js';
+import {
+  GROUP_SESSION_TTL,
+  ROLES,
+  SUPERADMIN_SESSION_TTL,
+  checkRateLimit,
+  clearRateLimit,
+  clientIp,
+  hashSecret,
+  registerFailedAttempt,
+  secretMatches,
+  signSession
+} from './_session.js';
 
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
-const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const MAX_ATTEMPTS = 5;
+const LOCK_WINDOW_MS = 15 * 60 * 1000;
+const INVALID_CREDENTIALS = 'Email atau Password Admin salah!';
+
+const sendJson = (res, status, payload) => {
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(status).json(payload);
+};
+
+const parseBody = (req) => {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch (err) {
+      return {};
+    }
+  }
+  return {};
+};
+
+/** Everything that matches an email check the caller actually supplied. */
+const emailAllowed = (storedEmail, suppliedEmail) =>
+  !storedEmail || !suppliedEmail || storedEmail === suppliedEmail;
+
+/**
+ * Verify a group admin password against the private config, falling back to the
+ * legacy location on the group document and upgrading it when it matches.
+ * @returns {Promise<{matches: boolean, email: string}>}
+ */
+async function verifyGroupAdmin(groupId, password, email, headers) {
+  const config = await getPrivateConfig(groupId, headers);
+  let storedHash = config?.admin_password_hash || '';
+  let storedEmail = (config?.admin_email || '').toLowerCase().trim();
+  let legacy = false;
+
+  if (!storedHash) {
+    const group = await fsGet(groupDoc(groupId), headers);
+    storedHash = group?.admin_password_hash || '';
+    storedEmail = storedEmail || (group?.admin_email || '').toLowerCase().trim();
+    legacy = Boolean(storedHash);
+  }
+  if (!storedHash) return { matches: false, email: '' };
+
+  const matches =
+    emailAllowed(storedEmail, email) &&
+    secretMatches(password, storedHash, `finkas-admin:${groupId}`, `finkas-admin:${groupId}`);
+  if (!matches) return { matches: false, email: storedEmail };
+
+  if (legacy) {
+    await setPrivateConfig(groupId, {
+      admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`),
+      admin_email: storedEmail || email
+    }, headers);
+    await fsPatch(groupDoc(groupId), { admin_password_hash: null, admin_email: null }, headers,
+      ['admin_password_hash', 'admin_email']
+    ).catch((err) => console.error('[finkas] Legacy admin hash cleanup failed:', err?.message));
+  }
+
+  return { matches: true, email: storedEmail || email };
+}
+
+/**
+ * Verify the master (owner) password and upgrade a legacy digest when it matches.
+ * @returns {Promise<boolean>}
+ */
+async function verifyMasterPassword(password, headers) {
+  const config = await fsGet(APP_CONFIG_DOC, headers);
+  const storedHash = config?.admin_password_hash || '';
+  if (!storedHash) return false;
+
+  const matches = secretMatches(password, storedHash, 'finkas-master', '');
+  if (!matches) return false;
+
+  if (!storedHash.startsWith('scrypt$')) {
+    await fsPatch(APP_CONFIG_DOC, { admin_password_hash: hashSecret(password, 'finkas-master') }, headers,
+      ['admin_password_hash']
+    ).catch((err) => console.error('[finkas] Master hash upgrade failed:', err?.message));
+  }
+  return true;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ status: false, message: 'Method Not Allowed' });
+    return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch (_) { body = {}; }
+    const body = parseBody(req);
+    const email = String(body?.email || '').trim().toLowerCase();
+    const password = String(body?.password || '').trim();
+    const groupId = String(body?.groupId || '').trim();
+
+    if (!password) {
+      return sendJson(res, 400, { status: false, message: 'Password tidak boleh kosong.' });
+    }
+    if (groupId && !isValidGroupId(groupId)) {
+      return sendJson(res, 400, { status: false, message: 'ID grup tidak valid.' });
     }
 
-    const { email, password, groupId } = body || {};
-    const trimmedEmail = String(email || '').trim().toLowerCase();
-    const trimmedPwd = String(password || '').trim();
-    const cleanGroupId = String(groupId || '').trim();
+    const ip = clientIp(req);
+    const ipKey = `login-ip:${ip}`;
+    const idKey = `login-id:${groupId || email || 'master'}`;
 
-    if (!trimmedPwd) {
-      return res.status(400).json({ status: false, message: 'Password tidak boleh kosong.' });
-    }
-
-    const headers = await getFirestoreHeaders();
-
-    // ── 1. Verifikasi Admin Grup (jika groupId disertakan) ─────────────
-    if (cleanGroupId) {
-      // Ambil dokumen grup utama
-      const groupRes = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(cleanGroupId)}`, { headers });
-      if (groupRes.ok) {
-        const gData = await groupRes.json();
-        const storedEmail = (gData.fields?.admin_email?.stringValue || '').toLowerCase().trim();
-        let storedHash = gData.fields?.admin_password_hash?.stringValue || '';
-
-        // Jika belum ada di dokumen grup, cek sub-dokumen private/config
-        if (!storedHash) {
-          const privRes = await fetch(`${FIRESTORE_BASE}/groups/${encodeURIComponent(cleanGroupId)}/private/config`, { headers });
-          if (privRes.ok) {
-            const pData = await privRes.json();
-            storedHash = pData.fields?.admin_password_hash?.stringValue || '';
-          }
-        }
-
-        if (storedHash) {
-          // Bandingkan hash ber-salt per grup
-          const inputGroupHash = crypto.createHash('sha256').update(`finkas-admin:${cleanGroupId}:${trimmedPwd}`).digest('hex');
-          const emailMatch = !storedEmail || !trimmedEmail || storedEmail === trimmedEmail;
-
-          if (emailMatch && inputGroupHash === storedHash) {
-            const sessionToken = crypto.createHash('sha256').update(`${storedHash}:${Date.now()}`).digest('hex');
-            return res.status(200).json({
-              status: true,
-              message: 'Login Admin Grup Berhasil!',
-              data: {
-                sessionToken,
-                isAdmin: true,
-                isSuperAdmin: false,
-                role: 'group_admin',
-                groupId: cleanGroupId,
-                email: storedEmail || trimmedEmail
-              }
-            });
-          }
-        }
+    for (const key of [ipKey, idKey]) {
+      const lock = await checkRateLimit(key);
+      if (lock.locked) {
+        return sendJson(res, 429, {
+          status: false,
+          message: `Terlalu banyak percobaan masuk. Coba lagi dalam ${lock.retryAfterSec} detik.`,
+          data: { retryAfterSec: lock.retryAfterSec }
+        });
       }
     }
 
-    // ── 2. Fallback: Verifikasi Master Password Super Admin (settings/app_config)
-    const inputMasterHash = crypto.createHash('sha256').update(trimmedPwd).digest('hex');
-    const cfgRes = await fetch(`${FIRESTORE_BASE}/settings/app_config`, { headers });
-    if (cfgRes.ok) {
-      const cfgData = await cfgRes.json();
-      const masterHash = cfgData?.fields?.admin_password_hash?.stringValue || '';
-      if (masterHash && inputMasterHash === masterHash) {
-        const sessionToken = crypto.createHash('sha256').update(`${masterHash}:${Date.now()}`).digest('hex');
-        return res.status(200).json({
+    const headers = await requireFirestoreHeaders();
+
+    // ── 1. Group admin ────────────────────────────────────────────────
+    if (groupId) {
+      const groupResult = await verifyGroupAdmin(groupId, password, email, headers);
+      if (groupResult.matches) {
+        await Promise.all([clearRateLimit(ipKey), clearRateLimit(idKey)]);
+        await writeAuditLog(groupId, 'LOGIN_ADMIN', `Login admin grup dari ${ip}`, headers);
+        return sendJson(res, 200, {
           status: true,
-          message: 'Login Master Admin Sukses!',
+          message: 'Login Admin Grup Berhasil!',
           data: {
-            sessionToken,
+            sessionToken: signSession({ role: ROLES.GROUP_ADMIN, gid: groupId }, GROUP_SESSION_TTL),
             isAdmin: true,
-            isSuperAdmin: true,
-            role: 'superadmin'
+            isSuperAdmin: false,
+            role: ROLES.GROUP_ADMIN,
+            groupId,
+            email: groupResult.email
           }
         });
       }
     }
 
-    await new Promise((r) => setTimeout(r, 600));
-    return res.status(401).json({ status: false, message: 'Email atau Password Admin salah!' });
+    // ── 2. Master admin (owner) ───────────────────────────────────────
+    if (await verifyMasterPassword(password, headers)) {
+      await Promise.all([clearRateLimit(ipKey), clearRateLimit(idKey)]);
+      await writeAuditLog(groupId || 'utama', 'LOGIN_ADMIN', `Login master admin dari ${ip}`, headers);
+      return sendJson(res, 200, {
+        status: true,
+        message: 'Login Master Admin Sukses!',
+        data: {
+          sessionToken: signSession({ role: ROLES.SUPERADMIN }, SUPERADMIN_SESSION_TTL),
+          isAdmin: true,
+          isSuperAdmin: true,
+          role: ROLES.SUPERADMIN,
+          groupId
+        }
+      });
+    }
+
+    await registerFailedAttempt(ipKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
+    await registerFailedAttempt(idKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
+    const auditGroup = groupId || 'utama';
+    await writeAuditLog(auditGroup, 'LOGIN_GAGAL', `Percobaan gagal dari ${ip}`, headers);
+
+    return sendJson(res, 401, { status: false, message: INVALID_CREDENTIALS });
   } catch (error) {
-    return res.status(500).json({ status: false, message: error?.message || 'Terjadi kesalahan pada server autentikasi.' });
+    console.error('[finkas] login error:', error?.message);
+    return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan pada server autentikasi.' });
   }
 }

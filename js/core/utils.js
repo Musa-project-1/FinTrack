@@ -187,18 +187,6 @@ export const getInitials = (name) => {
  */
 export const isOnline = () => window.navigator.onLine;
 
-/**
- * Hash text using SHA-256.
- * @param {string} text
- * @returns {Promise<string>} Hex-encoded hash.
- */
-export const hashText = async (text) => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
-};
-
 /** @private entity map for escapeHtml */
 const _ESCAPE_MAP = {
   '&': '&amp;',

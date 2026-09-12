@@ -1,52 +1,27 @@
 rules_version = '2';
+
+// Finkas — Firestore security rules.
+//
+// The web client never talks to Firestore directly. Every read and write goes
+// through the serverless functions in /api (see api/data.js), which use the
+// Google service account and therefore bypass these rules entirely.
+//
+// Denying all client access closes the previous model where:
+//   • every collection was world-readable (member names, WhatsApp numbers,
+//     contribution history and cash flows of every group),
+//   • `groups/{gid}` could be rewritten by anyone, letting an attacker replace
+//     admin_password_hash / pin_hash and take over the group,
+//   • credential hashes were readable, so the 4-digit PIN could be cracked
+//     offline in milliseconds,
+//   • `settings/app_config` was client-readable while holding the master
+//     password hash.
+//
+// If direct client access is ever required, scope it to `request.auth` and a
+// group membership claim — never re-introduce `if true`.
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper to validate incoming transaction data
-    function isValidTransaction(data) {
-      return data.ID_Transaksi is string
-        && data.Tipe_Arus in ['Masuk', 'Keluar']
-        && data.Nominal is number
-        && data.Nominal > 0
-        && data.ID_Kategori is string
-        && data.ID_Anggota is string
-        && data.Timestamp is string;
-    }
-
-    // Groups registry
-    match /groups/{groupId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.nama is string
-        && request.resource.data.nama.size() >= 3;
-      allow delete: if true;
-    }
-
-    // Group-scoped subcollections
-    match /groups/{groupId}/settings/{docId} {
-      allow read, write: if true;
-    }
-    match /groups/{groupId}/transaksi/{trxId} {
-      allow read: if true;
-      allow create, update: if isValidTransaction(request.resource.data);
-      allow delete: if false;
-    }
-    match /groups/{groupId}/anggota/{angId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.Nama_Anggota is string
-        && request.resource.data.Nama_Anggota.size() > 0
-        && request.resource.data.Status_Aktif in ['Aktif', 'Nonaktif'];
-      allow delete: if false;
-    }
-    match /groups/{groupId}/kategori/{katId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.Nama_Kategori is string
-        && request.resource.data.Tipe in ['Masuk', 'Keluar'];
-      allow delete: if false;
-    }
-    match /groups/{groupId}/audit_log/{logId} {
-      allow read: if true;
-      allow create: if request.resource.data.Aksi is string && request.resource.data.Timestamp is string;
-      allow update, delete: if false;
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

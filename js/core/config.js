@@ -1,19 +1,22 @@
 /**
  * @module config
  * Centralized configuration for Finkas.
+ *
+ * The client never holds Firestore credentials: all data access goes through
+ * the serverless endpoints declared in `API`, authenticated with a signed
+ * session token (see core/state.js).
  */
 
-/** Firebase Configuration */
-export const FIREBASE_CONFIG = {
-  projectId: "finkas-kas",
-  appId: "1:837369279315:web:82a31208be2afc179ae7a6",
-  storageBucket: "finkas-kas.firebasestorage.app",
-  apiKey: "AIzaSy...l3z8",
-  authDomain: "finkas-kas.firebaseapp.com",
-  messagingSenderId: "837369279315"
+/** Serverless API endpoints (Vercel functions under /api). */
+export const API = {
+  DATA: '/api/data',
+  LOGIN: '/api/login',
+  LOGIN_GOOGLE: '/api/login-google',
+  GROUP_ADMIN: '/api/create-group',
+  VERIFY_PIN: '/api/verify-group-pin'
 };
 
-/** Indonesian month names (0-indexed: namaBulan[0] = "Januari") */
+/** Indonesian month names (0-indexed: NAMA_BULAN[0] = "Januari") */
 export const NAMA_BULAN = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -37,23 +40,30 @@ export const CHART_COLORS = [
   '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#3b82f6'
 ];
 
-/** localStorage keys */
+/* ── Storage keys ────────────────────────────────────────────────── */
+
+/** localStorage: per-group data cache. */
 export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
-export const ADMIN_PWD_KEY = 'finkas_admin_pwd';
-export const SUPERADMIN_KEY = 'finkas_is_superadmin';
-export const ADMIN_ROLE_KEY = 'finkas_admin_role';
-export const ADMIN_EMAIL_KEY = 'finkas_admin_email';
 export const HEADER_STATS_KEY = 'finkas_header_stats';
 export const ACTIVE_GROUP_KEY = 'finkas_active_group';
+export const GA_ID_KEY = 'finkas_ga_id';
+
+/**
+ * sessionStorage: bearer session tokens. Scoped to the tab so they disappear
+ * when it closes, instead of persisting indefinitely in localStorage.
+ */
+export const ADMIN_SESSION_KEY = 'finkas_admin_session';
+export const ADMIN_ROLE_KEY = 'finkas_admin_role';
+export const ADMIN_EMAIL_KEY = 'finkas_admin_email';
+export const GROUP_SESSIONS_KEY = 'finkas_group_sessions';
+
 /** ID grup bawaan untuk data lama sebelum multi-grup (fallback bila kosong). */
 export const DEFAULT_GROUP_ID = 'utama';
 export const DEFAULT_GROUP_NAME = 'Grup Utama';
 
-/** Google OAuth Web Client ID */
+/** Google OAuth Web Client ID (public by design). */
 export const GOOGLE_CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
 
 /** Google Analytics 4 Measurement ID (kosongkan jika tanpa analitik) */
 export const GA_MEASUREMENT_ID = '';
-export const GA_ID_KEY = 'finkas_ga_id';
-

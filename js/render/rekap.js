@@ -1,5 +1,5 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
-import { getState, currentRekapYear, getAdminPassword } from "../core/state.js";
+import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
 import { formatRp, escapeHtml } from "../core/utils.js";
 
 export const populateTahunRekap = () => {
@@ -80,10 +80,10 @@ export const renderTableRekap = () => {
             tdBulan.innerHTML = '<div class="status-lunas-dot" title="Lunas"><i class="ph-bold ph-check"></i></div>';
           } else {
             tdBulan.title = `Klik untuk bayar ${bulan}`;
-            if (getAdminPassword()) {
+            if (getIsAdminSession()) {
               tdBulan.setAttribute('data-action', 'quickpay');
-              tdBulan.setAttribute('data-anggota', ang.ID_Anggota);
-              tdBulan.setAttribute('data-bulan', bulan);
+              tdBulan.setAttribute('data-anggota', escapeHtml(ang.ID_Anggota));
+              tdBulan.setAttribute('data-bulan', escapeHtml(bulan));
             }
           }
         }
@@ -139,8 +139,10 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
       const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : 'belum';
       const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : 'Klik untuk bayar';
-      const allowAction = !!getAdminPassword() && !isSkipped && !isLunas;
-      const onclick = allowAction ? `data-action="quickpay-card" data-anggota="${ang.ID_Anggota}" data-bulan="${bulan}"` : '';
+      const allowAction = getIsAdminSession() && !isSkipped && !isLunas;
+      const onclick = allowAction
+        ? `data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(bulan)}"`
+        : '';
       return `
         <div class="iuran-month-item ${classes}" ${onclick} title="${title} ${bulan}">
           <div class="iuran-month-name">${bulan.substring(0, 3)}</div>
@@ -168,8 +170,8 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
         <div class="iuran-card-details">
           <div class="iuran-month-grid">${monthGridHTML}</div>
           <div class="iuran-action-buttons">
-            <button class="iuran-btn-pay admin-only" data-action="quickpay-card" data-anggota="${ang.ID_Anggota}" data-bulan="${NAMA_BULAN[new Date().getMonth()]}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
-            <button class="iuran-btn-detail" data-action="profil" data-id="${ang.ID_Anggota}"><i class="ph-bold ph-info"></i> Detail</button>
+            <button class="iuran-btn-pay admin-only" data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(NAMA_BULAN[new Date().getMonth()])}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
+            <button class="iuran-btn-detail" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-info"></i> Detail</button>
           </div>
         </div>
       </div>

@@ -77,7 +77,7 @@ export const renderTableRekap = () => {
         } else {
           tdBulan.className = 'text-center td-clickable';
           if (isLunas) {
-            tdBulan.innerHTML = '<div class="status-lunas-dot" title="Lunas (PAID)">PAID</div>';
+            tdBulan.innerHTML = '<div class="status-lunas-dot" title="Lunas (PAID)"><span>PAID</span></div>';
           } else {
             tdBulan.title = `Klik untuk bayar ${bulan}`;
             if (getIsAdminSession()) {

@@ -283,8 +283,10 @@ body { padding: 6px 0 40px 0; }
   
   .table-matriks .status-lunas-dot {
     width: 28px;
-    height: 16px;
-    font-size: 8.5px;
+    height: 28px;
+  }
+  .table-matriks .status-lunas-dot span {
+    font-size: 9.5px;
   }
   
   .table-matriks td.text-center {

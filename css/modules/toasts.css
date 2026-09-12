@@ -211,36 +211,42 @@ body.dark-mode .toast-close-btn:hover {
   }
 }
 
-/* === STATUS LUNAS STAMP (PAID) === */
+/* === STATUS LUNAS CIRCULAR STAMP (PAID - 36px) === */
 .status-lunas-dot {
-  width: 30px;
-  height: 18px;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 9.5px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
   user-select: none;
-  transform: rotate(-3deg);
+  transform: rotate(-5deg);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   animation: popIn 0.2s ease-out;
   background: #059669;
   color: #ffffff;
-  border: 1px solid #047857;
-  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+  box-shadow: 0 1px 5px rgba(5, 150, 105, 0.35);
+}
+
+.status-lunas-dot span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  line-height: 1;
 }
 
 .status-lunas-dot:hover {
-  transform: rotate(0deg) scale(1.06);
+  transform: rotate(0deg) scale(1.08);
 }
 
 body.dark-mode .status-lunas-dot {
   background: #10b981;
   color: #070c18;
-  border: 1px solid #34d399;
-  box-shadow: 0 1px 5px rgba(16, 185, 129, 0.45);
+  outline: 2px solid #34d399;
+  outline-offset: 2px;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
 }
 
 @keyframes popIn {

@@ -210,12 +210,93 @@ body.dark-mode .clickable-name:hover {
   color: var(--primary) !important;
   font-size: 11px !important;
   letter-spacing: 1px !important;
-  padding: 16px 20px 8px !important;
+  padding: 14px 18px 8px !important;
   border-top: 8px solid var(--bg-color);
 }
 
 .date-group-header:first-child td {
   border-top: none;
+}
+
+/* === RIWAYAT: DESKTOP TABLE & COLUMN BOX HARMONIZATION === */
+@media (min-width: 769px) {
+  .riwayat-table-wrapper {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+
+  #table-riwayat {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  #table-riwayat th,
+  #table-riwayat td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #table-riwayat thead th {
+    background: var(--table-header-bg);
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* Kolom 1: Waktu */
+  #table-riwayat .th-rw-waktu,
+  #table-riwayat td.td-time-col,
+  #table-riwayat td:first-child {
+    text-align: left !important;
+    padding-left: 18px !important;
+    padding-right: 14px;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap;
+    width: 160px;
+  }
+
+  /* Kolom 2: Keterangan & Catatan */
+  #table-riwayat .th-rw-keterangan,
+  #table-riwayat td:nth-child(2) {
+    text-align: left !important;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* Kolom 3: Nominal */
+  #table-riwayat .th-rw-nominal,
+  #table-riwayat td:nth-child(3),
+  #table-riwayat td.td-nominal-col {
+    text-align: right !important;
+    padding-right: 18px !important;
+    white-space: nowrap;
+    width: 130px;
+  }
+
+  /* Kolom 4: Tipe Arus */
+  #table-riwayat .th-rw-tipe,
+  #table-riwayat td:nth-child(4) {
+    text-align: center !important;
+    padding-left: 12px;
+    padding-right: 14px;
+    width: 120px;
+  }
+
+  /* Kolom 5: Aksi */
+  #table-riwayat td:nth-child(5) {
+    text-align: center !important;
+    padding-right: 16px !important;
+    width: 120px;
+  }
+
+  #table-riwayat tr:last-child td {
+    border-bottom: none;
+  }
 }
 
 #load-more-container button {

@@ -18,3 +18,4 @@ HARDENING-CHECKLIST.md
 .agents/
 .hermes/
 skills-lock.json
+js/list.md

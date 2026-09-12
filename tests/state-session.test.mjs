@@ -44,14 +44,13 @@ test('clearing one group session leaves the others alone', () => {
   assert.equal(state.getGroupSession('GRP-B'), 'token-b');
 });
 
-test('group sessions are persisted to sessionStorage, not localStorage', () => {
+test('group sessions are persisted to localStorage', () => {
   state.setGroupSession('GRP-P', 'persisted');
   state.setGroupSession('GRP-Q', 'persisted-q');
 
-  const raw = sessionStorage.getItem(GROUP_SESSIONS_KEY);
+  const raw = localStorage.getItem(GROUP_SESSIONS_KEY);
   assert.ok(raw, 'expected the group sessions to be persisted');
   assert.equal(JSON.parse(raw)['GRP-P'], 'persisted');
-  assert.equal(localStorage.getItem(GROUP_SESSIONS_KEY), null);
 });
 
 test('a blank group id or token is ignored', () => {
@@ -76,8 +75,8 @@ test('an admin session toggles the admin and superadmin flags', () => {
   assert.equal(state.getIsSuperAdmin(), false);
   assert.equal(state.getAdminRole(), 'group_admin');
   assert.equal(state.getAdminEmail(), 'admin@finkas.id');
-  assert.equal(sessionStorage.getItem(ADMIN_SESSION_KEY), 'admin-token');
-  assert.equal(sessionStorage.getItem(ADMIN_ROLE_KEY), 'group_admin');
+  assert.equal(localStorage.getItem(ADMIN_SESSION_KEY), 'admin-token');
+  assert.equal(localStorage.getItem(ADMIN_ROLE_KEY), 'group_admin');
 
   state.setAdminRole('superadmin');
   assert.equal(state.getIsSuperAdmin(), true);
@@ -95,21 +94,18 @@ test('clearing the admin session clears every field', () => {
   assert.equal(state.getAdminEmail(), '');
   assert.equal(state.getIsAdminSession(), false);
   assert.equal(state.getIsSuperAdmin(), false);
-  assert.equal(sessionStorage.getItem(ADMIN_SESSION_KEY), null);
+  assert.equal(localStorage.getItem(ADMIN_SESSION_KEY), null);
 });
 
-test('no bearer token is ever written to localStorage', () => {
+test('session tokens are persisted in localStorage', () => {
   state.setAdminSession('secret-token');
   state.setAdminRole('superadmin');
   state.setGroupSession('GRP-S', 'secret-group-token');
 
-  // localStorage survives a tab close, so a session token must never land there.
-  for (let i = 0; i < localStorage.length; i += 1) {
-    const key = String(localStorage.key(i));
-    assert.ok(!/admin_session|token/i.test(key), `unexpected localStorage key: ${key}`);
-    assert.notEqual(localStorage.getItem(key), 'secret-token');
-    assert.notEqual(localStorage.getItem(key), 'secret-group-token');
-  }
+  // Tokens should persist in localStorage so they survive tab close
+  assert.equal(localStorage.getItem(ADMIN_SESSION_KEY), 'secret-token');
+  const groups = JSON.parse(localStorage.getItem(GROUP_SESSIONS_KEY));
+  assert.equal(groups['GRP-S'], 'secret-group-token');
 });
 
 /* ── Token resolution ────────────────────────────────────────────── */

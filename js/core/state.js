@@ -3,8 +3,8 @@
  * Centralized application state, cache persistence and session handling.
  *
  * Data reads and writes are authorized by short-lived signed session tokens
- * issued by the API. Tokens live in sessionStorage (scoped to the tab), never
- * in localStorage, and are sent as `sessionToken` on every request.
+ * issued by the API. Tokens live in localStorage (persist across tabs/sessions)
+ * and are sent as `sessionToken` on every request.
  */
 
 import {
@@ -136,7 +136,7 @@ export const loadCache = () => {
 let groupSessions = {};
 
 try {
-  const raw = sessionStorage.getItem(GROUP_SESSIONS_KEY);
+  const raw = localStorage.getItem(GROUP_SESSIONS_KEY);
   if (raw) groupSessions = JSON.parse(raw) || {};
 } catch (err) {
   groupSessions = {};
@@ -144,7 +144,7 @@ try {
 
 const persistGroupSessions = () => {
   try {
-    sessionStorage.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
+    localStorage.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
   } catch (err) {
     console.warn('[finkas] Cannot persist group sessions:', err?.message);
   }
@@ -175,18 +175,18 @@ export const clearGroupSession = (gid) => {
 };
 
 /** @type {string} Signed token for the signed-in admin (group admin or superadmin). */
-let adminSessionToken = safelyRead(sessionStorage, ADMIN_SESSION_KEY);
+let adminSessionToken = safelyRead(localStorage, ADMIN_SESSION_KEY);
 
 /** @type {string} Role: 'superadmin' | 'group_admin' | '' */
-let adminRole = safelyRead(sessionStorage, ADMIN_ROLE_KEY);
+let adminRole = safelyRead(localStorage, ADMIN_ROLE_KEY);
 
 /** @type {string} Admin user email */
-let adminUserEmail = safelyRead(sessionStorage, ADMIN_EMAIL_KEY);
+let adminUserEmail = safelyRead(localStorage, ADMIN_EMAIL_KEY);
 
 const persistSessionField = (key, value) => {
   try {
-    if (value) sessionStorage.setItem(key, value);
-    else sessionStorage.removeItem(key);
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
   } catch (err) {
     console.warn('[finkas] Cannot persist session field:', key, err?.message);
   }

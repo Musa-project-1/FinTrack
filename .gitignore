@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Credentials & secrets
+.service-account.local.json
+.firebaserc
+
+# Build artifacts
+*.zip
+
+# Local documentation (not for public repo)
+CHANGELOG.md
+CODE-REVIEW.md
+HARDENING-CHECKLIST.md
+
+# Tooling
+.agents/
+.hermes/
+skills-lock.json

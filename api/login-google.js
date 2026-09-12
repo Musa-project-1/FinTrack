@@ -22,7 +22,7 @@ import {
   signSession
 } from './_session.js';
 
-const PRIMARY_OWNER = 'musabakhtiar0@gmail.com';
+const PRIMARY_OWNER = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
 
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -55,11 +55,11 @@ async function getSuperadminList(headers) {
     const list = (Array.isArray(raw) ? raw : [])
       .map((v) => String(v || '').toLowerCase().trim())
       .filter(Boolean);
-    if (!list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
-    return list;
+    if (PRIMARY_OWNER && !list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
+    return list.length ? list : [];
   } catch (err) {
     console.error('[finkas] Failed to read superadmin list:', err?.message);
-    return [PRIMARY_OWNER];
+    return PRIMARY_OWNER ? [PRIMARY_OWNER] : [];
   }
 }
 
@@ -172,7 +172,7 @@ async function addSuperAdmin(body, headers) {
 
 async function removeSuperAdmin(body, headers) {
   const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
-  if (removeEmail === PRIMARY_OWNER) {
+  if (PRIMARY_OWNER && removeEmail === PRIMARY_OWNER) {
     return { code: 400, payload: { status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' } };
   }
 

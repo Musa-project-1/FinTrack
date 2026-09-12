@@ -122,8 +122,8 @@ export const renderTableTransaksi = () => {
           <button class="btn-icon admin-only text-danger" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash fs-16"></i></button>
         ` : '';
     const aksiTd = isAdmin
-      ? `<td data-label="Aksi" class="td-center-nowrap">${aksiHtml}</td>`
-      : '<td data-label="Aksi"></td>';
+      ? `<td data-label="Aksi" class="td-center-nowrap admin-only">${aksiHtml}</td>`
+      : '';
 
     const tr = document.createElement('tr');
     tr.className = isMasuk ? 'row-masuk' : 'row-keluar';

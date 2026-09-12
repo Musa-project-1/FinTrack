@@ -278,20 +278,28 @@ body.dark-mode .clickable-name:hover {
     width: 130px;
   }
 
-  /* Kolom 4: Tipe Arus */
+  /* Kolom 4: Tipe Arus (kolom terakhir untuk non-admin) */
   #table-riwayat .th-rw-tipe,
-  #table-riwayat td:nth-child(4) {
-    text-align: center !important;
+  #table-riwayat td[data-label="Tipe Arus"] {
+    text-align: right !important;
     padding-left: 12px;
-    padding-right: 14px;
-    width: 120px;
+    padding-right: 20px !important;
+    white-space: nowrap;
+    width: 140px;
   }
 
-  /* Kolom 5: Aksi */
-  #table-riwayat td:nth-child(5) {
+  /* Kolom 5: Aksi (hanya jika admin aktif) */
+  #table-riwayat th.admin-only,
+  #table-riwayat td[data-label="Aksi"] {
     text-align: center !important;
     padding-right: 16px !important;
     width: 120px;
+  }
+
+  body.admin-mode #table-riwayat .th-rw-tipe,
+  body.admin-mode #table-riwayat td[data-label="Tipe Arus"] {
+    text-align: center !important;
+    padding-right: 14px !important;
   }
 
   #table-riwayat tr:last-child td {

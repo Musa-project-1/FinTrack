@@ -30,7 +30,8 @@ import {
   handleUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
 } from "./handlers/auth.js";
 import {
-  setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener
+  setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener,
+  openTampilanModal, setIndicatorStyle
 } from "./handlers/navigation.js";
 import {
   openQuickPaySheet, submitQuickPay, bukaModalTransaksi, submitIuran,
@@ -109,6 +110,8 @@ document.addEventListener('click', (e) => {
     case 'toggle-header-stats': toggleHeaderStats(); break;
     case 'open-about':        openModal('modal-about'); break;
     case 'open-faq':          openModal('modal-faq'); break;
+    case 'open-tampilan':     openTampilanModal(); break;
+    case 'select-indicator-style': setIndicatorStyle(target.getAttribute('data-style')); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':
     case 'toggle-dropdown':   openModal('modal-menu'); break;

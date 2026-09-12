@@ -1,0 +1,95 @@
+  <!-- Modal Pengaturan Tampilan -->
+  <div class="modal-overlay" id="modal-tampilan">
+    <div class="modal-content modal-md menu-sheet nav-sheet" style="max-width: 480px;">
+      <div class="quickpay-handle" aria-hidden="true"></div>
+      
+      <div class="nav-sheet-head">
+        <div class="modal-title-wrap">
+          <h2>Tampilan</h2>
+          <p>Kustomisasi gaya visual dan indikator kas</p>
+        </div>
+        <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+      </div>
+
+      <div class="tampilan-section">
+        <div class="tampilan-section-label">
+          <span>Gaya Indikator Status Iuran</span>
+          <small class="text-muted">Pilih tampilan lunas pada tabel matriks bulanan</small>
+        </div>
+
+        <div class="indicator-style-grid" id="indicator-style-picker">
+          <!-- 1. Stempel PAID -->
+          <button class="style-option-card" data-action="select-indicator-style" data-style="paid">
+            <div class="style-option-left">
+              <div class="style-preview-wrap">
+                <div class="status-lunas-dot style-paid"><span>PAID</span></div>
+              </div>
+              <div class="style-option-info">
+                <strong>Stempel PAID</strong>
+                <span>Cap kwitansi tinta transparan (-4°)</span>
+              </div>
+            </div>
+            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+          </button>
+
+          <!-- 2. Centang Squircle -->
+          <button class="style-option-card" data-action="select-indicator-style" data-style="check">
+            <div class="style-option-left">
+              <div class="style-preview-wrap">
+                <div class="status-lunas-dot style-check"><i class="ph-bold ph-check"></i></div>
+              </div>
+              <div class="style-option-info">
+                <strong>Centang Squircle</strong>
+                <span>Minimalis lembut, adem dan rapi</span>
+              </div>
+            </div>
+            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+          </button>
+
+          <!-- 3. Bintang Berlian -->
+          <button class="style-option-card" data-action="select-indicator-style" data-style="star">
+            <div class="style-option-left">
+              <div class="style-preview-wrap">
+                <div class="status-lunas-dot style-star">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
+                </div>
+              </div>
+              <div class="style-option-info">
+                <strong>Bintang Berlian (Sparkle)</strong>
+                <span>Bintang 4 sudut modern bernuansa emas</span>
+              </div>
+            </div>
+            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+          </button>
+
+          <!-- 4. Cap Bulat Bintang -->
+          <button class="style-option-card" data-action="select-indicator-style" data-style="round-star">
+            <div class="style-option-left">
+              <div class="style-preview-wrap">
+                <div class="status-lunas-dot style-round-star"><i class="ph-fill ph-star"></i></div>
+              </div>
+              <div class="style-option-info">
+                <strong>Cap Bulat Bintang</strong>
+                <span>Stempel cap ganda melingkar resmi</span>
+              </div>
+            </div>
+            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+          </button>
+
+          <!-- 5. Nominal Kas -->
+          <button class="style-option-card" data-action="select-indicator-style" data-style="nominal">
+            <div class="style-option-left">
+              <div class="style-preview-wrap">
+                <div class="status-lunas-dot style-nominal">10K</div>
+              </div>
+              <div class="style-option-info">
+                <strong>Nominal Kas</strong>
+                <span>Angka iuran asli buku kas fisik</span>
+              </div>
+            </div>
+            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

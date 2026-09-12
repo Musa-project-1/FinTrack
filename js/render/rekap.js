@@ -28,7 +28,32 @@ export const populateTahunRekap = () => {
   });
 };
 
-/* ── Rekap matrix table ────────────────────────────────────────── */
+export const getActiveIndicatorStyle = () => {
+  try {
+    return localStorage.getItem('finkas_indicator_style') || 'paid';
+  } catch (e) {
+    return 'paid';
+  }
+};
+
+export const renderLunasHtml = () => {
+  const style = getActiveIndicatorStyle();
+  switch (style) {
+    case 'check':
+      return '<div class="status-lunas-dot style-check" title="Lunas"><i class="ph-bold ph-check"></i></div>';
+    case 'star':
+      return '<div class="status-lunas-dot style-star" title="Lunas"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></div>';
+    case 'round-star':
+      return '<div class="status-lunas-dot style-round-star" title="Lunas"><i class="ph-fill ph-star"></i></div>';
+    case 'nominal':
+      return '<div class="status-lunas-dot style-nominal" title="Lunas">10K</div>';
+    case 'paid':
+    default:
+      return '<div class="status-lunas-dot style-paid" title="Lunas (PAID)"><span>PAID</span></div>';
+  }
+};
+
+/* ── Matrix dues table (rekap) ─────────────────────────────────── */
 
 export const renderTableRekap = () => {
   const tbody = document.getElementById('ui-table-rekap');
@@ -77,7 +102,7 @@ export const renderTableRekap = () => {
         } else {
           tdBulan.className = 'text-center td-clickable';
           if (isLunas) {
-            tdBulan.innerHTML = '<div class="status-lunas-dot" title="Lunas (PAID)"><span>PAID</span></div>';
+            tdBulan.innerHTML = renderLunasHtml();
           } else {
             tdBulan.title = `Klik untuk bayar ${bulan}`;
             if (getIsAdminSession()) {

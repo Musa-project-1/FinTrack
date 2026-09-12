@@ -97,3 +97,28 @@ export const setupRekapSearchListener = () => {
    QUICK PAY (BOTTOM SHEET)
    ══════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════
+   PENGATURAN TAMPILAN MODAL
+   ══════════════════════════════════════════════════════════════════ */
+
+export const openTampilanModal = () => {
+  const current = localStorage.getItem('finkas_indicator_style') || 'paid';
+  document.querySelectorAll('#indicator-style-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-style') === current);
+  });
+  openModal('modal-tampilan');
+};
+
+export const setIndicatorStyle = (styleKey) => {
+  if (!styleKey) return;
+  try {
+    localStorage.setItem('finkas_indicator_style', styleKey);
+  } catch (e) {
+    console.warn('[finkas] Cannot persist indicator style:', e?.message);
+  }
+  document.querySelectorAll('#indicator-style-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-style') === styleKey);
+  });
+  renderTableRekap();
+};
+

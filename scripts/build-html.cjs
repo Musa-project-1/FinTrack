@@ -19,7 +19,8 @@ const modalFiles = [
   'reports.html',
   'riwayat.html',
   'transactions.html',
-  'faq.html'
+  'faq.html',
+  'tampilan.html'
 ];
 
 let template = fs.readFileSync(templatePath, 'utf8');

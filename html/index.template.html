@@ -7,6 +7,17 @@
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
   <meta name="theme-color" content="#10b981">
 
+  <!-- Social Preview / Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Finkas">
+  <meta property="og:title" content="Finkas — Pembukuan Kas & Iuran Anggota">
+  <meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Finkas — Pembukuan Kas & Iuran Anggota">
+  <meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta name="twitter:image" content="icons/icon-512.png">
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -88,21 +99,21 @@
     </header>
 
     <div class="dashboard">
-      <div class="card glow-blue">
+      <div class="card card-saldo">
         <div class="card-icon icon-blue"><i class="ph-fill ph-vault"></i></div>
         <div class="card-info">
           <h3>Saldo Kas Saat Ini</h3>
           <div id="ui-saldo" class="nominal-val"><div class="skeleton skeleton-title"></div></div>
         </div>
       </div>
-      <div class="card glow-green">
+      <div class="card card-masuk">
         <div class="card-icon icon-green"><i class="ph-fill ph-trend-up"></i></div>
         <div class="card-info">
           <h3>Total Pemasukan</h3>
           <div id="ui-masuk" class="nominal-val nominal-masuk"><div class="skeleton skeleton-title"></div></div>
         </div>
       </div>
-      <div class="card glow-red">
+      <div class="card card-keluar">
         <div class="card-icon icon-red"><i class="ph-fill ph-trend-down"></i></div>
         <div class="card-info">
           <h3>Total Pengeluaran</h3>

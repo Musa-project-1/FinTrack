@@ -18,7 +18,8 @@ const modalFiles = [
   'master.html',
   'reports.html',
   'riwayat.html',
-  'transactions.html'
+  'transactions.html',
+  'faq.html'
 ];
 
 let template = fs.readFileSync(templatePath, 'utf8');

@@ -41,6 +41,7 @@ body { padding: 6px 0 100px 0; }
     gap: 8px;
     margin: 0 8px 12px;
   }
+  .dashboard .card.card-saldo,
   .dashboard .card.glow-blue {
     grid-column: 1 / -1;
   }

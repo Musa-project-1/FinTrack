@@ -6,6 +6,17 @@
 <title>Selamat Datang di Finkas</title>
 <meta name="description" content="Selamat datang di Finkas - pembukuan kas komunitas yang sederhana dan jujur">
 <meta name="theme-color" content="#10b981">
+
+<!-- Social Preview / Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Finkas">
+<meta property="og:title" content="Selamat Datang di Finkas">
+<meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+<meta property="og:image" content="icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Selamat Datang di Finkas">
+<meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+<meta name="twitter:image" content="icons/icon-512.png">
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=110">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,10 +79,19 @@
       </div>
     </div>
 
+    <details class="card" style="margin-top: 1rem; text-align: left; padding: 1rem; font-size: 0.85rem; cursor: pointer;">
+      <summary style="font-weight: 600; color: #10b981;">Pertanyaan Umum (FAQ)</summary>
+      <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; color: #9ca3af; font-size: 0.825rem;">
+        <p><strong>Siapa yang bisa catat?</strong> Hanya Admin/Pengurus ber-PIN.</p>
+        <p><strong>Apakah data terpisah?</strong> Tiap grup memiliki database & PIN terisolasi.</p>
+        <p><strong>Bisa catat offline?</strong> Ya, tersimpan lokal dan sinkron saat online.</p>
+      </div>
+    </details>
+
     <button class="btn btn-primary" id="btn-to-list">
       <i class="ph-bold ph-arrow-right"></i> Pilih Grup
     </button>
-    <p class="note">Sudah di dalam? <a href="index.html">Buka aplikasi</a></p>
+    <p class="note">Sudah di dalam? <a href="index.html">Buka aplikasi</a> &bull; <a href="privacy.html">Kebijakan Privasi</a></p>
   </section>
 
   <!-- Layar 2: Pilih Grup -->

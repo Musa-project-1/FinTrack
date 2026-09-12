@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kebijakan Privasi — Finkas</title>
+  <meta name="description" content="Kebijakan Privasi dan Perlindungan Data Aplikasi Finkas.">
+  <meta name="theme-color" content="#10b981">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-sub: #9ca3af;
+      --primary: #10b981;
+      --primary-hover: #059669;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --text: #0f172a;
+        --text-sub: #64748b;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2.25rem 2rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand img { width: 36px; height: 36px; }
+    .brand h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+    .brand span { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
+    h2 { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; color: var(--primary); }
+    p, li { font-size: 0.925rem; color: var(--text-sub); margin-bottom: 0.75rem; }
+    ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.35rem; }
+    .footer-actions {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.65rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      background-color: var(--primary);
+      color: #ffffff;
+      transition: background 0.15s ease;
+    }
+    .btn:hover { background-color: var(--primary-hover); }
+    .timestamp { font-size: 0.8rem; color: var(--text-sub); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="brand">
+      <img src="icons/icon-light-192.svg" alt="Logo Finkas">
+      <div>
+        <h1>Finkas</h1>
+        <span>Kebijakan Privasi & Keamanan Data</span>
+      </div>
+    </header>
+
+    <section>
+      <p>Finkas berkomitmen menjaga privasi dan integritas data keuangan kelompok/komunitas Anda dengan prinsip sederhana, transparan, dan terisolasi.</p>
+
+      <h2>1. Data yang Dikelola</h2>
+      <ul>
+        <li><strong>Informasi Kas:</strong> Catatan transaksi pemasukan, pengeluaran, saldo, dan rekap iuran bulanan yang dimasukkan secara manual oleh pengurus kelompok.</li>
+        <li><strong>Data Anggota:</strong> Nama atau inisial anggota serta nomor WhatsApp opsional untuk kemudahan konfirmasi rekap pembayaran.</li>
+        <li><strong>Data Kredensial:</strong> PIN kelompok (4 digit) yang diverifikasi melalui hash aman di sisi peladen.</li>
+      </ul>
+
+      <h2>2. Penyimpanan & Isolasi Data</h2>
+      <p>Seluruh rekaman kas disimpan secara cloud pada infrastruktur Google Cloud Firestore dalam skema isolasi per kelompok (<code>groupId</code>). Data satu kelompok tidak dapat diakses atau bercampur dengan kelompok lain.</p>
+
+      <h2>3. Autentikasi Google</h2>
+      <p>Fitur otentikasi Google Sign-In digunakan secara terbatas untuk verifikasi identitas pemilik/admin utama. Finkas hanya membaca alamat surel (email) dan profil dasar untuk pencocokan hak akses; tidak ada data kontak, email masuk, atau berkas Google Drive yang diakses.</p>
+
+      <h2>4. Ketiadaan Pelacak Komersial</h2>
+      <p>Finkas tidak menjual, membagikan, atau memonetisasi data pengguna kepada pihak ketiga untuk kepentingan periklanan. Seluruh interaksi ditujukan murni untuk efisiensi pembukuan kas komunitas.</p>
+
+      <h2>5. Hak Pengguna & Penghapusan</h2>
+      <p>Admin grup memiliki hak penuh untuk memperbarui, mengekspor salinan data kas (format Excel/CSV), atau mengajukan penghapusan rekaman data kelompok kapan saja.</p>
+    </section>
+
+    <footer class="footer-actions">
+      <span class="timestamp">Pembaruan terakhir: September 2026</span>
+      <a href="index.html" class="btn">Kembali ke Finkas</a>
+    </footer>
+  </main>
+</body>
+</html>

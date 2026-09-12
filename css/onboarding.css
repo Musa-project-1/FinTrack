@@ -145,13 +145,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
   font-size: 18px;
   flex-shrink: 0;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
-.icon-gradient-purple-blue { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-.icon-gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-.icon-gradient-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.icon-gradient-purple-blue,
+.icon-gradient-blue,
+.icon-gradient-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
+}
 
 .feature-texts h3 {
   font-size: 13px;
@@ -174,8 +180,9 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
   font-size: 22px;
   display: flex;
   align-items: center;
@@ -265,8 +272,9 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
   font-size: 24px;
   display: flex;
   align-items: center;

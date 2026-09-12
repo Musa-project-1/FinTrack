@@ -2,6 +2,7 @@ import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } 
 import { getState, currentRekapYear } from "../core/state.js";
 import { formatRp, showToast, escapeHtml } from "../core/utils.js";
 import { closeModal } from "../ui/modal.js";
+import { trackEvent } from "../core/analytics.js";
 
 export const cetakStruk = (idTrx) => {
   const state = getState();
@@ -118,6 +119,7 @@ export const copyMonthlyRecap = async () => {
 
   try {
     await navigator.clipboard.writeText(lines.join('\n'));
+    trackEvent('copy_wa_rekap', { bulan, tahun });
     showToast('Rekap bulanan disalin! Tempel di grup WA.', 'success');
     closeModal('modal-export');
   } catch (err) {
@@ -165,6 +167,7 @@ export const exportToCSV = () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  trackEvent('export_csv', { count: state.transaksi.length });
   showToast('File Excel (CSV) diunduh!');
 };
 
@@ -250,6 +253,7 @@ const doCreateGroupReminderMessage = async () => {
 
   try {
     await navigator.clipboard.writeText(parts.join('\n'));
+    trackEvent('copy_wa_reminder', { count: results.length });
     showToast('Pesan pengingat disalin! Siap ditempel ke grup WA.', 'success');
   } catch (err) {
     console.error('copy failed', err);

@@ -96,6 +96,7 @@ document.addEventListener('click', (e) => {
     case 'toggle-theme':     toggleTheme(); break;
     case 'toggle-header-stats': toggleHeaderStats(); break;
     case 'open-about':       openModal('modal-about'); break;
+    case 'open-faq':         openModal('modal-faq'); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':  openModal('modal-menu'); break;
     case 'toggle-dropdown':  openModal('modal-menu'); break;
@@ -388,22 +389,16 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const editTipe = document.getElementById('edit-tipe');
   if (editTipe) editTipe.addEventListener('change', function() { filterKategori('edit-tipe', 'edit-kategori'); });
-
   const searchTrx = document.getElementById('search-trx');
   if (searchTrx) searchTrx.addEventListener('input', renderTableTransaksi);
-
   const filterBulan = document.getElementById('filter-bulan');
   if (filterBulan) filterBulan.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
-
   const filterTahun = document.getElementById('filter-tahun');
   if (filterTahun) filterTahun.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
-
   const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
   if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('keyup', filterAnggotaIuran);
-
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
-
   const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
   const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
   [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
@@ -416,10 +411,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       renderTableRekap();
     });
   });
-
   const formTambahAnggota = document.getElementById('form-tambah-anggota');
   if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);
-
   const formTambahKategori = document.getElementById('form-tambah-kategori');
   if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
 

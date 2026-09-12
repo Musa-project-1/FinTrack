@@ -7,6 +7,17 @@
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
   <meta name="theme-color" content="#10b981">
 
+  <!-- Social Preview / Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Finkas">
+  <meta property="og:title" content="Finkas — Pembukuan Kas & Iuran Anggota">
+  <meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Finkas — Pembukuan Kas & Iuran Anggota">
+  <meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta name="twitter:image" content="icons/icon-512.png">
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -88,21 +99,21 @@
     </header>
 
     <div class="dashboard">
-      <div class="card glow-blue">
+      <div class="card card-saldo">
         <div class="card-icon icon-blue"><i class="ph-fill ph-vault"></i></div>
         <div class="card-info">
           <h3>Saldo Kas Saat Ini</h3>
           <div id="ui-saldo" class="nominal-val"><div class="skeleton skeleton-title"></div></div>
         </div>
       </div>
-      <div class="card glow-green">
+      <div class="card card-masuk">
         <div class="card-icon icon-green"><i class="ph-fill ph-trend-up"></i></div>
         <div class="card-info">
           <h3>Total Pemasukan</h3>
           <div id="ui-masuk" class="nominal-val nominal-masuk"><div class="skeleton skeleton-title"></div></div>
         </div>
       </div>
-      <div class="card glow-red">
+      <div class="card card-keluar">
         <div class="card-icon icon-red"><i class="ph-fill ph-trend-down"></i></div>
         <div class="card-info">
           <h3>Total Pengeluaran</h3>
@@ -281,6 +292,7 @@
         </div>
 
         <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
+        <p style="text-align:center; margin-top:8px;"><a href="privacy.html" target="_blank" style="font-size:12px; color:var(--color-primary, #10b981); text-decoration:underline;">Kebijakan Privasi</a></p>
       </div>
     </div>
   </div>
@@ -529,6 +541,11 @@
       </div>
 
       <div class="nav-group">
+        <button class="nav-item" data-action="open-faq">
+          <span class="nav-ico is-blue"><i class="ph-fill ph-question"></i></span>
+          <span class="nav-txt">Panduan & FAQ</span>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
         <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;">
           <span class="nav-ico is-slate"><i class="ph-fill ph-download-simple"></i></span>
           <span class="nav-txt">Pasang Aplikasi Finkas</span>
@@ -1237,6 +1254,72 @@
       <div class="modal-dialog-actions">
         <button type="button" class="btn btn-outline" data-action="cancel-confirm-action">Batal</button>
         <button type="button" class="btn btn-primary" id="btn-confirm-action-submit">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === Modal Module: faq.html === -->
+<!-- 10. Modal Panduan & FAQ -->
+  <div class="modal-overlay" id="modal-faq">
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-question"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Panduan & FAQ</h2>
+            <p>Pertanyaan umum seputar penggunaan Finkas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="faq-list" style="display:flex; flex-direction:column; gap:0.75rem; max-height:65vh; overflow-y:auto; padding-right:4px;">
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-check-circle" style="vertical-align:middle;"></i> Siapa yang bisa mencatat transaksi?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Hanya Pengurus/Admin yang telah memasukkan kata sandi admin. Anggota umum dapat melihat saldo dan rekap iuran secara transparan.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-shield-check" style="vertical-align:middle;"></i> Apakah data kas kelompok aman?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Data disimpan di Cloud Firestore dan terisolasi per kelompok (<code>groupId</code>). Akses kelompok dilindungi PIN 4-digit unik.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-whatsapp-logo" style="vertical-align:middle;"></i> Bagaimana cara menyalin laporan ke WA?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Buka menu "Ekspor Data" lalu pilih "Salin Rekap Bulan Ini (WA)". Pesan otomatis terformat rapi dan siap ditempel langsung ke grup chat.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-cloud-slash" style="vertical-align:middle;"></i> Bisa mencatat tanpa koneksi internet?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Bisa. Transaksi akan disimpan di Antrean Offline lokal (IndexedDB) dan otomatis disinkronkan saat ponsel kembali terhubung ke internet.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-device-mobile" style="vertical-align:middle;"></i> Bagaimana jika berganti perangkat?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Cukup buka tautan Finkas, pilih nama kelompok Anda di daftar kelompok, lalu masukkan 4-digit PIN kelompok.
+          </p>
+        </div>
       </div>
     </div>
   </div>

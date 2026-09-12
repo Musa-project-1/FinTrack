@@ -1,0 +1,64 @@
+  <!-- 10. Modal Panduan & FAQ -->
+  <div class="modal-overlay" id="modal-faq">
+    <div class="modal-content modal-md">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-question"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h2>Panduan & FAQ</h2>
+            <p>Pertanyaan umum seputar penggunaan Finkas</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="faq-list" style="display:flex; flex-direction:column; gap:0.75rem; max-height:65vh; overflow-y:auto; padding-right:4px;">
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-check-circle" style="vertical-align:middle;"></i> Siapa yang bisa mencatat transaksi?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Hanya Pengurus/Admin yang telah memasukkan kata sandi admin. Anggota umum dapat melihat saldo dan rekap iuran secara transparan.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-shield-check" style="vertical-align:middle;"></i> Apakah data kas kelompok aman?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Data disimpan di Cloud Firestore dan terisolasi per kelompok (<code>groupId</code>). Akses kelompok dilindungi PIN 4-digit unik.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-whatsapp-logo" style="vertical-align:middle;"></i> Bagaimana cara menyalin laporan ke WA?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Buka menu "Ekspor Data" lalu pilih "Salin Rekap Bulan Ini (WA)". Pesan otomatis terformat rapi dan siap ditempel langsung ke grup chat.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-cloud-slash" style="vertical-align:middle;"></i> Bisa mencatat tanpa koneksi internet?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Bisa. Transaksi akan disimpan di Antrean Offline lokal (IndexedDB) dan otomatis disinkronkan saat ponsel kembali terhubung ke internet.
+          </p>
+        </div>
+
+        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
+          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
+            <i class="ph-fill ph-device-mobile" style="vertical-align:middle;"></i> Bagaimana jika berganti perangkat?
+          </h4>
+          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+            Cukup buka tautan Finkas, pilih nama kelompok Anda di daftar kelompok, lalu masukkan 4-digit PIN kelompok.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>

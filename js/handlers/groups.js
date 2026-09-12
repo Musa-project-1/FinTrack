@@ -126,9 +126,11 @@ export const submitGroupPin = async () => {
 
 /** Muat daftar grup lalu tampilkan layar pilih grup. */
 export const openGroupPicker = async () => {
-  await fetchGroups();
+  // Show modal instantly with cached data, then refresh in background
   renderGroupPicker();
   openModal("modal-groups");
+  await fetchGroups();
+  renderGroupPicker();
 };
 
 /** Gambar daftar grup ke dalam modal pilih grup. */

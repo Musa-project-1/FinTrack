@@ -41,7 +41,8 @@ const LOCAL_ASSETS = [
   'js/handlers/groups.js',
   'js/ui/cdrop.js',
   'js/ui/mpick.js',
-  'js/app.js'
+  'js/app.js',
+  'js/sw-register.js'
 ];
 
 // Third-party CDN domains to cache for reliable offline usage

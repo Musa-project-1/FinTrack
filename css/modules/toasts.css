@@ -211,19 +211,36 @@ body.dark-mode .toast-close-btn:hover {
   }
 }
 
-/* === STATUS LUNAS DOT === */
+/* === STATUS LUNAS STAMP (PAID) === */
 .status-lunas-dot {
-  width: 24px;
-  height: 24px;
-  background: var(--primary);
-  color: white;
-  border-radius: 50%;
+  width: 30px;
+  height: 18px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
-  font-size: 12px;
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  user-select: none;
+  transform: rotate(-3deg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   animation: popIn 0.2s ease-out;
+  background: #059669;
+  color: #ffffff;
+  border: 1px solid #047857;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
+}
+
+.status-lunas-dot:hover {
+  transform: rotate(0deg) scale(1.06);
+}
+
+body.dark-mode .status-lunas-dot {
+  background: #10b981;
+  color: #070c18;
+  border: 1px solid #34d399;
+  box-shadow: 0 1px 5px rgba(16, 185, 129, 0.45);
 }
 
 @keyframes popIn {

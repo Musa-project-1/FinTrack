@@ -174,7 +174,7 @@ export const enterGroup = (id) => {
 
   setActiveGroupId(id);
   try {
-    sessionStorage.setItem(GROUP_OPEN_KEY, "1");
+    localStorage.setItem(GROUP_OPEN_KEY, "1");
     localStorage.setItem(ACTIVE_GROUP_NAME_KEY, found.nama);
   } catch (err) {
     console.warn("[finkas] Cannot persist group state:", err?.message);
@@ -196,7 +196,7 @@ export const exitGroup = () => {
   }
   setActiveGroupId("");
   try {
-    sessionStorage.removeItem(GROUP_OPEN_KEY);
+    localStorage.removeItem(GROUP_OPEN_KEY);
     localStorage.removeItem(ACTIVE_GROUP_NAME_KEY);
   } catch (err) {
     console.warn("[finkas] Cannot clear group state:", err?.message);

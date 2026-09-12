@@ -282,7 +282,7 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
  * @param {boolean} [forceRemote] Skip the cache and always hit the server.
  */
 export const initApp = async (forceRemote = false) => {
-  if (isLoading || (!forceRemote && !sessionStorage.getItem(GROUP_OPEN_KEY))) return;
+  if (isLoading || (!forceRemote && !localStorage.getItem(GROUP_OPEN_KEY))) return;
 
   const hasCache = loadCache();
   if (hasCache) {

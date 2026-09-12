@@ -9,6 +9,8 @@ import {
 import { fetchInitialData, checkAdminSessionApi } from "./core/api.js";
 import { formatRp, showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
 import { openOfflineDB, syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
+import { initAnalytics } from "./core/analytics.js";
+import { GA_MEASUREMENT_ID, GA_ID_KEY } from "./core/config.js";
 import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
@@ -355,6 +357,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
+
+  const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
+  if (activeGaId) initAnalytics(activeGaId);
 
   // Attach input listeners for dynamic updates
   [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {

@@ -7,7 +7,7 @@
  * longer writes to Firestore directly and no longer reads credential hashes.
  */
 
-import { API } from "../core/config.js";
+import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from "../core/config.js";
 import {
   clearAdminSession,
   getActiveGroupId,
@@ -172,8 +172,8 @@ export const enterGroup = (id) => {
 
   setActiveGroupId(id);
   try {
-    sessionStorage.setItem("finkas_group_open", "1");
-    localStorage.setItem("finkas_active_group_name", found.nama);
+    sessionStorage.setItem(GROUP_OPEN_KEY, "1");
+    localStorage.setItem(ACTIVE_GROUP_NAME_KEY, found.nama);
   } catch (err) {
     console.warn("[finkas] Cannot persist group state:", err?.message);
   }
@@ -194,8 +194,8 @@ export const exitGroup = () => {
   }
   setActiveGroupId("");
   try {
-    sessionStorage.removeItem("finkas_group_open");
-    localStorage.removeItem("finkas_active_group_name");
+    sessionStorage.removeItem(GROUP_OPEN_KEY);
+    localStorage.removeItem(ACTIVE_GROUP_NAME_KEY);
   } catch (err) {
     console.warn("[finkas] Cannot clear group state:", err?.message);
   }
@@ -521,13 +521,13 @@ export const initGroupsUI = (onGroupChanged) => {
   window.addEventListener("finkas:group-changed", () => { onGroupChanged?.(); });
 
   const activeGid = getActiveGroupId();
-  const savedName = localStorage.getItem("finkas_active_group_name") || "";
+  const savedName = localStorage.getItem(ACTIVE_GROUP_NAME_KEY) || "";
   if (savedName) document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(savedName));
 
   if (activeGid) {
     window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id: activeGid } }));
   } else {
-    const hasSeenOnboarding = localStorage.getItem("finkas_onboarding_seen");
+    const hasSeenOnboarding = localStorage.getItem(ONBOARDING_SEEN_KEY);
     if (!hasSeenOnboarding) {
       window.location.replace("onboarding.html");
       return;

@@ -1,6 +1,6 @@
 import { NAMA_BULAN } from "../core/config.js";
 import { getState, getIsAdminSession } from "../core/state.js";
-import { sendAdminPayload, fetchAuditLogApi } from "../core/api.js";
+import { postToBackend, fetchAuditLogApi } from "../core/api.js";
 import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { renderAll, renderSkippedMonthsList } from "../render.js";
@@ -108,7 +108,7 @@ export const addSkippedMonth = async () => {
     badgeClass: 'warning',
     confirmText: 'Ya, Tetapkan Libur',
     onConfirm: async () => {
-      const res = await sendAdminPayload({ action: 'addSkippedMonth', month: key });
+      const res = await postToBackend({ action: 'addSkippedMonth', month: key });
       if (!res) return showToast('Gagal terhubung ke server.', 'error');
       if (res.status) {
         const state = getState();
@@ -133,7 +133,7 @@ export const removeSkippedMonth = async (key) => {
     icon: 'ph-fill ph-calendar-check',
     confirmText: 'Ya, Aktifkan Kembali',
     onConfirm: async () => {
-      const res = await sendAdminPayload({ action: 'removeSkippedMonth', month: key });
+      const res = await postToBackend({ action: 'removeSkippedMonth', month: key });
       if (!res) return showToast('Gagal terhubung ke server.', 'error');
       if (res.status) {
         const state = getState();
@@ -262,7 +262,7 @@ export const submitTambahAnggota = async (e) => {
     onConfirm: async () => {
       const btn = e.target.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
-      const res = await sendAdminPayload({ action: 'tambahAnggota', nama, noWa });
+      const res = await postToBackend({ action: 'tambahAnggota', nama, noWa });
       if (btn) btn.disabled = false;
 
       if (res && res.status) {
@@ -292,7 +292,7 @@ export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
     badgeClass: nextStatus === 'Aktif' ? '' : 'warning',
     confirmText: 'Ya, Ubah Status',
     onConfirm: async () => {
-      const res = await sendAdminPayload({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
+      const res = await postToBackend({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
       if (res && res.status) {
         showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
         await refreshAppData();
@@ -317,7 +317,7 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
     confirmText: 'Ya, Hapus Anggota',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const res = await sendAdminPayload({ action: 'hapusAnggota', idAnggota });
+      const res = await postToBackend({ action: 'hapusAnggota', idAnggota });
       if (res && res.status) {
         showDatabaseToast('Anggota Dihapus', `${angName} berhasil dihapus dari database.`);
         await refreshAppData();
@@ -344,7 +344,7 @@ export const submitTambahKategori = async (e) => {
     onConfirm: async () => {
       const btn = e.target.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
-      const res = await sendAdminPayload({ action: 'tambahKategori', nama, tipe });
+      const res = await postToBackend({ action: 'tambahKategori', nama, tipe });
       if (btn) btn.disabled = false;
 
       if (res && res.status) {
@@ -372,7 +372,7 @@ export const hapusMasterKategoriAction = async (idKategori) => {
     confirmText: 'Ya, Hapus Kategori',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const res = await sendAdminPayload({ action: 'hapusKategori', idKategori });
+      const res = await postToBackend({ action: 'hapusKategori', idKategori });
       if (res && res.status) {
         showDatabaseToast('Kategori Dihapus', `Kategori "${katName}" berhasil dihapus.`);
         await refreshAppData();

@@ -123,15 +123,6 @@ export async function requireFirestoreHeaders() {
   return { Authorization: `Bearer ${token}` };
 }
 
-/** Best-effort headers; returns {} when unconfigured. */
-export async function getFirestoreHeaders() {
-  try {
-    return await requireFirestoreHeaders();
-  } catch (err) {
-    return {};
-  }
-}
-
 /* ── Constant-time comparison ────────────────────────────────────── */
 
 /**

@@ -47,6 +47,8 @@ export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
 export const HEADER_STATS_KEY = 'finkas_header_stats';
 export const ACTIVE_GROUP_KEY = 'finkas_active_group';
+export const ACTIVE_GROUP_NAME_KEY = 'finkas_active_group_name';
+export const ONBOARDING_SEEN_KEY = 'finkas_onboarding_seen';
 export const GA_ID_KEY = 'finkas_ga_id';
 
 /**
@@ -57,6 +59,7 @@ export const ADMIN_SESSION_KEY = 'finkas_admin_session';
 export const ADMIN_ROLE_KEY = 'finkas_admin_role';
 export const ADMIN_EMAIL_KEY = 'finkas_admin_email';
 export const GROUP_SESSIONS_KEY = 'finkas_group_sessions';
+export const GROUP_OPEN_KEY = 'finkas_group_open';
 
 /** ID grup bawaan untuk data lama sebelum multi-grup (fallback bila kosong). */
 export const DEFAULT_GROUP_ID = 'utama';

@@ -14,7 +14,7 @@ import { fetchInitialData } from "./core/api.js";
 import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
 import { syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
-import { GA_MEASUREMENT_ID, GA_ID_KEY } from "./core/config.js";
+import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
 import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
@@ -282,7 +282,7 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
  * @param {boolean} [forceRemote] Skip the cache and always hit the server.
  */
 export const initApp = async (forceRemote = false) => {
-  if (isLoading || (!forceRemote && !sessionStorage.getItem('finkas_group_open'))) return;
+  if (isLoading || (!forceRemote && !sessionStorage.getItem(GROUP_OPEN_KEY))) return;
 
   const hasCache = loadCache();
   if (hasCache) {

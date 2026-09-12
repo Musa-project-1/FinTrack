@@ -91,16 +91,6 @@ export const postToBackend = async (payload) => {
 };
 
 /**
- * Send a mutation using the admin session.
- *
- * The session token already proves the caller's authority, so no credential is
- * attached to the payload.
- *
- * @param {object} payload
- */
-export const sendAdminPayload = async (payload) => postToBackend(payload);
-
-/**
  * Fetch the audit trail for the active group.
  * @returns {Promise<{status: boolean, data: {log: Array}, message?: string}>}
  */

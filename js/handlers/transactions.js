@@ -9,7 +9,7 @@
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear } from "../core/state.js";
-import { postToBackend, sendAdminPayload } from "../core/api.js";
+import { postToBackend } from "../core/api.js";
 import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal } from "../core/utils.js";
 import { queueOfflinePayload } from "../core/offline.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog } from "../ui/modal.js";
@@ -453,7 +453,7 @@ export const submitEditTransaksi = async (e) => {
       '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
       "UPDATE DATA",
       async () => {
-        const res = await sendAdminPayload({
+        const res = await postToBackend({
           action: "editTransaksi",
           idTransaksi,
           dataForm: {
@@ -495,7 +495,7 @@ export const eksekusiHapus = async () => {
   if (!idTarget) return showToast("ID transaksi tidak ditemukan.", "error");
 
   await withBusyButton("btn-hapus", "...", "Ya, Hapus", async () => {
-    const res = await sendAdminPayload({ action: "hapusTransaksi", idTransaksi: idTarget });
+    const res = await postToBackend({ action: "hapusTransaksi", idTransaksi: idTarget });
 
     if (!res) return showToast("Tidak dapat terhubung ke server.", "error");
     if (!res.status) return showToast(res.message, "error");

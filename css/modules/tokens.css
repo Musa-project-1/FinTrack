@@ -30,13 +30,13 @@
 }
 
 body.dark-mode {
-  --bg-color: #090d16; /* Deep Obsidian */
+  --bg-color: #0b1325; /* Soft Dark Slate Navy (No pitch black) */
   --bg-pattern-dot: rgba(255, 255, 255, 0.04);
-  --surface: #0f172a;  /* Slate 900 */
+  --surface: #131f37;  /* Refined Slate Card Surface */
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border: rgba(255, 255, 255, 0.08); /* Linear-spec border */
-  --table-header-bg: #1e293b;
+  --table-header-bg: #1a2a4a; /* Distinct header row */
   
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.45);

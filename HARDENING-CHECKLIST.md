@@ -61,9 +61,33 @@ The original suite was 14 tests, three of which re-implemented copies of the cod
 
 ## ✅ Verification
 
-- [x] `npm run verify` — **39 files parsed, 26 client modules precached, `index.html` current.**
-- [x] `npm test` — **61 passing, 0 failing.**
+- [x] `npm run verify` — **38 files parsed, 27 client modules precached, `index.html` current.**
+- [x] `npm test` — **62 passing, 0 failing.**
 - [x] `npm run build` — `build:html` (1368 lines from 10 fragments) and `build:css` (Tailwind v4.3.3) both succeed.
+
+## ✅ Re-review Hardening Pass (Completed)
+
+- [x] **`api/verify-group-pin.js`** — default-deny (HTTP 409) for groups without a PIN instead of granting anonymous session. **(RR-C4)**
+- [x] **`api/login.js`** — `emailAllowed` rejects non-empty emails when no admin email is stored; stops spoofing. **(RR-C3)**
+- [x] **`api/create-group.js`** — regex email validation in `createGroup` and `setAdminCredential`. **(RR-C3)**
+- [x] **`api/_session.js`** — `clientIp` prefers `x-real-ip` and rightmost `x-forwarded-for` to stop rate-limit bypass. **(RR-W3)**
+- [x] **`tests/session.test.mjs`** — tests for rightmost forwarded IP and `x-real-ip`. **(RR-W3)**
+- [x] **`js/core/config.js` & `README.md`** — aligned documentation with `localStorage` token storage and TTL expiry. **(RR-W1)**
+- [x] **`js/core/offline.js`** — offline queue continues draining on business errors (`status: false`), eliminating queue wedges. **(RR-W2)**
+- [x] **`api/_group-read.js`** — `readTransactions` helper for single-collection reads on mutations. **(RR-W11)**
+- [x] **`api/_group-write.js`** — `findDuplicateIuran` with `excludeId` on edit; in-batch deduplication via `Set` on bulk insert; uses `readTransactions`. **(RR-W6, RR-W11)**
+- [x] **`js/render/transactions.js`** — null guards on `loadMoreBtn`. **(RR-W7)**
+- [x] **`js/render/rekap.js`** — empty state colspan corrected to 13. **(RR-W7)**
+- [x] **`sw.js`** — `Promise.allSettled` for resilient non-atomic asset caching; explicit 503 fallback on fetch misses. **(RR-W8)**
+- [x] **`api/_store.js`** — minimal group directory without `dibuat`; unused `docToObject` and `decodeFields` removed. **(RR-W9, RR-W13)**
+- [x] **`api/data.js`** — explicit validation rejecting empty `action`. **(RR-W9, RR-I4)**
+- [x] **`js/handlers/export.js`** — CSV export using `Blob` and `URL.createObjectURL` to prevent truncation. **(RR-W10)**
+- [x] **`api/create-group.js`** — unbiased password generator using `crypto.randomInt`; audit log `HAPUS_GRUP` recorded on group deletion with partial delete catch. **(RR-W12, RR-I1, RR-I2)**
+- [x] **`js/handlers/groups.js`** — unbiased password generator using rejection sampling; removed dead `false` parameter in `handleUI()`. **(RR-W12, RR-W13)**
+- [x] **`js/core/utils.js`** — removed legacy, lossy `fromFirestoreFields` and `toFirestoreFields`. **(RR-W13)**
+- [x] **`js/handlers/master.js`** — `HAPUS_GRUP` added to `AUDIT_ACTION_LABELS`. **(RR-I1)**
+- [x] **`js/handlers/offlineQueue.js`** — completed `actionLabels` dictionary. **(RR-I4)**
+- [x] **`tests/group-write.test.mjs`** — unit tests for `findDuplicateIuran` with `excludeId`.
 
 ---
 

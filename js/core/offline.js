@@ -133,8 +133,9 @@ export const syncOfflineTransactions = async (onSuccess) => {
           successCount += 1;
         }
       } else {
-        showToast(`Sinkronisasi gagal: ${resJSON.message}`, 'error');
-        return;
+        console.warn('[finkas] Offline sync item rejected by server:', item.id, resJSON.message);
+        showToast(`Item antrean ditolak server: ${resJSON.message}`, 'error');
+        // Do not abort; continue draining valid items behind this rejected item
       }
     }
 

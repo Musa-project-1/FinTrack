@@ -81,7 +81,7 @@ export const renderTableRekap = () => {
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota));
 
   if (!filteredAnggota || filteredAnggota.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="14" class="td-muted-center">Tidak ada anggota ditemukan.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="td-muted-center">Tidak ada anggota ditemukan.</td></tr>';
   } else {
     filteredAnggota.forEach((ang) => {
       const tr = document.createElement('tr');

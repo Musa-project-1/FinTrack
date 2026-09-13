@@ -57,10 +57,12 @@ const CDN_HOSTS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      try {
-        await cache.addAll(LOCAL_ASSETS);
-      } catch (err) {
-        console.warn('SW install: failed to cache some assets', err);
+      const results = await Promise.allSettled(
+        LOCAL_ASSETS.map((asset) => cache.add(asset))
+      );
+      const failed = results.filter((r) => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.warn('SW install: failed to cache some assets', failed);
       }
     })
   );
@@ -94,7 +96,10 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request, { ignoreSearch: true }))
+        .catch(async () => {
+          const cached = await caches.match(event.request, { ignoreSearch: true });
+          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+        })
     );
     return;
   }

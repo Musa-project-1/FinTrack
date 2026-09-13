@@ -277,9 +277,19 @@ export async function clearRateLimit(key) {
   }
 }
 
-/** Best-effort client IP extraction behind a proxy. */
+/**
+ * Best-effort client IP extraction behind a proxy.
+ * Prefers x-real-ip from the edge or the rightmost x-forwarded-for entry to prevent
+ * spoofed-header rate-limit bypasses.
+ */
 export const clientIp = (req) => {
+  const real = req.headers['x-real-ip'];
+  if (typeof real === 'string' && real.trim().length) return real.trim();
+
   const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.length) return forwarded.split(',')[0].trim();
+  if (typeof forwarded === 'string' && forwarded.length) {
+    const parts = forwarded.split(',').map((p) => p.trim()).filter(Boolean);
+    if (parts.length) return parts[parts.length - 1];
+  }
   return req.socket?.remoteAddress || 'unknown';
 };

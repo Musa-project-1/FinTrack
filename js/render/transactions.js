@@ -63,12 +63,12 @@ export const renderTableTransaksi = () => {
 
   if (filteredTrx.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="td-muted-center">Tidak ada transaksi ditemukan.</td></tr>';
-    loadMoreBtn.style.display = 'none';
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
     return;
   }
 
   const visibleTrx = filteredTrx.slice(0, itemsToShow);
-  loadMoreBtn.style.display = filteredTrx.length > itemsToShow ? 'block' : 'none';
+  if (loadMoreBtn) loadMoreBtn.style.display = filteredTrx.length > itemsToShow ? 'block' : 'none';
 
   const fragment = document.createDocumentFragment();
   let lastDateStr = '';

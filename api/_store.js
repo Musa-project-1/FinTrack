@@ -9,7 +9,7 @@
  *   groups/{gid}/anggota|kategori|transaksi|audit_log
  */
 import crypto from 'node:crypto';
-import { fsCommit, fsDelete, fsGet, fsListAll, fsPatch, docName, decodeFields } from './_sa.js';
+import { fsCommit, fsDelete, fsGet, fsListAll, fsPatch, docName } from './_sa.js';
 
 export const MEMBERS_COLLECTION = 'anggota';
 export const CATEGORIES_COLLECTION = 'kategori';
@@ -66,7 +66,7 @@ export async function writeAuditLog(gid, aksi, detail, headers) {
 
 /**
  * Public directory of groups — identifiers and names only, never credentials.
- * @returns {Promise<Array<{id: string, nama: string, dibuat: string}>>}
+ * @returns {Promise<Array<{id: string, nama: string}>>}
  */
 export async function listGroups(headers) {
   const docs = await fsListAll('groups', headers);
@@ -74,8 +74,7 @@ export async function listGroups(headers) {
     const fields = doc.fields || {};
     return {
       id: doc.name.split('/').pop(),
-      nama: fields.nama || 'Grup',
-      dibuat: fields.dibuat || ''
+      nama: fields.nama || 'Grup'
     };
   });
 }
@@ -114,9 +113,6 @@ export async function deleteGroupTree(gid, headers) {
   await fsDelete(groupDoc(gid), headers);
   return deleted;
 }
-
-/** Decode a raw Firestore document into a plain object. */
-export const docToObject = (doc) => decodeFields(doc?.fields);
 
 /** Full resource name for a document inside a group collection. */
 export const memberName = (gid, collection, id) => docName(col(gid, collection), id);

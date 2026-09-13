@@ -53,9 +53,16 @@ const parseBody = (req) => {
   return {};
 };
 
-/** Everything that matches an email check the caller actually supplied. */
+/**
+ * Whether the supplied email may authenticate against the stored one.
+ *
+ * A missing stored email means "password-only" credentials: they accept a blank
+ * email and nothing else, so the caller's own arbitrary string is never adopted
+ * as an identity. A stored email must match exactly — absence of a secret must
+ * never widen access.
+ */
 const emailAllowed = (storedEmail, suppliedEmail) =>
-  !storedEmail || !suppliedEmail || storedEmail === suppliedEmail;
+  storedEmail ? storedEmail === suppliedEmail : !suppliedEmail;
 
 /**
  * Verify a group admin password against the private config, falling back to the
@@ -82,16 +89,15 @@ async function verifyGroupAdmin(groupId, password, email, headers) {
   if (!matches) return { matches: false, email: storedEmail };
 
   if (legacy) {
-    await setPrivateConfig(groupId, {
-      admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`),
-      admin_email: storedEmail || email
-    }, headers);
+    const upgraded = { admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`) };
+    if (storedEmail) upgraded.admin_email = storedEmail;
+    await setPrivateConfig(groupId, upgraded, headers);
     await fsPatch(groupDoc(groupId), { admin_password_hash: null, admin_email: null }, headers,
       ['admin_password_hash', 'admin_email']
     ).catch((err) => console.error('[finkas] Legacy admin hash cleanup failed:', err?.message));
   }
 
-  return { matches: true, email: storedEmail || email };
+  return { matches: true, email: storedEmail };
 }
 
 /**

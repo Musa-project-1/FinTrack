@@ -10,6 +10,18 @@ const byTimestampDesc = (a, b) =>
 const fieldsOf = (docs) => docs.map((doc) => doc.fields || {});
 
 /**
+ * Load only the transactions collection for one group.
+ * Used by write handlers for duplicate checking without reading other collections.
+ * @param {string} gid
+ * @param {object} headers
+ * @returns {Promise<Array>}
+ */
+export async function readTransactions(gid, headers) {
+  const docs = await fsListAll(col(gid, TRANSACTIONS_COLLECTION), headers);
+  return fieldsOf(docs);
+}
+
+/**
  * Load the full dataset for one group.
  * @param {string} gid
  * @param {object} headers Authorized Firestore headers.

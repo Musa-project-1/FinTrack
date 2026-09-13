@@ -160,13 +160,16 @@ export const exportToCSV = () => {
     });
 
   // BOM (\uFEFF) agar Excel membaca UTF-8 dengan benar; ';' sesuai locale Excel Indonesia
-  const blob = '\uFEFF' + lines.join('\r\n');
+  const content = '\uFEFF' + lines.join('\r\n');
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(blob));
+  link.setAttribute('href', url);
   link.setAttribute('download', `Laporan_Kas_${new Date().toISOString().slice(0, 10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
   trackEvent('export_csv', { count: state.transaksi.length });
   showToast('File Excel (CSV) diunduh!');
 };

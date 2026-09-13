@@ -37,14 +37,21 @@ let pendingGroupId = "";
 let latestCreds = { nama: "", pin: "", email: "", pwd: "" };
 
 /**
- * Generate a cryptographically random admin password.
+ * Generate a cryptographically random admin password without modulo bias.
  * @param {number} [len]
  * @returns {string}
  */
 export const generateRandomPassword = (len = 10) => {
-  const bytes = new Uint8Array(len);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (byte) => PASSWORD_ALPHABET[byte % PASSWORD_ALPHABET.length]).join("");
+  const max = 256 - (256 % PASSWORD_ALPHABET.length);
+  const result = [];
+  const buf = new Uint8Array(1);
+  while (result.length < len) {
+    crypto.getRandomValues(buf);
+    if (buf[0] < max) {
+      result.push(PASSWORD_ALPHABET[buf[0] % PASSWORD_ALPHABET.length]);
+    }
+  }
+  return result.join("");
 };
 
 /* ── Group directory ─────────────────────────────────────────────── */
@@ -168,7 +175,7 @@ export const enterGroup = (id) => {
   // An admin session only covers its own group, so switching groups ends it.
   if (currentActive && currentActive !== id && !getIsSuperAdmin()) {
     clearAdminSession();
-    handleUI(false);
+    handleUI();
     renderAdminUI();
   }
 
@@ -191,7 +198,7 @@ export const enterGroup = (id) => {
 export const exitGroup = () => {
   if (!getIsSuperAdmin()) {
     clearAdminSession();
-    handleUI(false);
+    handleUI();
     renderAdminUI();
   }
   setActiveGroupId("");

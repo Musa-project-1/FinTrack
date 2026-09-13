@@ -44,15 +44,19 @@ const parseBody = (req) => {
   return {};
 };
 
-/** Cryptographically random admin password for a new group. */
+/** Cryptographically random admin password for a new group (unbiased). */
 const generatePassword = (length = GENERATED_PASSWORD_LENGTH) => {
-  const bytes = new Uint8Array(length);
-  crypto.randomFillSync(bytes);
-  return Array.from(bytes, (byte) => PASSWORD_ALPHABET[byte % PASSWORD_ALPHABET.length]).join('');
+  let res = '';
+  for (let i = 0; i < length; i++) {
+    res += PASSWORD_ALPHABET[crypto.randomInt(0, PASSWORD_ALPHABET.length)];
+  }
+  return res;
 };
 
 const cleanName = (value) => String(value ?? '').trim().slice(0, MAX_GROUP_NAME);
 const cleanPin = (value) => String(value ?? '').replace(/\D/g, '').slice(0, 4);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isValidEmail = (email) => EMAIL_RE.test(String(email || '').trim());
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
@@ -65,6 +69,9 @@ async function createGroup(body, headers) {
 
   if (nama.length < 3) return { status: false, message: 'Nama grup minimal 3 huruf.' };
   if (pin.length !== 4) return { status: false, message: 'PIN warga harus 4 angka.' };
+  if (!skipAdmin && adminEmail && !isValidEmail(adminEmail)) {
+    return { status: false, message: 'Format email admin tidak valid.' };
+  }
   if (!skipAdmin && adminPassword.length < MIN_ADMIN_PASSWORD) {
     return { status: false, message: `Password admin minimal ${MIN_ADMIN_PASSWORD} karakter.` };
   }
@@ -97,6 +104,9 @@ async function setAdminCredential(body, headers) {
   const adminPassword = String(body?.adminPassword || '').trim();
 
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
+  if (adminEmail && !isValidEmail(adminEmail)) {
+    return { status: false, message: 'Format email admin tidak valid.' };
+  }
   if (adminPassword.length < MIN_ADMIN_PASSWORD) {
     return { status: false, message: `Password admin minimal ${MIN_ADMIN_PASSWORD} karakter.` };
   }
@@ -147,9 +157,16 @@ async function removeGroup(body, headers) {
 
   const existing = await fsGet(groupDoc(groupId), headers);
   if (!existing) return { status: false, message: 'Grup tidak ditemukan.' };
+  const nama = existing?.nama || 'Grup';
 
-  const deleted = await deleteGroupTree(groupId, headers);
-  return { status: true, message: `Grup dihapus beserta ${deleted} dokumen isinya.` };
+  try {
+    const deleted = await deleteGroupTree(groupId, headers);
+    await writeAuditLog('utama', 'HAPUS_GRUP', `${nama} (${groupId}) — ${deleted} dokumen`, headers);
+    return { status: true, message: `Grup dihapus beserta ${deleted} dokumen isinya.` };
+  } catch (err) {
+    console.error('[finkas] Delete group tree failed:', groupId, err?.message);
+    return { status: false, message: `Penghapusan grup belum selesai sempurna. Silakan ulangi lagi: ${err?.message}` };
+  }
 }
 
 const ACTIONS = {

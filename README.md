@@ -40,7 +40,7 @@ Semua baca/tulis melewati serverless function di `api/`, yang memakai service ac
 | PIN grup | Hash hanya tersimpan di `groups/{gid}/private/config` yang tak bisa dibaca klien |
 | Pembatasan percobaan | Dihitung di sisi **server** (per grup dan per IP) lewat koleksi `_ratelimit` |
 | Otorisasi | Per-peran: `member` (baca grupnya), `group_admin` (baca dan tulis grupnya), `superadmin` (semua grup) |
-| Penyimpanan token di klien | `sessionStorage` (hilang saat tab ditutup), tidak pernah di `localStorage` |
+| Penyimpanan token di klien | `localStorage` dengan kedaluwarsa waktu nyata (TTL bertanda tangan HMAC) |
 | Header | CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
 
 Data lama tetap kompatibel: hash format lama dibaca sekali, lalu otomatis ditingkatkan

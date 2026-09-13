@@ -86,12 +86,9 @@ export default async function handler(req, res) {
     const candidate = storedPin || legacyStored;
 
     if (!candidate) {
-      // Group predates PINs entirely — allow entry, but record it.
-      await writeAuditLog(groupId, 'PIN_TIDAK_DISETEL', `Masuk tanpa PIN dari ${ip}`, headers);
-      return sendJson(res, 200, {
-        status: true,
-        message: 'Grup ini belum punya PIN — masuk langsung.',
-        data: { sessionToken: signSession({ role: ROLES.MEMBER, gid: groupId }, GROUP_SESSION_TTL), legacy: true }
+      return sendJson(res, 409, {
+        status: false,
+        message: 'Grup belum memiliki PIN. Minta Super Admin menyetelnya lewat konsol grup.'
       });
     }
 

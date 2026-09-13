@@ -147,8 +147,9 @@ test('secretMatches treats a missing hash as no match', () => {
 
 /* ── Client IP ───────────────────────────────────────────────────── */
 
-test('clientIp prefers the first forwarded address', () => {
-  assert.equal(clientIp({ headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } }), '1.2.3.4');
+test('clientIp prefers x-real-ip and rightmost forwarded address', () => {
+  assert.equal(clientIp({ headers: { 'x-real-ip': '10.0.0.1', 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } }), '10.0.0.1');
+  assert.equal(clientIp({ headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } }), '5.6.7.8');
   assert.equal(clientIp({ headers: {}, socket: { remoteAddress: '9.9.9.9' } }), '9.9.9.9');
   assert.equal(clientIp({ headers: {} }), 'unknown');
 });

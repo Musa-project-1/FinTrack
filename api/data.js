@@ -43,7 +43,10 @@ export default async function handler(req, res) {
 
   try {
     const body = parseBody(req);
-    const action = String(body?.action || 'read').trim();
+    const action = String(body?.action || '').trim();
+    if (!action) {
+      return badRequest(res, 'Aksi wajib diisi.');
+    }
 
     // ── Public: group directory (names only, never credentials) ────────
     if (PUBLIC_ACTIONS.includes(action)) {

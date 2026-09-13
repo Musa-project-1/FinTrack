@@ -18,7 +18,7 @@ import {
   memberName,
   writeAuditLog
 } from './_store.js';
-import { readGroupData } from './_group-read.js';
+import { readTransactions } from './_group-read.js';
 
 const SKIPPED_MONTH_RE = /^(0[1-9]|1[0-2])-\d{4}$/;
 const ARUS = ['Masuk', 'Keluar'];
@@ -61,8 +61,9 @@ function parseTransactionInput(dataForm) {
  * Find an existing iuran payment matching the member and period.
  * Exported so the de-duplication rule can be tested directly.
  */
-export const findDuplicateIuran = (transactions, input) =>
+export const findDuplicateIuran = (transactions, input, excludeId = null) =>
   transactions.find((t) =>
+    (!excludeId || t.ID_Transaksi !== excludeId) &&
     t.ID_Anggota === input.idAnggota &&
     t.Bulan_Iuran === input.bulanIuran &&
     String(t.Tahun_Iuran) === String(input.tahunIuran)
@@ -78,7 +79,7 @@ export async function addTransaction(gid, payload, headers) {
   if (input.error) return fail(input.error);
 
   if (isIuranPayment(input)) {
-    const { transaksi } = await readGroupData(gid, headers);
+    const transaksi = await readTransactions(gid, headers);
     if (findDuplicateIuran(transaksi, input)) {
       return ok(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat sebelumnya.`, { duplicate: true });
     }
@@ -121,12 +122,21 @@ export async function addBulkTransactions(gid, payload, headers) {
   }
   if (!parsed.length) return fail('Data transaksi massal tidak valid.');
 
-  const { transaksi } = await readGroupData(gid, headers);
+  const transaksi = await readTransactions(gid, headers);
   const skipped = [];
   const accepted = [];
+  const seenInBatch = new Set();
+
   for (const input of parsed) {
-    if (isIuranPayment(input) && findDuplicateIuran(transaksi, input)) skipped.push(input.idAnggota);
-    else accepted.push(input);
+    if (isIuranPayment(input)) {
+      const batchKey = `${input.idAnggota}:${input.bulanIuran}:${input.tahunIuran}`;
+      if (seenInBatch.has(batchKey) || findDuplicateIuran(transaksi, input)) {
+        skipped.push(input.idAnggota);
+        continue;
+      }
+      seenInBatch.add(batchKey);
+    }
+    accepted.push(input);
   }
 
   if (!accepted.length) {
@@ -169,6 +179,13 @@ export async function editTransaction(gid, payload, headers) {
 
   const existing = await fsGet(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
   if (!existing) return fail('Transaksi tidak ditemukan.');
+
+  if (isIuranPayment(input)) {
+    const transaksi = await readTransactions(gid, headers);
+    if (findDuplicateIuran(transaksi, input, idTarget)) {
+      return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
+    }
+  }
 
   const updated = {
     Tipe_Arus: input.tipeArus,

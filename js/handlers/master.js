@@ -52,6 +52,7 @@ export const AUDIT_ACTION_LABELS = {
 
   // Group administration
   BUAT_GRUP:                { label: 'Buat Grup', color: 'var(--primary)' },
+  HAPUS_GRUP:               { label: 'Hapus Grup', color: 'var(--danger)' },
   UBAH_NAMA:                { label: 'Ubah Nama', color: 'var(--warning)' },
   UBAH_PIN:                 { label: 'Ubah PIN', color: 'var(--warning)' },
   UBAH_KREDENSIAL_ADMIN:    { label: 'Ubah Admin', color: 'var(--warning)' },

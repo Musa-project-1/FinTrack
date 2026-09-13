@@ -14,9 +14,18 @@ export const renderOfflineQueueList = async () => {
     }
     const actionLabels = {
       tambahTransaksi: 'Tambah Transaksi',
+      tambahTransaksiMassal: 'Iuran Massal',
       tambahIuran: 'Tambah Iuran',
       editTransaksi: 'Edit Transaksi',
       hapusTransaksi: 'Hapus Transaksi',
+      tambahAnggota: 'Tambah Anggota',
+      hapusAnggota: 'Hapus Anggota',
+      updateStatusAnggota: 'Status Anggota',
+      tambahKategori: 'Tambah Kategori',
+      hapusKategori: 'Hapus Kategori',
+      addSkippedMonth: 'Bulan Libur +',
+      removeSkippedMonth: 'Bulan Libur -',
+      catatAktivitas: 'Catat Aktivitas'
     };
     queued.reverse().forEach((item) => {
       const card = document.createElement('div');

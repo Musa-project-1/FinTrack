@@ -52,8 +52,8 @@ export const ONBOARDING_SEEN_KEY = 'finkas_onboarding_seen';
 export const GA_ID_KEY = 'finkas_ga_id';
 
 /**
- * sessionStorage: bearer session tokens. Scoped to the tab so they disappear
- * when it closes, instead of persisting indefinitely in localStorage.
+ * localStorage keys: bearer session tokens (HMAC signed with explicit TTL exp).
+ * Persisted in localStorage for seamless treasurer workflow across tabs and restarts.
  */
 export const ADMIN_SESSION_KEY = 'finkas_admin_session';
 export const ADMIN_ROLE_KEY = 'finkas_admin_role';

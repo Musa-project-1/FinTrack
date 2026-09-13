@@ -169,6 +169,15 @@ test('findDuplicateIuran compares the year as a string', () => {
   assert.ok(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: 2026 }));
 });
 
+test('findDuplicateIuran ignores transaction with excludeId', () => {
+  const transactions = [
+    { ID_Transaksi: 'TRX-101', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026' },
+    { ID_Transaksi: 'TRX-102', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Februari', Tahun_Iuran: '2026' }
+  ];
+  assert.equal(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }, 'TRX-101'), undefined);
+  assert.ok(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }, 'TRX-999'));
+});
+
 /* ── Dispatch table ──────────────────────────────────────────────── */
 
 test('the write dispatch table exposes exactly the expected actions', () => {

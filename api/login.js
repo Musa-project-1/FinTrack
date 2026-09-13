@@ -32,7 +32,8 @@ import {
   signSession
 } from './_session.js';
 
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS_IP = 5;      // per-IP: strict, short window
+const MAX_ATTEMPTS_ID = 25;     // per-identity: generous so an attacker cannot easily lock the real admin out
 const LOCK_WINDOW_MS = 15 * 60 * 1000;
 const INVALID_CREDENTIALS = 'Email atau Password Admin salah!';
 
@@ -193,8 +194,8 @@ export default async function handler(req, res) {
       });
     }
 
-    await registerFailedAttempt(ipKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
-    await registerFailedAttempt(idKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
+    await registerFailedAttempt(ipKey, MAX_ATTEMPTS_IP, LOCK_WINDOW_MS);
+    await registerFailedAttempt(idKey, MAX_ATTEMPTS_ID, LOCK_WINDOW_MS);
     const auditGroup = groupId || 'utama';
     await writeAuditLog(auditGroup, 'LOGIN_GAGAL', `Percobaan gagal dari ${ip}`, headers);
 

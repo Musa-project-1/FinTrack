@@ -4,7 +4,7 @@
  */
 
 import { getState, setState, saveCache, getIsAdminSession, getActiveGroupId, getGroups } from '../core/state.js';
-import { postToBackend, logAuditEvent } from '../core/api.js';
+import { postToBackend } from '../core/api.js';
 import { showToast, escapeHtml } from '../core/utils.js';
 import { renderAll } from '../render.js';
 import { closeModal } from '../ui/modal.js';
@@ -58,6 +58,7 @@ export const exportJSONBackup = () => {
 
 /**
  * Restore database from a validated JSON backup file.
+ * Sends the snapshot to the server via `restoreSnapshot` for a real, persistent restore.
  * @param {File} file
  */
 export const restoreJSONBackup = (file) => {
@@ -83,13 +84,29 @@ export const restoreJSONBackup = (file) => {
       const activeGid = getActiveGroupId();
       const activeName = getGroups().find((g) => g.id === activeGid)?.nama || activeGid;
 
-      const confirmMsg = `Pulihkan database dari file backup?\n• Grup asal: ${srcGroup}\n• Grup aktif: ${activeName}\n• ${countAng} Anggota\n• ${kategori.length} Kategori\n• ${countTrx} Transaksi\n\nData lokal akan diperbarui dan diselaraskan.`;
+      const confirmMsg = `Pulihkan database dari file backup?\n• Grup asal: ${srcGroup}\n• Grup aktif: ${activeName}\n• ${countAng} Anggota\n• ${(kategori || []).length} Kategori\n• ${countTrx} Transaksi\n\nSeluruh data server akan DIGANTIKAN. Tindakan ini tidak dapat dibatalkan.`;
       if (!window.confirm(confirmMsg)) return;
       if (content.group?.id && content.group.id !== activeGid) {
         if (!window.confirm(`Backup milik grup "${srcGroup}", tujuan "${activeName}". Tetap lanjutkan ke grup aktif?`)) return;
       }
 
-      // Update state and save cache immediately
+      showToast('Memulihkan database ke server...', 'info');
+
+      const res = await postToBackend({
+        action: 'restoreSnapshot',
+        data: { anggota, kategori: kategori || [], transaksi, skippedMonths: skippedMonths || [] }
+      });
+
+      if (!res) {
+        showToast('Tidak dapat terhubung ke server. Coba lagi saat online.', 'error');
+        return;
+      }
+      if (!res.status) {
+        showToast(res.message || 'Restore gagal.', 'error');
+        return;
+      }
+
+      // Reflect the restored data locally.
       setState({
         anggota: anggota || [],
         kategori: kategori || [],
@@ -99,7 +116,6 @@ export const restoreJSONBackup = (file) => {
       saveCache();
       renderAll();
 
-      logAuditEvent('RESTORE_DATABASE', `Database dipulihkan: ${countTrx} trx, ${countAng} anggota`);
       showToast(`Database berhasil dipulihkan (${countTrx} transaksi)!`, 'success');
       closeModal('modal-export');
     } catch (err) {

@@ -42,7 +42,8 @@ const LOCAL_ASSETS = [
   'js/ui/cdrop.js',
   'js/ui/mpick.js',
   'js/app.js',
-  'js/sw-register.js'
+  'js/sw-register.js',
+  'js/onboarding.js'
 ];
 
 // Third-party CDN domains to cache for reliable offline usage

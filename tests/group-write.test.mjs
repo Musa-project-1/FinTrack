@@ -193,7 +193,8 @@ test('the write dispatch table exposes exactly the expected actions', () => {
     'tambahKategori',
     'addSkippedMonth',
     'removeSkippedMonth',
-    'catatAktivitas'
+    'catatAktivitas',
+    'restoreSnapshot'
   ];
 
   assert.deepEqual(Object.keys(WRITE_HANDLERS).sort(), [...expected].sort());

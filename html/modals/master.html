@@ -1,32 +1,32 @@
   <!-- 3. Modal Log Aktivitas / Audit Log -->
   <div class="modal-overlay modal-top" id="modal-audit-log">
-    <div class="modal-content modal-lg">
+    <div class="modal-content modal-md modal-data-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-audit-log-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
             <i class="ph-fill ph-detective"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Log Aktivitas Admin</h2>
-            <p>Jejak audit dan rekaman histori aksi pengurus kas</p>
+            <h2 id="modal-audit-log-title" data-i18n="audit.title">Log Aktivitas Admin</h2>
+            <p data-i18n="audit.subtitle">Jejak audit dan rekaman histori aksi pengurus kas</p>
           </div>
         </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
-          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> <span data-i18n="audit.refresh">Refresh</span></button>
+          <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
       <div class="table-responsive table-scrollable max-h-55vh">
         <table class="m-0">
           <thead>
             <tr>
-              <th class="th-bg-nowrap">Waktu</th>
-              <th class="th-bg">Aksi</th>
-              <th class="th-bg">Detail</th>
+              <th class="th-bg-nowrap" data-i18n="audit.time">Waktu</th>
+              <th class="th-bg" data-i18n="audit.action">Aksi</th>
+              <th class="th-bg" data-i18n="audit.detail">Detail</th>
             </tr>
           </thead>
           <tbody id="audit-log-tbody">
-            <tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>
+            <tr><td colspan="3" class="td-muted-center" data-i18n="gadmin.loading">Memuat...</td></tr>
           </tbody>
         </table>
       </div>
@@ -35,92 +35,101 @@
 
   <!-- 5. Modal Kelola Data Master (Anggota, Kategori, Bulan Libur) -->
   <div class="modal-overlay modal-top" id="modal-kelola-master">
-    <div class="modal-content modal-lg">
+    <div class="modal-content modal-md modal-data-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-kelola-master-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
             <i class="ph-fill ph-sliders"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Data Master</h2>
-            <p>Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
+            <h2 id="modal-kelola-master-title" data-i18n="master.title">Data Master</h2>
+            <p data-i18n="master.subtitle">Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
-        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Anggota</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped">Bulan Libur</button>
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota" data-i18n="master.tabMembers">Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori" data-i18n="master.tabCats">Kategori</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped" data-i18n="master.tabSkip">Bulan Libur</button>
       </div>
 
       <!-- Tab 1: Anggota -->
       <div id="tab-master-anggota" class="tab-content active">
-        <form id="form-tambah-anggota" class="form-row-flex mb-16">
-          <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required>
-          <input type="text" id="input-wa-anggota" class="form-control w-160" placeholder="No. WA (Opsional)...">
-          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> Tambah</button>
-        </form>
-
-        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
-          <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
+        <div class="split-body master-split-body">
+          <div class="master-form-panel">
+            <form id="form-tambah-anggota" class="form-row-flex mb-16">
+              <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" data-i18n-ph="master.namePh" placeholder="Nama Anggota Baru..." required>
+              <input type="text" id="input-wa-anggota" class="form-control w-160" data-i18n-ph="master.waPh" placeholder="No. WA (Opsional)...">
+              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            </form>
+          </div>
+          <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+            <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
             <thead>
               <tr>
-                <th class="w-100">ID</th>
-                <th>Nama Anggota</th>
-                <th>No. WhatsApp</th>
-                <th class="w-110 text-center">Status</th>
-                <th class="w-130 text-center">Aksi</th>
+                <th class="w-100" data-i18n="master.colId">ID</th>
+                <th data-i18n="master.colMember">Nama Anggota</th>
+                <th data-i18n="master.colWa">No. WhatsApp</th>
+                <th class="w-110 text-center" data-i18n="master.colStatus">Status</th>
+                <th class="w-130 text-center" data-i18n="master.colAction">Aksi</th>
               </tr>
             </thead>
             <tbody id="master-anggota-tbody">
-              <tr><td colspan="5" class="td-muted-center">Memuat data anggota...</td></tr>
+              <tr><td colspan="5" class="td-muted-center" data-i18n="master.loadMembers">Memuat data anggota...</td></tr>
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- Tab 2: Kategori -->
       <div id="tab-master-kategori" class="tab-content">
-        <form id="form-tambah-kategori" class="form-row-flex mb-16 master-add-form">
-          <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
-          <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
-            <option value="Masuk">Kas Masuk</option>
-            <option value="Keluar">Kas Keluar</option>
-          </select>
-          <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
-          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> Tambah</button>
-        </form>
-
-        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
-          <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
+        <div class="split-body master-split-body">
+          <div class="master-form-panel">
+            <form id="form-tambah-kategori" class="form-row-flex mb-16 master-add-form">
+              <label for="input-tipe-kategori" class="sr-only" data-i18n="master.catType">Tipe Kategori Kas</label>
+              <select id="input-tipe-kategori" class="form-control w-140 cdrop" required data-i18n-aria="master.catType" aria-label="Tipe Kategori Kas">
+                <option value="Masuk" data-i18n="master.cashIn">Kas Masuk</option>
+                <option value="Keluar" data-i18n="master.cashOut">Kas Keluar</option>
+              </select>
+              <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" data-i18n-ph="master.catPh" placeholder="Nama Kategori Baru..." required>
+              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            </form>
+          </div>
+          <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+            <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
             <thead>
               <tr>
-                <th class="w-110">ID</th>
-                <th>Nama Kategori</th>
-                <th class="w-120 text-center">Tipe Arus</th>
-                <th class="w-100 text-center">Aksi</th>
+                <th class="w-110" data-i18n="master.colId">ID</th>
+                <th data-i18n="master.colCat">Nama Kategori</th>
+                <th class="w-120 text-center" data-i18n="master.colFlow">Tipe Arus</th>
+                <th class="w-100 text-center" data-i18n="master.colAction">Aksi</th>
               </tr>
             </thead>
             <tbody id="master-kategori-tbody">
-              <tr><td colspan="4" class="td-muted-center">Memuat data kategori...</td></tr>
+              <tr><td colspan="4" class="td-muted-center" data-i18n="master.loadCats">Memuat data kategori...</td></tr>
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- Tab 3: Bulan Libur -->
       <div id="tab-master-skipped" class="tab-content">
-        <div class="skip-month-body">
-          <p class="text-muted mb-16" style="font-size:13px">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
-          <div class="skip-month-input-row mb-16" style="display:flex;gap:10px">
-            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
-            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> Tambah</button>
+        <div class="split-body master-split-body">
+          <div class="master-form-panel skip-month-body">
+            <p class="text-muted mb-16 master-skip-hint" data-i18n="master.skipHint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
+            <div class="skip-month-input-row mb-16">
+              <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-i18n-data-ph="master.skipPh" data-placeholder="Pilih bulan libur..." />
+              <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            </div>
           </div>
-
-          <div id="skipped-months-list" class="skipped-months-container">
-            <div class="text-muted">Memuat data bulan libur...</div>
+          <div class="master-data-panel">
+            <div id="skipped-months-list" class="skipped-months-container">
+              <div class="text-muted" data-i18n="master.loadSkip">Memuat data bulan libur...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -129,27 +138,28 @@
 
   <!-- 6. Modal Transaksi Tertunda / Offline Queue -->
   <div class="modal-overlay modal-top" id="modal-offline-queue">
-    <div class="modal-content modal-sm queue-sheet">
+    <div class="modal-content modal-sm queue-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-offline-queue-title">
       <div class="queue-head">
         <div class="modal-header-left">
           <div class="modal-badge-icon warning">
             <i class="ph-fill ph-cloud-arrow-up"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2>Antrean Transaksi Offline</h2>
-            <p>Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
+            <h2 id="modal-offline-queue-title" data-i18n="queue.title">Antrean Transaksi Offline</h2>
+            <p data-i18n="queue.subtitle">Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
+      <div class="queue-status-bar"><span><i class="ph-fill ph-wifi-high"></i> <span data-i18n="queue.status">Status antrean</span></span><span class="queue-pending-label" data-i18n="queue.pending">Tersimpan lokal</span></div>
       <div class="queue-actions">
-        <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> Refresh</button>
-        <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> Sinkron Sekarang</button>
+        <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> <span data-i18n="queue.refresh">Refresh</span></button>
+        <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> <span data-i18n="queue.syncNow">Sinkron Sekarang</span></button>
       </div>
 
       <div id="offline-queue-list" class="offline-queue-container">
-        <div class="text-muted">Memuat antrean...</div>
+        <div class="text-muted" data-i18n="queue.loading">Memuat antrean...</div>
       </div>
     </div>
   </div>

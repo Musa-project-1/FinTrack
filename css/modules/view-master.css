@@ -3,22 +3,16 @@
 /* 1. Desktop Styling */
 .master-id-pill {
   display: inline-block;
-  font-family: var(--font-mono, monospace);
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
   color: var(--text-muted);
-  background: var(--table-header-bg, #f8fafc);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   white-space: nowrap;
-  letter-spacing: 0.3px;
-}
-
-body.dark-mode .master-id-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 .master-mobile-id {
@@ -42,12 +36,12 @@ body.dark-mode .master-id-pill {
 }
 
 .master-wa-link:hover {
-  color: var(--primary);
+  color: var(--accent-strong);
 }
 
 .master-wa-link i {
-  color: #10b981;
-  font-size: 15px;
+  color: var(--accent-strong);
+  font-size: 14px;
 }
 
 .master-actions-wrap {
@@ -55,6 +49,41 @@ body.dark-mode .master-id-pill {
   align-items: center;
   gap: 6px;
 }
+
+.master-split-body {
+  grid-template-columns: minmax(240px, 40%) minmax(0, 60%);
+  gap: 24px;
+  min-height: 360px;
+  align-items: stretch;
+}
+
+.master-form-panel,
+.master-data-panel {
+  min-width: 0;
+}
+
+.master-form-panel {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.master-form-panel .form-row-flex {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.master-form-panel .form-row-flex > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.master-form-panel .form-row-flex .btn { justify-content: center; }
+.master-skip-hint { font-size: 13px; line-height: 1.5; }
+.skip-month-input-row { display: flex; gap: 10px; align-items: stretch; }
+.master-data-panel .skipped-months-container { height: 100%; }
 
 .btn-master-action {
   height: 32px;
@@ -71,13 +100,13 @@ body.dark-mode .master-id-pill {
 .btn-danger-outline {
   background: transparent;
   color: var(--danger);
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  border: 1px solid var(--danger-border);
 }
 
 .btn-danger-outline:hover {
-  background: rgba(244, 63, 94, 0.1);
+  background: var(--danger-bg);
   border-color: var(--danger);
-  color: #e11d48;
+  color: var(--danger);
 }
 
 /* 2. Mobile Card View (<= 768px) - Mirrors Riwayat Transaksi Card View */
@@ -122,17 +151,17 @@ body.dark-mode .master-id-pill {
 
   /* Left edge accent indicator */
   .master-row.is-aktif {
-    border-left: 3.5px solid var(--primary, #10b981);
+    border-left: 2px solid var(--accent);
   }
   .master-row.is-nonaktif {
-    border-left: 3.5px solid #94a3b8;
+    border-left: 2px solid var(--border-strong);
     opacity: 0.85;
   }
   .master-row.is-masuk {
-    border-left: 3.5px solid var(--primary, #10b981);
+    border-left: 2px solid var(--accent);
   }
   .master-row.is-keluar {
-    border-left: 3.5px solid var(--danger, #f43f5e);
+    border-left: 2px solid var(--border-strong);
   }
 
   /* Hide separate desktop ID column in table; show in name block */
@@ -142,15 +171,15 @@ body.dark-mode .master-id-pill {
 
   .master-mobile-id {
     display: inline-block;
-    font-family: var(--font-mono, monospace);
-    font-size: 10.5px;
-    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
     color: var(--text-muted);
-    background: var(--bg-color);
+    background: var(--surface-2);
     border: 1px solid var(--border);
     padding: 2px 6px;
-    border-radius: 5px;
-    letter-spacing: 0.3px;
+    border-radius: var(--r-xs);
+    letter-spacing: 0.02em;
     margin-bottom: 3px;
   }
 
@@ -220,7 +249,7 @@ body.dark-mode .master-id-pill {
     height: 36px;
     padding: 6px 14px;
     font-size: 12px;
-    border-radius: 10px;
+    border-radius: var(--r-md);
   }
 
   /* Form tambah: wrap input & button nicely on mobile */
@@ -234,4 +263,10 @@ body.dark-mode .master-id-pill {
     width: 100% !important;
     min-width: 0 !important;
   }
+}
+
+@media (max-width: 599px) {
+  .master-split-body { display: block; min-height: 0; }
+  .master-form-panel { margin-bottom: 16px; }
+  .master-data-panel .table-responsive { max-height: 45vh; }
 }

@@ -15,6 +15,7 @@ CODE-REVIEW.md
 HARDENING-CHECKLIST.md
 
 # Tooling
+.vercel/
 .agents/
 .hermes/
 skills-lock.json

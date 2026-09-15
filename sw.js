@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v121';
+const CACHE_NAME = 'finkas-v122';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -16,6 +16,19 @@ const LOCAL_ASSETS = [
   'icons/icon-192.svg',
   'icons/icon-512.svg',
   'icons/icon-light-192.svg',
+  'fonts/phosphor/phosphor.css',
+  'fonts/phosphor/regular/style.css',
+  'fonts/phosphor/regular/Phosphor.woff2',
+  'fonts/phosphor/bold/style.css',
+  'fonts/phosphor/bold/Phosphor-Bold.woff2',
+  'fonts/phosphor/fill/style.css',
+  'fonts/phosphor/fill/Phosphor-Fill.woff2',
+  'fonts/phosphor/duotone/style.css',
+  'fonts/phosphor/duotone/Phosphor-Duotone.woff2',
+  'fonts/phosphor/light/style.css',
+  'fonts/phosphor/light/Phosphor-Light.woff2',
+  'fonts/phosphor/thin/style.css',
+  'fonts/phosphor/thin/Phosphor-Thin.woff2',
   'js/core/config.js',
   'js/core/utils.js',
   'js/core/state.js',

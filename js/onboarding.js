@@ -1,8 +1,8 @@
 /**
  * @module onboarding
- * CSP-clean ES module for the onboarding / group-picker page.
+ * CSP-clean ES module for the modern fintech onboarding / landing page.
  *
- * Uses the same API modules as the main app — no direct Firestore access,
+ * Uses the same API modules as the main app - no direct Firestore access,
  * no inline script, no legacy client-side PIN comparison.
  */
 
@@ -46,8 +46,7 @@ const renderList = () => {
     return;
   }
 
-  // Every group uses the same accent monogram tile — the design system allows
-  // exactly one accent, so per-group rainbow gradients were removed.
+  // Every group uses the same accent monogram tile
   box.innerHTML = groups.map((g) => {
     const initial = esc(g.nama.charAt(0).toUpperCase());
     return `
@@ -105,7 +104,7 @@ const setMsg = (text, isAlert = false) => {
   }
 };
 
-/* ── PIN submission — server-only verification ────────────────────── */
+/* ── PIN submission - server-only verification ────────────────────── */
 
 const submitPin = async () => {
   if (!active) return;
@@ -196,13 +195,80 @@ const wirePinBoxes = () => {
   });
 };
 
+/* ── Interactive Demo Simulator ───────────────────────────────────── */
+
+const INITIAL_DEMO_SALDO = 14850000;
+let currentDemoSaldo = INITIAL_DEMO_SALDO;
+let isBudiPaid = false;
+
+const formatRp = (num) =>
+  'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+const updateDemoViews = () => {
+  const formatted = formatRp(currentDemoSaldo);
+  const heroEl = el('hero-demo-saldo');
+  const simEl = el('sim-saldo');
+  if (heroEl) heroEl.textContent = formatted;
+  if (simEl) simEl.textContent = formatted;
+};
+
+const wireDemoSimulator = () => {
+  el('sim-btn-add-income')?.addEventListener('click', () => {
+    currentDemoSaldo += 50000;
+    updateDemoViews();
+    const msg = el('sim-feedback-msg');
+    if (msg) msg.textContent = `+ Rp 50.000 tercatat! Saldo simulasi sekarang ${formatRp(currentDemoSaldo)}.`;
+  });
+
+  el('sim-btn-toggle-dues')?.addEventListener('click', () => {
+    isBudiPaid = !isBudiPaid;
+    const badge = el('hero-demo-budi-badge');
+    if (badge) {
+      if (isBudiPaid) {
+        badge.className = 'mock-badge paid';
+        badge.textContent = 'PAID';
+      } else {
+        badge.className = 'mock-badge unpaid';
+        badge.textContent = 'BELUM';
+      }
+    }
+    const msg = el('sim-feedback-msg');
+    if (msg) {
+      msg.textContent = isBudiPaid
+        ? 'Status iuran Budi Santoso diubah menjadi LUNAS (PAID).'
+        : 'Status iuran Budi Santoso diubah menjadi BELUM bayar.';
+    }
+  });
+
+  el('sim-btn-reset')?.addEventListener('click', () => {
+    currentDemoSaldo = INITIAL_DEMO_SALDO;
+    isBudiPaid = false;
+    updateDemoViews();
+    const badge = el('hero-demo-budi-badge');
+    if (badge) {
+      badge.className = 'mock-badge unpaid';
+      badge.textContent = 'BELUM';
+    }
+    const msg = el('sim-feedback-msg');
+    if (msg) msg.textContent = 'Simulasi dikembalikan ke saldo awal.';
+  });
+};
+
 /* ── Boot ─────────────────────────────────────────────────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
   wirePinBoxes();
+  wireDemoSimulator();
+
+  const openPortal = () => {
+    showSlide('list');
+    loadGroups();
+  };
 
   el('btn-enter')?.addEventListener('click', submitPin);
-  el('btn-to-list')?.addEventListener('click', () => { showSlide('list'); loadGroups(); });
+  el('btn-to-list')?.addEventListener('click', openPortal);
+  el('btn-to-list-bottom')?.addEventListener('click', openPortal);
+  el('btn-nav-portal')?.addEventListener('click', openPortal);
   el('btn-to-welcome')?.addEventListener('click', () => showSlide('welcome'));
   el('btn-back')?.addEventListener('click', () => showSlide('list'));
 

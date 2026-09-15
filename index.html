@@ -1476,524 +1476,467 @@
   </div>
 
   <!-- === Modal Module: tampilan.html === -->
-<!-- Modal Pengaturan Tampilan -->
-  <div class="modal-overlay" id="modal-tampilan">
-    <div class="modal-content modal-md menu-sheet nav-sheet" style="max-width: 480px;">
-      <div class="quickpay-handle" aria-hidden="true"></div>
-      
-      <div class="nav-sheet-head">
+<!-- Modal Pengaturan Tampilan (Vercel / Linear Segmented Top Control) -->
+  <div class="modal-overlay modal-top" id="modal-tampilan">
+    <div class="modal-content modal-md tampilan-segmented-modal" role="dialog" aria-modal="true" aria-labelledby="modal-tampilan-title">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-sliders-horizontal"></i>
+          </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Tampilan // Preferensi</span>
-            <h2>Tampilan</h2>
-          <p>Kustomisasi gaya visual dan indikator kas</p>
+            <h2 id="modal-tampilan-title">Pengaturan Tampilan</h2>
+            <p>Personalisasi tema, tipografi, indikator, dan tata letak kas</p>
+          </div>
         </div>
-        <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Gaya Indikator Status Iuran</span>
-          <small class="text-muted">Pilih tampilan lunas pada tabel matriks bulanan</small>
-        </div>
+      <!-- Segmented Top Control Tab Bar (Anti-Broke, 100% Fluid Width) -->
+      <div class="tab-header tampilan-top-tabs" role="tablist">
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tampilan-tema" role="tab">
+          <i class="ph-bold ph-palette"></i> <span>Tema</span>
+        </button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tampilan-format" role="tab">
+          <i class="ph-bold ph-text-aa"></i> <span>Angka</span>
+        </button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tampilan-indikator" role="tab">
+          <i class="ph-bold ph-seal-check"></i> <span>Status</span>
+        </button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tampilan-layout" role="tab">
+          <i class="ph-bold ph-layout"></i> <span>Layar</span>
+        </button>
+      </div>
 
-        <div class="indicator-style-grid" id="indicator-style-picker">
-          <!-- 1. Stempel PAID -->
-          <button class="style-option-card" data-action="select-indicator-style" data-style="paid">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <div class="status-lunas-dot style-paid"><span>PAID</span></div>
-              </div>
-              <div class="style-option-info">
-                <strong>Stempel PAID</strong>
-                <span>Cap kwitansi tinta transparan (-4°)</span>
-              </div>
+      <!-- Tab Content Area (Fits 100% in viewport without scroll) -->
+      <div class="tampilan-tab-body">
+        <!-- 1. TAB TEMA -->
+        <div class="tab-content active" id="tab-tampilan-tema">
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Tema Antarmuka</span>
+              <small class="text-muted">Pilih skema pencahayaan aplikasi</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- 2. Centang Squircle -->
-          <button class="style-option-card" data-action="select-indicator-style" data-style="check">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <div class="status-lunas-dot style-check"><i class="ph-bold ph-check"></i></div>
-              </div>
-              <div class="style-option-info">
-                <strong>Centang Squircle</strong>
-                <span>Minimalis lembut, adem dan rapi</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- 3. Bintang Berlian -->
-          <button class="style-option-card" data-action="select-indicator-style" data-style="star">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <div class="status-lunas-dot style-star">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
+            <div class="tampilan-grid tampilan-grid-3" id="theme-mode-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-theme-mode" data-theme="light">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-sun fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Terang</strong>
+                    <span>Cerah bersih</span>
+                  </div>
                 </div>
-              </div>
-              <div class="style-option-info">
-                <strong>Bintang Berlian (Sparkle)</strong>
-                <span>Bintang 4 sudut modern bernuansa emas</span>
-              </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-theme-mode" data-theme="dark">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-moon fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Gelap</strong>
+                    <span>Obsidian sejuk</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-theme-mode" data-theme="auto">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-gear fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Otomatis</strong>
+                    <span>Ikuti sistem HP</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <!-- 4. Cap Bulat Bintang -->
-          <button class="style-option-card" data-action="select-indicator-style" data-style="round-star">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <div class="status-lunas-dot style-round-star"><i class="ph-fill ph-star"></i></div>
-              </div>
-              <div class="style-option-info">
-                <strong>Cap Bulat Bintang</strong>
-                <span>Stempel cap ganda melingkar resmi</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Palet Aksen Warna</span>
+              <small class="text-muted">Warna identitas tombol dan sorotan kas</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- 5. Nominal Kas -->
-          <button class="style-option-card" data-action="select-indicator-style" data-style="nominal">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <div class="status-lunas-dot style-nominal">10K</div>
-              </div>
-              <div class="style-option-info">
-                <strong>Nominal Kas</strong>
-                <span>Angka iuran asli buku kas fisik</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="accent-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-accent" data-accent="emerald">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-emerald"><i class="ph-fill ph-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Emerald</strong>
+                    <span>Segar transparan</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-accent" data-accent="cyan">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-cyan"><i class="ph-fill ph-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Ocean</strong>
+                    <span>Sejuk modern</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-accent" data-accent="indigo">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-indigo"><i class="ph-fill ph-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Indigo</strong>
+                    <span>Formal elegan</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-accent" data-accent="amber">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-amber"><i class="ph-fill ph-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Amber</strong>
+                    <span>Hangat ramah</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
+          </div>
 
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Mode Privasi // Sensor Saldo</span>
-          <small class="text-muted">Samarkan nominal saldo kas saat membuka aplikasi di depan umum</small>
-        </div>
-
-        <div class="indicator-style-grid" id="privacy-mode-picker">
-          <!-- Opsi 1: Tampilkan Jelas -->
-          <button class="style-option-card" data-action="select-privacy-mode" data-mode="off">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-eye" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Tampilkan Jelas</strong>
-                <span>Angka saldo dan kas selalu terbaca normal</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Tekstur Kertas Latar Belakang</span>
+              <small class="text-muted">Ornamen pola latar kanvas lembar kas</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- Opsi 2: Sensor Saldo (Blur) -->
-          <button class="style-option-card" data-action="select-privacy-mode" data-mode="on">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-eye-slash" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Sensor Saldo (Blur)</strong>
-                <span>Disamarkan; sentuh/hover angka untuk melihat</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-3" id="texture-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-texture" data-texture="dots">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-dots-nine fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Titik Mikro</strong>
+                    <span>Dot grid</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-texture" data-texture="grid">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-grid-four fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Kotak Buku</strong>
+                    <span>Ledger grid</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-texture" data-texture="solid">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-square fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Polos Datar</strong>
+                    <span>Fokus murni</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Format Penulisan Nominal</span>
-          <small class="text-muted">Pilih gaya penulisan angka uang pada kartu dan tabel</small>
-        </div>
-
-        <div class="indicator-style-grid" id="currency-format-picker">
-          <!-- Opsi 1: Format Lengkap (Baku) -->
-          <button class="style-option-card" data-action="select-currency-format" data-format="full">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="font-family: var(--font-mono); font-size: 11px;">
-                <span>Rp</span>
-              </div>
-              <div class="style-option-info">
-                <strong>Format Lengkap (Baku)</strong>
-                <span>Contoh: Rp 50.000 (standar pembukuan resmi)</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- Opsi 2: Format Ringkas (K / Jt) -->
-          <button class="style-option-card" data-action="select-currency-format" data-format="compact">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="font-family: var(--font-mono); font-size: 11px;">
-                <span>50K</span>
-              </div>
-              <div class="style-option-info">
-                <strong>Format Ringkas (K / Jt)</strong>
-                <span>Contoh: 50K atau 1,5 Jt (hemat ruang layar)</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Tema Antarmuka</span>
-          <small class="text-muted">Pilih skema warna tampilan aplikasi</small>
+          </div>
         </div>
 
-        <div class="indicator-style-grid" id="theme-mode-picker">
-          <!-- Opsi 1: Terang -->
-          <button class="style-option-card" data-action="select-theme-mode" data-theme="light">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-sun" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Mode Terang</strong>
-                <span>Nuansa cerah bersih untuk siang hari</span>
-              </div>
+        <!-- 2. TAB FORMAT & ANGKA -->
+        <div class="tab-content" id="tab-tampilan-format">
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Format Penulisan Nominal</span>
+              <small class="text-muted">Gaya penulisan nominal mata uang di dashboard & tabel</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- Opsi 2: Gelap -->
-          <button class="style-option-card" data-action="select-theme-mode" data-theme="dark">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-moon" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Mode Gelap (Obsidian)</strong>
-                <span>Adem dan nyaman untuk mata</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="currency-format-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-currency-format" data-format="full">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap font-mono"><span>Rp</span></div>
+                  <div class="style-option-info">
+                    <strong>Format Baku Lengkap</strong>
+                    <span>Contoh: Rp 50.000 (standar kas)</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-currency-format" data-format="compact">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap font-mono"><span>50K</span></div>
+                  <div class="style-option-info">
+                    <strong>Format Ringkas (K / Jt)</strong>
+                    <span>Contoh: 50K atau 1,5 Jt (hemat ruang)</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <!-- Opsi 3: Otomatis -->
-          <button class="style-option-card" data-action="select-theme-mode" data-theme="auto">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-gear" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Otomatis (Ikuti Sistem)</strong>
-                <span>Menyesuaikan jadwal mode malam ponsel</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Gaya Tipografi Angka Kas</span>
+              <small class="text-muted">Bentuk rupa angka pada saldo dan baris transaksi</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Kerapatan Tata Letak</span>
-          <small class="text-muted">Atur jarak antar baris tabel dan ukuran kartu</small>
-        </div>
-
-        <div class="indicator-style-grid" id="density-picker">
-          <!-- Opsi 1: Normal -->
-          <button class="style-option-card" data-action="select-density" data-density="normal">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-arrows-out-line-vertical" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Lapang (Normal)</strong>
-                <span>Jarak vertikal nyaman dibaca santai</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="font-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-font" data-font="mono">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap font-mono"><span>123</span></div>
+                  <div class="style-option-info">
+                    <strong>Mono Finansial (JetBrains)</strong>
+                    <span>Angka tegak lurus sejajar</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-font" data-font="sans">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><span>123</span></div>
+                  <div class="style-option-info">
+                    <strong>Sans Luwes (Inter)</strong>
+                    <span>Proporsional kasual standar</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <!-- Opsi 2: Ringkas -->
-          <button class="style-option-card" data-action="select-density" data-density="compact">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-arrows-in-line-vertical" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Ringkas (Saku)</strong>
-                <span>Hemat scroll, muat lebih banyak anggota</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Format Ringkasan Progres Iuran</span>
+              <small class="text-muted">Gaya visual kemajuan iuran pada kartu anggota mobile</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Posisi Ringkasan Saldo</span>
-          <small class="text-muted">Pilih letak tampilan saldo, uang masuk, dan uang keluar</small>
-        </div>
-
-        <div class="indicator-style-grid" id="stats-pos-picker">
-          <!-- Opsi 1: Dashboard Body -->
-          <button class="style-option-card" data-action="select-stats-pos" data-pos="body">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-layout" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Kartu Dashboard Penuh</strong>
-                <span>3 kotak kartu besar di atas tabel</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="progress-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-progress" data-format="bar">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-chart-bar-horizontal fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Bilah Visual (Progress Bar)</strong>
+                    <span>Batang persentase terisi warna</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-progress" data-format="ratio">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap font-mono"><span>28/34</span></div>
+                  <div class="style-option-info">
+                    <strong>Rasio Angka Ringkas</strong>
+                    <span>Pecahan lunas tanpa bilah panjang</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- Opsi 2: Header Pills -->
-          <button class="style-option-card" data-action="select-stats-pos" data-pos="header">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-rows" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Pill Header Ringkas</strong>
-                <span>Mengapung di bilah atas aplikasi</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Palet Aksen Warna</span>
-          <small class="text-muted">Pilih warna aksen utama tombol dan identitas kas</small>
+          </div>
         </div>
 
-        <div class="indicator-style-grid" id="accent-picker">
-          <button class="style-option-card" data-action="select-accent" data-accent="emerald">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #10b981;">
-                <i class="ph-fill ph-circle" style="font-size: 20px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Emerald Green</strong>
-                <span>Segar, bersih, dan transparan (bawaan)</span>
-              </div>
+        <!-- 3. TAB STATUS & INDIKATOR -->
+        <div class="tab-content" id="tab-tampilan-indikator">
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Gaya Indikator Lunas (Matriks Bulanan)</span>
+              <small class="text-muted">Pilih tampilan sel yang sudah lunas dibayar</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-accent" data-accent="cyan">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #0284c7;">
-                <i class="ph-fill ph-circle" style="font-size: 20px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Ocean Cyan</strong>
-                <span>Sejuk bernuansa neo-bank modern</span>
-              </div>
+            <div class="indicator-style-grid" id="indicator-style-picker">
+              <!-- 1. Stempel PAID -->
+              <button class="style-option-card" data-action="select-indicator-style" data-style="paid">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap">
+                    <div class="status-lunas-dot style-paid"><span>PAID</span></div>
+                  </div>
+                  <div class="style-option-info">
+                    <strong>Stempel PAID</strong>
+                    <span>Cap kwitansi tinta transparan (-4°)</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <!-- 2. Centang Squircle -->
+              <button class="style-option-card" data-action="select-indicator-style" data-style="check">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap">
+                    <div class="status-lunas-dot style-check"><i class="ph-bold ph-check"></i></div>
+                  </div>
+                  <div class="style-option-info">
+                    <strong>Centang Squircle</strong>
+                    <span>Minimalis lembut, adem dan rapi</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <!-- 3. Bintang Berlian -->
+              <button class="style-option-card" data-action="select-indicator-style" data-style="star">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap">
+                    <div class="status-lunas-dot style-star">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
+                    </div>
+                  </div>
+                  <div class="style-option-info">
+                    <strong>Bintang Berlian (Sparkle)</strong>
+                    <span>Modern bernuansa emas</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <!-- 4. Cap Bulat Bintang -->
+              <button class="style-option-card" data-action="select-indicator-style" data-style="round-star">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap">
+                    <div class="status-lunas-dot style-round-star"><i class="ph-fill ph-star"></i></div>
+                  </div>
+                  <div class="style-option-info">
+                    <strong>Cap Bulat Bintang</strong>
+                    <span>Stempel cap melingkar resmi</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <!-- 5. Nominal Kas -->
+              <button class="style-option-card" data-action="select-indicator-style" data-style="nominal">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap">
+                    <div class="status-lunas-dot style-nominal">10K</div>
+                  </div>
+                  <div class="style-option-info">
+                    <strong>Nominal Kas</strong>
+                    <span>Angka iuran asli buku kas fisik</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <button class="style-option-card" data-action="select-accent" data-accent="indigo">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #6366f1;">
-                <i class="ph-fill ph-circle" style="font-size: 20px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Royal Indigo</strong>
-                <span>Elegan dan formal untuk organisasi</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Gaya Penanda Tunggakan Iuran</span>
+              <small class="text-muted">Warna badge status anggota yang belum melunasi iuran</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-accent" data-accent="amber">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #d97706;">
-                <i class="ph-fill ph-circle" style="font-size: 20px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Amber Sun</strong>
-                <span>Hangat dan ramah untuk kas arisan & keluarga</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-3" id="arrears-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-arrears" data-tone="red">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-danger"><i class="ph-fill ph-warning-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Merah Tegas</strong>
+                    <span>Mencolok untuk audit</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-arrears" data-tone="neutral">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-fill ph-minus-circle fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Abu Netral</strong>
+                    <span>Sopan saat rapat</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-arrears" data-tone="amber">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap color-warning"><i class="ph-fill ph-warning fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Amber Lembut</strong>
+                    <span>Pengingat kasual</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Gaya Font Angka Kas</span>
-          <small class="text-muted">Pilih jenis tipografi angka pada nominal dan tabel</small>
-        </div>
-
-        <div class="indicator-style-grid" id="font-picker">
-          <button class="style-option-card" data-action="select-font" data-font="mono">
-            <div class="style-option-left">
-              <div class="style-preview-wrap font-mono">
-                <span>123</span>
-              </div>
-              <div class="style-option-info">
-                <strong>Mono Finansial (JetBrains Mono)</strong>
-                <span>Tegak lurus presisi seperti kalkulator bank</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-font" data-font="sans">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <span>123</span>
-              </div>
-              <div class="style-option-info">
-                <strong>Sans Luwes (Inter)</strong>
-                <span>Proporsional standar yang santai dan bersih</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Tekstur Kertas Latar Belakang</span>
-          <small class="text-muted">Pilih ornamen latar kanvas aplikasi</small>
-        </div>
-
-        <div class="indicator-style-grid" id="texture-picker">
-          <button class="style-option-card" data-action="select-texture" data-texture="dots">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-dots-nine" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Titik Mikro (Dot Grid)</strong>
-                <span>Pola titik halus minimalis modern</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-texture" data-texture="grid">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-grid-four" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Kotak Akuntansi (Ledger Grid)</strong>
-                <span>Garis kotak buku kas akuntansi klasik</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-texture" data-texture="solid">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-square" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Polos Datar (Pure Solid)</strong>
-                <span>Tanpa tekstur untuk fokus data murni</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Gaya Penanda Tunggakan Iuran</span>
-          <small class="text-muted">Pilih warna penanda anggota yang belum bayar iuran</small>
+          </div>
         </div>
 
-        <div class="indicator-style-grid" id="arrears-picker">
-          <button class="style-option-card" data-action="select-arrears" data-tone="red">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #e11d48;">
-                <i class="ph-fill ph-warning-circle" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Merah Tegas</strong>
-                <span>Mencolok untuk audit cepat kas yang tertunda</span>
-              </div>
+        <!-- 4. TAB LAYAR & TATA LETAK -->
+        <div class="tab-content" id="tab-tampilan-layout">
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Mode Privasi // Sensor Saldo</span>
+              <small class="text-muted">Samarkan nominal saat aplikasi dibuka di tempat umum</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <button class="style-option-card" data-action="select-arrears" data-tone="neutral">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: var(--text-muted);">
-                <i class="ph-fill ph-minus-circle" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Abu-abu Netral (Adem/Sopan)</strong>
-                <span>Tenang dan santai saat diproyeksikan di rapat</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="privacy-mode-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-privacy-mode" data-mode="off">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-eye fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Tampilkan Jelas</strong>
+                    <span>Selalu terlihat normal</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-privacy-mode" data-mode="on">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-eye-slash fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Sensor Saldo (Blur)</strong>
+                    <span>Sentuh angka untuk intip</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <button class="style-option-card" data-action="select-arrears" data-tone="amber">
-            <div class="style-option-left">
-              <div class="style-preview-wrap" style="color: #d97706;">
-                <i class="ph-fill ph-warning" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Amber Lembut</strong>
-                <span>Pengingat halus bernuansa peringatan kasual</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Kerapatan Tata Letak (Density)</span>
+              <small class="text-muted">Jarak antar baris tabel dan kenyamanan scrolling</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span>Format Ringkasan Progres Iuran</span>
-          <small class="text-muted">Pilih gaya indikator progres bulanan di kartu mobile</small>
-        </div>
-
-        <div class="indicator-style-grid" id="progress-picker">
-          <button class="style-option-card" data-action="select-progress" data-format="bar">
-            <div class="style-option-left">
-              <div class="style-preview-wrap">
-                <i class="ph-bold ph-chart-bar-horizontal" style="font-size: 18px;"></i>
-              </div>
-              <div class="style-option-info">
-                <strong>Bilah Visual (Progress Bar)</strong>
-                <span>Batang visual terisi persentase kelunasan</span>
-              </div>
+            <div class="tampilan-grid tampilan-grid-2" id="density-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-density" data-density="normal">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-arrows-out-line-vertical fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Lapang (Normal)</strong>
+                    <span>Jarak vertikal nyaman</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-density" data-density="compact">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-arrows-in-line-vertical fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Ringkas (Saku)</strong>
+                    <span>Muat lebih banyak data</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+          </div>
 
-          <button class="style-option-card" data-action="select-progress" data-format="ratio">
-            <div class="style-option-left">
-              <div class="style-preview-wrap font-mono">
-                <span>28/34</span>
-              </div>
-              <div class="style-option-info">
-                <strong>Rasio Angka Ringkas</strong>
-                <span>Pecahan anggota lunas tanpa bilah panjang</span>
-              </div>
+          <div class="tampilan-section">
+            <div class="tampilan-section-label">
+              <span>Posisi Ringkasan Saldo</span>
+              <small class="text-muted">Pilih letak tampilan kartu keuangan utama</small>
             </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
+            <div class="tampilan-grid tampilan-grid-2" id="stats-pos-picker">
+              <button class="style-option-card tampilan-card-tile" data-action="select-stats-pos" data-pos="body">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-layout fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Kartu Dashboard Penuh</strong>
+                    <span>3 kartu besar di atas tabel</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+              <button class="style-option-card tampilan-card-tile" data-action="select-stats-pos" data-pos="header">
+                <div class="style-option-left">
+                  <div class="style-preview-wrap"><i class="ph-bold ph-rows fs-18"></i></div>
+                  <div class="style-option-info">
+                    <strong>Pill Header Ringkas</strong>
+                    <span>Mengapung di bar navigasi</span>
+                  </div>
+                </div>
+                <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

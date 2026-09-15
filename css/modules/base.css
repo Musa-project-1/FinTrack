@@ -146,3 +146,114 @@ button.desktop-only { display: inline-flex !important; }
 
 /* === STATUS TEXT === */
 .status-text { display: inline; }
+
+/* === PRIVACY MASK (SENSOR SALDO) === */
+body.privacy-mode .nominal-val,
+body.privacy-mode .header-stat-val,
+body.privacy-mode .td-nominal-col,
+body.privacy-mode .stat-hero-number,
+body.privacy-mode #rw-masuk,
+body.privacy-mode #rw-keluar,
+body.privacy-mode .profile-trx-nominal,
+body.privacy-mode #p-total-kontribusi {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter 0.2s ease;
+  cursor: pointer;
+}
+
+body.privacy-mode .nominal-val:hover,
+body.privacy-mode .nominal-val:active,
+body.privacy-mode .header-stat-val:hover,
+body.privacy-mode .header-stat-val:active,
+body.privacy-mode .td-nominal-col:hover,
+body.privacy-mode .td-nominal-col:active,
+body.privacy-mode .stat-hero-number:hover,
+body.privacy-mode .stat-hero-number:active,
+body.privacy-mode #rw-masuk:hover,
+body.privacy-mode #rw-masuk:active,
+body.privacy-mode #rw-keluar:hover,
+body.privacy-mode #rw-keluar:active,
+body.privacy-mode .profile-trx-nominal:hover,
+body.privacy-mode .profile-trx-nominal:active,
+body.privacy-mode #p-total-kontribusi:hover,
+body.privacy-mode #p-total-kontribusi:active {
+  filter: none;
+}
+
+/* === DENSITY COMPACT (TAMPILAN RINGKAS) === */
+body.density-compact .dashboard { gap: 10px; margin-bottom: 18px; }
+body.density-compact .card { padding: 12px 14px; gap: 10px; border-radius: var(--r-md); }
+body.density-compact .card-icon { width: 36px; height: 36px; font-size: 18px; border-radius: var(--r-sm); }
+body.density-compact .nominal-val { font-size: 20px; }
+body.density-compact td,
+body.density-compact th { padding: 8px 10px; font-size: 13.5px; }
+body.density-compact .table-matriks td,
+body.density-compact .table-matriks th { padding: 6px 8px; }
+body.density-compact .master-row { padding: 8px 12px; }
+
+/* === NUMBER FONT VARIANT (MONO VS SANS) === */
+body.font-mono-numbers .nominal-val,
+body.font-mono-numbers .header-stat-val,
+body.font-mono-numbers .td-nominal-col,
+body.font-mono-numbers .stat-hero-number,
+body.font-mono-numbers #rw-masuk,
+body.font-mono-numbers #rw-keluar,
+body.font-mono-numbers .table-matriks td,
+body.font-mono-numbers .profile-trx-nominal,
+body.font-mono-numbers #p-total-kontribusi {
+  font-family: var(--font-mono) !important;
+  letter-spacing: -0.02em;
+}
+
+/* === CANVAS BACKGROUND TEXTURE === */
+body.bg-texture-dots {
+  background-image: radial-gradient(rgba(74, 106, 128, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+body.dark-mode.bg-texture-dots {
+  background-image: radial-gradient(rgba(56, 189, 248, 0.10) 1px, transparent 1px);
+}
+
+body.bg-texture-grid {
+  background-image: 
+    linear-gradient(to right, rgba(74, 106, 128, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(74, 106, 128, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+body.dark-mode.bg-texture-grid {
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.06) 1px, transparent 1px);
+}
+
+body.bg-texture-solid {
+  background-image: none !important;
+}
+
+/* === ARREARS TONE (HIGHLIGHT TUNGGAKAN) === */
+body.arrears-tone-red .iuran-card-badge.pending {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+body.arrears-tone-amber .iuran-card-badge.pending {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: var(--warning-border);
+}
+body.arrears-tone-neutral .iuran-card-badge.pending {
+  background: var(--surface-3);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+/* === PROGRESS SUMMARY FORMAT === */
+body.progress-format-ratio .iuran-progress-bar {
+  display: none !important;
+}
+body.progress-format-ratio .iuran-progress-subtext {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent-strong);
+}

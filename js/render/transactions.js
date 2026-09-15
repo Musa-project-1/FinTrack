@@ -1,6 +1,6 @@
 import { NAMA_BULAN } from "../core/config.js";
 import { getState, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, getIsAdminSession } from "../core/state.js";
-import { formatRp, escapeHtml } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
 
 /* ── Transaction history table ─────────────────────────────────── */
 
@@ -57,8 +57,8 @@ export const renderTableTransaksi = () => {
       else if (t.Tipe_Arus === 'Keluar') totalKeluar += nom;
     });
     rwCountEl.innerText = `${filteredTrx.length} transaksi`;
-    rwMasukEl.innerText = `+${formatRp(totalMasuk)}`;
-    rwKeluarEl.innerText = `-${formatRp(totalKeluar)}`;
+    rwMasukEl.innerText = `+${formatDisplayRp(totalMasuk)}`;
+    rwKeluarEl.innerText = `-${formatDisplayRp(totalKeluar)}`;
   }
 
   if (filteredTrx.length === 0) {
@@ -136,7 +136,7 @@ export const renderTableTransaksi = () => {
           ${tglTime}
         </td>
         <td data-label="Keterangan">${ketExtra}</td>
-        <td data-label="Nominal" class="td-nominal-col ${isMasuk ? 'text-primary' : 'text-danger'}">${formatRp(trx.Nominal)}</td>
+        <td data-label="Nominal" class="td-nominal-col ${isMasuk ? 'text-primary' : 'text-danger'}">${formatDisplayRp(trx.Nominal)}</td>
         <td data-label="Tipe Arus" class="va-middle"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${trx.Tipe_Arus}</span></td>
         ${aksiTd}
     `;

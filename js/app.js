@@ -15,7 +15,11 @@ import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./
 import { syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
-import { applyTheme, toggleTheme, applyHeaderStatsPreference, toggleHeaderStats } from "./ui/theme.js";
+import {
+  applyTheme, toggleTheme, setTheme, applyHeaderStatsPreference, toggleHeaderStats, setHeaderStatsPosition,
+  applyDensityPreference, setDensity, applyAccentPreference, setAccentColor, applyNumberFontPreference, setNumberFont,
+  applyBgTexturePreference, setBgTexture, applyArrearsTonePreference, setArrearsTone, applyProgressFormatPreference, setProgressFormat
+} from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
@@ -31,7 +35,7 @@ import {
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener,
-  openTampilanModal, setIndicatorStyle
+  openTampilanModal, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode
 } from "./handlers/navigation.js";
 import {
   openQuickPaySheet, submitQuickPay, bukaModalTransaksi, submitIuran,
@@ -113,6 +117,16 @@ document.addEventListener('click', (e) => {
     case 'open-faq':          openModal('modal-faq'); break;
     case 'open-tampilan':     openTampilanModal(); break;
     case 'select-indicator-style': setIndicatorStyle(target.getAttribute('data-style')); break;
+    case 'select-privacy-mode': setPrivacyMode(target.getAttribute('data-mode')); break;
+    case 'select-currency-format': setCurrencyFormat(target.getAttribute('data-format')); break;
+    case 'select-theme-mode': setTheme(target.getAttribute('data-theme')); break;
+    case 'select-density': setDensity(target.getAttribute('data-density')); break;
+    case 'select-stats-pos': setHeaderStatsPosition(target.getAttribute('data-pos')); break;
+    case 'select-accent': setAccentColor(target.getAttribute('data-accent')); break;
+    case 'select-font': setNumberFont(target.getAttribute('data-font')); break;
+    case 'select-texture': setBgTexture(target.getAttribute('data-texture')); break;
+    case 'select-arrears': setArrearsTone(target.getAttribute('data-tone')); break;
+    case 'select-progress': setProgressFormat(target.getAttribute('data-format')); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':
     case 'toggle-dropdown':   openModal('modal-menu'); break;
@@ -390,6 +404,13 @@ export const initApp = async (forceRemote = false) => {
 window.addEventListener('DOMContentLoaded', async () => {
   applyTheme();
   applyHeaderStatsPreference();
+  applyPrivacyMode();
+  applyDensityPreference();
+  applyAccentPreference();
+  applyNumberFontPreference();
+  applyBgTexturePreference();
+  applyArrearsTonePreference();
+  applyProgressFormatPreference();
   handleUI();
 
   // Data loads only after a group is unlocked; nothing renders before that.

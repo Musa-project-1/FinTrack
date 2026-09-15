@@ -35,6 +35,46 @@ export const applyHeaderStatsPreference = () => {
 };
 
 /**
+ * Set and persist header stats position preference.
+ * @param {'header'|'body'} position
+ */
+export const setHeaderStatsPosition = (position) => {
+  const isHeader = position === 'header';
+  localStorage.setItem(HEADER_STATS_KEY, String(isHeader));
+  applyHeaderStatsPreference();
+  document.querySelectorAll('#stats-pos-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-pos') === position);
+  });
+};
+
+/**
+ * Apply the saved density preference to document.body.
+ */
+export const applyDensityPreference = () => {
+  try {
+    const isCompact = localStorage.getItem('finkas_density') === 'compact';
+    document.body.classList.toggle('density-compact', isCompact);
+  } catch (_) {}
+};
+
+/**
+ * Set and persist layout density preference.
+ * @param {'normal'|'compact'} densityKey
+ */
+export const setDensity = (densityKey) => {
+  const isCompact = densityKey === 'compact';
+  try {
+    localStorage.setItem('finkas_density', isCompact ? 'compact' : 'normal');
+  } catch (e) {
+    console.warn('[finkas] Cannot persist density:', e?.message);
+  }
+  document.querySelectorAll('#density-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-density') === densityKey);
+  });
+  applyDensityPreference();
+};
+
+/**
  * Toggle header stats position preference.
  */
 export const toggleHeaderStats = () => {
@@ -49,7 +89,11 @@ export const toggleHeaderStats = () => {
  * Apply the saved theme to the document and update meta theme-color.
  */
 export const applyTheme = () => {
-  const isDark = localStorage.getItem(THEME_KEY) === 'dark';
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
+  let isDark = saved === 'dark';
+  if (saved === 'auto') {
+    isDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   const themeIcons = document.querySelectorAll('.theme-icon');
 
@@ -70,6 +114,132 @@ export const applyTheme = () => {
     const renderChartFn = window.__renderChart;
     if (renderChartFn) renderChartFn();
   }
+};
+
+/**
+ * Explicitly set theme mode ('light', 'dark', or 'auto').
+ * @param {'light'|'dark'|'auto'} themeKey
+ */
+export const setTheme = (themeKey) => {
+  localStorage.setItem(THEME_KEY, themeKey);
+  applyTheme();
+  document.querySelectorAll('#theme-mode-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-theme') === themeKey);
+  });
+};
+
+/**
+ * Accent color palette preference ('emerald' | 'cyan' | 'indigo' | 'amber').
+ */
+export const applyAccentPreference = () => {
+  try {
+    const accent = localStorage.getItem('finkas_accent_color') || 'emerald';
+    document.body.setAttribute('data-accent', accent);
+  } catch (_) {}
+};
+
+export const setAccentColor = (accentKey) => {
+  try {
+    localStorage.setItem('finkas_accent_color', accentKey);
+  } catch (e) {
+    console.warn('[finkas] Cannot persist accent color:', e?.message);
+  }
+  document.querySelectorAll('#accent-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-accent') === accentKey);
+  });
+  applyAccentPreference();
+};
+
+/**
+ * Number font preference ('mono' | 'sans').
+ */
+export const applyNumberFontPreference = () => {
+  try {
+    const isMono = localStorage.getItem('finkas_number_font') === 'mono';
+    document.body.classList.toggle('font-mono-numbers', isMono);
+  } catch (_) {}
+};
+
+export const setNumberFont = (fontKey) => {
+  const isMono = fontKey === 'mono';
+  try {
+    localStorage.setItem('finkas_number_font', isMono ? 'mono' : 'sans');
+  } catch (e) {
+    console.warn('[finkas] Cannot persist number font:', e?.message);
+  }
+  document.querySelectorAll('#font-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-font') === fontKey);
+  });
+  applyNumberFontPreference();
+};
+
+/**
+ * Canvas background texture preference ('dots' | 'grid' | 'solid').
+ */
+export const applyBgTexturePreference = () => {
+  try {
+    const texture = localStorage.getItem('finkas_bg_texture') || 'dots';
+    document.body.classList.remove('bg-texture-dots', 'bg-texture-grid', 'bg-texture-solid');
+    document.body.classList.add(`bg-texture-${texture}`);
+  } catch (_) {}
+};
+
+export const setBgTexture = (textureKey) => {
+  try {
+    localStorage.setItem('finkas_bg_texture', textureKey);
+  } catch (e) {
+    console.warn('[finkas] Cannot persist bg texture:', e?.message);
+  }
+  document.querySelectorAll('#texture-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-texture') === textureKey);
+  });
+  applyBgTexturePreference();
+};
+
+/**
+ * Arrears highlight tone preference ('red' | 'neutral' | 'amber').
+ */
+export const applyArrearsTonePreference = () => {
+  try {
+    const tone = localStorage.getItem('finkas_arrears_tone') || 'red';
+    document.body.classList.remove('arrears-tone-red', 'arrears-tone-neutral', 'arrears-tone-amber');
+    document.body.classList.add(`arrears-tone-${tone}`);
+  } catch (_) {}
+};
+
+export const setArrearsTone = (toneKey) => {
+  try {
+    localStorage.setItem('finkas_arrears_tone', toneKey);
+  } catch (e) {
+    console.warn('[finkas] Cannot persist arrears tone:', e?.message);
+  }
+  document.querySelectorAll('#arrears-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-tone') === toneKey);
+  });
+  applyArrearsTonePreference();
+};
+
+/**
+ * Progress summary format preference ('bar' | 'ratio').
+ */
+export const applyProgressFormatPreference = () => {
+  try {
+    const isRatio = localStorage.getItem('finkas_progress_format') === 'ratio';
+    document.body.classList.toggle('progress-format-ratio', isRatio);
+  } catch (_) {}
+};
+
+export const setProgressFormat = (formatKey) => {
+  const isRatio = formatKey === 'ratio';
+  try {
+    localStorage.setItem('finkas_progress_format', isRatio ? 'ratio' : 'bar');
+  } catch (e) {
+    console.warn('[finkas] Cannot persist progress format:', e?.message);
+  }
+  document.querySelectorAll('#progress-picker .style-option-card').forEach((card) => {
+    card.classList.toggle('active', card.getAttribute('data-format') === formatKey);
+  });
+  applyProgressFormatPreference();
 };
 
 /**

@@ -12,6 +12,44 @@ export const formatRp = (angka) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
 
 /**
+ * Format a number into compact currency (e.g., 10K, 1,5 Jt, 2 M).
+ * @param {number} angka
+ * @returns {string}
+ */
+export const formatCompactRp = (angka) => {
+  const num = Number(angka) || 0;
+  const abs = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+  if (abs >= 1_000_000_000) {
+    const val = (abs / 1_000_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 });
+    return `${sign}${val} M`;
+  }
+  if (abs >= 1_000_000) {
+    const val = (abs / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 });
+    return `${sign}${val} Jt`;
+  }
+  if (abs >= 1_000) {
+    const val = (abs / 1_000).toLocaleString('id-ID', { maximumFractionDigits: 1 });
+    return `${sign}${val}K`;
+  }
+  return formatRp(num);
+};
+
+/**
+ * Format currency according to user appearance preferences (compact vs full).
+ * @param {number} angka
+ * @returns {string}
+ */
+export const formatDisplayRp = (angka) => {
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('finkas_currency_format') === 'compact') {
+      return formatCompactRp(angka);
+    }
+  } catch (_) {}
+  return formatRp(angka);
+};
+
+/**
  * Format live currency input: strips non-digits, formats with thousand separators.
  * @param {HTMLInputElement} el - Input element.
  */

@@ -1,6 +1,6 @@
 import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart } from "../core/state.js";
-import { formatRp, escapeHtml } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
@@ -13,9 +13,9 @@ export const renderDashboard = () => {
     if (trx.Tipe_Arus === 'Keluar') tKeluar += nom;
   });
   const saldo = tMasuk - tKeluar;
-  const saldoFormatted = formatRp(saldo);
-  const masukFormatted = formatRp(tMasuk);
-  const keluarFormatted = formatRp(tKeluar);
+  const saldoFormatted = formatDisplayRp(saldo);
+  const masukFormatted = formatDisplayRp(tMasuk);
+  const keluarFormatted = formatDisplayRp(tKeluar);
 
   const elMasuk = document.getElementById('ui-masuk');
   const elKeluar = document.getElementById('ui-keluar');

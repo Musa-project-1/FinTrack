@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRp, getInitials, escapeHtml } from '../js/core/utils.js';
+import { formatRp, formatCompactRp, formatDisplayRp, getInitials, escapeHtml } from '../js/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
   const formatted = formatRp(50000);
@@ -52,4 +52,18 @@ test('escapeHtml renders nullish input as an empty string', () => {
   assert.equal(escapeHtml(null), '');
   assert.equal(escapeHtml(undefined), '');
   assert.equal(escapeHtml(0), '0');
+});
+
+test('formatCompactRp converts values to K, Jt, and M notation correctly', () => {
+  assert.equal(formatCompactRp(500), 'Rp\u00a0500');
+  assert.equal(formatCompactRp(10000), '10K');
+  assert.equal(formatCompactRp(250000), '250K');
+  assert.equal(formatCompactRp(1500000), '1,5 Jt');
+  assert.equal(formatCompactRp(2000000000), '2 M');
+  assert.equal(formatCompactRp(-15000), '-15K');
+});
+
+test('formatDisplayRp falls back to formatRp when no compact preference is stored', () => {
+  const display = formatDisplayRp(75000);
+  assert.ok(display.includes('75.000'), `Expected 75.000, got ${display}`);
 });

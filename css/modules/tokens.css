@@ -186,3 +186,64 @@ body {
   animation-duration: 0.32s;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
+
+/* === FINTECH ACCENT PALETTE VARIANTS === */
+body[data-accent="emerald"] {
+  --accent: #10b981;
+  --accent-strong: #059669;
+  --accent-tint: rgba(16, 185, 129, 0.12);
+  --accent-border: rgba(16, 185, 129, 0.32);
+  --accent-ink: #ffffff;
+}
+body.dark-mode[data-accent="emerald"] {
+  --accent: #34d399;
+  --accent-strong: #6ee7b7;
+  --accent-tint: rgba(52, 211, 153, 0.16);
+  --accent-border: rgba(52, 211, 153, 0.38);
+  --accent-ink: #022c22;
+}
+
+body[data-accent="cyan"] {
+  --accent: #0284c7;
+  --accent-strong: #0369a1;
+  --accent-tint: rgba(2, 132, 199, 0.12);
+  --accent-border: rgba(2, 132, 199, 0.32);
+  --accent-ink: #ffffff;
+}
+body.dark-mode[data-accent="cyan"] {
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --accent-tint: rgba(56, 189, 248, 0.16);
+  --accent-border: rgba(56, 189, 248, 0.38);
+  --accent-ink: #082f49;
+}
+
+body[data-accent="indigo"] {
+  --accent: #6366f1;
+  --accent-strong: #4f46e5;
+  --accent-tint: rgba(99, 102, 241, 0.12);
+  --accent-border: rgba(99, 102, 241, 0.32);
+  --accent-ink: #ffffff;
+}
+body.dark-mode[data-accent="indigo"] {
+  --accent: #818cf8;
+  --accent-strong: #a5b4fc;
+  --accent-tint: rgba(129, 140, 248, 0.16);
+  --accent-border: rgba(129, 140, 248, 0.38);
+  --accent-ink: #1e1b4b;
+}
+
+body[data-accent="amber"] {
+  --accent: #d97706;
+  --accent-strong: #b45309;
+  --accent-tint: rgba(217, 119, 6, 0.12);
+  --accent-border: rgba(217, 119, 6, 0.32);
+  --accent-ink: #ffffff;
+}
+body.dark-mode[data-accent="amber"] {
+  --accent: #fbbf24;
+  --accent-strong: #fcd34d;
+  --accent-tint: rgba(251, 191, 36, 0.16);
+  --accent-border: rgba(251, 191, 36, 0.38);
+  --accent-ink: #451a03;
+}

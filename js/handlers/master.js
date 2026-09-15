@@ -1,7 +1,7 @@
 import { NAMA_BULAN } from "../core/config.js";
 import { getState, getIsAdminSession } from "../core/state.js";
 import { postToBackend, fetchAuditLogApi } from "../core/api.js";
-import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
+import { showToast, showDatabaseToast, escapeHtml, getInitials } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { renderAll, renderSkippedMonthsList } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
@@ -187,11 +187,8 @@ export const renderMasterAnggotaTable = () => {
         <td class="td-status-col text-center">${statusBadge}</td>
         <td class="td-action-col">
           <div class="master-actions-wrap">
-            <button class="btn btn-outline btn-master-action" data-action="toggle-status-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" data-status="${nextStatus}">
-              <i class="ph-bold ${toggleIcon}"></i> <span>${toggleBtnLabel}</span>
-            </button>
-            <button class="btn btn-danger-outline btn-master-action btn-master-delete" data-action="hapus-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" title="Hapus Anggota" aria-label="Hapus Anggota">
-              <i class="ph-bold ph-trash"></i>
+            <button class="btn btn-outline btn-master-action" data-action="edit-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" title="Kelola Anggota">
+              <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
             </button>
           </div>
         </td>
@@ -226,14 +223,108 @@ export const renderMasterKategoriTable = () => {
         <td class="td-status-col text-center">${badge}</td>
         <td class="td-action-col">
           <div class="master-actions-wrap">
-            <button class="btn btn-danger-outline btn-master-action btn-master-delete" data-action="hapus-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}" title="Hapus Kategori">
-              <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+            <button class="btn btn-outline btn-master-action" data-action="edit-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}" title="Kelola Kategori">
+              <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
             </button>
           </div>
         </td>
       </tr>
     `;
   }).join('');
+};
+
+export const bukaModalEditMasterAnggota = (idAnggota) => {
+  const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
+  if (!ang) return;
+
+  const rawWa = (ang.Nomor_WA || '').trim();
+  const cleanWa = rawWa.replace(/\D/g, '');
+
+  const idInput = document.getElementById('edit-master-anggota-id');
+  if (idInput) idInput.value = ang.ID_Anggota;
+
+  const idBadge = document.getElementById('edit-master-anggota-id-badge');
+  if (idBadge) idBadge.textContent = ang.ID_Anggota;
+
+  const namaInput = document.getElementById('edit-master-nama-input');
+  if (namaInput) namaInput.value = ang.Nama_Anggota;
+
+  const waInput = document.getElementById('edit-master-wa-input');
+  if (waInput) waInput.value = rawWa;
+
+  const statusSelect = document.getElementById('edit-master-status-select');
+  if (statusSelect) {
+    statusSelect.value = ang.Status_Aktif || 'Aktif';
+  }
+
+  const waLink = document.getElementById('edit-master-anggota-wa-link');
+  if (waLink) {
+    if (cleanWa) {
+      waLink.href = `https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}`;
+      waLink.style.display = 'inline-flex';
+    } else {
+      waLink.style.display = 'none';
+    }
+  }
+
+  openModal('modal-edit-master-anggota');
+};
+
+export const submitEditMasterAnggota = async (e) => {
+  e?.preventDefault?.();
+  const idAnggota = (document.getElementById('edit-master-anggota-id')?.value || '').trim();
+  const nama = (document.getElementById('edit-master-nama-input')?.value || '').trim();
+  const noWa = (document.getElementById('edit-master-wa-input')?.value || '').trim();
+  const statusAktif = document.getElementById('edit-master-status-select')?.value || 'Aktif';
+
+  if (!idAnggota) return showToast('ID anggota tidak ditemukan.', 'error');
+  if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
+  if (nama.length < 2) return showToast('Nama anggota minimal 2 karakter.', 'error');
+
+  const btn = document.getElementById('btn-submit-edit-anggota');
+  if (btn) btn.disabled = true;
+
+  const res = await postToBackend({
+    action: 'updateStatusAnggota',
+    idAnggota,
+    statusAktif,
+    nama,
+    noWa
+  });
+
+  if (btn) btn.disabled = false;
+
+  if (res && res.status) {
+    showDatabaseToast('Data Anggota Diperbarui', `Perubahan untuk ${nama} berhasil disimpan.`);
+    closeModal('modal-edit-master-anggota');
+    await refreshAppData();
+    renderMasterAnggotaTable();
+  } else {
+    showToast(res?.message || 'Gagal menyimpan perubahan anggota.', 'error');
+  }
+};
+
+export const bukaModalEditMasterKategori = (idKategori) => {
+  const kat = (getState().kategori || []).find((k) => k.ID_Kategori === idKategori);
+  if (!kat) return;
+
+  const isMasuk = kat.Tipe === 'Masuk';
+  const idInput = document.getElementById('edit-master-kategori-id');
+  if (idInput) idInput.value = kat.ID_Kategori;
+
+  const idBadge = document.getElementById('edit-master-kategori-id-badge');
+  if (idBadge) idBadge.textContent = kat.ID_Kategori;
+
+  const namaEl = document.getElementById('edit-master-kategori-nama');
+  if (namaEl) namaEl.textContent = kat.Nama_Kategori;
+
+  const tipeBadge = document.getElementById('edit-master-kategori-tipe-badge');
+  if (tipeBadge) {
+    tipeBadge.className = `badge ${isMasuk ? 'badge-masuk' : 'badge-keluar'}`;
+    tipeBadge.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i> Kas ${kat.Tipe}`;
+  }
+
+  openModal('modal-edit-master-kategori');
 };
 
 export const openKelolaMasterModal = () => {

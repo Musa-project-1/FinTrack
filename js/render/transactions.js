@@ -117,9 +117,9 @@ export const renderTableTransaksi = () => {
 
     const isAdmin = getIsAdminSession();
     const aksiHtml = isAdmin ? `
-          <button class="btn-icon admin-only text-muted" data-action="cetak" data-id="${trx.ID_Transaksi}" title="Cetak Struk"><i class="ph-bold ph-printer fs-16"></i></button>
-          <button class="btn-icon admin-only text-warning" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data"><i class="ph-bold ph-pencil-simple fs-16"></i></button>
-          <button class="btn-icon admin-only text-danger" data-action="hapus" data-id="${trx.ID_Transaksi}" title="Hapus Data"><i class="ph-bold ph-trash fs-16"></i></button>
+          <button class="btn btn-outline btn-master-action admin-only" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data Transaksi">
+            <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
+          </button>
         ` : '';
     const aksiTd = isAdmin
       ? `<td data-label="Aksi" class="td-center-nowrap admin-only">${aksiHtml}</td>`

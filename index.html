@@ -684,81 +684,176 @@
 
       <!-- Tab 1: Anggota -->
       <div id="tab-master-anggota" class="tab-content active">
-        <div class="split-body master-split-body">
-          <div class="master-form-panel">
-            <form id="form-tambah-anggota" class="form-row-flex mb-16">
-              <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" data-i18n-ph="master.namePh" placeholder="Nama Anggota Baru..." required>
-              <input type="text" id="input-wa-anggota" class="form-control w-160" data-i18n-ph="master.waPh" placeholder="No. WA (Opsional)...">
-              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span data-i18n="master.add">Tambah</span></button>
-            </form>
-          </div>
-          <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
-            <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
-            <thead>
-              <tr>
-                <th class="w-100" data-i18n="master.colId">ID</th>
-                <th data-i18n="master.colMember">Nama Anggota</th>
-                <th data-i18n="master.colWa">No. WhatsApp</th>
-                <th class="w-110 text-center" data-i18n="master.colStatus">Status</th>
-                <th class="w-130 text-center" data-i18n="master.colAction">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="master-anggota-tbody">
-              <tr><td colspan="5" class="td-muted-center" data-i18n="master.loadMembers">Memuat data anggota...</td></tr>
-            </tbody>
-            </table>
-          </div>
+        <div class="master-form-card mb-16">
+          <form id="form-tambah-anggota" class="master-form-row">
+            <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" data-i18n-ph="master.namePh" placeholder="Nama Anggota Baru..." required>
+            <input type="text" id="input-wa-anggota" class="form-control w-180" data-i18n-ph="master.waPh" placeholder="No. WA (Opsional)...">
+            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+          </form>
+        </div>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
+          <thead>
+            <tr>
+              <th class="w-100" data-i18n="master.colId">ID</th>
+              <th data-i18n="master.colMember">Nama Anggota</th>
+              <th data-i18n="master.colWa">No. WhatsApp</th>
+              <th class="w-110 text-center" data-i18n="master.colStatus">Status</th>
+              <th class="w-130 text-center" data-i18n="master.colAction">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="master-anggota-tbody">
+            <tr><td colspan="5" class="td-muted-center" data-i18n="master.loadMembers">Memuat data anggota...</td></tr>
+          </tbody>
+          </table>
         </div>
       </div>
 
       <!-- Tab 2: Kategori -->
       <div id="tab-master-kategori" class="tab-content">
-        <div class="split-body master-split-body">
-          <div class="master-form-panel">
-            <form id="form-tambah-kategori" class="form-row-flex mb-16 master-add-form">
-              <label for="input-tipe-kategori" class="sr-only" data-i18n="master.catType">Tipe Kategori Kas</label>
-              <select id="input-tipe-kategori" class="form-control w-140 cdrop" required data-i18n-aria="master.catType" aria-label="Tipe Kategori Kas">
-                <option value="Masuk" data-i18n="master.cashIn">Kas Masuk</option>
-                <option value="Keluar" data-i18n="master.cashOut">Kas Keluar</option>
-              </select>
-              <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" data-i18n-ph="master.catPh" placeholder="Nama Kategori Baru..." required>
-              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
-            </form>
-          </div>
-          <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
-            <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
-            <thead>
-              <tr>
-                <th class="w-110" data-i18n="master.colId">ID</th>
-                <th data-i18n="master.colCat">Nama Kategori</th>
-                <th class="w-120 text-center" data-i18n="master.colFlow">Tipe Arus</th>
-                <th class="w-100 text-center" data-i18n="master.colAction">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="master-kategori-tbody">
-              <tr><td colspan="4" class="td-muted-center" data-i18n="master.loadCats">Memuat data kategori...</td></tr>
-            </tbody>
-            </table>
-          </div>
+        <div class="master-form-card mb-16">
+          <form id="form-tambah-kategori" class="master-form-row master-add-form">
+            <label for="input-tipe-kategori" class="sr-only" data-i18n="master.catType">Tipe Kategori Kas</label>
+            <select id="input-tipe-kategori" class="form-control w-140 cdrop" required data-i18n-aria="master.catType" aria-label="Tipe Kategori Kas">
+              <option value="Masuk" data-i18n="master.cashIn">Kas Masuk</option>
+              <option value="Keluar" data-i18n="master.cashOut">Kas Keluar</option>
+            </select>
+            <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" data-i18n-ph="master.catPh" placeholder="Nama Kategori Baru..." required>
+            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+          </form>
+        </div>
+        <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
+          <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
+          <thead>
+            <tr>
+              <th class="w-110" data-i18n="master.colId">ID</th>
+              <th data-i18n="master.colCat">Nama Kategori</th>
+              <th class="w-120 text-center" data-i18n="master.colFlow">Tipe Arus</th>
+              <th class="w-100 text-center" data-i18n="master.colAction">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="master-kategori-tbody">
+            <tr><td colspan="4" class="td-muted-center" data-i18n="master.loadCats">Memuat data kategori...</td></tr>
+          </tbody>
+          </table>
         </div>
       </div>
 
       <!-- Tab 3: Bulan Libur -->
       <div id="tab-master-skipped" class="tab-content">
-        <div class="split-body master-split-body">
-          <div class="master-form-panel skip-month-body">
-            <p class="text-muted mb-16 master-skip-hint" data-i18n="master.skipHint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
-            <div class="skip-month-input-row mb-16">
-              <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-i18n-data-ph="master.skipPh" data-placeholder="Pilih bulan libur..." />
-              <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
-            </div>
-          </div>
-          <div class="master-data-panel">
-            <div id="skipped-months-list" class="skipped-months-container">
-              <div class="text-muted" data-i18n="master.loadSkip">Memuat data bulan libur...</div>
-            </div>
+        <div class="master-form-card mb-16 skip-month-body">
+          <p class="text-muted mb-12 master-skip-hint" data-i18n="master.skipHint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
+          <div class="skip-month-input-row">
+            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-i18n-data-ph="master.skipPh" data-placeholder="Pilih bulan libur..." />
+            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
           </div>
         </div>
+        <div class="master-table-wrapper master-skipped-card-panel">
+          <div id="skipped-months-list" class="skipped-months-container">
+            <div class="text-muted" data-i18n="master.loadSkip">Memuat data bulan libur...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5b. Modal Edit Anggota -->
+  <div class="modal-overlay modal-top" id="modal-edit-master-anggota">
+    <div class="modal-content modal-sm edit-member-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-edit-anggota-title">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-user-gear"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <span class="eyebrow">Data Master // Anggota</span>
+            <h2 id="modal-edit-anggota-title">Edit Data Anggota</h2>
+            <p>Perbarui identitas, nomor WhatsApp, dan status keanggotaan</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <form id="form-edit-master-anggota">
+        <input type="hidden" id="edit-master-anggota-id">
+
+        <div class="edit-member-meta-bar mb-16">
+          <span class="master-id-pill" id="edit-master-anggota-id-badge">ANG-0000</span>
+          <div class="flex-align-gap">
+            <a id="edit-master-anggota-wa-link" href="#" target="_blank" rel="noopener" class="btn btn-outline btn-sm master-wa-btn">
+              <i class="ph-fill ph-whatsapp-logo"></i> <span>Chat WA</span>
+            </a>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-modal-view-profil" data-action="view-profil-from-modal">
+              <i class="ph-bold ph-clock-counter-clockwise"></i> <span>Riwayat Setoran</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group mb-12">
+          <label for="edit-master-nama-input">Nama Anggota</label>
+          <input type="text" id="edit-master-nama-input" class="form-control" required placeholder="Nama lengkap anggota...">
+        </div>
+
+        <div class="form-group mb-12">
+          <label for="edit-master-wa-input">Nomor WhatsApp</label>
+          <input type="text" id="edit-master-wa-input" class="form-control" placeholder="08xxxxxxxxxx">
+        </div>
+
+        <div class="form-group mb-16">
+          <label for="edit-master-status-select">Status Keanggotaan</label>
+          <select id="edit-master-status-select" class="form-control cdrop" required>
+            <option value="Aktif">Aktif</option>
+            <option value="Nonaktif">Nonaktif</option>
+          </select>
+        </div>
+
+        <div class="modal-footer-actions edit-footer-actions">
+          <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-anggota" data-action="hapus-anggota-from-modal">
+            <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+          </button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit-anggota">SIMPAN PERUBAHAN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5c. Modal Edit Kategori -->
+  <div class="modal-overlay modal-top" id="modal-edit-master-kategori">
+    <div class="modal-content modal-sm edit-member-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-edit-kategori-title">
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon">
+            <i class="ph-fill ph-tag"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <span class="eyebrow">Data Master // Kategori</span>
+            <h2 id="modal-edit-kategori-title">Detail Kategori Kas</h2>
+            <p>Informasi pos arus kas dan tindakan penghapusan</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+      </div>
+
+      <input type="hidden" id="edit-master-kategori-id">
+
+      <div class="edit-master-card mb-16">
+        <div class="edit-master-card-head">
+          <div class="modal-badge-icon" id="edit-master-kategori-icon">
+            <i class="ph-bold ph-arrows-down-up"></i>
+          </div>
+          <div class="edit-master-info">
+            <span class="master-id-pill" id="edit-master-kategori-id-badge">KAT-000</span>
+            <h3 class="edit-master-name" id="edit-master-kategori-nama">Nama Kategori</h3>
+          </div>
+          <span class="badge" id="edit-master-kategori-tipe-badge">Kas Masuk</span>
+        </div>
+      </div>
+
+      <div class="modal-footer-actions edit-footer-actions">
+        <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-kategori" data-action="hapus-kategori-from-modal">
+          <i class="ph-bold ph-trash"></i> <span>Hapus Kategori</span>
+        </button>
+        <button type="button" class="btn btn-primary" data-action="close-modal">Selesai</button>
       </div>
     </div>
   </div>
@@ -1267,8 +1362,16 @@
           <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span data-i18n="edit.auditNote">Perubahan tersimpan dengan jejak audit.</span></div>
         </aside>
         </div>
-        <div class="modal-footer-actions">
-          <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit" data-i18n="edit.save">SIMPAN PERUBAHAN</button>
+        <div class="modal-footer-actions edit-footer-actions">
+          <div class="edit-footer-secondary">
+            <button type="button" class="btn btn-outline" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi">
+              <i class="ph-bold ph-printer"></i> <span>Cetak Struk</span>
+            </button>
+            <button type="button" class="btn btn-danger-outline" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi">
+              <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+            </button>
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit" data-i18n="edit.save">SIMPAN PERUBAHAN</button>
         </div>
       </form>
     </div>

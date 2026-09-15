@@ -8,7 +8,6 @@
 .modal-center-dialog { width: min(380px, calc(100vw - 32px)); max-width: 100%; }
 
 @media (min-width: 769px) {
-  #modal-kelola-master .modal-content,
   #modal-transaksi .modal-content,
   #modal-statistik .modal-content,
   #modal-riwayat .modal-content,
@@ -18,7 +17,7 @@
 .tab-content { min-height: 380px; }
 #tab-master-anggota,
 #tab-master-kategori,
-#tab-master-skipped,
+#tab-master-skipped { min-height: 0; }
 #tab-iuran,
 #tab-operasional { min-height: 380px; }
 

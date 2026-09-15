@@ -286,9 +286,23 @@ export async function updateMemberStatus(gid, payload, headers) {
   const existing = await fsGet(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, headers);
   if (!existing) return fail('Anggota tidak ditemukan.');
 
-  await fsPatch(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, { Status_Aktif: statusAktif }, headers, ['Status_Aktif']);
-  await writeAuditLog(gid, 'STATUS_ANGGOTA', `${idAnggota} -> ${statusAktif}`, headers);
-  return ok('Status anggota diperbarui.');
+  const patchData = { Status_Aktif: statusAktif };
+  const updateMask = ['Status_Aktif'];
+
+  const nama = cleanText(payload?.nama, 80);
+  if (nama && nama.length >= 2) {
+    patchData.Nama_Anggota = nama;
+    updateMask.push('Nama_Anggota');
+  }
+
+  if (payload?.noWa !== undefined && payload?.noWa !== null) {
+    patchData.Nomor_WA = cleanDigits(payload.noWa, 20);
+    updateMask.push('Nomor_WA');
+  }
+
+  await fsPatch(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, patchData, headers, updateMask);
+  await writeAuditLog(gid, 'STATUS_ANGGOTA', `${idAnggota} diperbarui (${statusAktif})`, headers);
+  return ok('Data anggota diperbarui.');
 }
 
 /* ── Categories ──────────────────────────────────────────────────── */

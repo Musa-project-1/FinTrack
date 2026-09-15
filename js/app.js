@@ -41,7 +41,8 @@ import {
   openSkippedMonthsModal, renderAuditLogList, openAuditLogModal, addSkippedMonth,
   removeSkippedMonth, renderMasterAnggotaTable, renderMasterKategoriTable,
   openKelolaMasterModal, submitTambahAnggota, toggleStatusAnggotaAction,
-  hapusMasterAnggotaAction, submitTambahKategori, hapusMasterKategoriAction
+  hapusMasterAnggotaAction, submitTambahKategori, hapusMasterKategoriAction,
+  bukaModalEditMasterAnggota, bukaModalEditMasterKategori, submitEditMasterAnggota
 } from "./handlers/master.js";
 import {
   renderOfflineQueueList, openOfflineQueueModal
@@ -128,9 +129,44 @@ document.addEventListener('click', (e) => {
     case 'open-audit-log':    closeHeaderDropdown(); openAuditLogModal(); break;
     case 'refresh-audit-log': renderAuditLogList(); break;
     case 'open-kelola-master': closeHeaderDropdown(); openKelolaMasterModal(); break;
+    case 'edit-master-anggota': e.stopPropagation(); bukaModalEditMasterAnggota(id); break;
+    case 'edit-master-kategori': e.stopPropagation(); bukaModalEditMasterKategori(id); break;
     case 'toggle-status-anggota': toggleStatusAnggotaAction(id, target.getAttribute('data-status')); break;
     case 'hapus-master-anggota': hapusMasterAnggotaAction(id); break;
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
+    case 'toggle-status-from-modal': {
+      const idAng = document.getElementById('edit-master-anggota-id')?.value;
+      const nextSt = document.getElementById('edit-master-anggota-status')?.value;
+      if (idAng && nextSt) {
+        closeModal('modal-edit-master-anggota');
+        toggleStatusAnggotaAction(idAng, nextSt);
+      }
+      break;
+    }
+    case 'view-profil-from-modal': {
+      const idAng = document.getElementById('edit-master-anggota-id')?.value;
+      if (idAng) {
+        closeModal('modal-edit-master-anggota');
+        bukaProfilAnggota(idAng);
+      }
+      break;
+    }
+    case 'hapus-anggota-from-modal': {
+      const idAng = document.getElementById('edit-master-anggota-id')?.value;
+      if (idAng) {
+        closeModal('modal-edit-master-anggota');
+        hapusMasterAnggotaAction(idAng);
+      }
+      break;
+    }
+    case 'hapus-kategori-from-modal': {
+      const idKat = document.getElementById('edit-master-kategori-id')?.value;
+      if (idKat) {
+        closeModal('modal-edit-master-kategori');
+        hapusMasterKategoriAction(idKat);
+      }
+      break;
+    }
     case 'open-history':      closeHeaderDropdown(); openModal('modal-riwayat'); break;
     case 'open-statistik':    closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
     case 'open-export':       closeHeaderDropdown(); openModal('modal-export'); break;
@@ -161,6 +197,19 @@ document.addEventListener('click', (e) => {
     case 'cetak':             e.stopPropagation(); cetakStruk(id); break;
     case 'edit':              e.stopPropagation(); bukaModalEdit(id); break;
     case 'hapus':             e.stopPropagation(); konfirmasiHapus(id); break;
+    case 'cetak-dari-edit': {
+      const idTrx = document.getElementById('edit-id')?.value;
+      if (idTrx) cetakStruk(idTrx);
+      break;
+    }
+    case 'hapus-dari-edit': {
+      const idTrx = document.getElementById('edit-id')?.value;
+      if (idTrx) {
+        closeModal('modal-edit-transaksi');
+        konfirmasiHapus(idTrx);
+      }
+      break;
+    }
 
     /* ── Quick pay ────────────────────────────────── */
     case 'quickpay':
@@ -447,6 +496,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const formTambahKategori = document.getElementById('form-tambah-kategori');
   if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
+
+  const formEditMasterAnggota = document.getElementById('form-edit-master-anggota');
+  if (formEditMasterAnggota) formEditMasterAnggota.addEventListener('submit', submitEditMasterAnggota);
 
   const inputRestore = document.getElementById('input-restore-json');
   if (inputRestore) inputRestore.addEventListener('change', (e) => {

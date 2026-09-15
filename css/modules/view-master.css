@@ -50,40 +50,124 @@
   gap: 6px;
 }
 
-.master-split-body {
-  grid-template-columns: minmax(240px, 40%) minmax(0, 60%);
-  gap: 24px;
-  min-height: 360px;
-  align-items: stretch;
-}
-
-.master-form-panel,
-.master-data-panel {
-  min-width: 0;
-}
-
-.master-form-panel {
-  padding: 18px;
+/* 1. Single-Column Card & Form Layout */
+.master-form-card {
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-md);
   background: var(--surface-2);
 }
 
-.master-form-panel .form-row-flex {
-  flex-direction: column;
-  align-items: stretch;
+.master-form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.master-form-row .form-control {
+  height: 38px;
+}
+
+.master-form-row .btn {
+  height: 38px;
+  padding: 0 16px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.master-table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow-x: auto;
+}
+
+.table-master {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-master thead th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.table-master td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table-master tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-master tbody tr:hover td {
+  background: var(--surface-hover, var(--surface-2));
+}
+
+.table-master .td-name-col,
+.table-master th:nth-child(2) {
+  text-align: left;
+}
+
+.table-master .td-wa-col,
+.table-master th:nth-child(3) {
+  text-align: left;
+}
+
+.master-skip-hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.skip-month-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.skip-month-input-row .form-control {
+  height: 38px;
+}
+
+.skip-month-input-row .btn {
+  height: 38px;
+  padding: 0 16px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.master-skipped-card-panel {
+  padding: 16px;
+  min-height: 100px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.skipped-months-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
 }
-
-.master-form-panel .form-row-flex > * {
-  width: 100%;
-  min-width: 0;
-}
-
-.master-form-panel .form-row-flex .btn { justify-content: center; }
-.master-skip-hint { font-size: 13px; line-height: 1.5; }
-.skip-month-input-row { display: flex; gap: 10px; align-items: stretch; }
-.master-data-panel .skipped-months-container { height: 100%; }
 
 .btn-master-action {
   height: 32px;
@@ -253,20 +337,144 @@
   }
 
   /* Form tambah: wrap input & button nicely on mobile */
-  .master-add-form {
+  .master-form-row {
     flex-direction: column !important;
+    align-items: stretch !important;
     gap: 10px !important;
   }
-  .master-add-form input,
-  .master-add-form select,
-  .master-add-form button {
+  .master-form-row .form-control,
+  .master-form-row input,
+  .master-form-row select,
+  .master-form-row button,
+  .master-form-row .cdrop {
     width: 100% !important;
     min-width: 0 !important;
   }
 }
 
 @media (max-width: 599px) {
-  .master-split-body { display: block; min-height: 0; }
-  .master-form-panel { margin-bottom: 16px; }
-  .master-data-panel .table-responsive { max-height: 45vh; }
+  .skip-month-input-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .skip-month-input-row input,
+  .skip-month-input-row button {
+    width: 100% !important;
+  }
+  .skipped-months-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3. Modal Edit Master Anggota & Kategori Overlays */
+.edit-member-dialog {
+  width: min(480px, calc(100vw - 32px)) !important;
+  max-width: 100% !important;
+}
+
+.edit-member-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  gap: 10px;
+}
+
+.edit-master-card {
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: left;
+}
+
+.edit-master-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-master-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.edit-master-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-master-name {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edit-master-row {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.master-wa-btn {
+  height: 30px;
+  padding: 2px 10px;
+  font-size: 12px;
+  border-radius: var(--r-sm);
+  color: var(--accent-strong);
+  border-color: var(--accent-border);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.master-wa-btn:hover {
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+}
+
+.edit-master-actions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Edit Transaksi Footer Actions */
+.edit-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.edit-footer-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-footer-secondary .btn {
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  padding: 0 14px;
+  height: 38px;
 }

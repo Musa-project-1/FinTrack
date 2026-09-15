@@ -204,8 +204,16 @@
           <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span data-i18n="edit.auditNote">Perubahan tersimpan dengan jejak audit.</span></div>
         </aside>
         </div>
-        <div class="modal-footer-actions">
-          <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-edit" data-i18n="edit.save">SIMPAN PERUBAHAN</button>
+        <div class="modal-footer-actions edit-footer-actions">
+          <div class="edit-footer-secondary">
+            <button type="button" class="btn btn-outline" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi">
+              <i class="ph-bold ph-printer"></i> <span>Cetak Struk</span>
+            </button>
+            <button type="button" class="btn btn-danger-outline" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi">
+              <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+            </button>
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit" data-i18n="edit.save">SIMPAN PERUBAHAN</button>
         </div>
       </form>
     </div>

@@ -165,7 +165,19 @@ body.dark-mode {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body {
   font-family: var(--font-sans, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+/* Ensure icon fonts inherit font-family on pseudo-elements */
+[class*="ph"]::before,
+[class*="ph"]::after,
+.ph::before,
+.ph-fill::before,
+.ph-bold::before {
+  font-family: inherit !important;
 }
 
 /* === VIEW TRANSITIONS === */

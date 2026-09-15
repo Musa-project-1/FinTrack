@@ -84,36 +84,106 @@
 /* Icon tiles are neutral: the glyph carries the meaning, not a colour. */
 .nav-ico {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  font-size: 19px;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
 
-.nav-item:hover .nav-ico {
-  color: var(--accent-strong);
-  border-color: var(--accent-border);
+.nav-ico.is-green {
+  background: rgba(45, 212, 191, 0.18);
+  border: 1px solid rgba(45, 212, 191, 0.40);
+  color: #2dd4bf;
+}
+.nav-item:hover .nav-ico.is-green {
+  background: #2dd4bf;
+  color: #04231f;
+  border-color: #2dd4bf;
 }
 
-.nav-ico.is-blue,
-.nav-ico.is-amber,
-.nav-ico.is-green,
+.nav-ico.is-blue {
+  background: rgba(56, 189, 248, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.40);
+  color: #38bdf8;
+}
+.nav-item:hover .nav-ico.is-blue {
+  background: #38bdf8;
+  color: #041a29;
+  border-color: #38bdf8;
+}
+
+.nav-ico.is-amber {
+  background: rgba(251, 191, 36, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.40);
+  color: #fbbf24;
+}
+.nav-item:hover .nav-ico.is-amber {
+  background: #fbbf24;
+  color: #2b1803;
+  border-color: #fbbf24;
+}
+
+.nav-ico.is-purple {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.40);
+  color: #c084fc;
+}
+.nav-item:hover .nav-ico.is-purple {
+  background: #c084fc;
+  color: #270642;
+  border-color: #c084fc;
+}
+
 .nav-ico.is-slate {
-  background: var(--surface-2);
-  border-color: var(--border);
-  color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.30);
+  color: #94a3b8;
+}
+.nav-item:hover .nav-ico.is-slate {
+  background: var(--surface-3);
+  color: var(--text-main);
+  border-color: var(--border-strong);
 }
 
 .nav-ico.is-red {
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
-  color: var(--danger);
+  background: rgba(251, 113, 133, 0.18);
+  border: 1px solid rgba(251, 113, 133, 0.40);
+  color: #fb7185;
+}
+.nav-item:hover .nav-ico.is-red {
+  background: #fb7185;
+  color: #2b0a11;
+  border-color: #fb7185;
+}
+
+body:not(.dark-mode) .nav-ico.is-green {
+  background: rgba(13, 148, 136, 0.14);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: #0d9488;
+}
+body:not(.dark-mode) .nav-ico.is-blue {
+  background: rgba(2, 132, 199, 0.14);
+  border-color: rgba(2, 132, 199, 0.35);
+  color: #0284c7;
+}
+body:not(.dark-mode) .nav-ico.is-amber {
+  background: rgba(180, 83, 9, 0.14);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: #b45309;
+}
+body:not(.dark-mode) .nav-ico.is-purple {
+  background: rgba(126, 34, 206, 0.14);
+  border-color: rgba(126, 34, 206, 0.35);
+  color: #7e22ce;
+}
+body:not(.dark-mode) .nav-ico.is-red {
+  background: rgba(225, 29, 72, 0.14);
+  border-color: rgba(225, 29, 72, 0.35);
+  color: #e11d48;
 }
 
 .nav-txt {

@@ -206,15 +206,15 @@ body.dark-mode .year-pill select {
 /* === CELLS ===
    Column labels read as ledger eyebrows; figures are monospace and tabular. */
 th {
-  background: var(--table-header-bg);
-  color: var(--text-faint);
+  background: var(--surface-2);
+  color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: var(--tracking-eyebrow);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--border);
+  padding: 10px var(--sp-4);
+  border-bottom: 2px solid var(--border-strong);
   text-align: center;
   white-space: nowrap;
 }
@@ -284,18 +284,29 @@ tr:hover td {
 
 /* === MATRIX TABLE (dues grid) === */
 .table-matriks thead th {
-  background: var(--table-header-bg);
-  color: var(--text-faint);
+  background: var(--surface-2);
+  color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-eyebrow);
+  letter-spacing: 0.08em;
+  padding: 13px 12px;
+  border-bottom: 2px solid var(--accent-strong);
+}
+
+body.dark-mode .table-matriks thead th {
+  color: #ffffff;
 }
 
 .table-matriks thead th:first-child {
   text-align: left;
   padding-left: var(--sp-4);
+  color: var(--accent) !important;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.10em;
+  background: var(--surface-2);
 }
 
 .table-matriks td.text-center {
@@ -323,7 +334,7 @@ tr:hover td {
 }
 
 .table-matriks thead th:first-child {
-  background: var(--table-header-bg);
+  background: var(--surface-2);
   z-index: 11;
 }
 

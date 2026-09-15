@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finkas</title>
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
-  <meta name="theme-color" content="#d6e9f3">
+  <meta name="theme-color" content="#e8f1f6">
 
   <!-- Social Preview / Open Graph -->
   <meta property="og:type" content="website">
@@ -27,47 +27,47 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=119">
-  <link rel="stylesheet" href="style.css?v=120">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=118">
+  <link rel="stylesheet" href="style.css?v=118">
 </head>
 <body>
 
   <main class="container">
     <header class="header">
       <div class="header-left">
-        <a href="#" class="brand-link connection-status" id="btn-about" data-action="open-about" tabindex="0" role="button" data-i18n-title="hdr.aboutTitle" title="Tentang Finkas" data-i18n-aria="hdr.aboutTitle" aria-label="Finkas: Status Online">
+        <a href="#" class="brand-link connection-status" id="btn-about" data-action="open-about" tabindex="0" role="button" title="Tentang Finkas" aria-label="Finkas: Status Online">
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
           <span class="status-dot"></span>
         </a>
-        <button class="group-name" id="app-group-name" data-action="open-groups" data-i18n-title="hdr.pickGroup" title="Pilih Grup"></button>
+        <button class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup"></button>
       </div>
 
       <div class="header-right">
         <!-- Compact Header Financial Stats (Toggleable via Option) -->
         <div class="header-stats" id="header-stats">
-          <div class="header-stat-pill pill-saldo" data-i18n-title="hdr.saldoTitle" title="Saldo Kas">
+          <div class="header-stat-pill pill-saldo" title="Saldo Kas">
             <i class="ph-fill ph-vault"></i>
             <div class="header-stat-content">
-              <span class="header-stat-label" data-i18n="hdr.saldo">Saldo</span>
+              <span class="header-stat-label">Saldo</span>
               <span class="header-stat-val" id="hdr-saldo-val">Rp 0</span>
             </div>
           </div>
-          <div class="header-stat-pill pill-masuk" data-i18n-title="hdr.inTitle" title="Total Pemasukan">
+          <div class="header-stat-pill pill-masuk" title="Total Pemasukan">
             <i class="ph-fill ph-trend-up"></i>
             <div class="header-stat-content">
-              <span class="header-stat-label" data-i18n="hdr.in">Masuk</span>
+              <span class="header-stat-label">Masuk</span>
               <span class="header-stat-val" id="hdr-masuk-val">Rp 0</span>
             </div>
           </div>
-          <div class="header-stat-pill pill-keluar" data-i18n-title="hdr.outTitle" title="Total Pengeluaran">
+          <div class="header-stat-pill pill-keluar" title="Total Pengeluaran">
             <i class="ph-fill ph-trend-down"></i>
             <div class="header-stat-content">
-              <span class="header-stat-label" data-i18n="hdr.out">Keluar</span>
+              <span class="header-stat-label">Keluar</span>
               <span class="header-stat-val" id="hdr-keluar-val">Rp 0</span>
             </div>
           </div>
@@ -75,40 +75,50 @@
 
         <!-- Unified Actions (single set for desktop + mobile) -->
         <div class="header-actions" id="header-actions">
-          <button class="btn btn-icon" data-i18n-aria="hdr.theme" aria-label="Ganti Tema" data-action="toggle-theme" data-i18n-title="hdr.theme" title="Ganti Tema">
+          <button class="btn btn-icon" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <button class="btn btn-icon" id="btn-toggle-stats-header" data-action="toggle-header-stats" data-i18n-aria="hdr.statsToggle" aria-label="Alihkan Posisi Ringkasan Kas" data-i18n-title="hdr.statsTitle" title="Pindah Ringkasan ke Header / Body">
+          <button class="btn btn-icon" id="btn-toggle-stats-header" data-action="toggle-header-stats" aria-label="Alihkan Posisi Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
             <i class="ph ph-layout fs-18" id="icon-toggle-stats-header"></i>
           </button>
 
           <!-- Hamburger Button opens Unified Menu Modal -->
-          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" data-i18n-aria="hdr.menu" aria-label="Buka Menu" data-i18n-title="hdr.menu" title="Menu">
+          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" title="Menu">
             <i class="ph ph-list fs-22"></i>
           </button>
 
           <button class="btn btn-primary btn-catat admin-only" data-action="buka-transaksi">
-            <i class="ph ph-plus-circle fs-18"></i> <span data-i18n="hdr.record">Catat Transaksi</span>
+            <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
           </button>
         </div>
       </div>
     </header>
 
     <section class="dashboard">
+      <!-- The one number that matters: balance is the hero, everything else is secondary. -->
       <div class="balance-hero">
-        <span class="eyebrow" data-i18n="dash.balance">Saldo Kas Saat Ini</span>
+        <span class="eyebrow">Saldo Kas Saat Ini</span>
         <div id="ui-saldo" class="balance-hero__value"><div class="skeleton skeleton-title"></div></div>
         <span class="balance-hero__rule" aria-hidden="true"></span>
       </div>
+
       <div class="flow-strip">
         <div class="flow-strip__item flow-in">
-          <span class="flow-strip__label"><i class="ph-bold ph-arrow-down-left" aria-hidden="true"></i> <span data-i18n="dash.in">Total Pemasukan</span></span>
-          <span id="ui-masuk" class="flow-strip__value"><span class="skeleton skeleton-text"></span></span>
+          <span class="flow-strip__label">
+            <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk
+          </span>
+          <span class="flow-strip__value">
+            <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
+          </span>
         </div>
         <div class="flow-strip__item flow-out">
-          <span class="flow-strip__label"><i class="ph-bold ph-arrow-up-right" aria-hidden="true"></i> <span data-i18n="dash.out">Total Pengeluaran</span></span>
-          <span id="ui-keluar" class="flow-strip__value"><span class="skeleton skeleton-text"></span></span>
+          <span class="flow-strip__label">
+            <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar
+          </span>
+          <span class="flow-strip__value">
+            <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
+          </span>
         </div>
       </div>
     </section>
@@ -119,24 +129,24 @@
         <div class="table-header-left">
           <h2 class="table-title">
             <i class="ph-fill ph-users-three"></i>
-            <span data-i18n="rekap.title">Status Iuran</span>
+            Status Iuran
           </h2>
         </div>
         <div class="table-header-controls">
           <div class="year-pill">
             <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-            <label for="ui-tahun-rekap-select" data-i18n="rekap.yearLabel">Tahun: </label>
-            <select id="ui-tahun-rekap-select" class="cdrop" data-i18n-aria="rekap.yearAria" aria-label="Pilih tahun rekap iuran">
+            <label for="ui-tahun-rekap-select">Tahun: </label>
+            <select id="ui-tahun-rekap-select" class="cdrop" aria-label="Pilih tahun rekap iuran">
             </select>
           </div>
           <div class="member-search-wrapper">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-member-rekap" class="form-control search-member-input" data-i18n-ph="rekap.searchPh" placeholder="Cari nama anggota..." data-i18n-aria="rekap.searchAria" aria-label="Cari nama anggota">
+            <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
           </div>
-          <button class="btn btn-icon" data-action="open-tampilan" data-i18n-title="rekap.tampilanBtn" title="Pengaturan Tampilan" data-i18n-aria="rekap.tampilanBtn" aria-label="Pengaturan Tampilan">
+          <button class="btn btn-icon" data-action="open-tampilan" title="Pengaturan Tampilan" aria-label="Pengaturan Tampilan">
             <i class="ph-bold ph-palette fs-16"></i>
           </button>
-          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" data-i18n-title="rekap.waBtn" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" data-i18n-aria="rekap.waBtn" aria-label="Buat Pesan Pengingat Grup WA">
+          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
             <i class="ph ph-whatsapp-logo"></i>
           </button>
         </div>
@@ -148,17 +158,17 @@
           <div class="table-header-left">
             <h2 class="table-title">
               <i class="ph-fill ph-users-three"></i>
-              <span data-i18n="rekap.title">Status Iuran</span>
+              Status Iuran
             </h2>
           </div>
           <div class="table-header-actions">
             <div class="year-pill">
               <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-              <label for="ui-tahun-rekap-select-mobile" data-i18n="rekap.yearLabel">Tahun: </label>
-              <select id="ui-tahun-rekap-select-mobile" class="cdrop" data-i18n-aria="rekap.yearAria" aria-label="Pilih tahun rekap iuran">
+              <label for="ui-tahun-rekap-select-mobile">Tahun: </label>
+              <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
               </select>
             </div>
-            <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" data-i18n-title="rekap.waBtn" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" data-i18n-aria="rekap.waBtn" aria-label="Buat Pesan Pengingat Grup WA">
+            <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
               <i class="ph ph-whatsapp-logo"></i>
             </button>
           </div>
@@ -166,7 +176,7 @@
         <div class="table-header-controls">
           <div class="member-search-wrapper">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-member-rekap-mobile" class="form-control search-member-input" data-i18n-ph="rekap.searchPh" placeholder="Cari nama anggota..." data-i18n-aria="rekap.searchAria" aria-label="Cari nama anggota">
+            <input type="text" id="search-member-rekap-mobile" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
           </div>
         </div>
       </div>
@@ -174,8 +184,8 @@
       <div class="table-responsive">
         <table class="table-matriks">
           <thead>
-            <tr id="rekap-month-head">
-              <th class="th-member-col" data-i18n="rekap.memberCol">Nama Anggota</th>
+            <tr>
+              <th class="th-member-col">Nama Anggota</th>
               <th>Jan</th> <th>Feb</th> <th>Mar</th> <th>Apr</th> <th>Mei</th> <th>Jun</th>
               <th>Jul</th> <th>Agu</th> <th>Sep</th> <th>Okt</th> <th>Nov</th> <th>Des</th>
             </tr>
@@ -207,16 +217,17 @@
             <i class="ph-fill ph-lock-key"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="auth.title">Akses Pengurus</h2>
-            <p data-i18n="auth.subtitle">Kelola kas &amp; pencatatan grup aktif</p>
+            <span class="eyebrow">Akses // Pengurus</span>
+            <h2>Akses Pengurus</h2>
+            <p>Kelola kas &amp; pencatatan grup aktif</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <form id="form-login-admin" class="auth-modal-form">
         <div class="form-group" style="margin-bottom:12px">
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted,#64748b);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px" data-i18n="auth.email">Email Pengurus</label>
+          <label>Email Pengurus</label>
           <div class="input-with-icon">
             <i class="ph ph-envelope group-input-icon"></i>
             <input type="email" id="input-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="username">
@@ -224,18 +235,18 @@
         </div>
 
         <div class="form-group" style="margin-bottom:18px">
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted,#64748b);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px" data-i18n="auth.password">Password</label>
+          <label>Password</label>
           <div class="input-with-icon" style="position:relative">
             <i class="ph ph-key group-input-icon"></i>
-            <input type="password" id="input-admin-pwd" class="form-control group-form-input" style="padding-right:42px !important" data-i18n-ph="auth.pwdPh" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
-            <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" data-i18n-aria="auth.peek" aria-label="Lihat Password">
+            <input type="password" id="input-admin-pwd" class="form-control group-form-input" style="padding-right:42px !important" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
+            <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
               <i class="ph ph-eye" id="icon-toggle-pwd"></i>
             </button>
           </div>
         </div>
 
         <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width:100%;height:42px;border-radius:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px">
-          <i class="ph-bold ph-sign-in"></i> <span data-i18n="auth.submit">Masuk sebagai Pengurus</span>
+          <i class="ph-bold ph-sign-in"></i> Masuk sebagai Pengurus
         </button>
       </form>
     </div>
@@ -247,11 +258,11 @@
       <div class="modal-badge-icon slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
-      <h2 data-i18n="logout.title">Keluar Sesi Admin?</h2>
-      <p data-i18n="logout.msg">Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
+      <h2>Keluar Sesi Admin?</h2>
+      <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
-        <button class="btn btn-outline" data-action="cancel-logout" data-i18n="logout.cancel">Batal</button>
-        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm" data-i18n="logout.yes">Ya, Keluar</button>
+        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
+        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
       </div>
     </div>
   </div>
@@ -268,25 +279,25 @@
 
       <div class="about-body">
         <h2 class="about-name">Finkas</h2>
-        <p class="about-tagline" data-i18n="about.tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
+        <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
 
         <div class="about-meta">
           <div class="about-meta-row">
-            <span class="about-meta-label" data-i18n="about.version">Versi</span>
+            <span class="about-meta-label">Versi</span>
             <span class="about-meta-val">1.0.0</span>
           </div>
           <div class="about-meta-row">
-            <span class="about-meta-label" data-i18n="about.platform">Platform</span>
+            <span class="about-meta-label">Platform</span>
             <span class="about-meta-val">Progressive Web App</span>
           </div>
           <div class="about-meta-row">
-            <span class="about-meta-label" data-i18n="about.backend">Backend</span>
+            <span class="about-meta-label">Backend</span>
             <span class="about-meta-val">Firestore (finkas-kas)</span>
           </div>
         </div>
 
-        <p class="about-copy">&copy; 2025 Finkas. <span data-i18n="about.made">Dibuat dengan</span> <i class="ph-fill ph-heart about-heart"></i> <span data-i18n="about.purpose">untuk pengelolaan kas yang lebih baik.</span></p>
-        <p style="text-align:center; margin-top:8px;"><a href="privacy.html" target="_blank" style="font-size:12px; color:var(--accent); text-decoration:underline;" data-i18n="about.privacy">Kebijakan Privasi</a></p>
+        <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
+        <p style="text-align:center; margin-top:8px;"><a href="privacy.html" target="_blank" style="font-size:12px; color:var(--accent-strong); text-decoration:underline;">Kebijakan Privasi</a></p>
       </div>
     </div>
   </div>
@@ -301,18 +312,19 @@
             <i class="ph-fill ph-users-three"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="groups.title">Pilih Grup</h2>
-            <p data-i18n="groups.subtitle">Tiap grup ruangannya sendiri, data tidak campur</p>
+            <span class="eyebrow">Grup // Pilih</span>
+            <h2>Pilih Grup</h2>
+            <p>Tiap grup ruangannya sendiri, data tidak campur</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div id="group-picker-list" class="group-picker-list"></div>
       <div class="group-picker-actions">
-        <a class="btn btn-outline" href="onboarding.html" style="width:100%;margin-top:8px;text-align:center;text-decoration:none;display:block" data-i18n="groups.welcome">Buka halaman sambutan</a>
-        <button class="btn btn-outline" data-action="exit-group" style="width:100%;margin-top:8px" data-i18n="groups.exit">Keluar grup aktif</button>
+        <a class="btn btn-outline" href="onboarding.html" style="width:100%;margin-top:8px;text-align:center;text-decoration:none;display:block">Buka halaman sambutan</a>
+        <button class="btn btn-outline" data-action="exit-group" style="width:100%;margin-top:8px">Keluar grup aktif</button>
       </div>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px" data-i18n="groups.hint">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
     </div>
   </div>
 
@@ -326,11 +338,12 @@
             <i class="ph-fill ph-lock-key"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Akses // PIN Grup</span>
             <h2 id="group-pin-name">Grup</h2>
-            <p data-i18n="pin.subtitle">Ketik PIN 4 angka grup ini</p>
+            <p>Ketik PIN 4 angka grup ini</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div class="pin-row">
         <input id="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="0">
@@ -339,9 +352,9 @@
         <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
       </div>
       <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
-      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%" data-i18n="pin.enter">Masuk Grup</button>
-      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px" data-i18n="pin.switch">Ganti Grup</button>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px" data-i18n="pin.lock">Salah 5 kali, terkunci 5 menit.</p>
+      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%">Masuk Grup</button>
+      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px">Ganti Grup</button>
+      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Salah 5 kali, terkunci 5 menit.</p>
     </div>
   </div>
 
@@ -355,40 +368,41 @@
             <i class="ph-fill ph-users-three"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="gadmin.title">Kelola Grup</h2>
-            <p data-i18n="gadmin.subtitle">Atur kelas atau buat ruang kas baru</p>
+            <span class="eyebrow">Grup // Kelola</span>
+            <h2>Kelola Grup</h2>
+            <p>Atur kelas atau buat ruang kas baru</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <!-- Form Tambah Grup Baru (Linear / Vercel Card Style) -->
       <div class="group-admin-create-box">
         <div class="group-section-header">
           <i class="ph-bold ph-plus-circle text-primary"></i>
-          <span data-i18n="gadmin.add">Tambah Grup Baru</span>
+          <span>Tambah Grup Baru</span>
         </div>
         <form id="form-create-group">
           <div class="group-create-grid">
             <div class="input-with-icon flex-1 min-w-200">
               <i class="ph ph-users group-input-icon"></i>
-              <input type="text" id="input-group-nama" class="form-control group-form-input" data-i18n-ph="gadmin.namePh" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+              <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
             </div>
             <div class="input-with-icon w-140">
               <i class="ph ph-lock-key group-input-icon"></i>
-              <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" data-i18n-ph="gadmin.pinPh" placeholder="PIN 4 digit" required autocomplete="off">
+              <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary btn-create-submit">
               <i class="ph-bold ph-plus"></i>
-              <span data-i18n="gadmin.create">Buat</span>
+              <span>Buat</span>
             </button>
           </div>
 
           <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
-          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-color, #e2e8f0)">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main, #334155)">
+          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main)">
               <input type="checkbox" id="chk-group-admin-auto" checked>
-              <span data-i18n="gadmin.auto">Buat akun Admin Grup langsung (Email &amp; Password)</span>
+              <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
             </label>
             <div id="box-group-admin-creds" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
               <div class="input-with-icon flex-1 min-w-160">
@@ -397,9 +411,9 @@
               </div>
               <div class="input-with-icon w-140">
                 <i class="ph ph-key group-input-icon"></i>
-                <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" data-i18n-ph="gadmin.pwdPh" placeholder="Password acak..." autocomplete="off">
+                <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
               </div>
-              <button type="button" class="btn btn-outline" id="btn-refresh-admin-pwd" data-i18n-title="gadmin.refreshPwd" title="Acak ulang password" style="padding:0 12px">
+              <button type="button" class="btn btn-outline" id="btn-refresh-admin-pwd" title="Acak ulang password" style="padding:0 12px">
                 <i class="ph-bold ph-arrows-clockwise"></i>
               </button>
             </div>
@@ -409,33 +423,33 @@
 
       <!-- Daftar Grup Terdaftar -->
       <div class="group-section-title-row">
-        <span class="group-section-title" data-i18n="gadmin.list">Grup Terdaftar</span>
-        <span class="badge-count-pill" id="group-admin-count" data-i18n="gadmin.loading">Memuat...</span>
+        <span class="group-section-title">Grup Terdaftar</span>
+        <span class="badge-count-pill" id="group-admin-count">Memuat...</span>
       </div>
 
       <div id="group-admin-list" class="group-admin-list"></div>
 
       <!-- Bagian Kelola Akses Super Admin (Google Whitelist) -->
-      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:10px;background:var(--bg-card-subtle, rgba(241,245,249,0.6));border:1px solid var(--border-color, #e2e8f0)">
+      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)">
         <div class="group-section-header" style="margin-bottom:8px">
           <i class="ph-bold ph-shield-check text-primary"></i>
-          <span style="font-weight:600;font-size:13px" data-i18n="gadmin.saTitle">Daftar Super Admin (Google Login)</span>
+          <span style="font-weight:600;font-size:13px">Daftar Super Admin (Google Login)</span>
         </div>
-        <p style="font-size:11px;color:var(--text-muted, #64748b);margin-bottom:10px" data-i18n="gadmin.saHint">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
         
         <div id="superadmin-emails-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
 
         <form id="form-add-superadmin" style="display:flex;gap:8px">
           <input type="email" id="input-add-superadmin" class="form-control" placeholder="tambah.email.google@gmail.com" required style="font-size:12px">
           <button type="submit" class="btn btn-outline btn-sm" style="white-space:nowrap">
-            <i class="ph-bold ph-plus"></i> <span data-i18n="gadmin.saAdd">Tambah</span>
+            <i class="ph-bold ph-plus"></i> Tambah
           </button>
         </form>
       </div>
 
       <div class="group-admin-footer-notice" style="margin-top:12px">
         <i class="ph-fill ph-shield-check"></i>
-        <span data-i18n="gadmin.safe">Data tiap grup terisolasi aman. Hapus grup memerlukan konfirmasi nama.</span>
+        <span>Data tiap grup terisolasi aman. Hapus grup memerlukan konfirmasi nama.</span>
       </div>
     </div>
   </div>
@@ -449,25 +463,26 @@
             <i class="ph-fill ph-check-circle"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="cred.title">Kredensial Grup</h2>
-            <p id="cred-modal-subtitle" data-i18n="cred.subtitle">Akun siap dibagikan ke pengurus</p>
+            <span class="eyebrow">Grup // Kredensial</span>
+            <h2>Kredensial Grup</h2>
+            <p id="cred-modal-subtitle">Akun siap dibagikan ke pengurus</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="cred-card-box" style="margin:12px 0;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border);font-size:13px;line-height:1.6">
-        <div style="margin-bottom:6px"><strong data-i18n="cred.group">Grup:</strong> <span id="cred-disp-nama">-</span></div>
-        <div style="margin-bottom:6px"><strong data-i18n="cred.pin">PIN Warga:</strong> <code id="cred-disp-pin" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">1234</code></div>
-        <div style="margin-bottom:6px"><strong data-i18n="cred.email">Email Admin:</strong> <span id="cred-disp-email" style="word-break:break-all">-</span></div>
-        <div><strong data-i18n="cred.pwd">Password Admin:</strong> <code id="cred-disp-pwd" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">-</code></div>
+        <div style="margin-bottom:6px"><strong>Grup:</strong> <span id="cred-disp-nama">-</span></div>
+        <div style="margin-bottom:6px"><strong>PIN Warga:</strong> <code id="cred-disp-pin" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">1234</code></div>
+        <div style="margin-bottom:6px"><strong>Email Admin:</strong> <span id="cred-disp-email" style="word-break:break-all">-</span></div>
+        <div><strong>Password Admin:</strong> <code id="cred-disp-pwd" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">-</code></div>
       </div>
 
       <div class="modal-dialog-actions" style="display:flex;flex-direction:column;gap:8px">
         <button type="button" class="btn btn-primary" id="btn-copy-cred-wa" data-action="copy-cred-wa" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-          <i class="ph-bold ph-whatsapp-logo" style="font-size:18px"></i> <span data-i18n="cred.copyWa">Salin Format WhatsApp</span>
+          <i class="ph-bold ph-whatsapp-logo" style="font-size:18px"></i> Salin Format WhatsApp
         </button>
-        <button type="button" class="btn btn-outline" data-action="close-modal" style="width:100%" data-i18n="cred.close">Tutup</button>
+        <button type="button" class="btn btn-outline" data-action="close-modal" style="width:100%">Tutup</button>
       </div>
     </div>
   </div>
@@ -478,34 +493,35 @@
     <div class="modal-content modal-md menu-sheet nav-sheet">
       <div class="quickpay-handle" aria-hidden="true"></div>
       <div class="nav-sheet-head">
-        <div class="modal-title-wrap">
-          <h2 data-i18n="menu.title">Menu Navigasi</h2>
-          <p data-i18n="menu.subtitle">Akses fitur pembukuan dan pengaturan kas</p>
+          <div class="modal-title-wrap">
+            <span class="eyebrow">Navigasi // Menu</span>
+            <h2>Menu Navigasi</h2>
+          <p>Akses fitur pembukuan dan pengaturan kas</p>
         </div>
-        <button class="close-modal-btn nav-close-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+        <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
       </div>
 
       <button class="nav-item" id="btn-login-menu-sheet" data-action="open-login">
         <span class="nav-ico is-slate"><i class="ph-fill ph-lock-key"></i></span>
-        <span class="nav-txt" data-i18n="menu.login">Login Admin</span>
+        <span class="nav-txt">Login Admin</span>
         <i class="ph-bold ph-caret-right nav-chev"></i>
       </button>
 
       <div class="nav-group">
-        <div class="nav-group-label" data-i18n="menu.manageData">Kelola data</div>
+        <div class="nav-group-label">Kelola data</div>
         <button class="nav-item admin-only" data-action="open-kelola-master">
           <span class="nav-ico is-blue"><i class="ph-fill ph-sliders"></i></span>
-          <span class="nav-txt" data-i18n="menu.master">Data Master</span>
+          <span class="nav-txt">Data Master</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item admin-only" data-action="open-audit-log">
           <span class="nav-ico is-slate"><i class="ph-fill ph-detective"></i></span>
-          <span class="nav-txt" data-i18n="menu.audit">Log Aktivitas</span>
+          <span class="nav-txt">Log Aktivitas</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item superadmin-only" data-action="open-group-admin">
           <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
-          <span class="nav-txt" data-i18n="menu.groups">Kelola Grup</span>
+          <span class="nav-txt">Kelola Grup</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
@@ -515,26 +531,26 @@
         </button>
         <button class="nav-item" data-action="open-tampilan">
           <span class="nav-ico is-amber"><i class="ph-fill ph-palette"></i></span>
-          <span class="nav-txt" data-i18n="menu.appearance">Tampilan</span>
+          <span class="nav-txt">Tampilan</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
       </div>
 
       <div class="nav-group">
-        <div class="nav-group-label" data-i18n="menu.reports">Laporan</div>
+        <div class="nav-group-label">Laporan</div>
         <button class="nav-item" data-action="open-history">
           <span class="nav-ico is-green"><i class="ph-fill ph-clock-counter-clockwise"></i></span>
-          <span class="nav-txt" data-i18n="menu.history">Riwayat Transaksi</span>
+          <span class="nav-txt">Riwayat Transaksi</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" data-action="open-statistik">
           <span class="nav-ico is-green"><i class="ph-fill ph-chart-bar"></i></span>
-          <span class="nav-txt" data-i18n="menu.stats">Statistik Keuangan</span>
+          <span class="nav-txt">Statistik Keuangan</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" data-action="open-export">
           <span class="nav-ico is-green"><i class="ph-fill ph-export"></i></span>
-          <span class="nav-txt" data-i18n="menu.export">Ekspor Data (Excel/PDF)</span>
+          <span class="nav-txt">Ekspor Data (Excel/PDF)</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
       </div>
@@ -542,22 +558,22 @@
       <div class="nav-group">
         <button class="nav-item" data-action="open-faq">
           <span class="nav-ico is-blue"><i class="ph-fill ph-question"></i></span>
-          <span class="nav-txt" data-i18n="menu.faq">Panduan & FAQ</span>
+          <span class="nav-txt">Panduan & FAQ</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;">
           <span class="nav-ico is-slate"><i class="ph-fill ph-download-simple"></i></span>
-          <span class="nav-txt" data-i18n="menu.install">Pasang Aplikasi Finkas</span>
+          <span class="nav-txt">Pasang Aplikasi Finkas</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item" data-action="open-offline-queue">
           <span class="nav-ico is-slate"><i class="ph-fill ph-cloud-slash"></i></span>
-          <span class="nav-txt" data-i18n="menu.offline">Antrean Offline</span>
+          <span class="nav-txt">Antrean Offline</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
         <button class="nav-item nav-danger admin-only" data-action="logout">
           <span class="nav-ico is-red"><i class="ph-fill ph-sign-out"></i></span>
-          <span class="nav-txt" data-i18n="menu.logout">Logout Admin</span>
+          <span class="nav-txt">Logout Admin</span>
           <i class="ph-bold ph-caret-right nav-chev"></i>
         </button>
       </div>
@@ -574,11 +590,12 @@
             <i class="ph-fill ph-hand-coins"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="qp.title">Bayar Iuran Kilat</h2>
-            <p id="qp-periode" data-i18n="qp.subtitle">Konfirmasi pembayaran satu sentuhan</p>
+            <span class="eyebrow">Pembayaran // Kilat</span>
+            <h2>Bayar Iuran Kilat</h2>
+            <p id="qp-periode">Konfirmasi pembayaran satu sentuhan</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <form id="form-quickpay">
         <input type="hidden" id="qp-id-anggota">
@@ -588,18 +605,18 @@
           <div class="qp-avatar" id="qp-avatar">?</div>
           <div class="min-w-0">
             <div id="qp-nama" class="qp-member-name">-</div>
-            <div class="text-xs text-muted" data-i18n="qp.member">Anggota Kas Terdaftar</div>
+            <div class="text-xs text-muted">Anggota Kas Terdaftar</div>
           </div>
         </div>
         <div class="form-group mb-16">
-          <label data-i18n="qp.amount">Nominal Pembayaran</label>
+          <label>Nominal Pembayaran</label>
           <div class="input-with-prefix">
             <span>Rp</span>
             <input type="text" id="qp-nominal" class="form-control input-qp-nominal" inputmode="numeric" required>
           </div>
         </div>
         <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-quickpay">
-          <i class="ph-bold ph-check-circle"></i> <span data-i18n="qp.save">SIMPAN PEMBAYARAN</span>
+          <i class="ph-bold ph-check-circle"></i> SIMPAN PEMBAYARAN
         </button>
       </form>
     </div>
@@ -615,6 +632,7 @@
             <i class="ph-fill ph-detective"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Audit // Aktivitas</span>
             <h2 id="modal-audit-log-title" data-i18n="audit.title">Log Aktivitas Admin</h2>
             <p data-i18n="audit.subtitle">Jejak audit dan rekaman histori aksi pengurus kas</p>
           </div>
@@ -650,6 +668,7 @@
             <i class="ph-fill ph-sliders"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Data Master // Anggota</span>
             <h2 id="modal-kelola-master-title" data-i18n="master.title">Data Master</h2>
             <p data-i18n="master.subtitle">Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
           </div>
@@ -753,6 +772,7 @@
             <i class="ph-fill ph-cloud-arrow-up"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Sinkronisasi // Antrean</span>
             <h2 id="modal-offline-queue-title" data-i18n="queue.title">Antrean Transaksi Offline</h2>
             <p data-i18n="queue.subtitle">Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
           </div>
@@ -782,11 +802,12 @@
             <i class="ph-fill ph-export"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="exp.title">Export & Cetak</h2>
-            <p data-i18n="exp.subtitle">Unduh laporan atau bagikan rekap kas</p>
+            <span class="eyebrow">Laporan // Ekspor</span>
+            <h2>Export & Cetak</h2>
+            <p>Unduh laporan atau bagikan rekap kas</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div class="export-actions-list">
         <button class="btn btn-primary export-card-btn admin-only" data-action="copy-monthly-recap">
@@ -794,8 +815,8 @@
             <i class="ph-bold ph-whatsapp-logo fs-24"></i>
           </div>
           <div class="text-left">
-            <div class="export-btn-title" data-i18n="exp.waTitle">Salin Rekap Bulan Ini (WA)</div>
-            <div class="export-btn-desc" data-i18n="exp.waDesc">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
+            <div class="export-btn-title">Salin Rekap Bulan Ini (WA)</div>
+            <div class="export-btn-desc">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
           </div>
         </button>
         <button class="btn btn-outline export-card-btn" data-action="print-annual">
@@ -803,18 +824,18 @@
             <i class="ph-bold ph-printer fs-24"></i>
           </div>
           <div class="text-left">
-            <div class="export-btn-title text-main" data-i18n="exp.printTitle">Cetak Rekap Tahunan</div>
-            <div class="export-btn-desc text-muted" data-i18n="exp.printDesc">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
+            <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
+            <div class="export-btn-desc text-muted">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
           </div>
         </button>
-        <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> <span data-i18n="exp.csv">Unduh CSV spreadsheet lengkap</span></button>
+        <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
         <div class="admin-only" style="margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--border);">
           <div style="display: flex; gap: 8px; justify-content: space-between;">
-            <button class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px;" data-action="export-json-backup" data-i18n-title="exp.backupTitle" title="Download snapshot JSON database">
-              <i class="ph ph-floppy-disk"></i> <span data-i18n="exp.backupJson">Backup JSON</span>
+            <button class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px;" data-action="export-json-backup" title="Download snapshot JSON database">
+              <i class="ph ph-floppy-disk"></i> Backup JSON
             </button>
-            <label class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px; cursor: pointer; text-align: center;" data-i18n-title="exp.restoreTitle" title="Restore snapshot JSON database">
-              <i class="ph ph-upload-simple"></i> <span data-i18n="exp.restoreJson">Restore JSON</span>
+            <label class="btn btn-outline" style="flex: 1; font-size: 12px; padding: 8px 10px; cursor: pointer; text-align: center;" title="Restore snapshot JSON database">
+              <i class="ph ph-upload-simple"></i> Restore JSON
               <input type="file" id="input-restore-json" accept=".json" style="display: none;">
             </label>
           </div>
@@ -832,21 +853,22 @@
             <i class="ph-fill ph-chart-bar"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="stat.title">Statistik & Kesehatan Kas</h2>
-            <p data-i18n="stat.subtitle">Visualisasi tren arus kas dan rasio kepatuhan pembayaran</p>
+            <span class="eyebrow">Laporan // Statistik</span>
+            <h2>Statistik & Kesehatan Kas</h2>
+            <p>Visualisasi tren arus kas dan rasio kepatuhan pembayaran</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="stats-overview mb-20">
         <div class="stat-card health-card">
           <div class="stat-card-header">
-            <span data-i18n="stat.health">Kesehatan Kas</span>
+            <span>Kesehatan Kas</span>
             <span id="stat-health-pct">0%</span>
           </div>
           <div class="stat-card-body">
-            <div id="stat-health-label" class="stat-card-note" data-i18n="stat.healthLoading">Memuat data kesehatan kas...</div>
+            <div id="stat-health-label" class="stat-card-note">Memuat data kesehatan kas...</div>
             <div class="progress-bar">
               <div class="progress-fill" id="stat-health-fill"></div>
             </div>
@@ -854,26 +876,26 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title" data-i18n="stat.paidUp">Jumlah Anggota Lunas</div>
+          <div class="stat-card-title">Jumlah Anggota Lunas</div>
           <div id="stat-fully-paid" class="stat-card-value">0</div>
         </div>
-        <div class="stat-card stat-card-interactive" id="card-stat-menunggak" data-action="action-salin-tagihan-wa" style="cursor:pointer" data-i18n-title="stat.copyTitle" title="Klik untuk salin daftar tagihan WhatsApp">
+        <div class="stat-card stat-card-interactive" id="card-stat-menunggak" data-action="action-salin-tagihan-wa" style="cursor:pointer" title="Klik untuk salin daftar tagihan WhatsApp">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span class="stat-card-title" style="margin:0" data-i18n="stat.arrears">Anggota Menunggak</span>
-            <span class="badge" style="font-size:10px;padding:2px 6px;background:var(--accent-tint);color:var(--accent-strong)"><i class="ph-bold ph-whatsapp-logo"></i> <span data-i18n="stat.copy">Salin</span></span>
+            <span class="stat-card-title" style="margin:0">Anggota Menunggak</span>
+            <span class="badge" style="font-size:10px;padding:2px 6px;background:var(--accent-tint);color:var(--accent-strong)"><i class="ph-bold ph-whatsapp-logo"></i> Salin</span>
           </div>
-          <div id="stat-with-arrears" class="stat-card-value">0</div>
+          <div id="stat-with-arrears" class="stat-card-value" style="color:var(--warning)">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title" data-i18n="stat.uncollected">Potensi Belum Tertagih</div>
+          <div class="stat-card-title">Potensi Belum Tertagih</div>
           <div id="stat-uncollected" class="stat-card-value" style="color:var(--danger)">Rp 0</div>
         </div>
       </div>
       <div class="chart-section chart-grid-section">
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title" data-i18n="stat.trend">Tren Arus Kas (Masuk vs Keluar)</h3>
-            <div class="chart-update-text"><span data-i18n="stat.updated">Update:</span> <span id="last-update">-</span></div>
+            <h3 class="chart-card-title">Tren Arus Kas (Masuk vs Keluar)</h3>
+            <div class="chart-update-text">Update: <span id="last-update">-</span></div>
           </div>
           <div class="chart-wrapper chart-wrapper-compact">
             <canvas id="cashFlowChart"></canvas>
@@ -882,7 +904,7 @@
 
         <div class="table-card chart-container-card chart-flat-card">
           <div class="table-header chart-header-strip">
-            <h3 class="chart-card-title" id="expense-chart-title" data-i18n="stat.expenseDist">Distribusi Pengeluaran Kas</h3>
+            <h3 class="chart-card-title" id="expense-chart-title">Distribusi Pengeluaran Kas</h3>
           </div>
           <div class="chart-wrapper chart-wrapper-compact flex-center">
             <canvas id="expenseChart"></canvas>
@@ -901,33 +923,34 @@
             <i class="ph-fill ph-user-circle"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Anggota // Profil</span>
             <h2 id="p-nama-anggota" class="profile-card-title">Nama Anggota</h2>
             <div class="profile-meta-row">
               <span id="p-id-anggota" class="profile-id-badge">ID: -</span>
-              <span id="p-status-anggota" class="badge badge-masuk" data-i18n="prof.active">Aktif</span>
+              <span id="p-status-anggota" class="badge badge-masuk">Aktif</span>
             </div>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       
       <div class="profile-metrics-card-row mb-16">
         <div class="profile-metric-item">
-          <span class="profile-metric-label" data-i18n="prof.contrib">Total Kontribusi</span>
+          <span class="profile-metric-label">Total Kontribusi</span>
           <div id="p-total-kontribusi" class="profile-metric-val">Rp 0</div>
         </div>
         <div class="profile-metric-item">
-          <span class="profile-metric-label" data-i18n="prof.bestMonth">Bulan Terajin</span>
+          <span class="profile-metric-label">Bulan Terajin</span>
           <div id="p-bulan-terajin" class="profile-metric-plain">-</div>
         </div>
       </div>
 
       <div class="profile-history-title">
-        <i class="ph-bold ph-clock-counter-clockwise"></i> <span data-i18n="prof.history">Riwayat Setoran Kas</span>
+        <i class="ph-bold ph-clock-counter-clockwise"></i> Riwayat Setoran Kas
       </div>
       
       <div class="profile-history-list" id="p-list-transaksi">
-        <div class="profile-history-empty" data-i18n="prof.loading">Memuat data...</div>
+        <div class="profile-history-empty">Memuat data...</div>
       </div>
     </div>
   </div>
@@ -943,25 +966,26 @@
             <i class="ph-fill ph-clock-counter-clockwise"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="hist.title">Riwayat Transaksi</h2>
-            <p data-i18n="hist.subtitle">Pencatatan lengkap arus kas masuk, keluar, dan iuran anggota</p>
+            <span class="eyebrow">Buku Besar // Riwayat</span>
+            <h2>Riwayat Transaksi</h2>
+            <p>Pencatatan lengkap arus kas masuk, keluar, dan iuran anggota</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <!-- Controls & Filter Toolbar -->
       <div class="riwayat-toolbar">
         <div class="search-wrapper riwayat-search">
           <i class="ph ph-magnifying-glass"></i>
-          <input type="text" id="search-trx" class="form-control" data-i18n-ph="hist.searchPh" placeholder="Cari transaksi, anggota, kategori...">
+          <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota, kategori...">
         </div>
 
         <div class="riwayat-selectors">
           <div class="select-pill-wrap">
             <i class="ph ph-calendar"></i>
-            <select id="filter-bulan" class="riwayat-select cdrop" data-i18n-aria="hist.monthAria" aria-label="Filter Bulan">
-              <option value="all" data-i18n="hist.allMonths">Semua Bulan</option>
+            <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
+              <option value="all">Semua Bulan</option>
               <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
               <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
               <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
@@ -971,8 +995,8 @@
 
           <div class="select-pill-wrap">
             <i class="ph ph-calendar-blank"></i>
-            <select id="filter-tahun" class="riwayat-select cdrop" data-i18n-aria="hist.yearAria" aria-label="Filter Tahun">
-              <option value="all" data-i18n="hist.allYears">Semua Tahun</option>
+            <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
+              <option value="all">Semua Tahun</option>
             </select>
           </div>
         </div>
@@ -981,24 +1005,24 @@
       <!-- Segmented Chips Filter -->
       <div class="riwayat-chips-bar" id="history-filter-chips">
         <div class="chips-group">
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month" data-i18n="hist.thisMonth">Bulan Ini</button>
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month" data-i18n="hist.lastMonth">Bulan Lalu</button>
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time" data-i18n="hist.allTime">Semua Waktu</button>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month">Bulan Lalu</button>
+          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time">Semua Waktu</button>
         </div>
         <div class="chips-divider"></div>
         <div class="chips-group">
-          <button class="chip-btn active" data-action="set-history-filter" data-filter="semua" data-i18n="hist.fAll">Semua</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="masuk" data-i18n="hist.fIn">Masuk</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="keluar" data-i18n="hist.fOut">Keluar</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="iuran" data-i18n="hist.fDues">Iuran</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="operasional" data-i18n="hist.fOps">Operasional</button>
+          <button class="chip-btn active" data-action="set-history-filter" data-filter="semua">Semua</button>
+          <button class="chip-btn" data-action="set-history-filter" data-filter="masuk">Masuk</button>
+          <button class="chip-btn" data-action="set-history-filter" data-filter="keluar">Keluar</button>
+          <button class="chip-btn" data-action="set-history-filter" data-filter="iuran">Iuran</button>
+          <button class="chip-btn" data-action="set-history-filter" data-filter="operasional">Operasional</button>
         </div>
       </div>
 
       <!-- Quick Summary Sub-bar -->
       <div class="riwayat-summary-bar" id="riwayat-summary-bar">
         <div class="riwayat-summary-item">
-          <span class="riwayat-summary-label" data-i18n="hist.found">Total Ditemukan:</span>
+          <span class="riwayat-summary-label">Total Ditemukan:</span>
           <span class="riwayat-summary-value" id="rw-count">0 transaksi</span>
         </div>
         <div class="riwayat-summary-metrics">
@@ -1013,15 +1037,15 @@
           <table class="m-0" id="table-riwayat">
             <thead class="sticky-thead">
               <tr>
-                <th class="th-rw-waktu" data-i18n="hist.colTime">Waktu</th>
-                <th class="th-rw-keterangan" data-i18n="hist.colDesc">Keterangan & Catatan</th>
-                <th class="th-rw-nominal text-right" data-i18n="hist.colAmount">Nominal</th>
-                <th class="th-rw-tipe text-center" data-i18n="hist.colType">Tipe Arus</th>
-                <th class="w-140 text-center admin-only" data-i18n="hist.colAction">Aksi</th>
+                <th class="th-rw-waktu">Waktu</th>
+                <th class="th-rw-keterangan">Keterangan & Catatan</th>
+                <th class="th-rw-nominal text-right">Nominal</th>
+                <th class="th-rw-tipe text-center">Tipe Arus</th>
+                <th class="w-140 text-center admin-only">Aksi</th>
               </tr>
             </thead>
             <tbody id="table-riwayat-data">
-              <tr><td colspan="5" class="td-muted-center" data-i18n="hist.loadingRow">Memuat riwayat transaksi...</td></tr>
+              <tr><td colspan="5" class="td-muted-center">Memuat riwayat transaksi...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1030,7 +1054,7 @@
       <!-- Load More Button -->
       <div class="riwayat-footer">
         <button id="btn-load-more" class="btn btn-outline btn-load-more" data-action="load-more">
-          <i class="ph ph-caret-down"></i> <span data-i18n="hist.loadMore">Tampilkan Lebih Banyak</span>
+          <i class="ph ph-caret-down"></i> Tampilkan Lebih Banyak
         </button>
       </div>
     </div>
@@ -1046,6 +1070,7 @@
             <i class="ph-fill ph-plus-circle"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Transaksi // Catat Baru</span>
             <h2 id="modal-transaksi-title" data-i18n="trx.title">Catat Transaksi Baru</h2>
             <p data-i18n="trx.subtitle">Pilih tab pembayaran iuran anggota atau pencatatan kas operasional</p>
           </div>
@@ -1182,6 +1207,7 @@
             <i class="ph-fill ph-pencil-simple"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Transaksi // Koreksi</span>
             <h2 id="modal-edit-transaksi-title" data-i18n="edit.title">Edit Data Transaksi</h2>
             <p data-i18n="edit.subtitle">Koreksi nominal, kategori, atau catatan pembukuan</p>
           </div>
@@ -1289,55 +1315,56 @@
             <i class="ph-fill ph-question"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 data-i18n="faq.title">Panduan & FAQ</h2>
-            <p data-i18n="faq.subtitle">Pertanyaan umum seputar penggunaan Finkas</p>
+            <span class="eyebrow">Bantuan // Panduan</span>
+            <h2>Panduan & FAQ</h2>
+            <p>Pertanyaan umum seputar penggunaan Finkas</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="faq-list" style="display:flex; flex-direction:column; gap:0.75rem; max-height:65vh; overflow-y:auto; padding-right:4px;">
-        <div class="faq-item" style="border:1px solid var(--border); border-radius:var(--r-md); padding:12px;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--accent);">
-            <i class="ph-fill ph-check-circle" style="vertical-align:middle;"></i> <span data-i18n="faq.q1">Siapa yang bisa mencatat transaksi?</span>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-check-circle"></i> Siapa yang bisa mencatat transaksi?
           </h4>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; margin:0;" data-i18n="faq.a1">
+          <p class="faq-item-desc">
             Hanya Pengurus/Admin yang telah memasukkan kata sandi admin. Anggota umum dapat melihat saldo dan rekap iuran secara transparan.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--border); border-radius:var(--r-md); padding:12px;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--accent);">
-            <i class="ph-fill ph-shield-check" style="vertical-align:middle;"></i> <span data-i18n="faq.q2">Apakah data kas kelompok aman?</span>
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-shield-check"></i> Apakah data kas kelompok aman?
           </h4>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; margin:0;" data-i18n="faq.a2">
+          <p class="faq-item-desc">
             Data disimpan di Cloud Firestore dan hanya bisa diakses lewat server aplikasi &mdash; tidak ada koneksi langsung dari browser ke database. Setiap kelompok terisolasi dan dilindungi PIN 4 digit, dengan pembatasan jumlah percobaan di sisi server.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--border); border-radius:var(--r-md); padding:12px;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--accent);">
-            <i class="ph-fill ph-whatsapp-logo" style="vertical-align:middle;"></i> <span data-i18n="faq.q3">Bagaimana cara menyalin laporan ke WA?</span>
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-whatsapp-logo"></i> Bagaimana cara menyalin laporan ke WA?
           </h4>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; margin:0;" data-i18n="faq.a3">
+          <p class="faq-item-desc">
             Buka menu "Ekspor Data" lalu pilih "Salin Rekap Bulan Ini (WA)". Pesan otomatis terformat rapi dan siap ditempel langsung ke grup chat.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--border); border-radius:var(--r-md); padding:12px;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--accent);">
-            <i class="ph-fill ph-cloud-slash" style="vertical-align:middle;"></i> <span data-i18n="faq.q4">Bisa mencatat tanpa koneksi internet?</span>
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-cloud-slash"></i> Bisa mencatat tanpa koneksi internet?
           </h4>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; margin:0;" data-i18n="faq.a4">
+          <p class="faq-item-desc">
             Bisa. Transaksi akan disimpan di Antrean Offline lokal (IndexedDB) dan otomatis disinkronkan saat ponsel kembali terhubung ke internet.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--border); border-radius:var(--r-md); padding:12px;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--accent);">
-            <i class="ph-fill ph-device-mobile" style="vertical-align:middle;"></i> <span data-i18n="faq.q5">Bagaimana jika berganti perangkat?</span>
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-device-mobile"></i> Bagaimana jika berganti perangkat?
           </h4>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; margin:0;" data-i18n="faq.a5">
+          <p class="faq-item-desc">
             Cukup buka tautan Finkas, pilih nama kelompok Anda di daftar kelompok, lalu masukkan 4-digit PIN kelompok.
           </p>
         </div>
@@ -1352,138 +1379,88 @@
       <div class="quickpay-handle" aria-hidden="true"></div>
       
       <div class="nav-sheet-head">
-        <div class="modal-title-wrap">
-          <h2 data-i18n="tampilan.title">Tampilan</h2>
-          <p data-i18n="tampilan.subtitle">Kustomisasi gaya visual dan indikator kas</p>
+          <div class="modal-title-wrap">
+            <span class="eyebrow">Tampilan // Preferensi</span>
+            <h2>Tampilan</h2>
+          <p>Kustomisasi gaya visual dan indikator kas</p>
         </div>
         <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
       </div>
 
       <div class="tampilan-section">
         <div class="tampilan-section-label">
-          <span data-i18n="tampilan.indicatorLabel">Gaya Indikator Status Iuran</span>
-          <small class="text-muted" data-i18n="tampilan.indicatorHint">Pilih tampilan lunas pada tabel matriks bulanan</small>
+          <span>Gaya Indikator Status Iuran</span>
+          <small class="text-muted">Pilih tampilan lunas pada tabel matriks bulanan</small>
         </div>
 
-        <div class="indicator-style-grid" id="indicator-style-picker" role="listbox" aria-label="Indicator style">
+        <div class="indicator-style-grid" id="indicator-style-picker">
           <!-- 1. Stempel PAID -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-indicator-style" data-style="paid">
+          <button class="style-option-card" data-action="select-indicator-style" data-style="paid">
             <div class="style-option-left">
-              <div class="style-preview-wrap tile-paid">
+              <div class="style-preview-wrap">
                 <div class="status-lunas-dot style-paid"><span>PAID</span></div>
               </div>
               <div class="style-option-info">
-                <strong data-i18n="tampilan.style.paid.name">Stempel PAID</strong>
-                <span data-i18n="tampilan.style.paid.desc">Cap kwitansi tinta transparan (-4°)</span>
+                <strong>Stempel PAID</strong>
+                <span>Cap kwitansi tinta transparan (-4°)</span>
               </div>
             </div>
             <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
           </button>
 
           <!-- 2. Centang Squircle -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-indicator-style" data-style="check">
+          <button class="style-option-card" data-action="select-indicator-style" data-style="check">
             <div class="style-option-left">
-              <div class="style-preview-wrap tile-check">
+              <div class="style-preview-wrap">
                 <div class="status-lunas-dot style-check"><i class="ph-bold ph-check"></i></div>
               </div>
               <div class="style-option-info">
-                <strong data-i18n="tampilan.style.check.name">Centang Squircle</strong>
-                <span data-i18n="tampilan.style.check.desc">Minimalis lembut, adem dan rapi</span>
+                <strong>Centang Squircle</strong>
+                <span>Minimalis lembut, adem dan rapi</span>
               </div>
             </div>
             <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
           </button>
 
           <!-- 3. Bintang Berlian -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-indicator-style" data-style="star">
+          <button class="style-option-card" data-action="select-indicator-style" data-style="star">
             <div class="style-option-left">
-              <div class="style-preview-wrap tile-star">
+              <div class="style-preview-wrap">
                 <div class="status-lunas-dot style-star">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
                 </div>
               </div>
               <div class="style-option-info">
-                <strong data-i18n="tampilan.style.star.name">Bintang Berlian (Sparkle)</strong>
-                <span data-i18n="tampilan.style.star.desc">Bintang 4 sudut modern bernuansa emas</span>
+                <strong>Bintang Berlian (Sparkle)</strong>
+                <span>Bintang 4 sudut modern bernuansa emas</span>
               </div>
             </div>
             <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
           </button>
 
           <!-- 4. Cap Bulat Bintang -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-indicator-style" data-style="round-star">
+          <button class="style-option-card" data-action="select-indicator-style" data-style="round-star">
             <div class="style-option-left">
-              <div class="style-preview-wrap tile-seal">
+              <div class="style-preview-wrap">
                 <div class="status-lunas-dot style-round-star"><i class="ph-fill ph-star"></i></div>
               </div>
               <div class="style-option-info">
-                <strong data-i18n="tampilan.style.roundStar.name">Cap Bulat Bintang</strong>
-                <span data-i18n="tampilan.style.roundStar.desc">Stempel cap ganda melingkar resmi</span>
+                <strong>Cap Bulat Bintang</strong>
+                <span>Stempel cap ganda melingkar resmi</span>
               </div>
             </div>
             <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
           </button>
 
           <!-- 5. Nominal Kas -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-indicator-style" data-style="nominal">
+          <button class="style-option-card" data-action="select-indicator-style" data-style="nominal">
             <div class="style-option-left">
-              <div class="style-preview-wrap tile-nominal">
+              <div class="style-preview-wrap">
                 <div class="status-lunas-dot style-nominal">10K</div>
               </div>
               <div class="style-option-info">
-                <strong data-i18n="tampilan.style.nominal.name">Nominal Kas</strong>
-                <span data-i18n="tampilan.style.nominal.desc">Angka iuran asli buku kas fisik</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="tampilan-section">
-        <div class="tampilan-section-label">
-          <span data-i18n="tampilan.langLabel">Bahasa Aplikasi</span>
-          <small class="text-muted" data-i18n="tampilan.langHint">Berlaku langsung ke seluruh aplikasi</small>
-        </div>
-
-        <div class="indicator-style-grid" id="language-picker" role="listbox" aria-label="Language">
-          <!-- Indonesia -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-language" data-lang="id">
-            <div class="style-option-left">
-              <div class="style-preview-wrap tile-lang">
-                <div class="status-lunas-dot style-check"><span>ID</span></div>
-              </div>
-              <div class="style-option-info">
-                <strong data-i18n="lang.id">Indonesia</strong>
-                <span>Bahasa Indonesia</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- English -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-language" data-lang="en">
-            <div class="style-option-left">
-              <div class="style-preview-wrap tile-lang">
-                <div class="status-lunas-dot style-check"><span>EN</span></div>
-              </div>
-              <div class="style-option-info">
-                <strong data-i18n="lang.en">Inggris</strong>
-                <span>English</span>
-              </div>
-            </div>
-            <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
-          </button>
-
-          <!-- Arabic (RTL) -->
-          <button class="style-option-card" role="option" aria-selected="false" data-action="select-language" data-lang="ar">
-            <div class="style-option-left">
-              <div class="style-preview-wrap tile-lang">
-                <div class="status-lunas-dot style-check"><span>ع</span></div>
-              </div>
-              <div class="style-option-info">
-                <strong data-i18n="lang.ar">Arab</strong>
-                <span>العربية</span>
+                <strong>Nominal Kas</strong>
+                <span>Angka iuran asli buku kas fisik</span>
               </div>
             </div>
             <div class="style-check-indicator"><i class="ph-bold ph-check"></i></div>
@@ -1496,30 +1473,30 @@
   <div id="toast-container"></div>
 
   <!-- Bottom Navigation (mobile only) -->
-  <nav class="bottom-nav" id="bottom-nav" data-i18n-aria="nav.main" aria-label="Navigasi utama">
-    <button class="bottom-nav-item active" data-action="nav-home" data-i18n-aria="bottom.home" aria-label="Beranda">
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
+    <button class="bottom-nav-item active" data-action="nav-home" aria-label="Beranda">
       <i class="ph-fill ph-house"></i>
-      <span data-i18n="bottom.home">Beranda</span>
+      <span>Beranda</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-riwayat" data-i18n-aria="bottom.history" aria-label="Riwayat">
+    <button class="bottom-nav-item" data-action="nav-riwayat" aria-label="Riwayat">
       <i class="ph ph-clock-counter-clockwise"></i>
-      <span data-i18n="bottom.history">Riwayat</span>
+      <span>Riwayat</span>
     </button>
-    <button class="bottom-nav-item bottom-nav-cta admin-only" data-action="nav-catat" data-i18n-aria="bottom.recordFull" aria-label="Catat Transaksi">
+    <button class="bottom-nav-item bottom-nav-cta admin-only" data-action="nav-catat" aria-label="Catat Transaksi">
       <i class="ph-bold ph-plus"></i>
-      <span data-i18n="bottom.record">Catat</span>
+      <span>Catat</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-rekap" data-i18n-aria="bottom.recap" aria-label="Rekap">
+    <button class="bottom-nav-item" data-action="nav-rekap" aria-label="Rekap">
       <i class="ph ph-table"></i>
-      <span data-i18n="bottom.recap">Rekap</span>
+      <span>Rekap</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-menu" data-i18n-aria="bottom.menu" aria-label="Menu">
+    <button class="bottom-nav-item" data-action="nav-menu" aria-label="Menu">
       <i class="ph ph-list"></i>
-      <span data-i18n="bottom.menu">Menu</span>
+      <span>Menu</span>
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=120"></script>
-  <script src="js/sw-register.js?v=120" defer></script>
+  <script type="module" src="js/app.js?v=118"></script>
+  <script src="js/sw-register.js?v=118" defer></script>
 </body>
 </html>

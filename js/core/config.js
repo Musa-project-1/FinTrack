@@ -34,10 +34,10 @@ export const DEFAULT_MONTHLY_FEE = 10000;
 export const GROUP_START_YEAR = 2025;
 export const GROUP_START_MONTH = 11;
 
-/** Chart color palette for expense breakdown */
+/** Chart color palette for expense breakdown (Ocean Ledger harmonic ramp) */
 export const CHART_COLORS = [
-  '#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6',
-  '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#3b82f6'
+  '#0d9488', '#0284c7', '#4338ca', '#e11d48', '#b45309',
+  '#64748b', '#0f766e', '#0369a1', '#3730a3', '#be123c'
 ];
 
 /* ── Storage keys ────────────────────────────────────────────────── */

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finkas</title>
   <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
-  <meta name="theme-color" content="#10b981">
+  <meta name="theme-color" content="#e8f1f6">
 
   <!-- Social Preview / Open Graph -->
   <meta property="og:type" content="website">
@@ -27,12 +27,12 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=117">
-  <link rel="stylesheet" href="style.css?v=117">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=118">
+  <link rel="stylesheet" href="style.css?v=118">
 </head>
 <body>
 
@@ -95,29 +95,33 @@
       </div>
     </header>
 
-    <div class="dashboard">
-      <div class="card card-saldo">
-        <div class="card-icon icon-blue"><i class="ph-fill ph-vault"></i></div>
-        <div class="card-info">
-          <h3>Saldo Kas Saat Ini</h3>
-          <div id="ui-saldo" class="nominal-val"><div class="skeleton skeleton-title"></div></div>
+    <section class="dashboard">
+      <!-- The one number that matters: balance is the hero, everything else is secondary. -->
+      <div class="balance-hero">
+        <span class="eyebrow">Saldo Kas Saat Ini</span>
+        <div id="ui-saldo" class="balance-hero__value"><div class="skeleton skeleton-title"></div></div>
+        <span class="balance-hero__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="flow-strip">
+        <div class="flow-strip__item flow-in">
+          <span class="flow-strip__label">
+            <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk
+          </span>
+          <span class="flow-strip__value">
+            <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
+          </span>
+        </div>
+        <div class="flow-strip__item flow-out">
+          <span class="flow-strip__label">
+            <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar
+          </span>
+          <span class="flow-strip__value">
+            <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
+          </span>
         </div>
       </div>
-      <div class="card card-masuk">
-        <div class="card-icon icon-green"><i class="ph-fill ph-trend-up"></i></div>
-        <div class="card-info">
-          <h3>Total Pemasukan</h3>
-          <div id="ui-masuk" class="nominal-val nominal-masuk"><div class="skeleton skeleton-title"></div></div>
-        </div>
-      </div>
-      <div class="card card-keluar">
-        <div class="card-icon icon-red"><i class="ph-fill ph-trend-down"></i></div>
-        <div class="card-info">
-          <h3>Total Pengeluaran</h3>
-          <div id="ui-keluar" class="nominal-val nominal-keluar"><div class="skeleton skeleton-title"></div></div>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <div class="table-card" id="section-rekap">
       <!-- Desktop Table Header (Clean 1-Row Toolbar) -->
@@ -231,7 +235,7 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=117"></script>
-  <script src="js/sw-register.js?v=117" defer></script>
+  <script type="module" src="js/app.js?v=118"></script>
+  <script src="js/sw-register.js?v=118" defer></script>
 </body>
 </html>

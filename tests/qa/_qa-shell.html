@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finkas · QA Shell</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css?v=118">
+<style>
+  /* Harness chrome only — never shipped. Uses the real design tokens. */
+  .qa-shell { max-width: 720px; margin: 0 auto; padding: var(--sp-8) var(--sp-4); }
+  .qa-shell-title { font-size: 28px; margin-bottom: var(--sp-1); }
+  .qa-shell-sub { color: var(--text-muted); font-size: 14px; margin-bottom: var(--sp-8); }
+  .qa-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-6);
+    margin-bottom: var(--sp-4);
+  }
+  .qa-row { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; }
+  .qa-row + .qa-row { margin-top: var(--sp-3); }
+  .qa-hint { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; margin-top: var(--sp-3); }
+  .qa-hint code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xs);
+    padding: 1px 5px;
+  }
+  .qa-switch { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: 13px; color: var(--text-main); }
+  .qa-status { font-size: 12.5px; color: var(--accent-strong); margin-top: var(--sp-3); min-height: 18px; }
+</style>
+</head>
+<body>
+<main class="qa-shell">
+  <span class="eyebrow">HARNESS // QA</span>
+  <h1 class="qa-shell-title font-display">Seeded App Shell</h1>
+  <p class="qa-shell-sub">Seeds the storage keys the app gates on, then opens the real <code>index.html</code>.</p>
+
+  <section class="qa-panel">
+    <div class="qa-row">
+      <label class="qa-switch">
+        <input type="checkbox" id="qa-header-stats">
+        Ringkasan kas di header
+      </label>
+    </div>
+    <div class="qa-row">
+      <button class="btn btn-primary" data-open="dark">Buka Aplikasi (Gelap)</button>
+      <button class="btn btn-outline" data-open="light">Buka Aplikasi (Terang)</button>
+      <button class="btn btn-secondary" data-seed-clear>Bersihkan Seed</button>
+    </div>
+    <p class="qa-status" id="qa-status" aria-live="polite"></p>
+    <p class="qa-hint">
+      Seeds <code>finkas_onboarding_seen</code>, <code>finkas_group_open</code>,
+      <code>finkas_active_group</code>, <code>finkas_active_group_name</code> and
+      <code>theme</code>, then navigates to <code>../../index.html</code>. Without a backend the
+      app renders its chrome with empty data — which is exactly what this harness is for.
+    </p>
+  </section>
+
+  <section class="qa-panel">
+    <span class="eyebrow">Jalur Lain</span>
+    <div class="qa-row" style="margin-top: var(--sp-3);">
+      <a class="btn btn-outline" href="../../onboarding.html">Buka Onboarding</a>
+      <button class="btn btn-outline" data-open-clear>Hapus Seed & Muat Ulang</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var SEED = {
+    'finkas_onboarding_seen': '1',
+    'finkas_group_open': '1',
+    'finkas_active_group': 'utama',
+    'finkas_active_group_name': 'Kas RT 04'
+  };
+
+  var statusEl = document.getElementById('qa-status');
+
+  function say(msg) {
+    if (statusEl) statusEl.textContent = msg;
+  }
+
+  function clearSeed() {
+    Object.keys(SEED).forEach(function (k) { localStorage.removeItem(k); });
+    localStorage.removeItem('finkas_header_stats');
+    localStorage.removeItem('theme');
+  }
+
+  function seedAndOpen(theme) {
+    clearSeed();
+    Object.keys(SEED).forEach(function (k) { localStorage.setItem(k, SEED[k]); });
+    localStorage.setItem('theme', theme);
+    var withHeaderStats = document.getElementById('qa-header-stats');
+    if (withHeaderStats && withHeaderStats.checked) {
+      localStorage.setItem('finkas_header_stats', 'true');
+    }
+    window.location.href = '../../index.html';
+  }
+
+  document.querySelectorAll('[data-open]').forEach(function (btn) {
+    btn.addEventListener('click', function () { seedAndOpen(btn.dataset.open); });
+  });
+
+  document.querySelector('[data-seed-clear]').addEventListener('click', function () {
+    clearSeed();
+    say('Seed dibersihkan.');
+  });
+
+  document.querySelector('[data-open-clear]').addEventListener('click', function () {
+    clearSeed();
+    window.location.href = '../../index.html';
+  });
+
+  say('Siap. Pilih tema untuk membuka aplikasi.');
+})();
+</script>
+</body>
+</html>

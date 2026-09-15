@@ -19,32 +19,36 @@ body { padding: 6px 0 100px 0; }
   .header-actions .btn span { display: none; }
   .header-actions .btn { 
     padding: 6px;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: var(--r-md);
     flex-shrink: 0;
     font-size: 16px;
   }
   .header-actions .btn-primary { 
-    border-radius: 6px;
+    border-radius: var(--r-md);
     width: auto;
-    height: 36px;
+    height: 44px;
     padding: 6px 12px;
     font-size: 12px;
   }
   .header-actions .btn-primary span { display: inline; }
   
-  /* Keep 2-col dashboard on very small screens, just tighter spacing */
+  /* Dashboard: hero + strip, tightened for very small screens */
   .dashboard { 
-    grid-template-columns: 1fr 1fr;
     gap: 8px;
     margin: 0 8px 12px;
   }
-  .dashboard .card.card-saldo,
-  .dashboard .card.glow-blue {
-    grid-column: 1 / -1;
+  .balance-hero__value {
+    font-size: clamp(1.75rem, 11vw, 2.5rem);
   }
+  .balance-hero__rule {
+    width: 56px;
+  }
+  .flow-strip__item { padding: 10px 12px; }
+  .flow-strip__value { font-size: 13px; }
+  .flow-strip__label { font-size: 9.5px; }
   .card { 
     padding: 8px 10px;
     gap: 8px;
@@ -59,7 +63,7 @@ body { padding: 6px 0 100px 0; }
   
   /* Table on very small screens - Card Layout */
   .table-card { 
-    border-radius: 12px;
+    border-radius: var(--r-lg);
     margin: 0 8px 16px;
     width: auto;
   }
@@ -83,8 +87,9 @@ body { padding: 6px 0 100px 0; }
     width: calc(100vw - 16px);
     max-width: 420px;
     max-height: 90vh;
-    border-radius: 18px;
-    padding: 14px 16px;
+    --modal-pad: 16px;
+    border-radius: var(--r-lg);
+    padding: var(--modal-pad);
   }
   .modal-title { 
     font-size: 16px;
@@ -98,7 +103,7 @@ body { padding: 6px 0 100px 0; }
   
   .modal-side-info {
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--r-md);
   }
   .summary-card { margin-top: 16px; }
   
@@ -112,8 +117,8 @@ body { padding: 6px 0 100px 0; }
     border-radius: 10px;
   }
   .form-control:focus { 
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-tint);
   }
   
   .btn { 
@@ -137,9 +142,9 @@ body { padding: 6px 0 100px 0; }
     max-height: 350px;
     gap: 10px;
   }
-  .checkbox-item { 
+  .checkbox-item {
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--r-md);
   }
   
   .checkbox-item input[type="checkbox"] {
@@ -154,8 +159,9 @@ body { padding: 6px 0 100px 0; }
   .chart-wrapper { height: 240px; }
   
   .year-pill {
-    font-size: 11px;
-    padding: 8px 14px;
+    font-size: 12px;
+    padding: 0 12px;
+    height: 40px;
   }
   
   .tab-header {
@@ -278,4 +284,3 @@ body { padding: 6px 0 100px 0; }
     font-size: 11px;
   }
 }
-

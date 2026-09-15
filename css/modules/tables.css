@@ -1,82 +1,72 @@
-/* === MODERN TABLES REVAMP === */
-.table-card { 
-  border-radius: var(--radius-lg); 
-  overflow: hidden; 
+/* === TABLES — the ledger ===
+   Data lives in monospace with tabular figures; column labels are mono eyebrows;
+   structure is hairlines. No drop shadows, no blur, no per-row colour tints. */
+
+.table-card {
+  border-radius: var(--r-lg);
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   position: relative;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-body.dark-mode .table-card {
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
-}
-
-.table-card:hover {
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06);
-}
-
-body.dark-mode .table-card:hover {
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
-}
-
-
+/* A single accent hairline along the top edge — the one deliberate accent. */
 .table-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--primary);
+  height: 1px;
+  background: var(--accent-border);
   z-index: 1;
 }
 
-.table-header { 
-  padding: 16px 24px; 
-  background: rgba(255, 255, 255, 0.02);
+.table-header {
+  padding: var(--sp-4) var(--sp-6);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 16px;
+  gap: var(--sp-4);
 }
 
-/* Desktop Table Header: Clean, strictly single horizontal row */
-.table-header.desktop-only { 
-  padding: 16px 24px; 
-  background: rgba(255, 255, 255, 0.02);
+/* Desktop header: strictly one horizontal row */
+.table-header.desktop-only {
+  padding: var(--sp-4) var(--sp-6);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 16px;
+  gap: var(--sp-4);
 }
 
 .table-header.desktop-only .table-header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--sp-3);
   flex-shrink: 0;
 }
 
 .table-header.desktop-only .table-header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   flex-shrink: 0;
 }
 
-/* Mobile Table Header: 2-Row Stacked Layout */
+/* Mobile header: two stacked rows */
 .table-header.mobile-only {
   display: none;
   flex-direction: column;
   gap: 10px;
-  padding: 12px 14px;
+  padding: var(--sp-3);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -91,13 +81,14 @@ body.dark-mode .table-card:hover {
 .table-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   position: relative;
+  scrollbar-gutter: stable;
 }
 
 .table-responsive::-webkit-scrollbar {
@@ -109,72 +100,68 @@ body.dark-mode .table-card:hover {
 }
 
 .table-responsive::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
+  background: var(--border-strong);
+  border-radius: var(--r-pill);
 }
 
 .table-scrollable {
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
-/* Desktop Table Styles */
-
+/* === TITLES === */
 .table-title {
-  font-size: 20px !important;
-  font-weight: 800 !important;
+  font-family: var(--font-display);
+  font-size: 18px !important;
+  font-weight: 600 !important;
   color: var(--text-main) !important;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: none !important;
   -webkit-text-fill-color: initial !important;
-  letter-spacing: -0.5px;
+  letter-spacing: var(--tracking-tight);
   white-space: nowrap;
 }
 
 .table-title i {
-  color: #059669;
-  font-size: 20px;
-  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-strong);
+  font-size: 18px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
   padding: 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  border-radius: var(--r-sm);
 }
 
-body.dark-mode .table-title i {
-  color: #34d399;
-  background: rgba(16, 185, 129, 0.16);
-  border-color: rgba(52, 211, 153, 0.25);
-}
-
+/* === YEAR PICKER === */
 .year-pill {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
   color: var(--text-muted);
-  font-weight: 600;
-  background: var(--bg-color);
-  padding: 0 16px;
+  font-weight: 500;
+  background: var(--surface-2);
+  padding: 0 var(--sp-3);
   height: 40px;
   box-sizing: border-box;
-  border-radius: 100px;
+  border-radius: var(--r-md);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border: 1px solid var(--border);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  transition: border-color var(--t-fast);
   flex-shrink: 0;
   white-space: nowrap;
   margin: 0;
 }
 
 .year-pill:hover {
-  border-color: var(--secondary);
-  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
 .year-pill i {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
 }
@@ -183,6 +170,10 @@ body.dark-mode .table-title i {
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
 }
 
 .year-pill select {
@@ -191,54 +182,61 @@ body.dark-mode .table-title i {
   -moz-appearance: none;
   border: none;
   background: transparent;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-weight: 600;
   color: var(--text-main);
   outline: none;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  padding: 0 20px 0 6px;
+  font-size: 12.5px;
+  padding: 0 20px 0 4px;
   margin: 0;
   line-height: normal;
   min-width: 60px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d99ac' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 2px center;
   background-size: 12px;
-  transition: opacity 0.2s;
 }
 
 body.dark-mode .year-pill select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b8fa6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-position: right 2px center;
 }
 
-th { 
+/* === CELLS ===
+   Column labels read as ledger eyebrows; figures are monospace and tabular. */
+th {
   background: var(--table-header-bg);
-  color: var(--text-main);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  font-size: 13px;
-  letter-spacing: 1px;
-  font-weight: 800;
-  padding: 14px 16px;
-  border-bottom: 2px solid var(--border);
-  text-align: center;
-}
-
-td { 
-  padding: 14px 16px; 
-  transition: all 0.2s ease;
+  padding: var(--sp-3) var(--sp-4);
   border-bottom: 1px solid var(--border);
   text-align: center;
-  font-size: 15px;
+  white-space: nowrap;
 }
 
-th:first-child, td:first-child {
-  text-align: left !important;
-  padding-left: 28px !important;
-  font-weight: 800;
-  font-size: 16px;
+td {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-size: 14px;
   color: var(--text-main);
+  transition: background var(--t-fast);
+}
+
+th:first-child,
+td:first-child {
+  text-align: left;
+  padding-left: var(--sp-4);
+}
+
+td:first-child {
+  font-weight: 600;
+  font-size: 14px;
 }
 
 table {
@@ -246,145 +244,139 @@ table {
   margin: 0 auto;
 }
 
-tr:last-child td { border-bottom: none; }
-
-/* Interactive Rows */
-tr:hover td { 
-  background: rgba(99, 102, 241, 0.05) !important;
-  color: var(--primary);
+tr:last-child td {
+  border-bottom: none;
 }
 
-body.dark-mode tr:hover td {
-  background: rgba(255, 255, 255, 0.03) !important;
+/* Row hover is a quiet surface step — no accent wash, no colour shift. */
+tr:hover td {
+  background: var(--surface-2);
 }
 
-/* Row-specific color tinting */
-.row-masuk:hover td { background: rgba(16, 185, 129, 0.08) !important; }
-.row-keluar:hover td { background: rgba(244, 63, 94, 0.08) !important; }
-
-/* Modern Badges */
+/* === BADGES === */
 .badge {
   display: inline-block;
   white-space: nowrap;
-  padding: 6px 14px;
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  box-shadow: var(--shadow-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
-.badge-masuk { 
-  background: rgba(16, 185, 129, 0.12); 
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+.badge-masuk {
+  background: var(--accent-tint);
+  border-color: var(--accent-border);
+  color: var(--accent-strong);
 }
 
-.badge-keluar { 
-  background: rgba(244, 63, 94, 0.12); 
-  color: #e11d48;
-  border: 1px solid rgba(244, 63, 94, 0.25);
+/* Outflow is neutral by design — the glyph and the minus carry the meaning. */
+.badge-keluar {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-main);
 }
 
-body.dark-mode .badge-masuk {
-  color: #34d399;
-  background: rgba(16, 185, 129, 0.16);
-  border-color: rgba(52, 211, 153, 0.3);
-}
-
-body.dark-mode .badge-keluar {
-  color: #fb7185;
-  background: rgba(244, 63, 94, 0.16);
-  border-color: rgba(251, 113, 133, 0.3);
-}
-
-/* Matrix Table Specifics */
+/* === MATRIX TABLE (dues grid) === */
 .table-matriks thead th {
   background: var(--table-header-bg);
-  color: var(--text-main);
-  font-weight: 800;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-size: 13px;
+  letter-spacing: var(--tracking-eyebrow);
 }
 
 .table-matriks thead th:first-child {
-  text-align: left !important;
-  padding-left: 28px !important;
+  text-align: left;
+  padding-left: var(--sp-4);
 }
 
 .table-matriks td.text-center {
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.table-matriks th, .table-matriks td {
+.table-matriks th,
+.table-matriks td {
   border-right: 1px solid var(--border);
 }
 
-.table-matriks th:last-child, .table-matriks td:last-child {
+.table-matriks th:last-child,
+.table-matriks td:last-child {
   border-right: none;
 }
 
-.table-matriks th:first-child, .table-matriks td:first-child {
-  background: rgba(255, 255, 255, 0.02);
-  border-right: 2px solid var(--border);
+/* Sticky member column: a solid surface + hairline, never a blur. */
+.table-matriks th:first-child,
+.table-matriks td:first-child {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   position: sticky;
   left: 0;
   z-index: 10;
-  backdrop-filter: blur(10px);
 }
 
-/* Mobile-friendly matrix table */
+.table-matriks thead th:first-child {
+  background: var(--table-header-bg);
+  z-index: 11;
+}
 
+.table-matriks tbody tr:hover td:first-child {
+  background: var(--surface-2);
+}
 
-/* === TABLE LOGIC REFINEMENTS === */
+/* === CLICKABLE CELLS === */
 .td-clickable {
   cursor: pointer;
-  transition: all 0.2s;
   position: relative;
 }
 
 .td-clickable:hover:not(:has(.status-lunas-dot)) {
-  background: rgba(16, 185, 129, 0.05) !important;
+  background: var(--surface-2) !important;
 }
 
 .td-clickable:hover:not(:has(.status-lunas-dot))::after {
-  content: '\ea14'; /* ph-plus icon */
+  content: '\ea14'; /* ph-plus */
   font-family: 'Phosphor';
-  color: var(--primary);
+  color: var(--accent-strong);
   font-size: 14px;
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
-/* NOTE: .progress-container and .progress-bar (orphaned, height:100%) were removed — */
-/* they were dead code not used by any HTML element. The real .progress-bar (outer) is  */
-/* defined in the Chart Section above, and .progress-fill is its inner fill.           */
-
+/* === SKELETONS === */
 .skeleton-text { height: 16px; width: 100%; margin-bottom: 8px; }
 .skeleton-title { height: 32px; width: 60%; }
+
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-/* Search Input Specific */
-.search-wrapper { 
-  position: relative; 
-  margin-bottom: 16px; 
-}
-.search-wrapper i { 
-  position: absolute; 
-  left: 16px; 
-  top: 50%; 
-  transform: translateY(-50%); 
-  color: var(--text-muted); 
-  font-size: 18px; 
-  pointer-events: none;
-}
-.search-wrapper input { 
-  padding-left: 42px; 
-  border-radius: 20px; 
-  background-color: var(--bg-color); 
+/* === SEARCH === */
+.search-wrapper {
+  position: relative;
+  margin-bottom: var(--sp-4);
 }
 
-/* Member Search Specific on Table Header */
+.search-wrapper i {
+  position: absolute;
+  left: var(--sp-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.search-wrapper input {
+  padding-left: 42px;
+  border-radius: var(--r-md);
+  background-color: var(--surface-2);
+}
+
 .member-search-wrapper {
   position: relative;
   display: inline-flex;
@@ -404,25 +396,31 @@ body.dark-mode .badge-keluar {
 
 .member-search-wrapper .search-member-input {
   padding-left: 38px !important;
-  border-radius: 100px;
-  height: 38px;
+  border-radius: var(--r-md);
+  height: 40px;
   font-size: 13px;
-  background: var(--bg-color);
+  font-family: inherit;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   width: 220px;
-  transition: all 0.2s ease;
+  transition: width var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+/* Widening on focus is a desktop affordance only — it overflows on phones. */
+@media (min-width: 769px) {
+  .member-search-wrapper .search-member-input:focus {
+    width: 260px;
+  }
 }
 
 .member-search-wrapper .search-member-input:focus {
-  width: 260px;
-  border-color: var(--primary);
+  border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
-/* Custom Scrollbar untuk grid anggota */
+/* === MEMBER CHECKBOX GRID SCROLLBAR === */
 .checkbox-grid::-webkit-scrollbar { width: 6px; }
 .checkbox-grid::-webkit-scrollbar-track { background: transparent; }
-.checkbox-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-.checkbox-grid::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
+.checkbox-grid::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-sm); }
+.checkbox-grid::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }

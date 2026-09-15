@@ -1,30 +1,117 @@
-/* === FINKAS ONBOARDING FLOW STYLES === */
+/* === FINKAS ONBOARDING — "OCEAN LEDGER" ===
+   Deliberately the same design system as the app so the first screen and the
+   ledger feel like one product:
+     · ONE accent (Ocean Teal) — actions, focus and selected state only
+     · hairline structure instead of blurred shadows
+     · hard radii (6/8/10) — pills exist only for badges
+     · Fraunces for the hero, JetBrains Mono for anything numeric or labelled */
+
 :root {
-  --primary: #10b981;
-  --primary-hover: #059669;
-  --secondary: #6366f1;
-  --danger: #f43f5e;
-  --danger-bg: #fff1f2;
-  --danger-border: #fecdd3;
-  --bg-color: #f1f5f9;
-  --surface: #ffffff;
-  --surface-subtle: #f8fafc;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  /* Surfaces · Paper Ocean */
+  --bg-color: #e8f1f6;
+  --surface: #f7fbfd;
+  --surface-2: #e4eff5;
+  --surface-3: #d6e6ef;
+
+  /* Hairlines */
+  --border: #c8dced;
+  --border-strong: #a9c6dc;
+
+  /* Ink */
+  --text-main: #0e2437;
+  --text-muted: #4a6a80;
+  --text-faint: #7d99ac;
+
+  /* The single accent */
+  --accent: #0d9488;
+  --accent-strong: #0f766e;
+  --accent-tint: rgba(13, 148, 136, 0.10);
+  --accent-border: rgba(13, 148, 136, 0.30);
+  --accent-ink: #ffffff;
+
+  /* Destructive only */
+  --danger: #e11d48;
+  --danger-bg: rgba(225, 29, 72, 0.10);
+  --danger-border: rgba(225, 29, 72, 0.28);
+
+  /* Shape */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-pill: 999px;
+
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --tracking-body: -0.01em;
+  --tracking-tight: -0.02em;
+  --tracking-display: -0.03em;
+  --tracking-eyebrow: 0.14em;
+
+  --t-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  color-scheme: light;
+}
+
+/* Dark · Navy Ocean — follows the OS, since this page has no theme toggle. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #08131d;
+    --surface: #112334;
+    --surface-2: #193147;
+    --surface-3: #223f5b;
+    --border: rgba(56, 189, 248, 0.16);
+    --border-strong: rgba(56, 189, 248, 0.28);
+    --text-main: #e9f4f8;
+    --text-muted: #93b4c7;
+    --text-faint: #6b8fa6;
+    --accent: #2dd4bf;
+    --accent-strong: #5eead4;
+    --accent-tint: rgba(45, 212, 191, 0.12);
+    --accent-border: rgba(45, 212, 191, 0.34);
+    --accent-ink: #04231f;
+    --danger: #fb7185;
+    --danger-bg: rgba(251, 113, 133, 0.14);
+    --danger-border: rgba(251, 113, 133, 0.32);
+    color-scheme: dark;
+  }
+}
+
+/* An explicit class wins over the OS preference if one is ever set. */
+body.dark-mode {
+  --bg-color: #08131d;
+  --surface: #112334;
+  --surface-2: #193147;
+  --surface-3: #223f5b;
+  --border: rgba(56, 189, 248, 0.16);
+  --border-strong: rgba(56, 189, 248, 0.28);
+  --text-main: #e9f4f8;
+  --text-muted: #93b4c7;
+  --text-faint: #6b8fa6;
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+  --accent-tint: rgba(45, 212, 191, 0.12);
+  --accent-border: rgba(45, 212, 191, 0.34);
+  --accent-ink: #04231f;
+  --danger: #fb7185;
+  --danger-bg: rgba(251, 113, 133, 0.14);
+  --danger-border: rgba(251, 113, 133, 0.32);
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
 }
 
 html { scrollbar-gutter: stable; }
@@ -32,8 +119,9 @@ html { scrollbar-gutter: stable; }
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
+  letter-spacing: var(--tracking-body);
   min-height: 100dvh;
-  padding: 32px 16px;
+  padding: var(--sp-8) var(--sp-4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,293 +134,370 @@ body {
   margin: 0 auto;
 }
 
-/* Brand Header */
+/* ── Brand header ────────────────────────────────────────────────── */
 .brand {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--sp-6);
 }
+
 .brand-logo-wrap {
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 12px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--sp-3);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
 }
+
 .brand-logo-img {
   width: 36px;
   height: 36px;
   object-fit: contain;
 }
+
 .brand h1 {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 6vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: var(--tracking-display);
   color: var(--text-main);
 }
+
 .brand-tagline {
   color: var(--text-muted);
   font-size: 13px;
-  line-height: 1.5;
-  margin-top: 4px;
+  line-height: 1.55;
+  margin-top: var(--sp-2);
 }
 
-/* Base Card */
+/* ── Cards: hairline + one surface step, never a shadow ──────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px 20px;
-  box-shadow: var(--shadow-card);
-  margin-bottom: 14px;
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) 20px;
+  margin-bottom: var(--sp-4);
 }
 
-/* Badge Pills */
+/* ── Badge (the one place a pill is allowed) ─────────────────────── */
 .badge-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-.badge-blue {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #dbeafe;
-}
-.badge-green {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
-}
-.badge-purple {
-  background: #f5f3ff;
-  color: #4f46e5;
-  border: 1px solid #e0e7ff;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
-/* Screen 1: Welcome Features */
+.badge-pill i { color: var(--accent-strong); }
+
 .welcome-badge-row {
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--sp-4);
 }
+
+/* ── Feature list ────────────────────────────────────────────────── */
 .feature-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 16px 0 6px;
+  gap: var(--sp-3);
+  margin: var(--sp-4) 0 var(--sp-2);
 }
+
 .feature-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--surface-subtle);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
   border: 1px solid var(--border);
 }
+
+/* One accent treatment for every feature glyph — no rainbow. */
 .feature-icon-box {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
-}
-.icon-gradient-purple-blue,
-.icon-gradient-blue,
-.icon-gradient-emerald {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
 }
 
 .feature-texts h3 {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   margin-bottom: 2px;
 }
+
 .feature-texts p {
   font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-/* Screen 2: Pilih Grup */
+/* ── Inline FAQ (details/summary) ────────────────────────────────── */
+details.card {
+  padding: var(--sp-4);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+details.card > summary {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
+  list-style: none;
+}
+
+details.card > summary::-webkit-details-marker { display: none; }
+
+details.card > summary::after {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 8px;
+  vertical-align: middle;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--text-faint);
+}
+
+details.card[open] > summary { color: var(--accent-strong); }
+details.card[open] > summary::after { border-top-color: var(--accent-strong); }
+
+.faq-inline-body {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.faq-inline-body strong { color: var(--text-main); font-weight: 600; }
+/* ── Screen 2 · group picker ─────────────────────────────────────── */
 .screen-header {
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: var(--sp-6);
 }
+
 .screen-header-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
-  font-size: 22px;
+  border-radius: var(--r-md);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
+  margin: 0 auto var(--sp-3);
 }
+
 .screen-header h2 {
+  font-family: var(--font-display);
   font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   color: var(--text-main);
   margin-bottom: 4px;
 }
+
 .screen-header p {
   font-size: 12px;
   color: var(--text-muted);
 }
+
 .group-list-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
 }
+
+/* Flat hairline row — hover changes the surface, it never lifts the row. */
 .group-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   width: 100%;
   text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
+  border-radius: var(--r-md);
+  padding: var(--sp-3) 14px;
+  min-height: 56px;
+  font: inherit;
   cursor: pointer;
   color: var(--text-main);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
-.group-item:hover {
-  border-color: #cbd5e1;
-  background-color: var(--surface-subtle);
-  transform: translateY(-1px);
-}
-.group-item:active { transform: scale(0.99); }
 
+.group-item:hover {
+  border-color: var(--accent-border);
+  background: var(--surface-2);
+}
+
+.group-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.group-item:active { background: var(--surface-3); }
+
+/* Monogram tile: neutral surface, accent letter — one accent, never a gradient. */
 .group-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: var(--r-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 16px;
-  color: #ffffff;
+  background: var(--surface-2);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
   flex-shrink: 0;
 }
+
 .group-texts {
   flex: 1;
   min-width: 0;
 }
+
 .group-texts h3 {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 2px;
 }
+
 .group-texts small {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
 }
+
 .group-chev {
-  color: var(--text-muted);
-  font-size: 16px;
+  color: var(--text-faint);
+  font-size: 14px;
   flex-shrink: 0;
 }
 
-/* Screen 3: Masuk PIN Grup */
+/* ── Screen 3 · group PIN ────────────────────────────────────────── */
 .pin-card-header {
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--sp-4);
 }
+
 .pin-avatar-icon {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
-  font-size: 24px;
+  border-radius: var(--r-md);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
+  font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
+  margin: 0 auto var(--sp-3);
 }
+
 .pin-group-title {
+  font-family: var(--font-display);
   font-size: 19px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-main);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
 }
+
 .pin-group-sub {
   font-size: 12px;
   color: var(--text-muted);
 }
+
 .pin-box-panel {
-  background: var(--surface-subtle);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px 12px;
-  margin: 16px 0;
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-3);
+  margin: var(--sp-4) 0;
   text-align: center;
 }
+
 .pin-box-label {
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 12px;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
+  margin-bottom: var(--sp-3);
 }
+
 .pin-input-row {
   display: flex;
-  gap: 10px;
+  gap: var(--sp-2);
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--sp-3);
 }
+
+/* Hard-edged digit cells, not soft squares. */
 .pin-digit-box {
   width: 52px;
   height: 58px;
   text-align: center;
+  font-family: var(--font-mono);
   font-size: 24px;
-  font-weight: 800;
-  border: 1.5px solid var(--border-strong);
-  border-radius: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
   background: var(--surface);
   color: var(--text-main);
   outline: none;
   font-variant-numeric: tabular-nums;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
 }
+
 .pin-digit-box:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
 }
+
 .pin-security-hint {
   display: inline-flex;
   align-items: center;
@@ -341,13 +506,17 @@ body {
   color: var(--text-muted);
   font-weight: 500;
 }
+
+.pin-security-hint i { color: var(--accent-strong); }
+
 .pin-msg {
   min-height: 20px;
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: var(--sp-3);
 }
+
 .pin-msg-alert {
   display: inline-flex;
   align-items: center;
@@ -356,73 +525,82 @@ body {
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
   color: var(--danger);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 
-/* Buttons */
+/* ── Buttons — solid accent / hairline outline, no lift, no shadow ── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--sp-2);
   width: 100%;
-  border: none;
-  border-radius: var(--radius-md);
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
   padding: 12px 18px;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
-.btn:active { transform: scale(0.98); }
-.btn:disabled { opacity: 0.65; cursor: not-allowed; }
 
-/* Primary Action: Solid Green, rounded, no glow */
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .btn-primary {
-  background: var(--primary);
-  color: #ffffff;
-  box-shadow: var(--shadow-sm);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
+
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
-/* Secondary Action: Outline natural surface */
 .btn-outline {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-main);
-  box-shadow: var(--shadow-sm);
-  margin-top: 8px;
-}
-.btn-outline:hover:not(:disabled) {
-  background: var(--surface-subtle);
+  background: transparent;
   border-color: var(--border-strong);
+  color: var(--text-main);
+  margin-top: var(--sp-2);
 }
 
-/* Utility & Notes */
+.btn-outline:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--text-muted);
+}
+
+/* ── Notes & utility ─────────────────────────────────────────────── */
 .note {
   font-size: 12px;
   color: var(--text-muted);
-  margin-top: 14px;
+  margin-top: var(--sp-4);
   line-height: 1.6;
   text-align: center;
 }
+
 .note a {
-  color: var(--secondary);
+  color: var(--accent-strong);
   font-weight: 600;
   text-decoration: none;
 }
+
 .note a:hover {
-  color: var(--primary);
+  color: var(--text-main);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
 .loading-state {
   text-align: center;
   color: var(--text-muted);
-  padding: 24px 12px;
+  padding: var(--sp-6) var(--sp-3);
   font-size: 13px;
 }
+
 .hidden { display: none !important; }

@@ -7,6 +7,7 @@
             <i class="ph-fill ph-question"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Bantuan // Panduan</span>
             <h2>Panduan & FAQ</h2>
             <p>Pertanyaan umum seputar penggunaan Finkas</p>
           </div>
@@ -14,48 +15,48 @@
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="faq-list" style="display:flex; flex-direction:column; gap:0.75rem; max-height:65vh; overflow-y:auto; padding-right:4px;">
-        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
-            <i class="ph-fill ph-check-circle" style="vertical-align:middle;"></i> Siapa yang bisa mencatat transaksi?
+      <div class="faq-list">
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-check-circle"></i> Siapa yang bisa mencatat transaksi?
           </h4>
-          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+          <p class="faq-item-desc">
             Hanya Pengurus/Admin yang telah memasukkan kata sandi admin. Anggota umum dapat melihat saldo dan rekap iuran secara transparan.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
-            <i class="ph-fill ph-shield-check" style="vertical-align:middle;"></i> Apakah data kas kelompok aman?
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-shield-check"></i> Apakah data kas kelompok aman?
           </h4>
-          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+          <p class="faq-item-desc">
             Data disimpan di Cloud Firestore dan hanya bisa diakses lewat server aplikasi &mdash; tidak ada koneksi langsung dari browser ke database. Setiap kelompok terisolasi dan dilindungi PIN 4 digit, dengan pembatasan jumlah percobaan di sisi server.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
-            <i class="ph-fill ph-whatsapp-logo" style="vertical-align:middle;"></i> Bagaimana cara menyalin laporan ke WA?
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-whatsapp-logo"></i> Bagaimana cara menyalin laporan ke WA?
           </h4>
-          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+          <p class="faq-item-desc">
             Buka menu "Ekspor Data" lalu pilih "Salin Rekap Bulan Ini (WA)". Pesan otomatis terformat rapi dan siap ditempel langsung ke grup chat.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
-            <i class="ph-fill ph-cloud-slash" style="vertical-align:middle;"></i> Bisa mencatat tanpa koneksi internet?
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-cloud-slash"></i> Bisa mencatat tanpa koneksi internet?
           </h4>
-          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+          <p class="faq-item-desc">
             Bisa. Transaksi akan disimpan di Antrean Offline lokal (IndexedDB) dan otomatis disinkronkan saat ponsel kembali terhubung ke internet.
           </p>
         </div>
 
-        <div class="faq-item" style="border:1px solid var(--color-border, rgba(255,255,255,0.08)); border-radius:0.75rem; padding:0.875rem;">
-          <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:0.35rem; color:var(--color-primary, #10b981);">
-            <i class="ph-fill ph-device-mobile" style="vertical-align:middle;"></i> Bagaimana jika berganti perangkat?
+        <div class="faq-item">
+          <h4 class="faq-item-title">
+            <i class="ph-fill ph-device-mobile"></i> Bagaimana jika berganti perangkat?
           </h4>
-          <p style="font-size:0.85rem; color:var(--color-text-muted, #9ca3af); line-height:1.45; margin:0;">
+          <p class="faq-item-desc">
             Cukup buka tautan Finkas, pilih nama kelompok Anda di daftar kelompok, lalu masukkan 4-digit PIN kelompok.
           </p>
         </div>

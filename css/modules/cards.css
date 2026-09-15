@@ -1,74 +1,147 @@
-/* === CARDS (DASHBOARD) === */
-.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 28px; }
-.card {
+/* === CARDS — dashboard hero, flow strip, header pills, chart cards ===
+   One number leads: the balance is set in Fraunces and carries the only accent
+   moment on the screen. Inflows and outflows drop to a compact mono strip. */
+
+/* === DASHBOARD === */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-8);
+}
+
+/* --- The hero figure --- */
+.balance-hero {
   background: var(--surface);
-  padding: 20px 18px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  position: relative;
-  overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
-}
-.card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: var(--shadow-card-hover);
-}
-
-/* Subtle top border accent instead of heavy glowing left strip */
-.card.card-saldo, .card.glow-blue {
-  border-top: 3px solid #3b82f6;
-}
-.card.card-masuk, .card.glow-green {
-  border-top: 3px solid #10b981;
-}
-.card.card-keluar, .card.glow-red {
-  border-top: 3px solid #f43f5e;
-}
-
-/* Card icons: clean flat containers, zero fuzzy gradients */
-.card-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-6) var(--sp-4);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
 }
-.icon-blue { background: rgba(59, 130, 246, 0.10); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.15); }
-.icon-green { background: rgba(16, 185, 129, 0.10); color: #059669; border: 1px solid rgba(16, 185, 129, 0.15); }
-.icon-red { background: rgba(244, 63, 94, 0.10); color: #e11d48; border: 1px solid rgba(244, 63, 94, 0.15); }
-body.dark-mode .icon-blue { background: rgba(59, 130, 246, 0.14); color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); }
-body.dark-mode .icon-green { background: rgba(16, 185, 129, 0.14); color: #34d399; border-color: rgba(16, 185, 129, 0.25); }
-body.dark-mode .icon-red { background: rgba(244, 63, 94, 0.14); color: #fb7185; border-color: rgba(244, 63, 94, 0.25); }
-.card:hover .card-icon { transform: scale(1.05); }
 
-.card-info h3 { font-size: 11px; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-muted); }
-.nominal-val { font-size: 24px; font-weight: 700; color: var(--text-main); letter-spacing: -0.03em; line-height: 1.2; }
+.balance-hero__value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.25rem, 8vw, 3.75rem);
+  line-height: 1.04;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum" 1;
+  color: var(--text-main);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  /* Stretch so the loading placeholder resolves against a definite width —
+     a content-sized flex item collapses the skeleton to zero. */
+  align-self: stretch;
+}
 
-/* Nominal values: clean natural colors */
-.card.card-saldo .nominal-val, .card.glow-blue .nominal-val { color: var(--text-main); }
-.card.card-masuk .nominal-val, .card.glow-green .nominal-val { color: #059669; }
-.card.card-keluar .nominal-val, .card.glow-red .nominal-val { color: #e11d48; }
-body.dark-mode .card.card-masuk .nominal-val, body.dark-mode .card.glow-green .nominal-val { color: #34d399; }
-body.dark-mode .card.card-keluar .nominal-val, body.dark-mode .card.glow-red .nominal-val { color: #fb7185; }
+/* The single accent moment: a 1px accent rule beneath the balance. */
+.balance-hero__rule {
+  display: block;
+  height: 2px;
+  width: 72px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+}
 
-/* === HEADER ENHANCEMENTS & COMPACT FINANCIAL PILLS === */
-.brand-name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-left: 4px; }
+/* --- Secondary flow strip --- */
+.flow-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
 
-/* Compact Header Stats Pills (Linear / Vercel style) */
+.flow-strip__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4) var(--sp-6);
+  min-width: 0;
+}
+
+.flow-strip__item + .flow-strip__item {
+  border-left: 1px solid var(--border);
+}
+
+.flow-strip__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
+}
+
+.flow-in .flow-strip__label i { color: var(--accent-strong); }
+.flow-out .flow-strip__label i { color: var(--text-muted); }
+
+.flow-strip__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Money is never a different colour to say "out" — it is a neutral figure
+   with an explicit minus. Only inflow takes the accent. */
+.flow-in .flow-strip__value { color: var(--accent-strong); }
+.flow-out .flow-strip__value { color: var(--text-main); }
+
+.flow-strip__sign {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+/* Deterministic loading placeholders. Two separate things collapse them, and
+   both are pinned here:
+   1. The .skeleton-* helpers default to a percentage width, which resolves to
+      0 inside these content-sized flex items.
+   2. The flow-strip placeholders are <span>s — width/height are ignored on an
+      inline box, so the bar must be blockified or it renders at zero size.
+   Heights are set in `em` so the bar scales with the figure it stands in for. */
+.balance-hero__value .skeleton-title {
+  display: block;
+  width: 58%;
+  min-width: 180px;
+  height: 0.6em;
+  margin-bottom: 0;
+}
+
+.flow-strip__value .skeleton-text {
+  display: block;
+  width: 88px;
+  height: 0.85em;
+  margin-bottom: 0;
+}
+
+.flow-out .flow-strip__sign { color: var(--text-muted); }
+
+/* === HEADER STATS (compact pills) === */
+.brand-name { font-size: 22px; font-weight: 600; letter-spacing: var(--tracking-tight); margin-left: 4px; }
+
 .header-stats {
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 body.header-stats-active .header-stats {
@@ -83,26 +156,24 @@ body.header-stats-active .dashboard {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px;
-  border-radius: 100px;
-  background: var(--bg-color);
+  padding: 5px 10px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: background var(--t-fast), border-color var(--t-fast);
 }
 
 .header-stat-pill:hover {
-  transform: translateY(-1px);
+  border-color: var(--border-strong);
 }
 
 .header-stat-pill i {
   font-size: 15px;
   flex-shrink: 0;
+  color: var(--text-muted);
 }
 
-.header-stat-pill.pill-saldo i { color: #3b82f6; }
-.header-stat-pill.pill-masuk i { color: #10b981; }
-.header-stat-pill.pill-keluar i { color: #f43f5e; }
+.header-stat-pill.pill-masuk i { color: var(--accent-strong); }
 
 .header-stat-content {
   display: flex;
@@ -111,23 +182,24 @@ body.header-stats-active .dashboard {
 }
 
 .header-stat-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
 }
 
 .header-stat-val {
+  font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  color: var(--text-main);
+  white-space: nowrap;
 }
 
-.header-stat-pill.pill-saldo .header-stat-val { color: #3b82f6; }
-.header-stat-pill.pill-masuk .header-stat-val { color: #10b981; }
-.header-stat-pill.pill-keluar .header-stat-val { color: #f43f5e; }
+.header-stat-pill.pill-masuk .header-stat-val { color: var(--accent-strong); }
 
 @media (max-width: 900px) {
   .header-stats {
@@ -147,7 +219,8 @@ body.header-stats-active .dashboard {
     font-size: 12px;
   }
 }
-/* Connection status: avatar-style dot pinned to logo corner */
+
+/* === CONNECTION STATUS DOT === */
 .brand-link {
   position: relative;
   display: inline-flex;
@@ -160,108 +233,127 @@ body.header-stats-active .dashboard {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #10b981;
+  background: var(--accent);
   border: 2px solid var(--surface);
   animation: pulse-online 2.4s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* Offline state */
 .connection-status.offline .status-dot {
   background: var(--danger);
   animation: pulse-offline 1.6s ease-in-out infinite;
 }
 
 @keyframes pulse-online {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-tint); }
+  50%       { box-shadow: 0 0 0 4px transparent; }
 }
 
 @keyframes pulse-offline {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
-  50%       { box-shadow: 0 0 0 4px rgba(244, 63, 94, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--danger-bg); }
+  50%       { box-shadow: 0 0 0 4px transparent; }
 }
 
-.status-badge .queue-count { font-size: 10px; font-weight: 700; margin-left: 4px; color: var(--danger); }
+.status-badge .queue-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  color: var(--danger);
+}
 
-/* Pending item card in offline modal */
-.pending-item { padding: 12px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); }
-.pending-item + .pending-item { margin-top: 8px; }
+/* === PENDING ITEM (offline modal) === */
+.pending-item {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.pending-item + .pending-item { margin-top: var(--sp-2); }
 
 /* === CHART SECTION === */
-.chart-section { margin-bottom: 35px; }
-.chart-container-card { padding: 24px; }
-.chart-wrapper { height: 320px; position: relative; width: 100%; margin-top: 20px; }
+.chart-section { margin-bottom: var(--sp-8); }
+.chart-container-card { padding: var(--sp-6); }
+.chart-wrapper { height: 320px; position: relative; width: 100%; margin-top: var(--sp-4); }
 
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
 }
+
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  box-shadow: none;
   min-height: 160px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 .stat-card-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--sp-4);
   flex: 1;
 }
+
 .stat-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
 }
+
 .stat-card-title,
 .stat-card-note {
   color: var(--text-muted);
   font-size: 13px;
 }
+
 .stat-card-value {
   font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   color: var(--text-main);
 }
+
 .health-card {
   grid-column: 1 / -1;
   min-height: auto;
-  padding: 16px 20px;
+  padding: var(--sp-4) var(--sp-6);
 }
+
 .health-card .stat-card-header {
-  margin-bottom: 8px;
+  margin-bottom: var(--sp-2);
 }
+
 .health-card .stat-card-body {
-  gap: 8px;
+  gap: var(--sp-2);
 }
+
 .progress-bar {
   height: 8px;
-  border-radius: 999px;
-  background: rgba(16, 185, 129, 0.12);
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
   overflow: hidden;
 }
+
 .progress-fill {
   height: 100%;
   width: 0;
-  border-radius: 999px;
-  background: var(--primary);
+  border-radius: var(--r-pill);
+  background: var(--accent);
   transition: width 0.5s ease;
 }
+
 .stat-card-note {
   font-size: 12.5px;
   line-height: 1.5;
 }
-
-/* === RESPONSIVE REFINEMENTS === */
-

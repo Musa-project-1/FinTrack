@@ -1,74 +1,176 @@
-/* === CSS RESET & PREMIUM LIGHT TOKENS === */
+/* === FINKAS — DESIGN TOKENS · "OCEAN LEDGER" ===
+   Trust-first fintech × tactile precision.
+   Light = "Paper Ocean" (201° hue) · Dark = "Navy Ocean" / Abyssal Deep Sea (208° hue).
+
+   Rules of the system:
+   1. Elevation comes from surface contrast + 1px hairlines — never from blur shadows.
+      The single exception is `--shadow-pop` for genuinely floating surfaces
+      (modal, dropdown, bottom sheet, toast).
+   2. Exactly ONE accent: Ocean Teal. It is rare — primary actions, active state,
+      focus ring, and a single hero figure per screen.
+   3. Ocean Coral is reserved for destructive actions only (delete / logout).
+   4. Ocean Cyan carries informational states, Ocean Amber carries overdue only.
+   5. Money is never coloured differently to say "out": it is `--text-main` + a "−".
+   6. Never hard-code a colour outside this file — always read a token. */
+
 :root {
-  --primary: #10b981; /* Emerald 500 */
-  --primary-hover: #059669; /* Emerald 600 */
-  --secondary: #6366f1; /* Indigo 500 */
-  --danger: #f43f5e; /* Rose 500 */
-  --warning: #f59e0b; /* Amber 500 */
-  
-  --bg-color: #f1f5f9; /* Slate 100 rich backdrop */
-  --bg-pattern-dot: rgba(100, 116, 139, 0.10);
-  --surface: #ffffff;  /* Solid White Card */
-  --text-main: #0f172a; 
-  --text-muted: #64748b;
-  --border: #e2e8f0;    /* Slate 200 - Clean & subtle */
-  --table-header-bg: #f8fafc; /* Slate 50 */
-  
-  --radius-lg: 14px;
-  --radius-md: 10px;
-  --radius-sm: 6px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 16px -4px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
-  --shadow-card-hover: 0 4px 10px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-card-flat: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-dropdown: 0 10px 20px -5px rgba(15, 23, 42, 0.08);
-  --shadow-menu-mobile: 0 4px 12px rgba(15, 23, 42, 0.06);
-  --btn-icon-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --btn-icon-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.06);
+  /* ---------- Surfaces · Paper Ocean ---------- */
+  --bg-color: #e8f1f6;
+  --surface: #f7fbfd;
+  --surface-2: #e4eff5;
+  --surface-3: #d6e6ef;
+  --surface-subtle: var(--surface-2);
+  --bg-card: var(--surface);
+  --bg-card-subtle: var(--surface-2);
+  --table-header-bg: var(--surface-2);
+
+  /* ---------- Hairlines ---------- */
+  --border: #c8dced;
+  --border-strong: #a9c6dc;
+  --border-color: var(--border);
+
+  /* ---------- Ink ---------- */
+  --text-main: #0e2437;
+  --text-muted: #4a6a80;
+  --text-faint: #7d99ac;
+
+  /* ---------- Accent · Ocean Teal ---------- */
+  --accent: #0d9488;
+  --accent-strong: #0f766e;
+  --accent-tint: rgba(13, 148, 136, 0.10);
+  --accent-border: rgba(13, 148, 136, 0.30);
+  --accent-ink: #ffffff;
+
+  /* ---------- Functional hues ---------- */
+  --secondary: #0284c7;
+  --danger: #e11d48;
+  --danger-strong: #be123c;
+  --danger-bg: rgba(225, 29, 72, 0.10);
+  --danger-border: rgba(225, 29, 72, 0.28);
+  --danger-ink: #ffffff;
+  --warning: #b45309;
+  --warning-bg: rgba(180, 83, 9, 0.12);
+  --warning-border: rgba(180, 83, 9, 0.28);
+
+  /* ---------- Ledger semantics ---------- */
+  --income: var(--accent);
+  --expense: var(--text-main);
+  --overdue: var(--warning);
+
+  /* ---------- Radius · tactile precision ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-pill: 999px;
+  /* legacy aliases kept so untouched modules still resolve */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+
+  /* ---------- Spacing · 4px base ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-18: 72px;
+  --modal-pad: 24px;
+
+  /* ---------- Motion ---------- */
+  --t-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --t-base: 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* ---------- Elevation ---------- */
+  --shadow-pop: 0 12px 32px -8px rgba(14, 36, 55, 0.22), 0 2px 8px -2px rgba(14, 36, 55, 0.10);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: var(--shadow-pop);
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-card-flat: none;
+  --shadow-dropdown: var(--shadow-pop);
+  --shadow-menu-mobile: var(--shadow-pop);
+  --btn-icon-shadow: none;
+  --btn-icon-shadow-hover: none;
+
+  /* ---------- Legacy aliases ----------
+     Older fragments still ship inline styles referencing these names with
+     hard-coded fallbacks; mapping them keeps those styles on the new palette. */
+  --primary: var(--accent);
+  --primary-hover: var(--accent-strong);
+  --color-primary: var(--accent-strong);
+  --color-border: var(--border);
+  --color-text-muted: var(--text-muted);
+
+  color-scheme: light;
 }
 
 body.dark-mode {
-  --bg-color: #0b1325; /* Soft Dark Slate Navy (No pitch black) */
-  --bg-pattern-dot: rgba(255, 255, 255, 0.04);
-  --surface: #131f37;  /* Refined Slate Card Surface */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: rgba(255, 255, 255, 0.08); /* Linear-spec border */
-  --table-header-bg: #1a2a4a; /* Distinct header row */
-  
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --shadow-card-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.45);
-  --btn-icon-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --btn-icon-shadow-hover: 0 3px 8px rgba(0, 0, 0, 0.3);
+  /* ---------- Surfaces · Navy Ocean ---------- */
+  --bg-color: #08131d;
+  --surface: #112334;
+  --surface-2: #193147;
+  --surface-3: #223f5b;
+  --surface-subtle: var(--surface-2);
+  --bg-card: var(--surface);
+  --bg-card-subtle: var(--surface-2);
+  --table-header-bg: var(--surface-2);
+
+  /* ---------- Hairlines · cyan-tinted ---------- */
+  --border: rgba(56, 189, 248, 0.16);
+  --border-strong: rgba(56, 189, 248, 0.28);
+
+  /* ---------- Ink ---------- */
+  --text-main: #e9f4f8;
+  --text-muted: #93b4c7;
+  --text-faint: #6b8fa6;
+
+  /* ---------- Accent ---------- */
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+  --accent-tint: rgba(45, 212, 191, 0.12);
+  --accent-border: rgba(45, 212, 191, 0.34);
+  --accent-ink: #04231f;
+
+  /* ---------- Functional hues ---------- */
+  --secondary: #38bdf8;
+  --danger: #fb7185;
+  --danger-strong: #fda4af;
+  --danger-bg: rgba(251, 113, 133, 0.14);
+  --danger-border: rgba(251, 113, 133, 0.32);
+  --danger-ink: #2b0a11;
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.14);
+  --warning-border: rgba(251, 191, 36, 0.32);
+
+  /* ---------- Elevation ---------- */
+  --shadow-pop: 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 2px 8px -2px rgba(0, 0, 0, 0.45);
+
+  /* Legacy inline-style aliases — redeclared here so they re-resolve against
+     this element's dark values instead of the light ones from :root. */
+  --color-primary: var(--accent-strong);
+  --color-border: var(--border);
+  --color-text-muted: var(--text-muted);
+
+  color-scheme: dark;
 }
 
-* { 
-  margin: 0; 
-  padding: 0; 
-  box-sizing: border-box; 
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+/* === RESET === */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 }
 
-/* === VIEW TRANSITION API (HARDWARE GPU ACCELERATED CROSS-FADE) === */
+/* === VIEW TRANSITIONS === */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.25s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 0.32s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
-
-/* === FINANCIAL DATA TYPOGRAPHY TUNING (WISE / LINEAR SPEC) === */
-.nominal-val,
-.stat-card-value,
-.table-matriks td,
-#table-riwayat-data td:nth-child(3),
-#table-riwayat-data td:nth-child(1),
-.table-responsive table td,
-.summary-box,
-.iuran-card-stats {
-  font-variant-numeric: tabular-nums;
-  -webkit-font-feature-settings: "tnum" 1, "cv01" 1;
-  font-feature-settings: "tnum" 1, "cv01" 1;
-}
-

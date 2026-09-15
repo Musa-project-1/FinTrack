@@ -32,7 +32,7 @@
   border-bottom: 1px solid var(--border);
   gap: 12px;
   position: sticky;
-  top: -24px;
+  top: calc(-1 * var(--modal-pad));
   z-index: 3;
   background: var(--surface);
 }
@@ -87,10 +87,10 @@
 /* 3. Centered action dialogs */
 .modal-center-dialog { text-align: center; padding: 30px 26px; }
 .modal-center-dialog .modal-badge-icon {
-  width: 52px;
-  height: 52px;
-  font-size: 26px;
-  border-radius: var(--r-md);
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  border-radius: var(--r-sm);
   margin: 0 auto 16px;
 }
 .modal-center-dialog h2 {
@@ -111,18 +111,19 @@
 
 .modal-footer-actions {
   position: sticky;
-  bottom: -24px;
+  bottom: calc(-1 * var(--modal-pad));
   z-index: 3;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin: 20px -24px -24px;
-  padding: 14px 24px 24px;
+  margin: 20px calc(-1 * var(--modal-pad)) calc(-1 * var(--modal-pad));
+  padding: 14px var(--modal-pad) var(--modal-pad);
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
 
-.modal-footer-actions .btn { min-width: 180px; }
+/* Share the row instead of forcing a fixed width that overflows narrow dialogs. */
+.modal-footer-actions .btn { min-width: 0; flex: 1 1 140px; max-width: 220px; }
 
 .modal-data-dialog { display: flex; flex-direction: column; }
 .modal-data-dialog > .tab-content { flex: 1 1 auto; }
@@ -226,9 +227,6 @@
 
 @media (max-width: 599px) {
   .modal-content { width: calc(100vw - 16px); max-width: 100%; }
-  .modal-header-standard { top: -14px; }
-  .modal-footer-actions { bottom: -14px; margin-inline: -16px; padding-inline: 16px; }
-  .modal-footer-actions .btn { min-width: 0; width: 100%; }
   .split-body { display: block; }
   .edit-impact-panel { margin-top: 16px; }
 }
@@ -292,7 +290,7 @@
 }
 .style-option-card:last-child { border-bottom: none; }
 .style-option-card:hover { background: var(--surface-2); }
-.style-option-card.active { background: var(--accent-tint); box-shadow: inset 2px 0 0 0 var(--accent); }
+.style-option-card.active { background: var(--accent-tint); box-shadow: inset 1px 0 0 0 var(--accent); }
 
 .style-option-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
@@ -350,3 +348,63 @@
   color: var(--accent-ink);
 }
 .style-option-card.active .style-check-indicator { opacity: 1; transform: scale(1); }
+
+/* === FAQ LIST COMPONENT === */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+}
+
+.faq-item:hover {
+  border-color: var(--border-strong);
+}
+
+.faq-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--accent-strong);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.faq-item-title i {
+  font-size: 16px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.faq-item-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* === TOUCH TARGETS ===
+   The close affordances reach 44px on touch widths (WCAG 2.5.5). */
+@media (max-width: 768px) {
+  .close-modal-btn,
+  .close-modal,
+  .nav-close-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 18px;
+  }
+}

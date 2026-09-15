@@ -1,6 +1,6 @@
-/* === CUSTOM DROPDOWN (premium replacement for native select lists) ===
-   Native <select> stays in DOM as data source (display:none) so all
-   existing population + submit logic keeps working untouched. */
+/* === CUSTOM DROPDOWN (quiet replacement for native select lists) ===
+   The native <select> stays in the DOM as the data source (display:none) so
+   every existing populate + submit path keeps working untouched. */
 
 .cdrop {
   position: relative;
@@ -21,27 +21,26 @@
   width: 100%;
   min-width: 0;
   padding: 10px 14px;
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-md);
   color: var(--text-main);
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   text-align: left;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 
 .cdrop-btn:hover {
-  border-color: var(--primary);
+  border-color: var(--border-strong);
 }
 
 .cdrop.open .cdrop-btn,
 .cdrop-btn:focus-visible {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
   outline: none;
 }
 
@@ -54,7 +53,7 @@
 }
 
 .cdrop-val.is-placeholder {
-  color: var(--text-muted);
+  color: var(--text-faint);
   font-weight: 400;
 }
 
@@ -64,7 +63,7 @@
   height: 12px;
   color: var(--text-muted);
   transition: transform 0.18s ease;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d99ac' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 12px;
@@ -75,7 +74,7 @@
 }
 
 body.dark-mode .cdrop-chevron {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b8fa6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .cdrop-list {
@@ -86,10 +85,10 @@ body.dark-mode .cdrop-chevron {
   z-index: 60;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-dropdown);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
   padding: 6px;
-  animation: dropdownFadeIn 0.15s ease-out;
+  animation: dropdownFadeIn var(--t-fast);
 }
 
 .cdrop--up .cdrop-list {
@@ -105,8 +104,8 @@ body.dark-mode .cdrop-chevron {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-color);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
   color: var(--text-main);
   font-size: 13px;
   font-family: inherit;
@@ -114,14 +113,15 @@ body.dark-mode .cdrop-chevron {
 }
 
 .cdrop-search input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
 .cdrop-items {
   max-height: 220px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .cdrop-item {
@@ -132,7 +132,7 @@ body.dark-mode .cdrop-chevron {
   width: 100%;
   padding: 9px 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-main);
   font-size: 13px;
@@ -140,7 +140,7 @@ body.dark-mode .cdrop-chevron {
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background var(--t-fast);
 }
 
 .cdrop-item span {
@@ -153,13 +153,13 @@ body.dark-mode .cdrop-chevron {
 
 .cdrop-item:hover,
 .cdrop-item.highlight {
-  background: rgba(16, 185, 129, 0.08);
+  background: var(--surface-2);
 }
 
 .cdrop-item.selected {
-  color: var(--primary);
-  font-weight: 700;
-  background: rgba(16, 185, 129, 0.08);
+  color: var(--accent-strong);
+  font-weight: 600;
+  background: var(--accent-tint);
 }
 
 .cdrop-item.selected::after {
@@ -167,10 +167,14 @@ body.dark-mode .cdrop-chevron {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230d9488' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 16px;
+}
+
+body.dark-mode .cdrop-item.selected::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .cdrop-empty {
@@ -180,7 +184,7 @@ body.dark-mode .cdrop-chevron {
   color: var(--text-muted);
 }
 
-/* Inside pill wrappers (riwayat filters) the button inherits pill look */
+/* Inside pill wrappers (riwayat filters) the button inherits the pill look */
 .select-pill-wrap .cdrop {
   flex: 1;
   min-width: 0;

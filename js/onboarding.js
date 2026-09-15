@@ -10,15 +10,6 @@ import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROU
 import { apiPost } from './core/api-client.js';
 import { setGroupSession } from './core/state.js';
 
-const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-  'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-  'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-  'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-  'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-];
-
 /** @type {Array<{id: string, nama: string}>} */
 let groups = [];
 
@@ -55,14 +46,15 @@ const renderList = () => {
     return;
   }
 
-  box.innerHTML = groups.map((g, idx) => {
-    const gradient = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
+  // Every group uses the same accent monogram tile — the design system allows
+  // exactly one accent, so per-group rainbow gradients were removed.
+  box.innerHTML = groups.map((g) => {
     const initial = esc(g.nama.charAt(0).toUpperCase());
     return `
       <button class="group-item" data-id="${esc(g.id)}">
-        <span class="group-avatar" style="background:${gradient}">${initial}</span>
+        <span class="group-avatar" aria-hidden="true">${initial}</span>
         <span class="group-texts"><h3>${esc(g.nama)}</h3><small>Ketuk untuk masuk</small></span>
-        <i class="ph-bold ph-caret-right group-chev"></i>
+        <i class="ph-bold ph-caret-right group-chev" aria-hidden="true"></i>
       </button>`;
   }).join('');
 

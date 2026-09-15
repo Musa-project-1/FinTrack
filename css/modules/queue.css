@@ -1,4 +1,6 @@
-/* === OFFLINE QUEUE SHEET === */
+/* === OFFLINE QUEUE SHEET ===
+   The queue is a ledger of pending writes: flat hairlines, monospaced payloads,
+   cyan reserved for the informational status line. */
 
 .queue-sheet {
   border-radius: var(--r-lg);
@@ -8,8 +10,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
 }
 
 .queue-head .modal-header-left {
@@ -21,9 +23,9 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-4);
   border-bottom: 1px solid var(--border);
 }
 
@@ -31,9 +33,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px;
-  margin-bottom: 12px;
+  gap: var(--sp-3);
+  padding: 9px var(--sp-3);
+  margin-bottom: var(--sp-3);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-2);
@@ -41,8 +43,16 @@
   font-size: 12px;
 }
 
-.queue-status-bar i { color: var(--accent-strong); }
-.queue-pending-label { font-family: var(--font-mono); color: var(--text-faint); }
+/* Informational, not success — cyan, not accent. */
+.queue-status-bar i {
+  color: var(--secondary);
+}
+
+.queue-pending-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
 
 .queue-actions .btn {
   width: 100%;
@@ -53,8 +63,8 @@
 .queue-error {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 24px 18px;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-4);
   background: var(--surface-2);
   border: 1px dashed var(--border-strong);
   border-radius: var(--r-md);
@@ -88,9 +98,12 @@
   margin: 0;
 }
 
+/* Each pending write is a flat hairline row, not a raised card. */
 .queue-sheet .pending-item {
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: 14px 16px;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
 }
 
 .queue-sheet .pending-card-payload {
@@ -110,6 +123,6 @@
 @media (max-width: 480px) {
   .queue-empty,
   .queue-error {
-    padding: 20px 14px;
+    padding: var(--sp-4) var(--sp-3);
   }
 }

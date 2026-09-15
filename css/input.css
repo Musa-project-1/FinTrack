@@ -2,6 +2,7 @@
 
 /* === FINKAS GRANULAR MODULAR ARCHITECTURE (ALL MODULES < 430 LINES) === */
 @import "./modules/tokens.css";
+@import "./modules/typography.css";
 @import "./modules/base.css";
 @import "./modules/layout.css";
 @import "./modules/cards.css";

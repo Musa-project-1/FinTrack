@@ -56,11 +56,11 @@ export const applyTheme = () => {
   if (isDark) {
     document.body.classList.add('dark-mode');
     themeIcons.forEach((icon) => icon.classList.replace('ph-moon', 'ph-sun'));
-    if (metaTheme) metaTheme.setAttribute('content', '#0f172a');
+    if (metaTheme) metaTheme.setAttribute('content', '#08131d');
   } else {
     document.body.classList.remove('dark-mode');
     themeIcons.forEach((icon) => icon.classList.replace('ph-sun', 'ph-moon'));
-    if (metaTheme) metaTheme.setAttribute('content', '#f1f5f9');
+    if (metaTheme) metaTheme.setAttribute('content', '#e8f1f6');
   }
 
   // Re-render charts only if the statistics modal is currently open

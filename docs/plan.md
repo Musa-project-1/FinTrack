@@ -1,6 +1,6 @@
 # Finkas — Rencana Redesign UI/UX
 **Arah:** Trust-first Fintech × Tactile Precision (dark-first ledger)
-**Status:** FASE 0–8 **selesai diimplementasikan dan diaudit** (build `v120`). Laporan audit lengkap tersedia di `AUDIT.md`.
+**Status:** Sedang berjalan — **FASE 4 (Refactor Modal & Token Ocean Ledger)**.
 
 ---
 
@@ -327,8 +327,6 @@ Telusuri **seluruh** `css/**` dan `html/**` (bukan hanya modul yang diedit) agar
 3. **Satu-satunya warna non-aksen** = merah `--danger` khusus tombol hapus/konfirmasi destruktif. — *Setuju?*
 4. **Dashboard diubah** dari 3 kartu setara → 1 angka Saldo hero + strip Masuk/Keluar (ID/JS dijaga). — *Setuju?*
 5. **Font baru**: Fraunces + JetBrains Mono dimuat dari Google Fonts (menambah 2 keluarga font). — *Setuju, atau ingin sistem font saja?*
-
-> FASE 0–8 sudah selesai diimplementasikan dan diaudit (build `v120`). Laporan audit lengkap ada di `AUDIT.md`.
 
 ---
 

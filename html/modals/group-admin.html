@@ -7,6 +7,7 @@
             <i class="ph-fill ph-users-three"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Grup // Kelola</span>
             <h2>Kelola Grup</h2>
             <p>Atur kelas atau buat ruang kas baru</p>
           </div>
@@ -37,8 +38,8 @@
           </div>
 
           <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
-          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-color, #e2e8f0)">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main, #334155)">
+          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main)">
               <input type="checkbox" id="chk-group-admin-auto" checked>
               <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
             </label>
@@ -68,12 +69,12 @@
       <div id="group-admin-list" class="group-admin-list"></div>
 
       <!-- Bagian Kelola Akses Super Admin (Google Whitelist) -->
-      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:10px;background:var(--bg-card-subtle, rgba(241,245,249,0.6));border:1px solid var(--border-color, #e2e8f0)">
+      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)">
         <div class="group-section-header" style="margin-bottom:8px">
           <i class="ph-bold ph-shield-check text-primary"></i>
           <span style="font-weight:600;font-size:13px">Daftar Super Admin (Google Login)</span>
         </div>
-        <p style="font-size:11px;color:var(--text-muted, #64748b);margin-bottom:10px">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
         
         <div id="superadmin-emails-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
 
@@ -97,10 +98,11 @@
     <div class="modal-content modal-sm">
       <div class="modal-header-standard">
         <div class="modal-header-left">
-          <div class="modal-badge-icon" style="background:rgba(16,185,129,0.15);color:#10b981">
+          <div class="modal-badge-icon">
             <i class="ph-fill ph-check-circle"></i>
           </div>
           <div class="modal-title-wrap">
+            <span class="eyebrow">Grup // Kredensial</span>
             <h2>Kredensial Grup</h2>
             <p id="cred-modal-subtitle">Akun siap dibagikan ke pengurus</p>
           </div>
@@ -108,11 +110,11 @@
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="cred-card-box" style="margin:12px 0;padding:14px;border-radius:10px;background:var(--bg-card-subtle, rgba(241,245,249,0.8));border:1px solid var(--border-color, #e2e8f0);font-size:13px;line-height:1.6">
+      <div class="cred-card-box" style="margin:12px 0;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border);font-size:13px;line-height:1.6">
         <div style="margin-bottom:6px"><strong>Grup:</strong> <span id="cred-disp-nama">-</span></div>
-        <div style="margin-bottom:6px"><strong>PIN Warga:</strong> <code id="cred-disp-pin" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">1234</code></div>
+        <div style="margin-bottom:6px"><strong>PIN Warga:</strong> <code id="cred-disp-pin" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">1234</code></div>
         <div style="margin-bottom:6px"><strong>Email Admin:</strong> <span id="cred-disp-email" style="word-break:break-all">-</span></div>
-        <div><strong>Password Admin:</strong> <code id="cred-disp-pwd" style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-weight:700">-</code></div>
+        <div><strong>Password Admin:</strong> <code id="cred-disp-pwd" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">-</code></div>
       </div>
 
       <div class="modal-dialog-actions" style="display:flex;flex-direction:column;gap:8px">

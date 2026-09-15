@@ -19,7 +19,7 @@
   background: var(--surface-2);
   color: var(--text-main);
   outline: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 .pin-box:focus {
   border-color: var(--accent);
@@ -58,7 +58,7 @@
 }
 button.group-item {
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 button.group-item:hover {
   border-color: var(--accent);
@@ -120,7 +120,7 @@ button.group-item:hover {
   font-size: 10.5px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-eyebrow);
   color: var(--text-faint);
   margin-bottom: 12px;
 }
@@ -178,7 +178,7 @@ button.group-item:hover {
   font-size: 10.5px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-eyebrow);
   color: var(--text-faint);
 }
 
@@ -202,7 +202,7 @@ button.group-item:hover {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 
 .group-card-item:hover {
@@ -306,7 +306,7 @@ button.group-item:hover {
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 
 .btn-group-chip:hover {
@@ -355,7 +355,7 @@ button.group-item:hover {
 .group-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -374,7 +374,6 @@ button.group-item:hover {
 .group-name:empty {
   display: none;
 }
-
 /* === MODAL OVERLAY / SURFACE === */
 .modal-overlay {
   position: fixed;
@@ -413,7 +412,7 @@ body.dark-mode .modal-overlay {
   background: var(--surface);
   width: 100%;
   max-width: 800px;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-pop);
   transform: scale(0.97) translateY(8px);
   opacity: 0;
@@ -421,7 +420,7 @@ body.dark-mode .modal-overlay {
               opacity 0.18s ease-out,
               background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 24px;
+  padding: var(--modal-pad);
   max-height: 95vh;
   overflow-y: auto;
   border: 1px solid var(--border);
@@ -444,10 +443,6 @@ body.dark-mode .modal-overlay {
   pointer-events: none;
 }
 
-body.dark-mode .skeleton {
-  background: var(--surface-3);
-}
-
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -462,7 +457,7 @@ body.dark-mode .skeleton {
   font-size: 22px;
   font-weight: 600;
   color: var(--text-main);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
 }
 .close-modal {
   background: var(--surface-2);
@@ -476,7 +471,7 @@ body.dark-mode .skeleton {
   font-size: 16px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: all 0.15s ease;
+  transition: background var(--t-fast), color var(--t-fast);
 }
 .close-modal:hover { background: var(--surface-3); color: var(--text-main); }
 
@@ -484,12 +479,13 @@ body.dark-mode .skeleton {
 .form-group { margin-bottom: 20px; }
 .form-group label {
   display: block;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-eyebrow);
   margin-bottom: 8px;
-  color: var(--text-muted);
+  color: var(--text-faint);
 }
 
 .form-control {
@@ -498,8 +494,9 @@ body.dark-mode .skeleton {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   font-size: 14px;
+  font-family: inherit;
   outline: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color var(--t-fast), background-color var(--t-fast);
   background-color: var(--surface-2);
   color: var(--text-main);
 }
@@ -508,7 +505,8 @@ body.dark-mode .skeleton {
 .form-control:focus {
   border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px var(--accent-tint);
+  /* A sharp accent ring — never a diffuse glow. */
+  box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
 /* Angka, ID, dan PIN memakai monospace */
@@ -518,7 +516,9 @@ input[type="number"].form-control,
 #edit-nominal,
 #iuran-nominal,
 #ops-nominal,
-#input-group-pin {
+#input-group-pin,
+#input-wa-anggota,
+.input-admin-code {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
@@ -532,7 +532,7 @@ select.form-control {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237d99ac' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -541,17 +541,17 @@ select.form-control {
 }
 
 body.dark-mode select.form-control {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235a6678' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b8fa6' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 select.form-control:hover { border-color: var(--border-strong); }
 
 select.form-control:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 body.dark-mode select.form-control:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 /* === INPUT WITH PREFIX (CURRENCY) === */
@@ -578,7 +578,7 @@ body.dark-mode select.form-control:focus {
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* === SEGMENTED TABS (ledger underline, bukan pill berwarna) === */
+/* === SEGMENTED TABS (ledger underline, not a floating colour pill) === */
 .tab-header {
   display: flex;
   gap: 4px;
@@ -598,15 +598,16 @@ body.dark-mode select.form-control:focus {
   padding: 10px;
   font-weight: 600;
   font-size: 13.5px;
+  font-family: inherit;
   color: var(--text-muted);
   border-radius: var(--r-sm);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--t-fast), color var(--t-fast);
 }
 .tab-btn.active {
   background: var(--surface);
-  color: var(--text-main);
-  box-shadow: inset 0 -2px 0 0 var(--accent);
+  color: var(--accent-strong);
+  box-shadow: inset 0 -1px 0 0 var(--accent);
 }
 .tab-header .tab-btn { padding: 10px 8px; white-space: nowrap; }
 .tab-btn:hover:not(.active) { color: var(--text-main); background: var(--surface-3); }
@@ -663,7 +664,7 @@ select option { background-color: var(--surface); color: var(--text-main); }
   border-top: 1px solid var(--border);
   font-size: 16px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 /* === CHIPS (filter) === */
@@ -675,13 +676,13 @@ select option { background-color: var(--surface); color: var(--text-main); }
   border-radius: var(--r-pill);
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast);
   user-select: none;
 }
 .chip-btn:hover { border-color: var(--border-strong); color: var(--text-main); }
-.chip-btn:active { transform: scale(0.98); }
 .chip-btn.active {
   background: var(--accent);
   border-color: var(--accent);
@@ -699,6 +700,7 @@ select option { background-color: var(--surface); color: var(--text-main); }
   overflow-x: hidden;
   padding: 2px;
   align-items: stretch;
+  scrollbar-gutter: stable;
 }
 
 .checkbox-item {
@@ -710,9 +712,10 @@ select option { background-color: var(--surface); color: var(--text-main); }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--t-fast), background var(--t-fast);
   user-select: none;
   height: 100%;
+  min-height: 44px;
 }
 
 .checkbox-item:hover {

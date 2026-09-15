@@ -1,13 +1,15 @@
+/* === HELPERS — riwayat summary, metric pills, ledger cell classes === */
+
 /* Quick summary bar for filtered riwayat transactions */
 .riwayat-summary-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
-  background: var(--bg-color);
+  padding: 8px var(--sp-3);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  margin-bottom: 12px;
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-3);
   font-size: 13px;
 }
 
@@ -18,12 +20,17 @@
 }
 
 .riwayat-summary-label {
-  color: var(--text-muted);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
 }
 
 .riwayat-summary-value {
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-weight: 600;
   color: var(--text-main);
   font-variant-numeric: tabular-nums;
 }
@@ -31,32 +38,31 @@
 .riwayat-summary-metrics {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
+/* metric pills: monospace, tabular, one accent for inflow, neutral for outflow */
 .metric-pill {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .metric-in {
-  background: rgba(16, 185, 129, 0.12);
-  color: var(--primary);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
 }
 
+/* Outflow is neutral by design — the minus sign carries the meaning. */
 .metric-out {
-  background: rgba(244, 63, 94, 0.12);
-  color: #e11d48;
-  border: 1px solid rgba(244, 63, 94, 0.2);
-}
-
-body.dark-mode .metric-out {
-  color: #fb7185;
-  border-color: rgba(251, 113, 133, 0.25);
+  background: var(--surface-2);
+  color: var(--text-main);
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {
@@ -64,9 +70,9 @@ body.dark-mode .metric-out {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 10px 12px;
+    padding: 10px var(--sp-3);
   }
-  
+
   .riwayat-summary-metrics {
     width: 100%;
     justify-content: flex-start;
@@ -82,7 +88,7 @@ body.dark-mode .metric-out {
 
 /* Checkbox items for iuran selection */
 .item-disabled-lunas {
-  background: var(--bg-color) !important;
+  background: var(--surface-2) !important;
   border-color: var(--border) !important;
   cursor: not-allowed !important;
   opacity: 0.6;
@@ -103,9 +109,12 @@ body.dark-mode .metric-out {
 }
 
 .chk-badge-lunas {
-  font-size: 10px;
-  color: var(--primary);
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -118,19 +127,24 @@ body.dark-mode .metric-out {
 }
 
 .chk-badge-pending {
-  font-size: 10px;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
   font-weight: 500;
 }
 
+/* Date group header inside the ledger — a mono eyebrow rule. */
 .td-date-group-header {
-  background: var(--bg-color);
-  padding: 12px 20px;
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 12px;
+  background: var(--surface-2);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-faint);
+  font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: var(--tracking-eyebrow);
   border-bottom: 1px solid var(--border);
 }
 
@@ -141,16 +155,17 @@ body.dark-mode .metric-out {
   display: block;
 }
 
-/* Period pill next to member name (desktop: inline, mobile: stacked via view-riwayat.css) */
+/* Period tag next to a member name */
 .trx-period {
   display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
   color: var(--text-muted);
-  background: var(--bg-color);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 100px;
-  padding: 1px 8px;
+  border-radius: var(--r-sm);
+  padding: 1px 6px;
   margin-left: 8px;
   vertical-align: middle;
   white-space: nowrap;
@@ -172,22 +187,26 @@ body.dark-mode .metric-out {
 
 .td-time-col {
   white-space: nowrap;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   color: var(--text-muted);
   vertical-align: middle;
 }
 
 .td-nominal-col {
-  font-weight: 700;
-  font-size: 15px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 14px;
   vertical-align: middle;
   font-variant-numeric: tabular-nums;
+  color: var(--text-main);
 }
 
 .va-middle { vertical-align: middle; }
 
 .td-audit-time {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -195,19 +214,24 @@ body.dark-mode .metric-out {
 .ws-nowrap { white-space: nowrap; }
 
 .audit-action-tag {
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .td-audit-detail {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text-main);
   word-break: break-word;
 }
 
 .td-id-col {
-  font-size: 12px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
@@ -217,8 +241,9 @@ body.dark-mode .metric-out {
 }
 
 .td-wa-col {
+  font-family: var(--font-mono);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .td-action-cell {
@@ -236,28 +261,30 @@ body.dark-mode .metric-out {
 .pending-card-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-3);
   align-items: center;
 }
 
 .pending-card-action {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
 }
 
 .pending-card-time {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   color: var(--text-muted);
 }
 
 .pending-card-payload {
   margin-top: 6px;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   color: var(--text-muted);
 }
 
 .toast-icon-success {
-  color: var(--primary);
+  color: var(--accent-strong);
   font-size: 22px;
 }
 
@@ -272,9 +299,10 @@ body.dark-mode .metric-out {
 }
 
 .td-nom-primary {
+  font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 700;
-  color: var(--primary);
+  font-weight: 600;
+  color: var(--text-main);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -283,9 +311,9 @@ body.dark-mode .metric-out {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px var(--sp-3);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-md);
   background: var(--surface);
 }
 
@@ -302,4 +330,3 @@ body.dark-mode .metric-out {
 }
 
 .fw-700 { font-weight: 700; }
-

@@ -5,44 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kebijakan Privasi - Finkas</title>
   <meta name="description" content="Kebijakan Privasi dan Perlindungan Data Aplikasi Finkas.">
-  <meta name="theme-color" content="#10b981">
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <meta name="theme-color" content="#e8f1f6">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=121">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    /* Ocean Ledger — the same tokens as the app, so the legal page belongs. */
     :root {
-      --bg: #090d16;
-      --card-bg: #111827;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f3f4f6;
-      --text-sub: #9ca3af;
-      --primary: #10b981;
-      --primary-hover: #059669;
+      --bg-color: #e8f1f6;
+      --surface: #f7fbfd;
+      --surface-2: #e4eff5;
+      --border: #c8dced;
+      --text-main: #0e2437;
+      --text-muted: #4a6a80;
+      --accent: #0d9488;
+      --accent-strong: #0f766e;
+      --accent-ink: #ffffff;
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 10px;
+      --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+      color-scheme: light;
     }
-    @media (prefers-color-scheme: light) {
+    @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #f8fafc;
-        --card-bg: #ffffff;
-        --border: rgba(0, 0, 0, 0.08);
-        --text: #0f172a;
-        --text-sub: #64748b;
+        --bg-color: #08131d;
+        --surface: #112334;
+        --surface-2: #193147;
+        --border: rgba(56, 189, 248, 0.16);
+        --text-main: #e9f4f8;
+        --text-muted: #93b4c7;
+        --accent: #2dd4bf;
+        --accent-strong: #5eead4;
+        --accent-ink: #04231f;
+        color-scheme: dark;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-color);
+      color: var(--text-main);
       line-height: 1.6;
       padding: 2rem 1rem;
+      letter-spacing: -0.01em;
     }
     .wrap {
       max-width: 680px;
       margin: 0 auto;
-      background-color: var(--card-bg);
+      background-color: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 1.25rem;
+      border-radius: var(--r-lg);
       padding: 2.25rem 2rem;
     }
     .brand {
@@ -53,13 +68,42 @@
       padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--border);
     }
-    .brand img { width: 36px; height: 36px; }
-    .brand h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-    .brand span { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
-    h2 { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; color: var(--primary); }
-    p, li { font-size: 0.925rem; color: var(--text-sub); margin-bottom: 0.75rem; }
+    .brand img { width: 36px; height: 36px; border-radius: var(--r-md); }
+    .brand h1 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+    .brand span {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 1.75rem 0 0.5rem;
+      color: var(--text-main);
+    }
+    p, li { font-size: 0.925rem; color: var(--text-muted); margin-bottom: 0.75rem; }
     ul { padding-left: 1.25rem; margin-bottom: 1rem; }
     li { margin-bottom: 0.35rem; }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 1px 5px;
+      color: var(--text-main);
+    }
     .footer-actions {
       margin-top: 2rem;
       padding-top: 1.5rem;
@@ -74,16 +118,20 @@
       display: inline-flex;
       align-items: center;
       padding: 0.65rem 1.25rem;
-      border-radius: 0.75rem;
+      border-radius: var(--r-md);
       font-size: 0.875rem;
       font-weight: 600;
       text-decoration: none;
-      background-color: var(--primary);
-      color: #ffffff;
-      transition: background 0.15s ease;
+      background-color: var(--accent);
+      color: var(--accent-ink);
+      transition: background-color 0.15s ease;
     }
-    .btn:hover { background-color: var(--primary-hover); }
-    .timestamp { font-size: 0.8rem; color: var(--text-sub); }
+    .btn:hover { background-color: var(--accent-strong); }
+    .timestamp {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>

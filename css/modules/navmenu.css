@@ -1,22 +1,23 @@
-/* === NAV MENU SHEET REDESIGN (grouped sections, icon tiles, chevrons) === */
+/* === NAVIGATION MENU SHEET (grouped sections, neutral icon tiles) === */
 
 .nav-sheet {
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
 }
 
 .nav-sheet-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
 }
 
 .nav-sheet-head .modal-title-wrap h2 {
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   color: var(--text-main);
   line-height: 1.25;
   margin: 0;
@@ -31,37 +32,40 @@
 }
 
 .nav-close-btn {
-  border-radius: 50%;
+  border-radius: var(--r-md);
   width: 34px;
   height: 34px;
 }
 
 .nav-group {
-  padding: 8px 0 4px;
+  padding: var(--sp-2) 0 var(--sp-1);
 }
 
 .nav-group + .nav-group {
   border-top: 1px solid var(--border);
-  margin-top: 8px;
-  padding-top: 12px;
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-3);
 }
 
+/* The section label reads as a ledger eyebrow. */
 .nav-group-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  padding: 4px 12px 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--text-faint);
+  padding: var(--sp-1) var(--sp-3) var(--sp-2);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 12px;
+  padding: 10px var(--sp-3);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-main);
   font-size: 14px;
@@ -69,55 +73,46 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
 
 .nav-item:hover {
-  background: rgba(16, 185, 129, 0.07);
-  transform: translateX(4px);
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
-.nav-item:active {
-  transform: translateX(2px) scale(0.99);
-}
-
+/* Icon tiles are neutral: the glyph carries the meaning, not a colour. */
 .nav-ico {
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
+  font-size: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
-.nav-ico.is-blue {
-  background: rgba(59, 130, 246, 0.13);
-  color: #3b82f6;
+.nav-item:hover .nav-ico {
+  color: var(--accent-strong);
+  border-color: var(--accent-border);
 }
 
-.nav-ico.is-amber {
-  background: rgba(245, 158, 11, 0.14);
-  color: #d97706;
-}
-
-.nav-ico.is-green {
-  background: rgba(16, 185, 129, 0.13);
-  color: var(--primary);
-}
-
+.nav-ico.is-blue,
+.nav-ico.is-amber,
+.nav-ico.is-green,
 .nav-ico.is-slate {
-  background: rgba(100, 116, 139, 0.13);
-  color: #64748b;
-}
-
-body.dark-mode .nav-ico.is-slate {
-  color: #94a3b8;
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-muted);
 }
 
 .nav-ico.is-red {
-  background: rgba(244, 63, 94, 0.13);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
   color: var(--danger);
 }
 
@@ -132,11 +127,11 @@ body.dark-mode .nav-ico.is-slate {
 .nav-chev {
   flex-shrink: 0;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-faint);
 }
 
 .nav-item:hover .nav-chev {
-  color: var(--primary);
+  color: var(--accent-strong);
 }
 
 .nav-item.nav-danger .nav-txt {
@@ -144,7 +139,8 @@ body.dark-mode .nav-ico.is-slate {
 }
 
 .nav-item.nav-danger:hover {
-  background: rgba(244, 63, 94, 0.08);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
 }
 
 .nav-item.nav-danger:hover .nav-chev {

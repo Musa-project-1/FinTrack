@@ -174,8 +174,8 @@ export const renderChart = async () => {
   if (getCashFlowChart()) getCashFlowChart().destroy();
 
   const isDark = document.body.classList.contains('dark-mode');
-  const textColor = isDark ? '#94a3b8' : '#475569';
-  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const textColor = isDark ? '#93b4c7' : '#3b5e78';
+  const gridColor = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(14, 36, 55, 0.08)';
 
   const cashFlowChart = new Chart(ctx, {
     type: 'line',
@@ -185,28 +185,28 @@ export const renderChart = async () => {
         {
           label: 'Pemasukan',
           data: dataMasuk,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          borderColor: isDark ? '#2dd4bf' : '#0d9488',
+          backgroundColor: isDark ? 'rgba(45, 212, 191, 0.14)' : 'rgba(13, 148, 136, 0.12)',
           tension: 0.35,
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true,
           borderWidth: 2.5,
-          pointBackgroundColor: '#10b981',
-          pointBorderColor: '#fff',
+          pointBackgroundColor: isDark ? '#2dd4bf' : '#0d9488',
+          pointBorderColor: isDark ? '#112334' : '#fff',
         },
         {
           label: 'Pengeluaran',
           data: dataKeluar,
-          borderColor: '#f43f5e',
-          backgroundColor: 'rgba(244, 63, 94, 0.12)',
+          borderColor: isDark ? '#fb7185' : '#e11d48',
+          backgroundColor: isDark ? 'rgba(251, 113, 133, 0.14)' : 'rgba(225, 29, 72, 0.12)',
           tension: 0.35,
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true,
           borderWidth: 2.5,
-          pointBackgroundColor: '#f43f5e',
-          pointBorderColor: '#fff',
+          pointBackgroundColor: isDark ? '#fb7185' : '#e11d48',
+          pointBorderColor: isDark ? '#112334' : '#fff',
         }
       ]
     },
@@ -315,7 +315,7 @@ const renderExpenseChart = (isDark, textColor) => {
         data,
         backgroundColor: CHART_COLORS.slice(0, labels.length),
         borderWidth: isDark ? 2 : 1,
-        borderColor: isDark ? '#1e293b' : '#fff'
+        borderColor: isDark ? '#112334' : '#fff'
       }]
     },
     options: {

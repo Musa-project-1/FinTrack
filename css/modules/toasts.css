@@ -1,4 +1,7 @@
-/* === TOASTS (MODERN ELEVATED SQUIRCLE CARD SPEC) === */
+/* === TOASTS (flat ledger notification, no blur) ===
+   Structure is one accent: a 2px accent edge on a flat hairline surface.
+   Meaning is carried by the icon tile's functional hue only. */
+
 #toast-container {
   position: fixed;
   top: 24px;
@@ -6,90 +9,73 @@
   z-index: 9999999;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-3);
   pointer-events: none;
   max-width: 420px;
   width: calc(100vw - 32px);
 }
 
 .toast {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--surface);
   color: var(--text-main);
-  padding: 12px 14px 12px 12px;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-3);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  transform: translateY(-16px) scale(0.96);
+  gap: var(--sp-3);
+  transform: translateY(-12px);
   opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   font-size: 13px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-left: 4px solid var(--primary, #10b981);
   pointer-events: auto;
   user-select: none;
   position: relative;
   overflow: hidden;
 }
 
-body.dark-mode .toast {
-  background: rgba(15, 23, 42, 0.94);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 18px 40px -6px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.toast.success { border-left-color: #10b981; }
-.toast.error { border-left-color: #f43f5e; }
-.toast.warning { border-left-color: #f59e0b; }
-.toast.info { border-left-color: #6366f1; }
-
 .toast.show {
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
   opacity: 1;
 }
 
-/* Icon badge within toast */
+/* Icon tile carries the functional hue. */
 .toast-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 17px;
   flex-shrink: 0;
   margin-top: 1px;
-}
-
-.toast-icon-wrap.success,
-.toast.success .toast-icon-wrap {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-strong);
 }
 
 .toast-icon-wrap.error,
 .toast.error .toast-icon-wrap {
-  background: rgba(244, 63, 94, 0.15);
-  color: #e11d48;
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 
 .toast-icon-wrap.warning,
 .toast.warning .toast-icon-wrap {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning);
 }
 
 .toast-icon-wrap.info,
 .toast.info .toast-icon-wrap {
-  background: rgba(99, 102, 241, 0.15);
-  color: #4f46e5;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--secondary);
 }
 
 /* Toast body content */
@@ -104,36 +90,42 @@ body.dark-mode .toast {
 .toast-header-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
+/* A mono tag, like every other ledger label. */
 .toast-badge-tag {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
   padding: 2px 7px;
-  border-radius: 6px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  border-radius: var(--r-xs);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-strong);
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
 .toast.warning .toast-badge-tag {
-  background: rgba(245, 158, 11, 0.14);
-  color: #b45309;
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning);
 }
 
 .toast.error .toast-badge-tag {
-  background: rgba(244, 63, 94, 0.14);
-  color: #e11d48;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 
 .toast.info .toast-badge-tag {
-  background: rgba(99, 102, 241, 0.14);
-  color: #4f46e5;
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--secondary);
 }
 
 .toast-title {
@@ -145,7 +137,7 @@ body.dark-mode .toast {
 
 .toast-label {
   line-height: 1.45;
-  color: var(--text-main);
+  color: var(--text-muted);
   font-size: 12.5px;
   font-weight: 500;
   white-space: normal;
@@ -158,7 +150,7 @@ body.dark-mode .toast {
   border: none;
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -167,17 +159,12 @@ body.dark-mode .toast {
   font-size: 13px;
   padding: 0;
   flex-shrink: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--t-fast), color var(--t-fast);
 }
 
 .toast-close-btn:hover {
-  background: rgba(15, 23, 42, 0.08);
+  background: var(--surface-3);
   color: var(--text-main);
-}
-
-body.dark-mode .toast-close-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
 }
 
 /* Micro progress bar */
@@ -185,16 +172,15 @@ body.dark-mode .toast-close-btn:hover {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 2.5px;
-  background: rgba(16, 185, 129, 0.6);
+  height: 2px;
+  background: var(--accent);
   width: 100%;
   transform-origin: left;
   animation: toastProgress linear forwards;
 }
 
-.toast.warning .toast-progress { background: rgba(245, 158, 11, 0.7); }
-.toast.error .toast-progress { background: rgba(244, 63, 94, 0.7); }
-.toast.info .toast-progress { background: rgba(99, 102, 241, 0.7); }
+.toast.error .toast-progress { background: var(--danger); }
+.toast.warning .toast-progress { background: var(--warning); }
 
 @keyframes toastProgress {
   from { transform: scaleX(1); }
@@ -211,122 +197,95 @@ body.dark-mode .toast-close-btn:hover {
   }
 }
 
-/* === STATUS LUNAS STAMP & INDICATOR STYLES === */
+/* === DUES STATUS INDICATORS ===
+   Five selectable styles, all drawn from the single accent family.
+   A "skip" month is neutral; nothing here uses a colour outside the tokens. */
 .status-lunas-dot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform var(--t-fast);
   animation: popIn 0.2s ease-out;
 }
 
-/* 1. Style: PAID Stamp (Default) */
+/* 1. PAID stamp (default) */
 .status-lunas-dot,
 .status-lunas-dot.style-paid {
   width: 34px;
   height: 22px;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   transform: rotate(-4deg);
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
-  border: 1.5px solid #10b981;
-  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.2);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1.5px solid var(--accent);
 }
 
 .status-lunas-dot span,
 .status-lunas-dot.style-paid span {
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   line-height: 1;
 }
 
 .status-lunas-dot:hover {
-  transform: rotate(0deg) scale(1.06);
+  transform: rotate(0deg) scale(1.04);
 }
 
-body.dark-mode .status-lunas-dot,
-body.dark-mode .status-lunas-dot.style-paid {
-  background: rgba(16, 185, 129, 0.16);
-  color: #34d399;
-  border-color: #34d399;
-  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.25), 0 0 8px rgba(16, 185, 129, 0.2);
-}
-
-/* 2. Style: Centang Squircle */
+/* 2. Check squircle */
 .status-lunas-dot.style-check {
   width: 25px;
   height: 25px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   transform: none;
-  background: rgba(16, 185, 129, 0.14);
-  color: #047857;
-  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1.5px solid var(--accent-border);
   font-size: 12.5px;
 }
-body.dark-mode .status-lunas-dot.style-check {
-  background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.45);
-}
 
-/* 3. Style: Bintang Berlian (Sparkle) */
+/* 3. Sparkle diamond — the overdue-adjacent accent */
 .status-lunas-dot.style-star {
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   transform: none;
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
   font-size: 14px;
 }
-body.dark-mode .status-lunas-dot.style-star {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.45);
-}
 
-/* 4. Style: Cap Bulat Bintang */
+/* 4. Round stamp */
 .status-lunas-dot.style-round-star {
   width: 26px;
   height: 26px;
   border-radius: 50%;
   transform: rotate(-6deg);
-  background: #059669;
-  color: #ffffff;
-  outline: 1.5px solid #059669;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  outline: 1.5px solid var(--accent);
   outline-offset: 1.5px;
   font-size: 12px;
-  border: none;
-  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
-}
-body.dark-mode .status-lunas-dot.style-round-star {
-  background: #10b981;
-  color: #070c18;
-  outline-color: #34d399;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }
 
-/* 5. Style: Nominal Kas */
+/* 5. Nominal amount */
 .status-lunas-dot.style-nominal {
   width: 34px;
   height: 22px;
-  border-radius: 5px;
+  border-radius: var(--r-xs);
   transform: none;
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3px;
-}
-body.dark-mode .status-lunas-dot.style-nominal {
-  background: rgba(16, 185, 129, 0.16);
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.4);
+  letter-spacing: 0.02em;
 }
 
 @keyframes popIn {

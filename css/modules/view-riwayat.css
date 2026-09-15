@@ -23,21 +23,22 @@
 .riwayat-icon-badge {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(16, 185, 129, 0.12);
-  color: var(--primary);
+  border-radius: var(--r-md);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  font-size: 20px;
+  border: 1px solid var(--accent-border);
   flex-shrink: 0;
 }
 
 .riwayat-title {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   color: var(--text-main);
   margin-bottom: 2px;
 }
@@ -71,23 +72,23 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   padding: 6px 14px;
-  border-radius: 100px;
+  border-radius: var(--r-md);
   color: var(--text-muted);
-  font-size: 13px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  transition: border-color var(--t-fast);
 }
 
 .select-pill-wrap:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
 .select-pill-wrap:hover {
-  border-color: var(--secondary);
+  border-color: var(--border-strong);
 }
 
 .riwayat-select {
@@ -97,19 +98,20 @@
   border: none;
   background: transparent;
   color: var(--text-main);
-  font-size: 13px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
   outline: none;
   cursor: pointer;
   padding-right: 18px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d99ac' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0 center;
   background-size: 12px;
 }
 
 body.dark-mode .riwayat-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b8fa6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .riwayat-chips-bar {
@@ -155,63 +157,60 @@ body.dark-mode .riwayat-select {
 
 /* === HISTORY ENHANCEMENTS === */
 .h-card {
-  background: var(--bg-color);
+  background: var(--surface-2);
   padding: 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-md);
   border: 1px solid var(--border);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: border-color var(--t-fast);
 }
 .h-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-  border-color: var(--primary);
+  border-color: var(--border-strong);
 }
 .h-card span {
   display: block;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   text-transform: uppercase;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--text-faint);
   margin-bottom: 6px;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--tracking-eyebrow);
 }
 .h-card div {
+  font-family: var(--font-mono);
   font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
 }
 
+/* The member name is a quiet link — one accent on hover, never a second hue. */
 .clickable-name {
-  color: var(--secondary); /* Warna aksen teks (indigo) yang membedakan dari teks biasa */
-  font-weight: 700;
+  color: var(--text-main);
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s ease, text-decoration 0.15s ease;
+  transition: color var(--t-fast);
   display: inline;
   text-decoration: none;
 }
 
 .clickable-name:hover {
-  color: var(--primary); /* Berubah ke emerald saat hover */
+  color: var(--accent-strong);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-body.dark-mode .clickable-name {
-  color: #818cf8; /* Indigo terang di dark mode */
-}
-
-body.dark-mode .clickable-name:hover {
-  color: #34d399; /* Emerald terang saat hover */
-}
-
 .date-group-header td {
-  background: var(--bg-color) !important;
-  color: var(--primary) !important;
-  font-size: 11px !important;
-  letter-spacing: 1px !important;
-  padding: 14px 18px 8px !important;
-  border-top: 8px solid var(--bg-color);
+  background: var(--surface-2) !important;
+  color: var(--text-faint) !important;
+  font-family: var(--font-mono);
+  font-size: 10.5px !important;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow) !important;
+  padding: 10px 18px !important;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .date-group-header:first-child td {
@@ -222,10 +221,9 @@ body.dark-mode .clickable-name:hover {
 @media (min-width: 769px) {
   .riwayat-table-wrapper {
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--r-md);
     overflow: hidden;
     background: var(--surface);
-    box-shadow: var(--shadow-sm);
     margin-bottom: 16px;
   }
 
@@ -244,7 +242,7 @@ body.dark-mode .clickable-name:hover {
 
   #table-riwayat thead th {
     background: var(--table-header-bg);
-    border-bottom: 2px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
 
   /* Kolom 1: Waktu */
@@ -308,12 +306,12 @@ body.dark-mode .clickable-name:hover {
 }
 
 #load-more-container button {
-  transition: all 0.2s ease;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
 #load-more-container button:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
 }
 
 .filter-chips .chip-btn {
@@ -321,6 +319,5 @@ body.dark-mode .clickable-name:hover {
   font-size: 13px;
 }
 
-/* Row highlighting based on flow */
-.row-masuk td { background-color: rgba(16, 185, 129, 0.02); }
-.row-keluar td { background-color: rgba(225, 29, 72, 0.02); }
+/* Rows carry no colour tint: the explicit +/− sign and the type badge carry
+   the direction. Tinting the whole row would break the single-accent rule. */

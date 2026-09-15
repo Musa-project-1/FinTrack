@@ -1,96 +1,94 @@
+/* === BASE — canvas, scrollbars, focus, brand ===
+   No dot pattern (a soft-UI tell) and no blurred card elevation: a card is a
+   hairline plus one surface contrast step. */
+
 html {
   scrollbar-gutter: stable;
 }
 
-/* === ACCESSIBILITY FOCUS RING (WCAG AA) === */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  padding: 40px 20px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === FOCUS — one sharp accent ring, visible in both themes === */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
 }
 
-body { 
-  background-color: var(--bg-color); 
-  background-image: radial-gradient(var(--bg-pattern-dot) 1px, transparent 1px);
-  background-size: 24px 24px;
-  background-attachment: fixed;
-  color: var(--text-main); 
-  padding: 40px 20px; 
-  min-height: 100vh;
-  overflow-x: hidden;
+::selection {
+  background: var(--accent-tint);
+  color: var(--text-main);
 }
 
-.table-card, .modal-content {
+/* === CARDS & MODALS — hairline frame, flat elevation === */
+.table-card,
+.modal-content {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
 }
 
 .table-card {
-  box-shadow: var(--shadow-card) !important;
+  box-shadow: none !important;
 }
 
+/* A modal genuinely floats, so it is the one surface allowed a shadow.
+   Never an inset glow. */
 .modal-content {
-  box-shadow: var(--shadow-lg), inset 0 2px 0 0 #10b981 !important;
+  box-shadow: var(--shadow-pop) !important;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
 
-/* === MODERN CUSTOM SCROLLBAR === */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* === SCROLLBARS — slim, neutral, never themed === */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.16);
-  border-radius: 999px;
+  background: var(--border-strong);
+  border-radius: var(--r-pill);
   border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, 0.32);
-  border-radius: 999px;
+  background: var(--text-faint);
+  border-radius: var(--r-pill);
   border: 1px solid transparent;
   background-clip: padding-box;
-}
-
-body.dark-mode ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-body.dark-mode ::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 211, 153, 0.45); /* Emerald accent hover */
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
-body.dark-mode {
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
-}
-
-
-/* === BRAND LOGO THEME ADAPTIVE === */
+/* === BRAND === */
 .brand-link {
   display: flex;
   align-items: center;
@@ -102,14 +100,15 @@ body.dark-mode {
 .brand-logo-img {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   object-fit: cover;
 }
 
 .brand-title {
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   color: var(--text-main);
 }
 
@@ -119,23 +118,31 @@ body.dark-mode {
 body.dark-mode .brand-logo-light { display: none !important; }
 body.dark-mode .brand-logo-dark { display: block !important; }
 
-/* === BRAND ICON (FALLBACK) === */
+/* Fallback monogram tile when no logo image is present. */
 .brand-icon-box {
-  background: var(--primary);
-  color: white;
-  width: 44px;
-  height: 44px;
+  background: var(--surface-2);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  width: 40px;
+  height: 40px;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: none;
 }
 
-body.modal-open { 
-  overflow: hidden; 
-}
-.container { max-width: 1400px; margin: 0 auto; width: 100%; }
+/* === VIEWPORT HELPERS === */
+.desktop-only { display: flex !important; }
+span.desktop-only { display: inline !important; }
+button.desktop-only { display: inline-flex !important; }
+.mobile-only { display: none !important; }
 
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex !important; }
+}
+
+/* === STATUS TEXT === */
+.status-text { display: inline; }

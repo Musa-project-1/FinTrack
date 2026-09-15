@@ -150,7 +150,14 @@
 .btn-icon:hover {
   background: var(--surface-3);
   border-color: var(--border-strong);
+  color: var(--text-main);
 }
+
+.theme-toggle-btn i { color: var(--secondary); }
+body.dark-mode .theme-toggle-btn i { color: var(--warning); }
+#btn-toggle-stats-header i { color: var(--text-muted); }
+#btn-toggle-stats-header:hover i { color: var(--accent); }
+#btn-header-menu i { color: var(--text-main); }
 
 .btn-icon.is-active {
   color: var(--accent-strong);

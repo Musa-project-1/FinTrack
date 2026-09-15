@@ -84,27 +84,15 @@
   color: var(--text-faint);
 }
 
-.flow-in .flow-strip__label i { color: var(--accent-strong); }
-.flow-out .flow-strip__label i { color: var(--text-muted); }
+.flow-in .flow-strip__label { color: var(--accent); }
+.flow-in .flow-strip__label i { color: var(--accent); font-size: 13px; }
+.flow-in .flow-strip__value { color: var(--accent); }
+.flow-in .flow-strip__sign { color: var(--accent); }
 
-.flow-strip__value {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 1px;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-main);
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-}
-
-/* Money is never a different colour to say "out" — it is a neutral figure
-   with an explicit minus. Only inflow takes the accent. */
-.flow-in .flow-strip__value { color: var(--accent-strong); }
-.flow-out .flow-strip__value { color: var(--text-main); }
+.flow-out .flow-strip__label { color: var(--danger); }
+.flow-out .flow-strip__label i { color: var(--danger); font-size: 13px; }
+.flow-out .flow-strip__value { color: var(--danger); }
+.flow-out .flow-strip__sign { color: var(--danger); }
 
 .flow-strip__sign {
   flex-shrink: 0;
@@ -173,7 +161,9 @@ body.header-stats-active .dashboard {
   color: var(--text-muted);
 }
 
-.header-stat-pill.pill-masuk i { color: var(--accent-strong); }
+.header-stat-pill.pill-saldo i { color: var(--secondary); }
+.header-stat-pill.pill-masuk i { color: var(--accent); }
+.header-stat-pill.pill-keluar i { color: var(--danger); }
 
 .header-stat-content {
   display: flex;

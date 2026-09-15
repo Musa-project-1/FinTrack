@@ -35,7 +35,8 @@ import {
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener,
-  openTampilanModal, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode
+  openTampilanModal, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode,
+  openCommandHubModal, setupMenuSearchListener
 } from "./handlers/navigation.js";
 import {
   openQuickPaySheet, submitQuickPay, bukaModalTransaksi, submitIuran,
@@ -129,7 +130,7 @@ document.addEventListener('click', (e) => {
     case 'select-progress': setProgressFormat(target.getAttribute('data-format')); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':
-    case 'toggle-dropdown':   openModal('modal-menu'); break;
+    case 'toggle-dropdown':   openCommandHubModal(); break;
     case 'install-pwa':
       if (window.__pwaPrompt) window.__pwaPrompt.prompt();
       else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info');
@@ -197,7 +198,7 @@ document.addEventListener('click', (e) => {
       break;
     case 'nav-menu':
       setBottomNavActive('nav-menu');
-      openModal('modal-menu');
+      openCommandHubModal();
       break;
 
     /* ── Modals ───────────────────────────────────── */
@@ -417,6 +418,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initCustomDropdowns();
   initMonthPickers();
   setupRekapSearchListener();
+  setupMenuSearchListener();
 
   window.addEventListener('online', () => {
     showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');

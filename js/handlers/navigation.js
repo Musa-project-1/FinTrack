@@ -206,3 +206,46 @@ export const setCurrencyFormat = (formatKey) => {
   renderAll();
 };
 
+/* ══════════════════════════════════════════════════════════════════
+   COMMAND HUB SEARCH & LAUNCHER
+   ══════════════════════════════════════════════════════════════════ */
+
+export const openCommandHubModal = () => {
+  const searchInput = document.getElementById('search-nav-menu');
+  if (searchInput) {
+    searchInput.value = '';
+    document.querySelectorAll('#modal-menu .nav-item').forEach((it) => { it.style.display = 'flex'; });
+    document.querySelectorAll('#modal-menu .nav-group').forEach((gr) => { gr.style.display = 'block'; });
+  }
+  const groupLabel = document.getElementById('command-footer-group');
+  if (groupLabel) {
+    const activeGroupName = document.getElementById('app-group-name')?.textContent?.trim() || 'Finkas';
+    groupLabel.textContent = `Grup: ${activeGroupName}`;
+  }
+  openModal('modal-menu');
+};
+
+export const setupMenuSearchListener = () => {
+  const searchInput = document.getElementById('search-nav-menu');
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    const items = document.querySelectorAll('#modal-menu .nav-item');
+    const groups = document.querySelectorAll('#modal-menu .nav-group');
+
+    items.forEach((item) => {
+      const text = (item.querySelector('.nav-txt')?.textContent || '').toLowerCase();
+      const sub = (item.querySelector('.nav-sub')?.textContent || '').toLowerCase();
+      const keywords = (item.getAttribute('data-keywords') || '').toLowerCase();
+      const match = !query || text.includes(query) || sub.includes(query) || keywords.includes(query);
+      item.style.display = match ? 'flex' : 'none';
+    });
+
+    groups.forEach((group) => {
+      const visible = Array.from(group.querySelectorAll('.nav-item')).some((it) => it.style.display !== 'none');
+      group.style.display = visible ? 'block' : 'none';
+    });
+  });
+};
+

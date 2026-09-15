@@ -29,8 +29,21 @@ export const renderTableTransaksi = () => {
 
     const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
     const namaKat = objKat ? objKat.Nama_Kategori.toLowerCase() : '';
+    const angObj = trx.ID_Anggota && trx.ID_Anggota !== '-' ? state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota) : null;
+    const namaAnggota = angObj ? angObj.Nama_Anggota.toLowerCase() : '';
     const ket = (trx.Keterangan || '').toLowerCase();
-    const matchesSearch = searchQuery === '' || ket.includes(searchQuery) || namaKat.includes(searchQuery);
+    const bulanIuran = (trx.Bulan_Iuran || '').toLowerCase();
+    const tahunIuran = String(trx.Tahun_Iuran || '');
+    const idTrx = (trx.ID_Transaksi || '').toLowerCase();
+
+    const matchesSearch =
+      searchQuery === '' ||
+      namaAnggota.includes(searchQuery) ||
+      ket.includes(searchQuery) ||
+      namaKat.includes(searchQuery) ||
+      bulanIuran.includes(searchQuery) ||
+      tahunIuran.includes(searchQuery) ||
+      idTrx.includes(searchQuery);
 
     // Iuran rows are matched by their iuran period (Bulan_Iuran/Tahun_Iuran),
     // not by the date they were recorded. Operasional rows use the timestamp.

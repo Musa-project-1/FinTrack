@@ -1,91 +1,157 @@
-  <!-- 7. Navigation Menu Modal Sheet -->
-  <div class="modal-overlay" id="modal-menu">
-    <div class="modal-content modal-md menu-sheet nav-sheet">
-      <div class="quickpay-handle" aria-hidden="true"></div>
-      <div class="nav-sheet-head">
-          <div class="modal-title-wrap">
-            <span class="eyebrow">Navigasi // Menu</span>
-            <h2>Menu Navigasi</h2>
-          <p>Akses fitur pembukuan dan pengaturan kas</p>
+  <!-- 7. Navigation Menu Modal Sheet (Command Hub / Raycast Spec) -->
+  <div class="modal-overlay modal-top" id="modal-menu">
+    <div class="modal-content modal-md command-hub-modal" role="dialog" aria-modal="true" aria-labelledby="modal-menu-title">
+      <div class="command-hub-header">
+        <div class="command-search-bar">
+          <i class="ph-bold ph-magnifying-glass command-search-icon"></i>
+          <input type="text" id="search-nav-menu" class="command-search-input" placeholder="Cari menu, aksi, atau laporan..." autocomplete="off" spellcheck="false" aria-label="Cari navigasi menu">
+          <button class="command-esc-badge" data-action="close-modal" aria-label="Tutup menu">ESC</button>
         </div>
-        <button class="close-modal-btn nav-close-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
       </div>
 
-      <button class="nav-item" id="btn-login-menu-sheet" data-action="open-login">
-        <span class="nav-ico is-amber"><i class="ph-fill ph-lock-key"></i></span>
-        <span class="nav-txt">Login Admin</span>
-        <i class="ph-bold ph-caret-right nav-chev"></i>
-      </button>
+      <div class="command-hub-body">
+        <!-- Sesi Pengurus (Khusus saat belum login admin) -->
+        <button class="nav-item" id="btn-login-menu-sheet" data-action="open-login" data-keywords="login masuk admin sandi password pengurus otentikasi">
+          <span class="nav-ico is-amber"><i class="ph-fill ph-lock-key"></i></span>
+          <div class="nav-item-content">
+            <span class="nav-txt">Akses Pengurus</span>
+            <small class="nav-sub">Buka wewenang pencatatan &amp; edit kas</small>
+          </div>
+          <i class="ph-bold ph-caret-right nav-chev"></i>
+        </button>
 
-      <div class="nav-group">
-        <div class="nav-group-label">Kelola data</div>
-        <button class="nav-item admin-only" data-action="open-kelola-master">
-          <span class="nav-ico is-blue"><i class="ph-fill ph-sliders"></i></span>
-          <span class="nav-txt">Data Master</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item admin-only" data-action="open-audit-log">
-          <span class="nav-ico is-purple"><i class="ph-fill ph-detective"></i></span>
-          <span class="nav-txt">Log Aktivitas</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item superadmin-only" data-action="open-group-admin">
-          <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
-          <span class="nav-txt">Kelola Grup</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos">
-          <span class="nav-ico is-blue"><i class="ph ph-layout" id="icon-toggle-stats-pos"></i></span>
-          <span class="nav-txt" id="text-toggle-stats-pos">Pindah Kartu ke Header</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" data-action="open-tampilan">
-          <span class="nav-ico is-purple"><i class="ph-fill ph-palette"></i></span>
-          <span class="nav-txt">Tampilan</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
+        <!-- Section: Pembukuan & Data Kas -->
+        <div class="nav-group" data-group="data">
+          <div class="nav-group-label">Pembukuan &amp; Master Data</div>
+          <button class="nav-item admin-only" data-action="open-kelola-master" data-keywords="master data anggota kategori bulan libur hapus tambah">
+            <span class="nav-ico is-blue"><i class="ph-fill ph-sliders"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Data Master</span>
+              <small class="nav-sub">Atur daftar anggota, kategori &amp; bulan libur</small>
+            </div>
+            <span class="nav-badge-tag">ADMIN</span>
+          </button>
+
+          <button class="nav-item superadmin-only" data-action="open-group-admin" data-keywords="grup kelompok ruang kelas superadmin pin">
+            <span class="nav-ico is-blue"><i class="ph-fill ph-users-three"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Kelola Grup Kas</span>
+              <small class="nav-sub">Buat ruang baru &amp; kredensial pengurus</small>
+            </div>
+            <span class="nav-badge-tag is-super">SUPERADMIN</span>
+          </button>
+
+          <button class="nav-item admin-only" data-action="open-audit-log" data-keywords="audit log jejak aktivitas histori admin">
+            <span class="nav-ico is-purple"><i class="ph-fill ph-detective"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Log Aktivitas</span>
+              <small class="nav-sub">Histori mutasi dan rekaman jejak audit</small>
+            </div>
+            <span class="nav-badge-tag">ADMIN</span>
+          </button>
+
+          <button class="nav-item" data-action="open-offline-queue" data-keywords="antrean offline pending sinkron koneksi internet database">
+            <span class="nav-ico is-amber"><i class="ph-fill ph-cloud-slash"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Antrean Offline</span>
+              <small class="nav-sub">Transaksi lokal menunggu sinkronisasi</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+        </div>
+
+        <!-- Section: Laporan & Analisis -->
+        <div class="nav-group" data-group="laporan">
+          <div class="nav-group-label">Laporan &amp; Analisis</div>
+          <button class="nav-item" data-action="open-history" data-keywords="riwayat transaksi mutasi histori tabel pencarian">
+            <span class="nav-ico is-blue"><i class="ph-fill ph-clock-counter-clockwise"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Riwayat Transaksi</span>
+              <small class="nav-sub">Histori mutasi lengkap dengan filter waktu</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item" data-action="open-statistik" data-keywords="statistik grafik chart tren arus keuangan analisa">
+            <span class="nav-ico is-green"><i class="ph-fill ph-chart-bar"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Statistik Keuangan</span>
+              <small class="nav-sub">Grafik perbandingan arus kas &amp; pengeluaran</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item" data-action="open-export" data-keywords="ekspor export unduh download excel csv pdf cetak laporan whatsapp wa">
+            <span class="nav-ico is-green"><i class="ph-fill ph-export"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Ekspor Data (Excel/PDF)</span>
+              <small class="nav-sub">Unduh laporan keuangan &amp; salin rekap WA</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+        </div>
+
+        <!-- Section: Pengaturan & Preferensi -->
+        <div class="nav-group" data-group="sistem">
+          <div class="nav-group-label">Preferensi &amp; Sistem</div>
+          <button class="nav-item" data-action="open-tampilan" data-keywords="tampilan tema dark mode gelap terang aksen warna font privasi blur kerapatan">
+            <span class="nav-ico is-purple"><i class="ph-fill ph-palette"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Pengaturan Tampilan</span>
+              <small class="nav-sub">Mode gelap, palet warna, tipografi &amp; privasi</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item" data-action="toggle-header-stats" id="btn-toggle-stats-pos" data-keywords="pindah kartu posisi header saldo ringkasan">
+            <span class="nav-ico is-blue"><i class="ph ph-layout" id="icon-toggle-stats-pos"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt" id="text-toggle-stats-pos">Pindah Kartu ke Header</span>
+              <small class="nav-sub">Alihkan posisi kartu saldo ke bilah navigasi</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item" data-action="open-faq" data-keywords="faq panduan bantuan pertanyaan cara pakai tutorial">
+            <span class="nav-ico is-blue"><i class="ph-fill ph-question"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Panduan &amp; FAQ</span>
+              <small class="nav-sub">Pertanyaan umum dan alur kerja pembukuan</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;" data-keywords="install pasang pwa aplikasi hp home screen">
+            <span class="nav-ico is-green"><i class="ph-fill ph-download-simple"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Pasang Aplikasi Finkas</span>
+              <small class="nav-sub">Akses instan dari layar utama perangkat</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+
+          <button class="nav-item nav-danger admin-only" data-action="logout" data-keywords="logout keluar sesi admin pengurus">
+            <span class="nav-ico is-red"><i class="ph-fill ph-sign-out"></i></span>
+            <div class="nav-item-content">
+              <span class="nav-txt">Keluar Sesi Pengurus</span>
+              <small class="nav-sub">Kunci kembali hak akses administratif</small>
+            </div>
+            <i class="ph-bold ph-caret-right nav-chev"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-group-label">Laporan</div>
-        <button class="nav-item" data-action="open-history">
-          <span class="nav-ico is-blue"><i class="ph-fill ph-clock-counter-clockwise"></i></span>
-          <span class="nav-txt">Riwayat Transaksi</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" data-action="open-statistik">
-          <span class="nav-ico is-green"><i class="ph-fill ph-chart-bar"></i></span>
-          <span class="nav-txt">Statistik Keuangan</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" data-action="open-export">
-          <span class="nav-ico is-green"><i class="ph-fill ph-export"></i></span>
-          <span class="nav-txt">Ekspor Data (Excel/PDF)</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-      </div>
-
-      <div class="nav-group">
-        <button class="nav-item" data-action="open-faq">
-          <span class="nav-ico is-blue"><i class="ph-fill ph-question"></i></span>
-          <span class="nav-txt">Panduan & FAQ</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;">
-          <span class="nav-ico is-green"><i class="ph-fill ph-download-simple"></i></span>
-          <span class="nav-txt">Pasang Aplikasi Finkas</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item" data-action="open-offline-queue">
-          <span class="nav-ico is-amber"><i class="ph-fill ph-cloud-slash"></i></span>
-          <span class="nav-txt">Antrean Offline</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
-        <button class="nav-item nav-danger admin-only" data-action="logout">
-          <span class="nav-ico is-red"><i class="ph-fill ph-sign-out"></i></span>
-          <span class="nav-txt">Logout Admin</span>
-          <i class="ph-bold ph-caret-right nav-chev"></i>
-        </button>
+      <!-- Contextual Status Footer (Linear / Raycast spec) -->
+      <div class="command-hub-footer">
+        <div class="command-footer-status">
+          <span class="status-indicator-dot"></span>
+          <span id="command-footer-group" class="command-footer-text">Finkas Cloud</span>
+        </div>
+        <div class="command-footer-hints">
+          <span class="command-hint-key">ESC</span> <span class="command-hint-label">Tutup</span>
+          <span class="command-hint-sep">•</span>
+          <span class="command-hint-key">↵</span> <span class="command-hint-label">Pilih</span>
+        </div>
       </div>
     </div>
   </div>

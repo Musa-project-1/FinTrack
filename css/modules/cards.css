@@ -24,11 +24,11 @@
 }
 
 .balance-hero__value {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(2.25rem, 8vw, 3.75rem);
-  line-height: 1.04;
-  letter-spacing: var(--tracking-display);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 8vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "tnum" 1;
   font-feature-settings: "tnum" 1;
@@ -41,13 +41,17 @@
   align-self: stretch;
 }
 
-/* The single accent moment: a 1px accent rule beneath the balance. */
+body.dark-mode .balance-hero__value {
+  color: #ffffff;
+}
+
+/* The single accent moment: a clean cyan rule beneath the balance. */
 .balance-hero__rule {
   display: block;
-  height: 2px;
+  height: 2.5px;
   width: 72px;
   border-radius: var(--r-pill);
-  background: var(--accent);
+  background: var(--secondary);
 }
 
 /* --- Secondary flow strip --- */

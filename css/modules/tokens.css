@@ -2,6 +2,10 @@
    Trust-first fintech × tactile precision.
    Light = "Paper Ocean" (201° hue) · Dark = "Navy Ocean" / Abyssal Deep Sea (208° hue).
 
+   GUARDRAIL G1 — JANGAN muat berkas ini atau style.css dari onboarding.html.
+                  Landing page menggunakan sistem visual Origin gelapnya sendiri
+                  dengan token berprefix --lp- di css/onboarding.css.
+
    Rules of the system:
    1. Elevation comes from surface contrast + 1px hairlines — never from blur shadows.
       The single exception is `--shadow-pop` for genuinely floating surfaces

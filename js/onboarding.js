@@ -9,6 +9,7 @@
 import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from './core/config.js';
 import { apiPost } from './core/api-client.js';
 import { setGroupSession } from './core/state.js';
+import { initSkyJourney } from './journey.js';
 
 /** @type {Array<{id: string, nama: string}>} */
 let groups = [];
@@ -119,7 +120,7 @@ const submitPin = async () => {
   }
 
   const btn = el('btn-enter');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Memverifikasi...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner-gap lp-spin"></i> Memverifikasi...'; }
 
   try {
     const res = await apiPost(API.VERIFY_PIN, { groupId: active.id, pin });
@@ -204,12 +205,31 @@ let isBudiPaid = false;
 const formatRp = (num) =>
   'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
+/** True while the mock balance is still counting up (Fase 8.7). */
+let isCountUpRunning = false;
+
+/**
+ * 8.11 — a soft veil lights up over an amount the moment it changes. The class
+ * is removed and re-added (with a forced reflow) rather than toggled, so that
+ * pressing the same button twice restarts the 0.2s flash instead of the second
+ * press being swallowed as "nothing changed".
+ */
+const flashSaldo = (node) => {
+  if (!node) return;
+  node.classList.remove('is-lp-flash');
+  void node.offsetWidth; /* force reflow: restarts the keyframes */
+  node.classList.add('is-lp-flash');
+};
+
 const updateDemoViews = () => {
   const formatted = formatRp(currentDemoSaldo);
   const heroEl = el('hero-demo-saldo');
   const simEl = el('sim-saldo');
-  if (heroEl) heroEl.textContent = formatted;
-  if (simEl) simEl.textContent = formatted;
+  /* A simulator press takes ownership of the number: the count-up stops on its
+     next frame, so it can never overwrite what the visitor just asked for. */
+  isCountUpRunning = false;
+  if (heroEl) { heroEl.textContent = formatted; flashSaldo(heroEl); }
+  if (simEl) { simEl.textContent = formatted; flashSaldo(simEl); }
 };
 
 const wireDemoSimulator = () => {
@@ -254,11 +274,115 @@ const wireDemoSimulator = () => {
   });
 };
 
+/* ── Fase 8 — Reveal & entrance ───────────────────────────────────── */
+
+/** Every element that fades in once it enters the viewport (8.4 / 8.5). */
+const REVEAL_SELECTOR = '[data-lp-reveal]';
+
+/** One switch, shared by every motion decision made in JavaScript (8.13). */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/** Count-up duration — mirrors --lp-t-reveal (2.5s) in css/onboarding.css. */
+const COUNT_UP_MS = 2500;
+
+const revealNow = (node) => node.classList.add('is-lp-revealed');
+
+/**
+ * 8.7 — the mock balance counts from zero to Rp 14.850.000 over 2.5s on the
+ * same calm S-curve as the hero entrance (smoothstep; no overshoot).
+ *
+ * Two things make it safe:
+ *   - the numerals are tabular, so a counting number never changes width and
+ *     nothing around it moves (the plan's "no layout shift" gate);
+ *   - if the visitor presses a simulator button mid-count, or reduced motion
+ *     is on, the loop stops and the real value wins.
+ */
+const startBalanceCountUp = () => {
+  const node = el('hero-demo-saldo');
+  if (!node || isCountUpRunning) return;
+
+  const settle = () => {
+    isCountUpRunning = false;
+    node.textContent = formatRp(currentDemoSaldo);
+  };
+
+  /* Reduced motion, or a value the visitor already changed: leave the number
+     alone. The markup already ships the final amount, so nothing is lost. */
+  if (reducedMotion.matches || currentDemoSaldo !== INITIAL_DEMO_SALDO) { settle(); return; }
+
+  isCountUpRunning = true;
+  node.classList.add('lp-counting');
+
+  const target = INITIAL_DEMO_SALDO;
+  const startedAt = performance.now();
+
+  const frame = (now) => {
+    if (!isCountUpRunning || currentDemoSaldo !== INITIAL_DEMO_SALDO) { settle(); return; }
+    const t = Math.min(1, (now - startedAt) / COUNT_UP_MS);
+    const eased = t * t * (3 - 2 * t);
+    node.textContent = formatRp(Math.round(target * eased));
+    if (t < 1) requestAnimationFrame(frame);
+    else settle();
+  };
+
+  node.textContent = formatRp(0);
+  requestAnimationFrame(frame);
+};
+
+/**
+ * 8.4 + 8.5 — a single IntersectionObserver drives every entrance on the page:
+ * the product band resolves out of its 8px blur, and each section fades once
+ * and is then unobserved, so nothing re-animates on the way back up.
+ *
+ * Failure law (8.14): if IntersectionObserver is unavailable, or reduced motion
+ * is on, every element is revealed immediately. Nothing may stay hidden.
+ */
+const initSectionReveal = () => {
+  const nodes = Array.from(document.querySelectorAll(REVEAL_SELECTOR));
+  if (!nodes.length) return;
+
+  if (reducedMotion.matches || typeof IntersectionObserver !== 'function') {
+    nodes.forEach(revealNow);
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const node = entry.target;
+      revealNow(node);
+      observer.unobserve(node);
+      /* The blurred band is the product band, and revealing it is the cue for
+         the mock balance to start counting (8.7). */
+      if (node.getAttribute('data-lp-reveal') === 'blur') startBalanceCountUp();
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+  nodes.forEach((node) => observer.observe(node));
+};
+
 /* ── Boot ─────────────────────────────────────────────────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
+  /* Bagian 14 — panggung langit→bumi. Berdiri sendiri: ia hanya menulis
+     custom property pada .sky-stage, tidak menyentuh logika layar mana pun,
+     dan sengaja dipanggil paling awal supaya latar sudah benar sebelum
+     pengguna sempat menggeser halaman. */
+  initSkyJourney();
+
   wirePinBoxes();
   wireDemoSimulator();
+
+  /* Fase 8 — reveal & entrance. Dipanggil setelah initSkyJourney() karena
+     kelas .js-motion-lah yang menyalakan state tersembunyi; kalau pemasangan
+     ini gagal, catch di bawah mengembalikan seluruh section ke keadaan
+     terlihat (8.14). */
+  try {
+    initSectionReveal();
+  } catch (err) {
+    console.warn('[finkas] Reveal wiring failed; showing every section.', err?.message);
+    document.querySelectorAll(REVEAL_SELECTOR).forEach(revealNow);
+  }
 
   const openPortal = () => {
     showSlide('list');
@@ -269,12 +393,121 @@ document.addEventListener('DOMContentLoaded', () => {
   el('btn-to-list')?.addEventListener('click', openPortal);
   el('btn-to-list-bottom')?.addEventListener('click', openPortal);
   el('btn-nav-portal')?.addEventListener('click', openPortal);
+  el('btn-nav-portal-drawer')?.addEventListener('click', () => { closeDrawer(); openPortal(); });
   el('btn-to-welcome')?.addEventListener('click', () => showSlide('welcome'));
   el('btn-back')?.addEventListener('click', () => showSlide('list'));
 
   document.querySelectorAll('a[href="index.html"]').forEach((a) => {
     a.addEventListener('click', () => {
       try { localStorage.setItem(ONBOARDING_SEEN_KEY, '1'); } catch (err) { /* noop */ }
+    });
+  });
+
+  /* ── 3.5 is-scrolled + 3.6 progress bar + 3.8 scroll-spy ──────────── */
+  const nav      = el('landing-nav');
+  const progress = el('nav-progress');
+  const SPY_IDS  = ['fitur', 'matriks', 'demo-simulator', 'faq'];
+  const spyEls   = SPY_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+  const allSpyLinks = document.querySelectorAll('.nav-spy-link');
+
+  function updateScrollState() {
+    const scrollY  = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    /* 8.8 — the progress bar is driven by transform: scaleX(), so the value
+       written is a unitless 0…1 ratio. Width is never animated. */
+    if (progress) {
+      const ratio = maxScroll > 0 ? Math.min(1, scrollY / maxScroll) : 0;
+      progress.style.setProperty('--lp-scroll-ratio', ratio.toFixed(4));
+    }
+
+    /* is-scrolled */
+    if (nav) nav.classList.toggle('is-scrolled', scrollY > 40);
+
+    /* scroll-spy: find last section whose top is above 50% viewport */
+    let activeId = '';
+    const threshold = window.innerHeight * 0.35;
+    for (const sec of spyEls) {
+      if (sec.getBoundingClientRect().top < threshold) activeId = sec.id;
+    }
+    allSpyLinks.forEach((a) => {
+      const href = a.getAttribute('href');
+      a.classList.toggle('is-active', href === '#' + activeId);
+    });
+  }
+
+  window.addEventListener('scroll', updateScrollState, { passive: true });
+  updateScrollState();
+
+  /* ── 3.7 Hamburger + Drawer ────────────────────────────────────────── */
+  const hamburger  = el('nav-hamburger');
+  const drawer     = el('nav-drawer');
+  const backdrop   = el('nav-backdrop');
+  const hamburgerIcon = el('hamburger-icon');
+  let drawerOpen   = false;
+
+  function openDrawer() {
+    drawerOpen = true;
+    drawer?.classList.add('is-open');
+    backdrop?.classList.add('is-open');
+    hamburger?.setAttribute('aria-expanded', 'true');
+    if (hamburgerIcon) { hamburgerIcon.className = 'ph-bold ph-x'; }
+    drawer?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden'; /* scroll-lock */
+    /* focus trap: first focusable */
+    const first = drawer?.querySelector('a, button');
+    first?.focus();
+  }
+
+  function closeDrawer() {
+    drawerOpen = false;
+    drawer?.classList.remove('is-open');
+    backdrop?.classList.remove('is-open');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    if (hamburgerIcon) { hamburgerIcon.className = 'ph-bold ph-list'; }
+    drawer?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    hamburger?.focus();
+  }
+
+  hamburger?.addEventListener('click', () => drawerOpen ? closeDrawer() : openDrawer());
+  backdrop?.addEventListener('click', closeDrawer);
+
+  /* Esc closes drawer */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawerOpen) closeDrawer();
+  });
+
+  /* Focus trap inside drawer */
+  drawer?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !drawerOpen) return;
+    const focusable = Array.from(drawer.querySelectorAll('a, button')).filter(
+      (el) => !el.disabled && el.offsetParent !== null
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  });
+
+  /* Close drawer on nav link click (smooth scroll handled by browser) */
+  drawer?.querySelectorAll('.drawer-link').forEach((a) => {
+    a.addEventListener('click', closeDrawer);
+  });
+
+  /* ── 6.6 FAQ Accordion (BUG-9) — dua arah, bukan <details> ────────── */
+  document.querySelectorAll('.faq-trigger').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      /* tutup semua lainnya dulu */
+      document.querySelectorAll('.faq-trigger').forEach((other) => {
+        other.setAttribute('aria-expanded', 'false');
+      });
+      /* toggle yang diklik */
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
     });
   });
 });

@@ -1,212 +1,510 @@
-/* === FINKAS MODERN FINTECH ONBOARDING & LANDING ===
-   Ocean Ledger: Seafoam Teal (--accent) | JetBrains Mono tabular-nums | Strict < 750 lines */
+/* ==========================================================================
+   FINKAS — LANDING / ONBOARDING · Origin (dark) visual system
+   Loaded ONLY by onboarding.html.
+   --------------------------------------------------------------------------
+   GUARDRAIL G1 — Never load this file from index.html,
+                  html/index.template.html, or html/modals/*.html.
+                  The application keeps its own Ocean Ledger system.
 
+   GUARDRAIL G2 — Never move this file into css/modules/ and never add it to
+                  the @import list in css/input.css. That would leak landing
+                  CSS into the application's style.css bundle.
+
+   TOKENS — Every custom property here carries the --lp- prefix (decision #5).
+            An unprefixed landing token must not exist, so any token that
+            leaks into the other surface fails visibly instead of silently.
+
+   DESIGN LAW — The plan's Bagian 11 (R1–R10) binds this file.
+            R1  elevation comes from the color step, never box-shadow
+            R2  chromatic color only as a full-bleed tile fill
+            R4  radius scale: btn 8 / card 16 / tile 30 / pill for chips only
+            R7  display type (Fraunces) is never bold
+            R8  calm motion: 0.2s state, 2.5s reveal, no bounce or scale
+            R10 contrast comes from text color choice, never from a shadow
+   ========================================================================== */
+
+/* ── Tokens ───────────────────────────────────────────────────────────── */
 :root {
-  --bg-color: #e8f1f6; --surface: #f7fbfd; --surface-2: #e4eff5; --surface-3: #d6e6ef;
-  --border: #c8dced; --border-strong: #a9c6dc;
-  --text-main: #0e2437; --text-muted: #4a6a80; --text-faint: #7d99ac;
-  --accent: #0d9488; --accent-strong: #0f766e;
-  --accent-tint: rgba(13, 148, 136, 0.10); --accent-border: rgba(13, 148, 136, 0.30); --accent-ink: #ffffff;
-  --danger: #e11d48; --danger-bg: rgba(225, 29, 72, 0.10); --danger-border: rgba(225, 29, 72, 0.28);
-  --r-xs: 4px; --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-pill: 9999px;
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-  --tracking-body: -0.01em; --tracking-tight: -0.02em; --tracking-display: -0.03em; --tracking-eyebrow: 0.14em;
-  --t-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px;
-  color-scheme: light;
-}
+  /* Surfaces — Origin color step: abyss → canvas → graphite → steel → silver */
+  --lp-abyss: #090a0b;    --lp-canvas: #0f1011;
+  --lp-graphite: #2e2e2e; --lp-steel: #3f4041;
+  --lp-silver: #cacaca;   --lp-void: #000000;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #08131d; --surface: #112334; --surface-2: #193147; --surface-3: #223f5b;
-    --border: rgba(56, 189, 248, 0.16); --border-strong: rgba(56, 189, 248, 0.28);
-    --text-main: #e9f4f8; --text-muted: #93b4c7; --text-faint: #6b8fa6;
-    --accent: #2dd4bf; --accent-strong: #5eead4;
-    --accent-tint: rgba(45, 212, 191, 0.12); --accent-border: rgba(45, 212, 191, 0.34); --accent-ink: #04231f;
-    --danger: #fb7185; --danger-bg: rgba(251, 113, 133, 0.14); --danger-border: rgba(251, 113, 133, 0.32);
-    color-scheme: dark;
-  }
-}
+  /* Text */
+  --lp-pure: #ffffff;  --lp-cloud: #f5f5f7;
+  --lp-ash: #9f9fa0;   --lp-fog: #6a6b6b;
+  /* Teks yang berdiri LANGSUNG di atas panggung (bukan di dalam kartu) memakai
+     netral yang lebih terang dari --lp-ash. Alasannya terukur, bukan estetis:
+     panggung yang bergerak menaikkan latar di belakangnya sampai sekitar
+     rgb(48, 56, 61), dan --lp-ash di atas titik itu hanya mencapai 4.0:1 —
+     di bawah ambang WCAG AA. Nilai ini memegang ≥ 5:1 di titik terburuk
+     panggung (Bagian 14.7). */
+  --lp-body-onstage: #b0b0b2;
 
-body.dark-mode {
-  --bg-color: #08131d; --surface: #112334; --surface-2: #193147; --surface-3: #223f5b;
-  --border: rgba(56, 189, 248, 0.16); --border-strong: rgba(56, 189, 248, 0.28);
-  --text-main: #e9f4f8; --text-muted: #93b4c7; --text-faint: #6b8fa6;
-  --accent: #2dd4bf; --accent-strong: #5eead4;
-  --accent-tint: rgba(45, 212, 191, 0.12); --accent-border: rgba(45, 212, 191, 0.34); --accent-ink: #04231f;
-  --danger: #fb7185; --danger-bg: rgba(251, 113, 133, 0.14); --danger-border: rgba(251, 113, 133, 0.32);
+  /* Chromatic — full-bleed tile fills only (R2) */
+  --lp-iris: #847dff;      --lp-cyan: #00b3dd;
+  --lp-orchid: #dd90d8;    --lp-periwinkle: #90b8f0;
+  --lp-pale-iris: #d1c9ff; --lp-deep-iris: #4b49aa;
+
+  /* Outgoing-cash signal — the one deliberate chromatic text exception
+     (Bagian 4: the ledger needs a readable +/− difference). Value is the
+     coral the landing already shipped for dark surfaces. */
+  --lp-danger: #fb7185;
+  --lp-danger-bg: rgba(251, 113, 133, 0.14);
+  --lp-danger-border: rgba(251, 113, 133, 0.32);
+
+  /* Hairlines */
+  --lp-line: rgba(255, 255, 255, 0.15);
+  --lp-line-soft: rgba(255, 255, 255, 0.10);
+
+  /* Glass nav bar (Bagian 5.1) — kept as a token so no raw color leaks out */
+  --lp-nav-glass: rgba(15, 16, 17, 0.72);
+
+  /* Browser-chrome dots — mock frame affordance, not part of the palette */
+  --lp-chrome-red: #ff5f56;
+  --lp-chrome-yellow: #ffbd2e;
+  --lp-chrome-green: #27c93f;
+
+  /* ── Panggung langit→bumi (Bagian 14) ────────────────────────────────
+     Ini satu-satunya tempat di landing page di mana cahaya kromatik muncul
+     di luar tile full-bleed — langit memang cahaya, bukan UI. Amandemen R2′
+     dan R5′ di Bagian 11.4 yang mengikatnya: nilai di bawah tidak boleh
+     dipakai untuk teks, tombol, kartu, border, atau ikon mana pun.
+     Tint ditulis sebagai triplet RGB supaya alpha bisa dipasang per elemen
+     (rgba(var(--lp-…-tint), <alpha>)) tanpa mengulang nilai warnanya. */
+  --lp-sky-image-opacity: 0.45;
+  --lp-mist-tint: 0, 179, 221;     /* turunan --lp-cyan: sapuan kabut langit */
+  --lp-cloud-tint: 168, 186, 196;  /* kabut awan, netral dingin */
+  --lp-glow-tint: 0, 179, 221;     /* pendaran teal di garis lautan awan */
+  /* Punggungan jauh diberi nilai LEBIH TERANG dari kanvas supaya ia terbaca
+     sebagai siluet berkabut di kejauhan; punggungan dekat justru lebih gelap
+     dari kanvas supaya memotong tajam ke dalam dek awan yang bercahaya.
+     Dua arah kontras yang berbeda inilah yang membuat tiga dataran (langit,
+     awan, daratan) terbaca tanpa satu pun shadow. */
+  --lp-ridge-far-tint: 38, 43, 47;
+  --lp-ridge-near-tint: 7, 8, 9;
+  --lp-sky-scrim-top: rgba(9, 10, 11, 0.42);
+  --lp-sky-scrim-mid: rgba(9, 10, 11, 0.08);
+  --lp-sky-scrim-bottom: rgba(15, 16, 17, 0.88);
+  /* Scrim band trust: label mono di atasnya tetap ≥ 4.5:1 walau panggung
+     awan sedang di puncaknya (lihat anggaran kontras Bagian 14.7). */
+  --lp-band-scrim: rgba(15, 16, 17, 0.62);
+
+  /* Progres perjalanan — ditulis saat runtime oleh js/journey.js pada
+     .sky-stage. Nilai default melukiskan puncak halaman: hanya langit. */
+  --lp-j-sky: 1;   --lp-j-ridge-far: 0; --lp-j-cloud: 0; --lp-j-land: 0;
+  --lp-y-sky: 0%;  --lp-y-ridge-far: 0%; --lp-y-cloud: 0%; --lp-y-land: 0%;
+
+  /* Radius scale (R4) */
+  --lp-r-btn: 8px; --lp-r-card: 16px; --lp-r-tile: 30px; --lp-r-pill: 9999px;
+
+  /* Motion (R8) — tiga waktu saja untuk seluruh landing page, semuanya
+     didefinisikan di sini supaya tidak ada durasi mentah yang tersebar di dua
+     berkas CSS maupun di js/onboarding.js. */
+  --lp-ease-calm: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  --lp-t-state: 0.2s ease;
+  --lp-t-section: 1.2s ease-out;
+  --lp-t-reveal: 2.5s var(--lp-ease-calm);
+  /* borderTurn (Fase 8.6): warna stroke 1px yang berjalan sekali mengelilingi
+     frame hero & mockup lalu memudar habis. Satu nilai warna, bukan gradien —
+     R5 tetap utuh di luar panggung langit. */
+  --lp-turn-stroke: rgba(255, 255, 255, 0.30);
+  /* Simulator value flash (Fase 8.11): veil yang menyala lalu padam saat
+     nominal saldo berubah. */
+  --lp-flash-tint: rgba(255, 255, 255, 0.10);
+
+  /* Type */
+  --lp-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --lp-font-display: 'Fraunces', Georgia, serif;
+  --lp-font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --lp-tracking-body: -0.01em; --lp-tracking-tight: -0.02em;
+  --lp-tracking-display: -0.03em; --lp-tracking-eyebrow: 0.14em;
+
+  /* Spacing — the index is the multiple of the 4px base unit (R9) */
+  --lp-sp-1: 4px;  --lp-sp-2: 8px;    --lp-sp-3: 12px;
+  --lp-sp-4: 16px; --lp-sp-6: 24px;   --lp-sp-8: 32px;
+  --lp-sp-12: 48px; --lp-sp-18: 72px; --lp-sp-20: 80px;
+
+  /* Layout constants (R9) */
+  --lp-content-max: 1200px;
+
+  /* The landing page is dark-only (decision #1) — it never follows
+     prefers-color-scheme. Declaring the scheme keeps native widgets,
+     scrollbars and autofill dark to match the Obsidian canvas. */
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; scrollbar-gutter: stable; }
-body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-sans); letter-spacing: var(--tracking-body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
-.font-display { font-family: var(--font-display); }
-.font-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ── Custom Slim Dark Scrollbar (Anti-Default) ────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--lp-steel, #3f4041); border-radius: 9999px; border: 1px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--lp-ash, #9f9fa0); }
+* { scrollbar-width: thin; scrollbar-color: var(--lp-steel, #3f4041) transparent; }
+
+body {
+  background-color: var(--lp-canvas);
+  color: var(--lp-cloud);
+  font-family: var(--lp-font-sans);
+  letter-spacing: var(--lp-tracking-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.font-display { font-family: var(--lp-font-display); }
+.font-mono { font-family: var(--lp-font-mono); font-variant-numeric: tabular-nums; }
 [class*="ph"]::before, [class*="ph"]::after, .ph::before, .ph-fill::before, .ph-bold::before { font-family: inherit !important; }
 
-/* ── Sticky Glass Navbar ─────────────────────────────────────────── */
-.landing-nav { position: sticky; top: 0; z-index: 40; width: 100%; background: rgba(232, 241, 246, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); transition: background var(--t-fast); }
-body.dark-mode .landing-nav, @media (prefers-color-scheme: dark) { .landing-nav { background: rgba(8, 19, 29, 0.85); } }
-.nav-inner { max-width: 1140px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
-.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-main); }
-.brand-icon-box { width: 38px; height: 38px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
-.brand-icon-box img { width: 24px; height: 24px; }
-.brand-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; letter-spacing: var(--tracking-tight); }
-.nav-links { display: flex; align-items: center; gap: var(--sp-6); }
-.nav-links a { text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--text-muted); transition: color var(--t-fast); }
-.nav-links a:hover { color: var(--accent-strong); }
-.btn-nav-cta { width: auto !important; min-height: 36px !important; padding: 8px 18px !important; font-size: 13px !important; }
+/* ── Bagian 14 — Panggung "Perjalanan Visual dari Langit ke Bumi" ─────── */
+/* Satu latar fixed memegang seluruh background halaman: langit malam pekat
+   di atas, lautan awan di tengah, punggungan gunung di bawah — lalu semuanya
+   memudar alami ke kanvas Obsidian #0f1011 tempat matriks, simulator, FAQ,
+   dan footer berdiri. js/journey.js hanya menulis --lp-j-* (opacity) dan
+   --lp-y-* (drift) pada .sky-stage saat halaman di-scroll; tidak ada satu
+   lapisan pun yang beranimasi sendiri. Kontrak lengkap: Bagian 14 dokumen
+   plan.
 
-/* ── Layout & Sections ───────────────────────────────────────────── */
-.landing-wrap { max-width: 1140px; margin: 0 auto; padding: 0 var(--sp-4); }
-.landing-section { padding: var(--sp-12) 0; }
-.section-header { text-align: center; max-width: 640px; margin: 0 auto var(--sp-8); }
-.section-header h2 { font-family: var(--font-display); font-size: clamp(24px, 3.5vw, 32px); font-weight: 600; line-height: 1.2; letter-spacing: var(--tracking-display); color: var(--text-main); margin-bottom: var(--sp-2); }
-.section-header p { font-size: 14.5px; color: var(--text-muted); }
+   Urutan tumpuk, dari belakang ke depan:
+     .sky-layer-sky        langit + foto atmosfer + kabut + scrim baca
+     .sky-layer-ridge-far  punggungan jauh, di BELAKANG lautan awan
+     .sky-layer-clouds     lautan awan + pendaran teal
+     .sky-layer-land       punggungan dekat, di DEPAN lautan awan
 
-/* ── Badge Pill ──────────────────────────────────────────────────── */
-.badge-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--r-pill); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); }
-.badge-pill i { color: var(--accent-strong); }
+   Awan dan punggungan dibiarkan tak terlihat sampai JS mengambil alih
+   (Bagian 14.6): tanpa JavaScript panggung tetap melukiskan langit yang
+   mulus, seluruh konten tetap terbaca, dan tidak pernah ada halaman kosong. */
+.sky-stage { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.sky-layer { position: absolute; inset: 0; }
 
-/* ── Hero Split Section ──────────────────────────────────────────── */
-.landing-hero { padding: var(--sp-12) 0 var(--sp-8); }
-.hero-split { display: grid; grid-template-columns: 1.15fr 0.85fr; align-items: center; gap: 40px; }
-.hero-content { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); }
-.hero-content h1 { font-family: var(--font-display); font-size: clamp(32px, 4.4vw, 48px); font-weight: 600; line-height: 1.12; letter-spacing: var(--tracking-display); color: var(--text-main); }
-.hero-sub { font-size: 16px; color: var(--text-muted); line-height: 1.6; max-width: 520px; }
-.hero-cta-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); width: 100%; margin-top: var(--sp-2); }
-.hero-cta-group .btn { width: auto; }
-.hero-trust-row { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: var(--sp-3); font-size: 12.5px; color: var(--text-muted); }
+/* Lapis 1 — langit malam. Banding abyss→canvas jadi dasar; foto atmosfer,
+   sapuan kabut teal, dan scrim keterbacaan headline duduk di atasnya. */
+.sky-layer-sky { background: linear-gradient(180deg, var(--lp-abyss) 0%, var(--lp-canvas) 100%); }
+.sky-image { position: absolute; inset: 0; background: url('../assets/hero-atmosphere.png') center/cover no-repeat; opacity: var(--lp-sky-image-opacity); }
+.sky-mist { position: absolute; inset: -6% 0; background: linear-gradient(180deg, rgba(var(--lp-mist-tint), 0) 28%, rgba(var(--lp-mist-tint), 0.05) 54%, rgba(var(--lp-mist-tint), 0.08) 72%, rgba(var(--lp-mist-tint), 0) 96%); }
+.sky-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, var(--lp-sky-scrim-top) 0%, var(--lp-sky-scrim-mid) 44%, var(--lp-sky-scrim-bottom) 100%); }
+
+/* Lapis 2 & 4 — punggungan malam. clip-path memahat garis puncaknya,
+   sementara gradien vertikal menuntaskan kaki gunung ke transparan sehingga
+   tidak pernah ada garis potong melintang di dasar pegunungan. */
+.sky-layer-ridge-far, .sky-layer-land { opacity: 0; }
+.ridge { position: absolute; left: -4%; right: -4%; bottom: 0; }
+/* Tinggi kotak dipilih supaya PUNCAK tiap punggungan mendarat di tengah
+   frame, bukan di dasar: punggungan jauh mencuat sampai ±47% tinggi viewport,
+   punggungan dekat sampai ±72%. Kalau keduanya hanya duduk di dasar layar,
+   seluruh lanskap tersembunyi di balik kartu dan halaman kembali terasa rata. */
+/* Punggungan digambar dengan ~9 puncak lebar, bukan 23 puncak rapat: sawtooth
+   yang terlalu rapat terbaca sebagai grafik, bukan sebagai pegunungan. */
+.ridge-far { height: 64vh; background: linear-gradient(180deg, rgba(var(--lp-ridge-far-tint), 1) 0%, rgba(var(--lp-ridge-far-tint), 0.84) 46%, rgba(var(--lp-ridge-far-tint), 0) 100%); clip-path: polygon(0% 44%, 5% 40%, 10% 33%, 16% 38%, 22% 24%, 28% 31%, 34% 36%, 40% 20%, 46% 29%, 52% 34%, 58% 26%, 64% 33%, 70% 39%, 76% 30%, 82% 37%, 88% 27%, 94% 35%, 100% 41%, 100% 100%, 0% 100%); }
+.ridge-near { height: 46vh; background: linear-gradient(180deg, rgba(var(--lp-ridge-near-tint), 1) 0%, rgba(var(--lp-ridge-near-tint), 0.9) 42%, rgba(var(--lp-ridge-near-tint), 0) 100%); clip-path: polygon(0% 58%, 6% 52%, 12% 44%, 19% 50%, 26% 38%, 33% 47%, 40% 54%, 47% 41%, 54% 49%, 61% 56%, 68% 45%, 75% 52%, 82% 60%, 88% 48%, 94% 55%, 100% 50%, 100% 100%, 0% 100%); }
+
+/* Lapis 3 — lautan awan. Gumpalannya hidup di pita 52%–88% tinggi viewport:
+   di situlah letak padding section, celah antar kartu, dan blok judul — satu-
+   satunya bagian halaman yang benar-benar terbuka. Kalau dek awan ditaruh di
+   dasar layar, ia akan tertutup kartu-kartu opaque dan halaman kembali terasa
+   rata seperti sebelumnya.
+   Alpha per bank sengaja kecil dan dijumlahkan sebagai anggaran kontras
+   (Bagian 14.7), bukan dipilih dengan mata saja. */
+.sky-layer-clouds { opacity: 0; }
+/* Pendaran teal di garis atas dek — sumber cahaya yang membuat awan punya
+   sisi terang, dan satu-satunya warna kromatik di lapisan ini. */
+.cloud-glow { position: absolute; left: -10%; right: -10%; top: 42%; height: 40%; background: linear-gradient(180deg, rgba(var(--lp-glow-tint), 0) 0%, rgba(var(--lp-glow-tint), 0.06) 38%, rgba(var(--lp-glow-tint), 0.04) 60%, rgba(var(--lp-glow-tint), 0) 100%); }
+/* Gradiennya radial di TENGAH kotak (bukan di tepinya), dengan jari-jari
+   lebih kecil dari setengah kotak — jadi alpha-nya sudah mencapai nol SEBELUM
+   menyentuh sisi kotak. Itulah yang membuat tiap gumpalan punya tepi lembut di
+   keempat arah dan tidak pernah meninggalkan potongan datar. Gumpalan-gumpalan
+   ini saling menumpuk berat; alfa per bank kecil dan jumlahnya dijaga sebagai
+   anggaran kontras (Bagian 14.7), bukan dipilih dengan mata. */
+/* Semua bank berbagi satu kotak (40%–100% tinggi viewport, overscan 30% tiap
+   sisi) dan hanya menaruh gumpalannya di dalam kotak itu lewat --cb-cx/--cb-cy.
+   Tiap bank menumpuk DUA gumpalan dengan skala berbeda: satu massa lebar
+   sebagai alas, dan satu gumpalan kecil yang lebih terang sedikit di atasnya
+   sebagai puncak yang terkena cahaya. Satu skala saja menghasilkan bidang rata
+   yang terbaca sebagai gradien, bukan sebagai awan bergulung.
+   Dua syarat yang mengikat: gumpalan besar harus mencapai alpha nol sebelum
+   menyentuh sisi kotak (--cb-rx < --cb-cx, --cb-rx < 100% - --cb-cx,
+   --cb-ry < setengah tinggi kotak), dan gumpalan kecil harus tetap berada di
+   dalam kotak setelah digeser --cb-dx. Kalau tidak, akan muncul potongan
+   datar melintang. */
+.cloud-bank { position: absolute; left: -30%; width: 160%; top: 40%; height: 60%; background: radial-gradient(calc(var(--cb-rx) * 0.42) calc(var(--cb-ry) * 0.42) at calc(var(--cb-cx) + var(--cb-dx)) calc(var(--cb-cy) - 7%), rgba(var(--lp-cloud-tint), calc(var(--cb-a) * 1.2)) 0%, rgba(var(--lp-cloud-tint), 0) 100%), radial-gradient(var(--cb-rx) var(--cb-ry) at var(--cb-cx) var(--cb-cy), rgba(var(--lp-cloud-tint), var(--cb-a)) 0%, rgba(var(--lp-cloud-tint), 0) 100%); }
+.cloud-bank-1 { --cb-cx: 29%; --cb-rx: 28%; --cb-cy: 34%; --cb-ry: 32%; --cb-a: 0.042; --cb-dx: 10%; }
+.cloud-bank-2 { --cb-cx: 71%; --cb-rx: 28%; --cb-cy: 34%; --cb-ry: 32%; --cb-a: 0.044; --cb-dx: -10%; }
+.cloud-bank-3 { --cb-cx: 50%; --cb-rx: 46%; --cb-cy: 44%; --cb-ry: 32%; --cb-a: 0.053; --cb-dx: -12%; }
+.cloud-bank-4 { --cb-cx: 23%; --cb-rx: 21%; --cb-cy: 58%; --cb-ry: 30%; --cb-a: 0.048; --cb-dx: 14%; }
+.cloud-bank-5 { --cb-cx: 78%; --cb-rx: 21%; --cb-cy: 58%; --cb-ry: 30%; --cb-a: 0.048; --cb-dx: -14%; }
+.cloud-bank-6 { --cb-cx: 50%; --cb-rx: 46%; --cb-cy: 64%; --cb-ry: 34%; --cb-a: 0.058; --cb-dx: 6%; }
+
+/* ── Scroll Progress Bar (3.6 + 8.8) ─────────────────────────────────── */
+.nav-progress { position: fixed; top: 0; left: 0; width: 100%; height: 2px; z-index: 50; background: transparent; pointer-events: none; }
+/* 8.8 — the bar is scaled, never widened: js/onboarding.js writes
+   --lp-scroll-ratio (0…1) on every scroll frame, so the change stays on the
+   compositor instead of forcing a layout pass while the page moves. */
+.nav-progress::after { content: ''; display: block; height: 100%; width: 100%; background: var(--lp-pure); transform: scaleX(var(--lp-scroll-ratio, 0)); transform-origin: left center; }
+
+/* ── Sticky Glass Navbar ──────────────────────────────────────────────── */
+.landing-nav { position: sticky; top: 0; z-index: 40; width: 100%; background: rgba(15,16,17,0.72); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transition: background-color var(--lp-t-state), padding var(--lp-t-state), border-color var(--lp-t-state); }
+/* 3.5 .is-scrolled state */
+.landing-nav.is-scrolled { background: rgba(15,16,17,0.92); border-bottom-color: var(--lp-line); padding-top: 0; padding-bottom: 0; }
+.landing-nav.is-scrolled .nav-inner { padding-top: 8px; padding-bottom: 8px; }
+.nav-inner { max-width: var(--lp-content-max); margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: var(--lp-sp-4); }
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--lp-cloud); }
+.brand-logo-img { width: 32px; height: 32px; max-width: 32px; max-height: 32px; border-radius: var(--lp-r-btn); object-fit: cover; display: block; flex-shrink: 0; }
+.brand-icon-box { width: 32px; height: 32px; border-radius: var(--lp-r-btn); background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); display: flex; align-items: center; justify-content: center; }
+.brand-icon-box img { width: 22px; height: 22px; }
+.brand-title { font-family: var(--lp-font-display); font-size: 20px; font-weight: 300; letter-spacing: var(--lp-tracking-tight); }
+/* 3.3 nav links — mono uppercase 11px tracked */
+.nav-links { display: flex; align-items: center; gap: var(--lp-sp-6); }
+.nav-links a { text-decoration: none; font-family: var(--lp-font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lp-ash); transition: color var(--lp-t-state); }
+.nav-links a:hover, .nav-links a.is-active { color: var(--lp-pure); }
+/* 3.8 spy active indicator */
+.nav-links a.is-active { position: relative; }
+.nav-links a.is-active::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 1px; background: var(--lp-pure); border-radius: 1px; }
+.nav-right { display: flex; align-items: center; gap: var(--lp-sp-3); }
+/* 3.4 CTA — teks dulu, panah trailing, radius 8px */
+.btn-nav-cta { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--lp-pure); color: var(--lp-void); border: none; border-radius: var(--lp-r-btn); font-family: var(--lp-font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: opacity var(--lp-t-state); white-space: nowrap; }
+.btn-nav-cta:hover { opacity: 0.88; }
+/* 3.7 hamburger */
+.nav-hamburger { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; background: transparent; border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-btn); color: var(--lp-cloud); font-size: 20px; cursor: pointer; transition: border-color var(--lp-t-state), color var(--lp-t-state); }
+.nav-hamburger:hover { border-color: var(--lp-line); color: var(--lp-pure); }
+
+/* ── Mobile Drawer (3.7) ──────────────────────────────────────────────── */
+.nav-drawer { position: fixed; top: 0; left: 0; right: 0; z-index: 39; background: rgba(15,16,17,0.98); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transform: translateY(-110%); transition: transform var(--lp-t-state); padding: 80px 24px 28px; display: flex; flex-direction: column; }
+.nav-drawer.is-open { transform: translateY(0); }
+.nav-backdrop { position: fixed; inset: 0; z-index: 38; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity var(--lp-t-state); }
+.nav-backdrop.is-open { opacity: 1; pointer-events: auto; }
+.drawer-links { display: flex; flex-direction: column; gap: 4px; }
+.drawer-link { display: block; padding: 14px 0; font-family: var(--lp-font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lp-ash); text-decoration: none; border-bottom: 1px solid var(--lp-line-soft); transition: color var(--lp-t-state); }
+.drawer-link:last-of-type { border-bottom: none; }
+.drawer-link:hover, .drawer-link.is-active { color: var(--lp-pure); }
+.drawer-cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 14px 20px; background: var(--lp-pure); color: var(--lp-void); border: none; border-radius: var(--lp-r-btn); font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; width: 100%; justify-content: center; transition: opacity var(--lp-t-state); }
+.drawer-cta:hover { opacity: 0.88; }
+
+/* ── Layout & Sections ────────────────────────────────────────────────── */
+/* Full-bleed sections: hero, product-band, trust-band, footer span 100% width.
+   z-index 1 mengangkat seluruh konten di atas .sky-stage (z-index 0), jadi
+   panggung perjalanan selalu menjadi latar dan tidak pernah menutupi teks. */
+.landing-wrap { position: relative; z-index: 1; width: 100%; margin: 0; padding: 0; }
+.landing-section, .landing-cta-banner { max-width: var(--lp-content-max); margin-left: auto; margin-right: auto; padding-left: var(--lp-sp-4); padding-right: var(--lp-sp-4); }
+.landing-section { padding-top: var(--lp-sp-20); padding-bottom: var(--lp-sp-20); }
+.section-header { text-align: center; max-width: 640px; margin: 0 auto var(--lp-sp-8); }
+.section-header h2 { font-family: var(--lp-font-display); font-size: clamp(28px, 3.8vw, 40px); font-weight: 300; line-height: 1.05; letter-spacing: var(--lp-tracking-display); color: var(--lp-cloud); margin-bottom: var(--lp-sp-2); }
+.section-header p { font-size: 14.5px; color: var(--lp-body-onstage); }
+
+/* ── Badge Pill ───────────────────────────────────────────────────────── */
+.badge-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--lp-r-pill); font-family: var(--lp-font-mono); font-size: 11px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); color: var(--lp-ash); }
+.badge-pill i { color: var(--lp-cloud); }
+
+/* ── Hero Center-Aligned (4.1 + 4.2) ─────────────────────────────────── */
+/* Full-bleed 100% width: tidak ada perbedaan warna sisi kiri/kanan vs tengah */
+.landing-hero { position: relative; width: 100%; min-height: calc(100dvh - 56px); padding: var(--lp-sp-12) 0; overflow: hidden; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
+/* 4.2 hero background — PINDAH ke panggung (Bagian 14.2). Dulu hero punya
+   .hero-bg sendiri, dan justru itulah sumber keluhan "gambar habis lalu
+   terputus jadi hitam polos": begitu di-scroll, kotak hero berakhir dan
+   gambar ikut berakhir. Sekarang satu .sky-stage memegang langit untuk
+   seluruh halaman — termasuk foto atmosfer, sapuan kabut, dan scrim baca
+   yang dulu dipegang ::after. Hero tinggal jadi tempat kontennya berdiri. */
+.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: var(--lp-sp-3); max-width: 780px; margin: 0 auto; padding: 0 var(--lp-sp-4); }
+.hero-eyebrow { margin-bottom: var(--lp-sp-1); }
+/* Headline display besar (Fase 2 spec: Fraunces 300, clamp 48-88px, lh 0.95) */
+.hero-content h1 { font-family: var(--lp-font-display); font-size: clamp(48px, 7vw, 88px); font-weight: 300; line-height: 0.95; letter-spacing: var(--lp-tracking-display); color: var(--lp-cloud); text-wrap: balance; text-align: center; }
+.hero-content h1 em { font-style: italic; font-weight: 300; }
+.hero-sub { font-size: 18px; font-weight: 300; color: var(--lp-body-onstage); line-height: 1.6; max-width: 560px; text-align: center; }
+.hero-cta-group { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--lp-sp-3); margin-top: var(--lp-sp-2); }
+/* 4.1 hero CTA buttons — own classes, not .btn (avoid app class collision) */
+.btn-hero-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; background: var(--lp-pure); color: var(--lp-void); border: none; border-radius: var(--lp-r-btn); font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: opacity var(--lp-t-state); white-space: nowrap; }
+.btn-hero-primary:hover { opacity: 0.88; }
+.btn-hero-ghost { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; background: transparent; color: var(--lp-cloud); border: 1px solid var(--lp-line); border-radius: var(--lp-r-btn); font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; text-decoration: none; transition: background var(--lp-t-state), border-color var(--lp-t-state); white-space: nowrap; }
+.btn-hero-ghost:hover { background: var(--lp-graphite); border-color: var(--lp-line); }
+.hero-trust-row { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--lp-sp-4); margin-top: var(--lp-sp-3); font-family: var(--lp-font-mono); font-size: 11px; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; color: var(--lp-body-onstage); }
 .hero-trust-row span { display: inline-flex; align-items: center; gap: 6px; }
-.hero-trust-row i { color: var(--accent-strong); font-size: 15px; }
+.hero-trust-row i { color: var(--lp-cloud); font-size: 13px; letter-spacing: normal; }
 
-/* ── Vector Browser Mockup Frame ─────────────────────────────────── */
-.browser-frame { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden; box-shadow: 0 16px 36px rgba(14, 36, 55, 0.08); }
-.browser-topbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+/* ── Product Band (4.4 + 4.5 + 4.6) ──────────────────────────────────── */
+/* Background transparan menyatu mulus dengan kanvas gelap Obsidian */
+.product-band { position: relative; background: transparent; padding: var(--lp-sp-20) var(--lp-sp-4) 90px; overflow: hidden; }
+.product-band-inner { position: relative; z-index: 1; max-width: var(--lp-content-max); margin: 0 auto; }
+/* Mockup browser frame: hairline border, surface graphite di atas kanvas gelap */
+/* position: relative — the borderTurn layer (8.6) is absolutely positioned and
+   must be measured against this frame, not against the section around it. */
+.browser-frame { position: relative; background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); overflow: hidden; }
+/* 4.5 chrome topbar — only permitted gradient */
+.browser-topbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: linear-gradient(135deg, rgb(43,43,44), rgb(19,19,19)); border-bottom: 1px solid var(--lp-line-soft); }
+
+/* ── Trust Stats Band (4.7) ───────────────────────────────────────────── */
+/* Scrim tipis supaya label mono tetap terbaca saat lautan awan di puncaknya
+   (anggaran kontras Bagian 14.7). Bukan shadow — ini langkah warna, R1 aman. */
+.trust-band { background: var(--lp-band-scrim); border-top: 1px solid var(--lp-line-soft); border-bottom: 1px solid var(--lp-line-soft); padding: var(--lp-sp-6) var(--lp-sp-4); }
+.trust-band-inner { max-width: var(--lp-content-max); margin: 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--lp-sp-3); }
+.trust-stat { display: flex; align-items: center; gap: 8px; }
+.trust-stat i { color: var(--lp-ash); font-size: 15px; flex-shrink: 0; letter-spacing: normal; }
+.trust-stat-label { font-family: var(--lp-font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lp-ash); }
+.trust-band-sep { width: 1px; height: 14px; background: var(--lp-line-soft); flex-shrink: 0; }
+
+/* ── Vector Browser Mockup Frame ──────────────────────────────────────── */
+/* browser-frame + browser-topbar defined above in Product Band section (4.5/4.6) */
 .mac-dots { display: flex; align-items: center; gap: 6px; }
 .mac-dot { width: 9px; height: 9px; border-radius: 50%; }
-.mac-dot.red { background: #ff5f56; } .mac-dot.yellow { background: #ffbd2e; } .mac-dot.green { background: #27c93f; }
-.browser-url { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-align: center; }
-.browser-content { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.mac-dot.red { background: var(--lp-chrome-red); } .mac-dot.yellow { background: var(--lp-chrome-yellow); } .mac-dot.green { background: var(--lp-chrome-green); }
+.browser-url { flex: 1; background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-pill); padding: 3px 12px; font-family: var(--lp-font-mono); font-size: 11px; color: var(--lp-ash); text-align: center; }
+.browser-content { padding: var(--lp-sp-8); display: flex; flex-direction: column; gap: var(--lp-sp-3); }
 .mock-header { display: flex; align-items: center; justify-content: space-between; }
-.mock-group-pill { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-strong); background: var(--accent-tint); border: 1px solid var(--accent-border); padding: 3px 10px; border-radius: var(--r-pill); }
-.mock-saldo-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; }
-.mock-card-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--text-faint); margin-bottom: 4px; }
-.mock-saldo { font-size: 26px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; margin-bottom: 10px; }
-.flow-strip { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); padding-top: 10px; border-top: 1px solid var(--border); }
+.mock-header-title { font-size: 13px; font-weight: 600; color: var(--lp-cloud); }
+.mock-group-pill { font-family: var(--lp-font-mono); font-size: 10px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; color: var(--lp-cloud); background: var(--lp-steel); border: 1px solid var(--lp-line-soft); padding: 3px 10px; border-radius: var(--lp-r-pill); }
+.mock-saldo-card { background: var(--lp-steel); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); padding: 14px 16px; }
+.mock-card-label { font-family: var(--lp-font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: var(--lp-tracking-eyebrow); color: var(--lp-fog); margin-bottom: 4px; }
+.mock-saldo { font-size: 26px; font-weight: 500; color: var(--lp-cloud); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-bottom: 10px; }
+.flow-strip { display: grid; grid-template-columns: 1fr 1fr; gap: var(--lp-sp-2); padding-top: 10px; border-top: 1px solid var(--lp-line-soft); }
 .flow-cell { display: flex; flex-direction: column; gap: 2px; }
-.flow-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; }
-.flow-val { font-size: 13.5px; font-weight: 600; }
-.flow-in .flow-label, .flow-in .flow-val { color: var(--accent); }
-.flow-out .flow-label, .flow-out .flow-val { color: var(--danger); }
+.flow-label { font-family: var(--lp-font-mono); font-size: 10px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; }
+.flow-val { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.flow-in .flow-label, .flow-in .flow-val { color: var(--lp-pure); }
+.flow-out .flow-label, .flow-out .flow-val { color: var(--lp-danger); }
 .mock-roster { display: flex; flex-direction: column; gap: 6px; }
-.mock-roster-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 12.5px; }
-.mock-badge { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: var(--r-pill); }
-.mock-badge.paid { background: var(--accent-tint); color: var(--accent-strong); border: 1px solid var(--accent-border); }
-.mock-badge.unpaid { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+.mock-roster-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-btn); font-size: 12.5px; }
+.mock-badge { font-family: var(--lp-font-mono); font-size: 10px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; padding: 2px 7px; border-radius: var(--lp-r-pill); }
+.mock-badge.paid { background: var(--lp-steel); color: var(--lp-cloud); border: 1px solid var(--lp-line-soft); }
+.mock-badge.unpaid { background: var(--lp-danger-bg); color: var(--lp-danger); border: 1px solid var(--lp-danger-border); }
 
-/* ── Trust Ticker ────────────────────────────────────────────────── */
-.trust-ticker { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-8); }
-.trust-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: var(--sp-2); }
-.trust-icon { width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--accent-tint); border: 1px solid var(--accent-border); color: var(--accent-strong); font-size: 18px; display: flex; align-items: center; justify-content: center; }
-.trust-card h3 { font-size: 13.5px; font-weight: 600; color: var(--text-main); }
-.trust-card p { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+/* ── Section eyebrow chip (6.1 prep) ──────────────────────────────────── */
+/* width: fit-content wajib: .badge-pill adalah inline-flex, dan `display:block`
+   (yang dipakai sebelumnya) meregangkannya menjadi bilah selebar kolom — bukan
+   chip lagi. Hero sudah memakai chip yang benar, jadi ini menyamakannya. */
+.section-eyebrow { display: flex; width: fit-content; margin: 0 auto var(--lp-sp-3); }
 
-/* ── Bento Grid ──────────────────────────────────────────────────── */
-.bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--sp-4); }
-.bento-card { grid-column: span 4; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-3); }
-.bento-card.bento-large { grid-column: span 6; }
-.bento-icon { width: 42px; height: 42px; border-radius: var(--r-md); background: var(--accent-tint); border: 1px solid var(--accent-border); color: var(--accent-strong); font-size: 20px; display: flex; align-items: center; justify-content: center; }
-.bento-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text-main); }
-.bento-card p { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
-.bento-preview { margin-top: auto; padding: var(--sp-3); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 12px; }
+/* ── 6 Feature Cards (Dark Fintech Ocean Ledger Aesthetic) ───────────── */
+.tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tile { background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; transition: border-color var(--lp-t-state), background-color var(--lp-t-state); }
+.tile:hover { border-color: var(--lp-line); background: var(--lp-steel); }
 
-/* ── Matrix Showcase Table ───────────────────────────────────────── */
-.matrix-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-6); overflow-x: auto; }
+.tile-icon-box { width: 42px; height: 42px; border-radius: var(--lp-r-btn); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.tile-title { font-family: var(--lp-font-display); font-size: 20px; font-weight: 400; line-height: 1.25; letter-spacing: var(--lp-tracking-tight); color: var(--lp-cloud); }
+.tile-desc { font-size: 13.5px; line-height: 1.6; color: var(--lp-ash); flex: 1; }
+
+/* Category Semantic Accents on Icon Boxes */
+.tile-teal   .tile-icon-box { color: #2dd4bf; background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.28); }
+.tile-cyan   .tile-icon-box { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); }
+.tile-green  .tile-icon-box { color: #34d399; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.28); }
+.tile-indigo .tile-icon-box { color: #818cf8; background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.28); }
+.tile-amber  .tile-icon-box { color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.28); }
+.tile-purple .tile-icon-box { color: #c084fc; background: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.28); }
+
+/* ── Matrix Showcase Table ────────────────────────────────────────────── */
+/* 6.3 scroll-wrap dengan hint mobile */
+.matrix-scroll-wrap { position: relative; }
+.matrix-card { background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); padding: var(--lp-sp-8); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.matrix-scroll-hint { display: none; text-align: center; font-family: var(--lp-font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-fog); margin-top: 8px; }
 .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.matrix-table th, .matrix-table td { padding: 10px 8px; border: 1px solid var(--border); text-align: center; }
-.matrix-table th { background: var(--surface-2); font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-muted); }
-.matrix-table td:first-child { text-align: left; font-weight: 600; color: var(--text-main); padding-left: 12px; min-width: 140px; }
-.stamp-paid { display: inline-block; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: var(--r-pill); background: var(--accent-tint); color: var(--accent-strong); border: 1px solid var(--accent-border); }
-.stamp-libur { display: inline-block; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; padding: 2px 6px; border-radius: var(--r-pill); background: var(--surface-3); color: var(--text-faint); }
+.matrix-table th, .matrix-table td { padding: 10px 8px; border: 1px solid var(--lp-line-soft); text-align: center; }
+.matrix-table th { background: var(--lp-steel); font-family: var(--lp-font-mono); font-size: 11px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); color: var(--lp-ash); }
+.matrix-table td:first-child { text-align: left; font-weight: 500; color: var(--lp-cloud); padding-left: 12px; min-width: 140px; }
+.stamp-paid { display: inline-block; font-family: var(--lp-font-mono); font-size: 10px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; padding: 2px 6px; border-radius: var(--lp-r-pill); background: var(--lp-steel); color: var(--lp-cloud); border: 1px solid var(--lp-line-soft); }
+.stamp-libur { display: inline-block; font-family: var(--lp-font-mono); font-size: 10px; font-weight: 500; letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase; padding: 2px 6px; border-radius: var(--lp-r-pill); background: var(--lp-steel); color: var(--lp-fog); }
+/* 6.4 BUG-7: .stamp-unpaid replaces inline style color:var(--danger) */
+.stamp-unpaid { display: inline-block; font-family: var(--lp-font-mono); font-size: 12px; font-weight: 700; color: var(--lp-danger); }
 
-/* ── Interactive Simulator ───────────────────────────────────────── */
-.simulator-panel { background: var(--surface); border: 1px solid var(--accent-border); border-radius: var(--r-xl); padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-4); box-shadow: 0 8px 24px var(--accent-tint); }
-.sim-controls { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
-.sim-feedback { font-size: 13px; font-weight: 600; color: var(--accent-strong); min-height: 20px; }
+/* ── Interactive Simulator ────────────────────────────────────────────── */
+.simulator-panel { background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); padding: var(--lp-sp-8); display: flex; flex-direction: column; gap: var(--lp-sp-3); }
+.sim-controls { display: flex; flex-wrap: wrap; gap: var(--lp-sp-3); }
+.sim-feedback { font-size: 13px; font-weight: 500; color: var(--lp-cloud); min-height: 20px; }
 
-/* ── FAQ Details ─────────────────────────────────────────────────── */
-.faq-grid { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 720px; margin: 0 auto; }
-.faq-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 20px; cursor: pointer; transition: border-color var(--t-fast); }
-.faq-card summary { font-weight: 600; font-size: 14.5px; color: var(--text-main); list-style: none; display: flex; align-items: center; justify-content: space-between; }
-.faq-card summary::-webkit-details-marker { display: none; }
-.faq-card summary::after { content: '+'; font-size: 18px; font-weight: 400; color: var(--accent-strong); }
-.faq-card[open] summary::after { content: '−'; }
-.faq-card p { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+/* ── FAQ Accordion (6.6 + 6.7 BUG-9) ────────────────────────────────── */
+.faq-grid { display: flex; flex-direction: column; gap: var(--lp-sp-3); max-width: 720px; margin: 0 auto; }
+.faq-card { background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); overflow: hidden; }
+.faq-trigger { width: 100%; background: transparent; border: none; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; color: var(--lp-cloud); font-family: inherit; font-size: 14.5px; font-weight: 600; transition: color var(--lp-t-state); }
+.faq-trigger:hover { color: var(--lp-pure); }
+/* Caret geometry only — its 180° turn and the two-way row animation live in
+   css/onboarding-motion.css §4.7 (Fase 8.10), with the rest of the motion. */
+.faq-caret { font-size: 14px; color: var(--lp-ash); flex-shrink: 0; letter-spacing: normal; }
+/* The collapsed row (grid-template-rows: 0fr) is deliberately not declared
+   here. Without JavaScript the accordion cannot be operated at all, so the
+   base stylesheet leaves every answer readable and the closed state is scoped
+   to html.js-motion in the motion layer — no answer is ever trapped behind a
+   row that no script could open. */
+.faq-body-inner { overflow: hidden; }
+.faq-body-inner p { padding: 12px 20px 16px; margin: 0; border-top: 1px solid var(--lp-line-soft); font-size: 13px; color: var(--lp-ash); line-height: 1.6; }
 
-/* ── Banner Penutup & Footer ─────────────────────────────────────── */
-.landing-cta-banner { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-12) var(--sp-4); margin: var(--sp-8) 0; }
-.landing-cta-banner h2 { font-family: var(--font-display); font-size: clamp(24px, 3.5vw, 34px); margin-bottom: var(--sp-2); }
-.landing-cta-banner p { color: var(--text-muted); font-size: 15px; margin-bottom: var(--sp-6); }
-.landing-footer { border-top: 1px solid var(--border); padding: var(--sp-8) 0 var(--sp-12); margin-top: var(--sp-8); }
-.footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); font-size: 12.5px; color: var(--text-muted); }
-.footer-links { display: flex; gap: var(--sp-4); }
-.footer-links a { color: var(--text-muted); text-decoration: none; }
-.footer-links a:hover { color: var(--accent-strong); text-decoration: underline; }
+/* ── 6.8 CTA Banner Silver inverted + 6.9 kontras tombol ─────────────── */
+.landing-cta-banner { text-align: center; background: var(--lp-silver); border-radius: var(--lp-r-tile); padding: var(--lp-sp-20) var(--lp-sp-8); margin: var(--lp-sp-8) auto; width: 100%; box-sizing: border-box; }
+.landing-cta-banner h2 { font-family: var(--lp-font-display); font-size: clamp(24px, 3.5vw, 38px); font-weight: 300; line-height: 1.05; letter-spacing: var(--lp-tracking-display); margin-bottom: var(--lp-sp-2); color: var(--lp-void); }
+.landing-cta-banner p { color: rgba(0,0,0,0.65); font-size: 15px; margin-bottom: var(--lp-sp-6); }
+.btn-cta-silver { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; background: var(--lp-void); color: var(--lp-pure); border: none; border-radius: var(--lp-r-btn); font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: opacity var(--lp-t-state); }
+.btn-cta-silver:hover { opacity: 0.82; }
 
-/* ── State Portal: Pilih Grup & PIN ──────────────────────────────── */
-.portal-wrap { min-height: calc(100dvh - 80px); display: flex; align-items: center; justify-content: center; padding: var(--sp-8) var(--sp-4); }
-.portal-card { width: 100%; max-width: 460px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-6); box-shadow: 0 12px 30px rgba(14, 36, 55, 0.08); }
-.screen-header { text-align: center; margin-bottom: var(--sp-6); }
-.screen-header-icon, .pin-avatar-icon { width: 48px; height: 48px; border-radius: var(--r-md); background: var(--accent-tint); color: var(--accent-strong); border: 1px solid var(--accent-border); font-size: 22px; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--sp-3); }
-.screen-header h2, .pin-group-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
-.screen-header p, .pin-group-sub { font-size: 12.5px; color: var(--text-muted); }
-.group-list-container { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-4); max-height: 380px; overflow-y: auto; }
-.group-item { display: flex; align-items: center; gap: var(--sp-3); width: 100%; text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 14px; min-height: 52px; font: inherit; cursor: pointer; color: var(--text-main); transition: border-color var(--t-fast), background var(--t-fast); }
-.group-item:hover { border-color: var(--accent-border); background: var(--surface-3); }
-.group-avatar { width: 36px; height: 36px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 600; font-size: 15px; background: var(--surface); color: var(--accent-strong); border: 1px solid var(--accent-border); flex-shrink: 0; }
+/* ── 6.10 Footer — hairline, mono uppercase ───────────────────────────── */
+.landing-footer { border-top: 1px solid var(--lp-line-soft); padding: var(--lp-sp-8) var(--lp-sp-4) var(--lp-sp-12); margin-top: var(--lp-sp-8); }
+.footer-inner { max-width: var(--lp-content-max); margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--lp-sp-4); }
+.footer-copy { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-fog); }
+.footer-links { display: flex; gap: var(--lp-sp-4); }
+.footer-links a { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-fog); text-decoration: none; transition: color var(--lp-t-state); }
+.footer-links a:hover { color: var(--lp-pure); }
+
+/* ── 7.1 Portal Screens — nol border/shadow, canvas bg ───────────────── */
+/* position/z-index: portal selalu berdiri di atas panggung, walau keduanya
+   kebetulan tampil bersamaan (Bagian 14.2). */
+.portal-wrap { position: relative; z-index: 1; min-height: calc(100dvh - 80px); display: flex; align-items: center; justify-content: center; padding: var(--lp-sp-8) var(--lp-sp-4); background: var(--lp-canvas); }
+.portal-card { width: 100%; max-width: 460px; background: var(--lp-graphite); border: none; border-radius: var(--lp-r-card); padding: var(--lp-sp-8); display: flex; flex-direction: column; gap: var(--lp-sp-3); }
+.screen-header { text-align: center; margin-bottom: var(--lp-sp-3); }
+.screen-header-icon, .pin-avatar-icon { width: 48px; height: 48px; border-radius: var(--lp-r-btn); background: var(--lp-steel); color: var(--lp-cloud); border: 1px solid var(--lp-line-soft); font-size: 22px; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--lp-sp-3); }
+.screen-header h2, .pin-group-title { font-family: var(--lp-font-display); font-size: 20px; font-weight: 300; letter-spacing: var(--lp-tracking-display); color: var(--lp-cloud); margin-bottom: 4px; }
+.screen-header p, .pin-group-sub { font-size: 12.5px; color: var(--lp-ash); }
+/* 7.3 group-item hover steel, radius 8px */
+.group-list-container { display: flex; flex-direction: column; gap: var(--lp-sp-2); margin-bottom: var(--lp-sp-4); max-height: 380px; overflow-y: auto; }
+.group-item { display: flex; align-items: center; gap: var(--lp-sp-3); width: 100%; text-align: left; background: var(--lp-graphite); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-btn); padding: 10px 14px; min-height: 52px; font: inherit; cursor: pointer; color: var(--lp-cloud); transition: background-color var(--lp-t-state), opacity var(--lp-t-state); }
+.group-item:hover { background: var(--lp-steel); border-color: var(--lp-line); }
+.group-avatar { width: 36px; height: 36px; border-radius: var(--lp-r-btn); display: flex; align-items: center; justify-content: center; font-family: var(--lp-font-mono); font-weight: 500; font-size: 15px; background: var(--lp-steel); color: var(--lp-cloud); border: 1px solid var(--lp-line-soft); flex-shrink: 0; }
 .group-texts { flex: 1; min-width: 0; }
 .group-texts h3 { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.group-texts small { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
-.group-chev { color: var(--text-faint); font-size: 13px; }
-.pin-box-panel { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-3); margin: var(--sp-4) 0; text-align: center; }
-.pin-box-label { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--text-faint); margin-bottom: var(--sp-3); }
-.pin-input-row { display: flex; gap: var(--sp-2); justify-content: center; margin-bottom: var(--sp-3); }
-.pin-digit-box { width: 52px; height: 58px; text-align: center; font-family: var(--font-mono); font-size: 24px; font-weight: 600; border: 1px solid var(--border-strong); border-radius: var(--r-md); background: var(--surface); color: var(--text-main); outline: none; font-variant-numeric: tabular-nums; transition: border-color var(--t-fast), box-shadow var(--t-fast); }
-.pin-digit-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-tint); }
-.pin-security-hint { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
-.pin-security-hint i { color: var(--accent-strong); }
-.pin-msg { min-height: 20px; text-align: center; font-size: 12px; font-weight: 600; margin-bottom: var(--sp-3); }
-.pin-msg-alert { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); border-radius: var(--r-sm); }
+.group-texts small { font-family: var(--lp-font-mono); font-size: 11px; color: var(--lp-fog); }
+.group-chev { color: var(--lp-fog); font-size: 13px; }
+.pin-box-panel { background: var(--lp-steel); border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-card); padding: var(--lp-sp-4) var(--lp-sp-3); margin: var(--lp-sp-4) 0; text-align: center; }
+.pin-box-label { font-family: var(--lp-font-mono); font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: var(--lp-tracking-eyebrow); color: var(--lp-fog); margin-bottom: var(--lp-sp-3); }
+.pin-input-row { display: flex; gap: var(--lp-sp-2); justify-content: center; margin-bottom: var(--lp-sp-3); }
+.pin-digit-box { width: 52px; height: 58px; text-align: center; font-family: var(--lp-font-mono); font-size: 24px; font-weight: 500; border: 1px solid var(--lp-line-soft); border-radius: var(--lp-r-btn); background: var(--lp-void); color: var(--lp-cloud); outline: none; font-variant-numeric: tabular-nums; transition: border-color var(--lp-t-state); }
+.pin-digit-box:focus { border-color: var(--lp-pure); }
+.pin-security-hint { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--lp-ash); }
+.pin-security-hint i { color: var(--lp-cloud); }
+.pin-msg { min-height: 20px; text-align: center; font-size: 12px; font-weight: 600; margin-bottom: var(--lp-sp-3); }
+.pin-msg-alert { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--lp-danger-bg); border: 1px solid var(--lp-danger-border); color: var(--lp-danger); border-radius: var(--lp-r-btn); }
 
-/* ── Buttons & Utility ───────────────────────────────────────────── */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: var(--r-md); padding: 10px 20px; font-family: inherit; font-size: 13.5px; font-weight: 600; text-decoration: none; cursor: pointer; touch-action: manipulation; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); }
-.btn:active { transform: scale(0.98); }
+/* ── Buttons & Utility ────────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: var(--lp-r-btn); padding: 10px 20px; font-family: inherit; font-size: 13.5px; font-weight: 600; text-decoration: none; cursor: pointer; touch-action: manipulation; transition: background-color var(--lp-t-state), opacity var(--lp-t-state); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.btn-pill { border-radius: var(--r-pill); }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
-.btn-outline { background: transparent; border-color: var(--border-strong); color: var(--text-main); }
-.btn-outline:hover:not(:disabled) { background: var(--surface-2); border-color: var(--text-muted); }
-.note { font-size: 12px; color: var(--text-muted); margin-top: var(--sp-4); line-height: 1.6; text-align: center; }
-.note a { color: var(--accent-strong); font-weight: 600; text-decoration: none; }
-.loading-state { text-align: center; color: var(--text-muted); padding: var(--sp-6) var(--sp-3); font-size: 13px; }
+.btn-pill { border-radius: var(--lp-r-btn); }
+.btn-primary { background: var(--lp-pure); border-color: var(--lp-pure); color: var(--lp-void); }
+.btn-primary:hover:not(:disabled) { background: var(--lp-cloud); border-color: var(--lp-cloud); }
+.btn-outline { background: transparent; border-color: var(--lp-line); color: var(--lp-cloud); }
+.btn-outline:hover:not(:disabled) { background: var(--lp-graphite); border-color: var(--lp-pure); }
+.note { font-size: 12px; color: var(--lp-ash); margin-top: var(--lp-sp-4); line-height: 1.6; text-align: center; }
+.note a { color: var(--lp-cloud); font-weight: 600; text-decoration: none; }
+.loading-state { text-align: center; color: var(--lp-ash); padding: var(--lp-sp-6) var(--lp-sp-3); font-size: 13px; }
+/* ── 3.9 Scroll margin for sticky nav (BUG-3) ─────────────────────────── */
+#fitur, #matriks, #demo-simulator, #faq { scroll-margin-top: 80px; }
+
+/* ── 3.10 Focus-visible (BUG-5) ──────────────────────────────────────── */
+:focus-visible { outline: 2px solid var(--lp-pure); outline-offset: 3px; border-radius: 2px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
+
 .hidden { display: none !important; }
 
-/* ── Responsive Viewports ────────────────────────────────────────── */
+/* ── Responsive Viewports ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .hero-split { grid-template-columns: 1fr; gap: 32px; }
+  /* 3.7 show hamburger, hide desktop nav + cta */
   .nav-links { display: none; }
-  .trust-ticker { grid-template-columns: 1fr 1fr; }
-  .bento-card, .bento-card.bento-large { grid-column: span 6; }
+  .btn-nav-cta { display: none; }
+  .nav-hamburger { display: flex; }
+  /* 5.1 tile grid: 2 kolom di tablet */
+  .tile-grid { grid-template-columns: repeat(2, 1fr); }
+  /* 4.1 hero CTA stack on mobile */
+  .hero-cta-group { flex-direction: column; align-items: center; }
+  .btn-hero-primary, .btn-hero-ghost { width: 100%; max-width: 320px; justify-content: center; }
+  /* 4.7 trust band wrap on mobile */
+  .trust-band-sep { display: none; }
+  /* 6.3 matrix scroll hint visible on mobile */
+  .matrix-scroll-hint { display: block; }
 }
 @media (max-width: 640px) {
-  .trust-ticker { grid-template-columns: 1fr; }
-  .bento-card, .bento-card.bento-large { grid-column: span 12; }
-  .hero-cta-group .btn { width: 100%; }
+  /* 5.1 tile grid: 1 kolom di mobile */
+  .tile-grid { grid-template-columns: 1fr; }
   .sim-controls .btn { width: 100%; }
   .footer-inner { flex-direction: column; text-align: center; }
 }

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>QA — Perjalanan Visual Langit ke Bumi (Bagian 14)</title>
+<!--
+  Dev-only harness. It is never served to visitors and never registered in
+  sw.js, so the landing page's CSP-clean rules ("no inline script") do not
+  apply here. It exists because the journey is driven by scroll position: to
+  judge all six beats you would otherwise have to scroll the real page and
+  screenshot six times. Here every beat is pinned to an exact `t` and rendered
+  side by side.
+
+  It loads the REAL stylesheets and imports the REAL curve from js/journey.js
+  (skyLayerStatesAt), so what you see is the shipped artwork, not a copy.
+  Open it over http(s) — ES modules do not run from file://.
+-->
+<link rel="stylesheet" href="../../css/onboarding.css">
+<link rel="stylesheet" href="../../css/onboarding-motion.css">
+<style>
+  /* Harness-only. The real page fixes .sky-stage to the viewport; here each
+     beat owns a 300×300 cell instead, giving a 900×600 3×2 contact sheet. */
+  body { margin: 0; background: #000; }
+  .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); width: 900px; height: 600px; }
+  .qa-beat { position: relative; overflow: hidden; outline: 1px solid rgba(255, 255, 255, 0.14); }
+  .qa-beat .sky-stage { position: absolute; }
+  .qa-label { position: absolute; z-index: 2; left: 6px; bottom: 6px; padding: 2px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); font: 500 10px/1.4 ui-monospace, monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #f5f5f7; }
+  /* Stand-in for real copy, so text contrast over the deck can be judged
+     rather than merely assumed. */
+  .qa-copy { position: absolute; z-index: 2; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 0 18px; text-align: center; }
+  .qa-copy h2 { margin: 0; font-family: var(--lp-font-display); font-weight: 300; font-size: 19px; line-height: 1.05; letter-spacing: var(--lp-tracking-display); color: var(--lp-cloud); }
+  .qa-copy p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--lp-ash); }
+</style>
+</head>
+<body>
+<div class="qa-grid" id="qa-grid"></div>
+<script type="module">
+import { skyLayerStatesAt } from '../../js/journey.js';
+
+/* The beats a visitor actually passes through: page top, the mockup band,
+   the far ridge emerging, the feature tiles, the matrix, and the end. */
+const BEATS = [0.00, 0.22, 0.40, 0.55, 0.72, 0.95];
+
+const COPY = `
+  <div class="qa-copy">
+    <h2>Matriks Iuran 12 Bulan</h2>
+    <p>Deteksi seketika siapa yang sudah bayar dan bulan mana yang libur iuran.</p>
+  </div>`;
+
+/* Same element tree and same class names as onboarding.html, so a change to
+   the real markup shows up here as a broken cell instead of a silent pass. */
+const STAGE = `
+  <div class="sky-stage" aria-hidden="true">
+    <div class="sky-layer sky-layer-sky">
+      <span class="sky-image"></span>
+      <span class="sky-mist"></span>
+      <span class="sky-scrim"></span>
+    </div>
+    <div class="sky-layer sky-layer-ridge-far"><span class="ridge ridge-far"></span></div>
+    <div class="sky-layer sky-layer-clouds">
+      <span class="cloud-glow"></span>
+      <span class="cloud-bank cloud-bank-1"></span>
+      <span class="cloud-bank cloud-bank-2"></span>
+      <span class="cloud-bank cloud-bank-3"></span>
+      <span class="cloud-bank cloud-bank-4"></span>
+      <span class="cloud-bank cloud-bank-5"></span>
+      <span class="cloud-bank cloud-bank-6"></span>
+    </div>
+    <div class="sky-layer sky-layer-land"><span class="ridge ridge-near"></span></div>
+  </div>`;
+
+const grid = document.getElementById('qa-grid');
+
+for (const t of BEATS) {
+  const beat = document.createElement('div');
+  beat.className = 'qa-beat js-motion';
+  beat.innerHTML = COPY + STAGE;
+
+  for (const layer of skyLayerStatesAt(t)) {
+    beat.style.setProperty(`--lp-j-${layer.name}`, layer.opacity.toFixed(3));
+    beat.style.setProperty(`--lp-y-${layer.name}`, `${layer.drift.toFixed(2)}%`);
+  }
+
+  const label = document.createElement('span');
+  label.className = 'qa-label';
+  label.textContent = `t = ${t.toFixed(2)}`;
+  beat.append(label);
+
+  grid.append(beat);
+}
+</script>
+</body>
+</html>

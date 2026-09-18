@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v122';
+const CACHE_NAME = 'finkas-v123';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -8,8 +8,13 @@ const LOCAL_ASSETS = [
   '404.html',
   'privacy.html',
   'css/onboarding.css',
+  'css/onboarding-motion.css',
   'style.css',
   'manifest.json',
+  /* Bagian 14 — latar panggung langit→bumi. 375,6 KB, di bawah anggaran
+     400 KB di Fase 0.5, jadi ia boleh di-precache supaya landing tetap utuh
+     saat offline — tanpa ini panggungnya kehilangan langitnya. */
+  'assets/hero-atmosphere.png',
   'icons/favicon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
@@ -56,7 +61,8 @@ const LOCAL_ASSETS = [
   'js/ui/mpick.js',
   'js/app.js',
   'js/sw-register.js',
-  'js/onboarding.js'
+  'js/onboarding.js',
+  'js/journey.js'
 ];
 
 // Third-party CDN domains to cache for reliable offline usage

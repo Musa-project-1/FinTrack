@@ -1,0 +1,440 @@
+/* ==========================================================================
+   Finkas — Landing page motion layer (Origin-derived)
+   Target document: onboarding.html ONLY
+   --------------------------------------------------------------------------
+   GUARDRAIL G1 — DO NOT load this file from index.html,
+                  html/index.template.html, or html/modals/*.html.
+                  The landing page and the application are two separate
+                  visual systems that must never share a stylesheet.
+
+   GUARDRAIL G2 — This file MUST stay in css/ (root). Never move it into
+                  css/modules/ and never add it to the @import list in
+                  css/input.css — doing so leaks landing CSS into the
+                  application's style.css bundle.
+
+   TOKENS — Every custom property used here is prefixed --lp- and is defined
+            by the :root block in css/onboarding.css. This file must never
+            reference an unprefixed landing token.
+
+   MOTION LAW (R8) — Only three timings exist on the landing page:
+                     state transition   = --lp-t-state    (0.2s ease)
+                     section reveal     = --lp-t-section  (1.2s ease-out)
+                     atmospheric reveal = --lp-t-reveal   (2.5s, calm easing)
+                     Forbidden: spring, overshoot, bounce, elastic, parallax,
+                     hover-lift translate, stamp pop, scale on buttons.
+                     Every curve below is built from --lp-ease-calm
+                     (cubic-bezier(0.455, 0.03, 0.515, 0.955)); no easing
+                     function in this file overshoots its end value.
+
+   ORDERING — Loaded after css/onboarding.css (wired in Fase 9.1). Base
+              visual rules live there; movement lives here.
+
+   FAILURE LAW (8.14) — Two mechanisms keep a broken script from ever
+              blanking the page:
+                (a) every hidden state is scoped to html.js-motion, a class
+                    js/journey.js adds only after it has painted the first
+                    frame of the sky stage. No JavaScript, no hidden state,
+                    no empty section;
+                (b) the one ungated animation — the hero entrance and the
+                    hero borderTurn — ends fully visible by itself, so it
+                    does not depend on JavaScript at all.
+              js/onboarding.js additionally force-reveals every element if
+              the observer wiring or IntersectionObserver itself is missing.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. ANTI-BROKEN REVEAL GUARD  (Fase 8.14)
+
+   Hidden reveal states are scoped to html.js-motion. That class is added by
+   js/journey.js at runtime. If JavaScript fails, is blocked, or errors before
+   that line executes, no element is ever hidden and the full page renders —
+   there must never be a blank hero or an empty section.
+   -------------------------------------------------------------------------- */
+
+.js-motion [data-lp-reveal] {
+  opacity: 0;
+  will-change: opacity;
+  transition: opacity var(--lp-t-section);
+}
+
+/* Product band (8.4): the same one-shot reveal, but the frame also resolves
+   out of an 8px blur, so it takes the atmospheric timing instead of the
+   shorter section timing. */
+.js-motion [data-lp-reveal="blur"] {
+  filter: blur(8px);
+  will-change: opacity, filter;
+  transition: opacity var(--lp-t-reveal), filter var(--lp-t-reveal);
+}
+
+.js-motion [data-lp-reveal].is-lp-revealed {
+  opacity: 1;
+  will-change: auto;
+}
+
+.js-motion [data-lp-reveal="blur"].is-lp-revealed {
+  filter: blur(0);
+}
+
+/* --------------------------------------------------------------------------
+   2. KEYFRAMES  (Fase 8.1)
+
+   Every @keyframes on the landing page lives in this file, never in
+   css/onboarding.css.
+   -------------------------------------------------------------------------- */
+
+/* PIN verification spinner (BUG-6 / Fase 7.4). Linear, so it reads as a
+   machine working rather than as a decorative pulse. */
+@keyframes lp-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Hero entrance (8.3). The rise is confined to the first 30% of the curve and
+   is only 6px; the remaining 70% is a long, calm fade. Nothing overshoots. */
+@keyframes lp-atmos-rise {
+  0%   { opacity: 0; transform: translate3d(0, 6px, 0); }
+  30%  { opacity: 0.55; transform: translate3d(0, 0, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* borderTurn (8.6). One 1px segment travels exactly one lap of the frame on
+   the atmospheric timing, then the whole layer fades away — so the flourish
+   is a single pass and never becomes a permanent box or an endless loop. */
+@keyframes lp-turn-travel {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes lp-turn-settle {
+  0%   { opacity: 0.9; }
+  70%  { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+/* Mobile drawer items (8.9): a 6px settle plus a fade, 60ms apart. */
+@keyframes lp-drawer-item {
+  from { opacity: 0; transform: translate3d(0, -6px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Simulator value flash (8.11): a veil over the amount that lights up and
+   fades on the state timing. Painted on a pseudo-element so the numeral
+   itself never reflows. */
+@keyframes lp-flash-veil {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* PAID / LIBUR / unpaid stamps (8.12): fade in, never pop or bounce. */
+@keyframes lp-stamp-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   3. STATE TRANSITIONS  (Fase 8.2)
+
+   Hover and focus change background-color, color and opacity at
+   --lp-t-state, and nothing else: no translate, no scale, no shadow. The
+   component rules in css/onboarding.css declare that transition next to each
+   rule; this block re-states the law for the controls whose motion Fase 8
+   introduced, so no component can inherit a translated hover state.
+   -------------------------------------------------------------------------- */
+
+.js-motion .drawer-link,
+.js-motion .drawer-cta,
+.js-motion .nav-hamburger,
+.js-motion .btn-cta-silver,
+.js-motion .faq-trigger {
+  transition: color var(--lp-t-state), background-color var(--lp-t-state),
+              opacity var(--lp-t-state), border-color var(--lp-t-state);
+}
+
+/* FAQ caret: a calm 180° turn on the state timing, no overshoot. */
+.js-motion .faq-caret { transition: transform var(--lp-t-state); }
+.js-motion .faq-trigger[aria-expanded="true"] .faq-caret { transform: rotate(180deg); }
+
+/* Scroll progress bar (8.8): transform only, never width. js/onboarding.js
+   writes --lp-scroll-ratio (0…1) on every scroll frame, so the bar is redrawn
+   in step with the page instead of easing after it. */
+.js-motion .nav-progress { will-change: transform; }
+/* --------------------------------------------------------------------------
+   4. REVEAL & ENTRANCE  (Fase 8.3–8.12)
+   -------------------------------------------------------------------------- */
+
+/* 4.1 — HERO STAGGER (8.3)
+   Pure CSS, deliberately NOT gated behind .js-motion: the hero is the first
+   thing painted, and the stylesheet is render-blocking, so this animation is
+   already defined when the first frame arrives — there is no window in which
+   the page could paint fully and then blank itself while a module loads.
+   Because the animation ends at opacity 1 and uses fill-mode `both`, a page
+   with JavaScript disabled still shows the entire hero: the entrance is a
+   gift, never a dependency.
+   Order: chip → headline → subhead → CTA primer → CTA sekunder → trust band. */
+.hero-content .hero-eyebrow       { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+.hero-content h1                  { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.22s both; }
+.hero-content .hero-sub           { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.42s both; }
+.hero-content .btn-hero-primary   { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.66s both; }
+.hero-content .btn-hero-ghost     { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.84s both; }
+.hero-content .hero-trust-row     { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 1.02s both; }
+
+/* 4.2 — PRODUCT BAND ENTER (8.4)
+   Declared in section 1 as the [data-lp-reveal="blur"] variant: opacity
+   0 → 1 and filter blur(8px) → blur(0), both over --lp-t-reveal, fired once
+   by the same IntersectionObserver that drives every other reveal. */
+
+/* 4.3 — SECTION REVEAL (8.5)
+   The hidden/visible pair lives in section 1. js/onboarding.js adds
+   .is-lp-revealed once per element through IntersectionObserver and then
+   unobserves it, so each section fades a single time and never re-animates
+   on the way back up. Applies to the trust band, the tile grid, the matrix,
+   the simulator panel, the FAQ grid and the CTA banner. */
+
+/* 4.4 — BORDERTURN (8.6)
+   A 1px light that traces the frame once. Drawn as an SVG stroke rather than
+   a gradient ring, because R5 forbids conic/radial decoration outside the
+   sky stage (R5′). pathLength="100" normalises the perimeter, so one lap is
+   always 100 units and the light travels at a constant speed on any aspect
+   ratio; vector-effect keeps the stroke 1px on wide and narrow frames alike.
+   The layer is inert, hidden from assistive tech, and finished after a single
+   pass — there is no looping keyframe anywhere on this page. */
+
+/* The resting opacity lives on the SVG, which is the element the settle
+   animation drives. Putting it on the wrapper instead would have cancelled
+   every pass: a parent at opacity 0 hides an animating child for good. */
+.lp-turn {
+  position: absolute;
+  pointer-events: none;
+}
+
+.lp-turn-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0; /* resting state: nothing remains on screen after the pass */
+}
+
+.lp-turn-path {
+  fill: none;
+  stroke: var(--lp-turn-stroke);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-dasharray: 18 82;
+  stroke-dashoffset: 100;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Hero frame — inset from the hero copy block so the light never touches the
+   text. Runs straight away, in step with the hero stagger. */
+.lp-turn-hero { inset: -20px; }
+.lp-turn-hero .lp-turn-svg  { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+.lp-turn-hero .lp-turn-path { animation: lp-turn-travel var(--lp-t-reveal) linear 0.05s both; }
+
+/* Mockup frame — the pass waits for the product band's own reveal (8.4), so
+   the light arrives with the frame instead of on a frame that is still
+   blurred out of existence. */
+.lp-turn-mockup { inset: 2px; }
+.js-motion .browser-frame.is-lp-revealed .lp-turn-mockup .lp-turn-svg  { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.35s both; }
+.js-motion .browser-frame.is-lp-revealed .lp-turn-mockup .lp-turn-path { animation: lp-turn-travel var(--lp-t-reveal) linear 0.35s both; }
+
+@media (max-width: 900px) {
+  /* Below 900px the hero block is already as wide as the viewport, so the
+     ring hugs the copy box instead of being clipped by .landing-hero's
+     overflow: hidden. */
+  .lp-turn-hero { inset: 0; }
+}
+
+/* 4.5 — COUNT-UP SALDO (8.7)
+   The animation itself lives in js/onboarding.js (a rAF loop over
+   --lp-t-reveal's 2.5s). CSS owns the one property that makes it safe:
+   tabular figures, so a number counting from Rp 0 to Rp 14.850.000 never
+   changes width and never shifts the elements around it. */
+.js-motion .lp-counting {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* 4.6 — DRAWER STAGGER (8.9)
+   Items settle in reading order, 60ms apart, once per opening. The panel
+   itself keeps sliding on --lp-t-state (declared in css/onboarding.css). */
+.js-motion .nav-drawer .drawer-link,
+.js-motion .nav-drawer .drawer-cta { opacity: 0; }
+
+.js-motion .nav-drawer.is-open .drawer-link,
+.js-motion .nav-drawer.is-open .drawer-cta {
+  animation: lp-drawer-item 0.45s var(--lp-ease-calm) both;
+}
+
+.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(2) { animation-delay: 0.06s; }
+.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(3) { animation-delay: 0.12s; }
+.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(4) { animation-delay: 0.18s; }
+.js-motion .nav-drawer.is-open .drawer-cta { animation-delay: 0.24s; }
+
+/* 4.7 — FAQ ACCORDION (8.10)
+   grid-template-rows 0fr → 1fr animates in BOTH directions, which is the
+   reason the cards are a <button aria-expanded> and not <details>. The
+   collapsed state is scoped to .js-motion on purpose: with JavaScript
+   unavailable the answer text can never be opened, so instead of trapping it
+   behind a closed grid row the base stylesheet leaves every answer visible. */
+.js-motion .faq-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--lp-t-state);
+}
+
+.js-motion .faq-trigger[aria-expanded="true"] ~ .faq-body {
+  grid-template-rows: 1fr;
+}
+
+/* 4.8 — SIMULATOR VALUE FLASH (8.11)
+   The veil is a pseudo-element, so lighting up the amount costs no layout:
+   the numeral keeps its box and the neighbouring cells keep their position. */
+.js-motion .mock-saldo { position: relative; }
+
+.js-motion .mock-saldo::after {
+  content: '';
+  position: absolute;
+  inset: -4px -8px;
+  border-radius: var(--lp-r-btn);
+  background: var(--lp-flash-tint);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.js-motion .mock-saldo.is-lp-flash::after {
+  animation: lp-flash-veil var(--lp-t-state) ease-out both;
+}
+
+/* 4.9 — STAMP PAID / LIBUR FADE (8.12)
+   Stamps fade in once the matrix section has been revealed, row by row, so
+   the twelve-month grid arrives as a sheet being printed rather than as a
+   set of badges popping into place. */
+.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-paid,
+.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-libur,
+.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-unpaid {
+  animation: lp-stamp-fade 0.5s ease-out both;
+}
+
+.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(2) span { animation-delay: 0.08s; }
+.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(3) span { animation-delay: 0.16s; }
+.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(4) span { animation-delay: 0.24s; }
+/* --------------------------------------------------------------------------
+   5. SKY JOURNEY — "Perjalanan Visual dari Langit ke Bumi"  (Bagian 14)
+
+   Empat lapis panggung di bawah ini murni PEMAKAI state: js/journey.js menulis
+   --lp-j-* (opacity 0–1) dan --lp-y-* (drift, %) ke elemen .sky-stage setiap
+   halaman di-scroll. Tidak ada satu pun @keyframes, transition, atau kurva
+   easing di sini — jadi panggung tidak mungkin berjalan sendiri, tidak bisa
+   tertinggal dari posisi scroll, dan tidak pernah bertengkar dengan
+   prefers-reduced-motion.
+
+   Dikunci ke .js-motion dengan alasan yang sama seperti guard reveal di atas:
+   lautan awan dan punggungan gunung tidak membawa informasi apa pun, tetapi
+   ia hanya boleh dilukis setelah JavaScript benar-benar menggerakkannya.
+   Tanpa JS, berkas dasar meninggalkan lapisan-lapisan itu di opacity 0 dan
+   panggung cukup menjadi langit malam yang tenang — tidak ada halaman kosong
+   dan tidak ada konten yang hilang (Bagian 14.6).
+   -------------------------------------------------------------------------- */
+
+.js-motion .sky-layer-sky {
+  opacity: var(--lp-j-sky, 1);
+  transform: translate3d(0, var(--lp-y-sky, 0%), 0);
+}
+
+.js-motion .sky-layer-ridge-far {
+  opacity: var(--lp-j-ridge-far, 0);
+  transform: translate3d(0, var(--lp-y-ridge-far, 0%), 0);
+}
+
+.js-motion .sky-layer-clouds {
+  opacity: var(--lp-j-cloud, 0);
+  transform: translate3d(0, var(--lp-y-cloud, 0%), 0);
+}
+
+.js-motion .sky-layer-land {
+  opacity: var(--lp-j-land, 0);
+  transform: translate3d(0, var(--lp-y-land, 0%), 0);
+}
+
+/* Panggung adalah bidang fixed seluas viewport. Menaikkan tiap lapisan ke
+   compositor layer sendiri membuat cross-fade yang digerakkan scroll tidak
+   memaksa repaint tiga gradien seluas layar pada tiap frame; hanya opacity
+   yang berubah, dan itu gratis di GPU. Drift-nya kecil dan tidak butuh
+   promosi terpisah karena translate3d sudah memicunya. */
+.js-motion .sky-layer { will-change: opacity; }
+
+/* --------------------------------------------------------------------------
+   6. PIN SPINNER  (BUG-6 / Fase 7.4)
+
+   The class is injected by js/onboarding.js submitPin(); the keyframes it
+   needs are declared in section 2 of this file, which is what BUG-6 was:
+   a spin class with no keyframes anywhere.
+   -------------------------------------------------------------------------- */
+
+.lp-spin { animation: lp-spin 0.8s linear infinite; display: inline-block; }
+
+/* --------------------------------------------------------------------------
+   7. PREFERS-REDUCED-MOTION  (Fase 8.13)
+
+   The single switch for the whole motion layer. It is the LAST block in the
+   file so that every rule it overrides has already been declared: an earlier
+   reduced-motion block would lose a specificity tie against the sky bindings
+   in section 5 and against the reveals in section 4.
+
+   Nothing may stay hidden in this mode. Opacity is forced to 1 everywhere a
+   reveal rule could hide something; every animation and transition is
+   neutralised; the borderTurn is removed outright (a frozen half-drawn
+   stroke would read as a broken border); the count-up is handled in
+   js/onboarding.js, where it jumps straight to the final amount; and the sky
+   stage keeps its cross-fade but loses all drift, because that cross-fade
+   tracks the visitor's own scrolling rather than running on its own.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ungated — the hero entrance and the hero borderTurn are declared outside
+     .js-motion (they must survive a blocked script), so they need their own
+     switch here instead of the .js-motion blanket rule further down. */
+  .hero-content .hero-eyebrow,
+  .hero-content h1,
+  .hero-content .hero-sub,
+  .hero-content .btn-hero-primary,
+  .hero-content .btn-hero-ghost,
+  .hero-content .hero-trust-row {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  .lp-turn { display: none; }
+
+  /* Gated reveals — visible immediately, and the count-up veil never fires. */
+  .js-motion [data-lp-reveal],
+  .js-motion [data-lp-reveal].is-lp-revealed {
+    opacity: 1;
+    filter: none;
+    transition: none;
+    animation: none;
+  }
+
+  /* Drawer items are always legible in this mode. */
+  .js-motion .nav-drawer .drawer-link,
+  .js-motion .nav-drawer .drawer-cta {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The stage keeps its cross-fade (opacity) but never travels. */
+  .js-motion .sky-layer { transform: none; }
+
+  .lp-spin { animation: none; }
+
+  .js-motion *,
+  .js-motion *::before,
+  .js-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

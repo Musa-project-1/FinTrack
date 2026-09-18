@@ -19,3 +19,4 @@ HARDENING-CHECKLIST.md
 .hermes/
 skills-lock.json
 js/list.md
+tmp/

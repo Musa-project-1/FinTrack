@@ -96,6 +96,18 @@ for (const entry of precache) {
   }
 }
 
+// Ensure sw.js cache name and js/sw-register.js query version match.
+const swSource = fs.readFileSync(SW_PATH, 'utf8');
+const swRegisterPath = path.join(ROOT, 'js', 'sw-register.js');
+if (fs.existsSync(swRegisterPath)) {
+  const regSource = fs.readFileSync(swRegisterPath, 'utf8');
+  const swVer = (/const CACHE_NAME = 'finkas-v([^']+)';/.exec(swSource) || [])[1];
+  const regVer = (/sw\.js\?v=([^'&]+)/.exec(regSource) || [])[1];
+  if (swVer && regVer && swVer !== regVer) {
+    failures.push(`sw.js CACHE_NAME version ('${swVer}') does not match js/sw-register.js ('${regVer}').`);
+  }
+}
+
 /* ── 3. index.html freshness ─────────────────────────────────────── */
 
 /** Newest modification time among the template and every modal fragment. */

@@ -1,5 +1,4 @@
-import { NAMA_BULAN } from "../core/config.js";
-import { getState, currentHistoryFilter, setCurrentHistoryFilter, setItemsToShow } from "../core/state.js";
+import { setCurrentHistoryFilter, setItemsToShow } from "../core/state.js";
 import { openModal, closeModal } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import { renderAll, renderTableTransaksi, renderTableRekap } from "../render.js";
@@ -92,10 +91,6 @@ export const setupRekapSearchListener = () => {
     });
   });
 };
-
-/* ══════════════════════════════════════════════════════════════════
-   QUICK PAY (BOTTOM SHEET)
-   ══════════════════════════════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════════════════════════════
    PENGATURAN TAMPILAN MODAL

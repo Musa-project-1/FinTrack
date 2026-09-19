@@ -9,7 +9,7 @@ import { showToast, handleNominalInput, getRawNominal, formatRp, escapeHtml } fr
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
-let previousActiveElement = null;
+const activeElementStack = [];
 
 const trapFocus = (e, modalEl) => {
   if (e.key !== 'Tab') return;
@@ -47,7 +47,9 @@ export const openModal = (id) => {
     window.__resetItemsToShow && window.__resetItemsToShow();
     window.__renderTableTransaksi && window.__renderTableTransaksi();
   }
-  previousActiveElement = document.activeElement;
+  if (document.activeElement) {
+    activeElementStack.push(document.activeElement);
+  }
   el.classList.add('active');
   document.body.classList.add('modal-open');
 
@@ -79,9 +81,15 @@ export const closeModal = (id) => {
     document.querySelectorAll('.bottom-nav-item').forEach((b) => {
       b.classList.toggle('active', b.getAttribute('data-action') === 'nav-home');
     });
-    if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
-      previousActiveElement.focus();
-      previousActiveElement = null;
+    const targetEl = activeElementStack.pop();
+    activeElementStack.length = 0;
+    if (targetEl && typeof targetEl.focus === 'function') {
+      targetEl.focus();
+    }
+  } else {
+    const targetEl = activeElementStack.pop();
+    if (targetEl && typeof targetEl.focus === 'function') {
+      targetEl.focus();
     }
   }
 };

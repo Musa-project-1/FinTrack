@@ -200,6 +200,44 @@ export function encodeFields(obj) {
 
 /* ── Firestore REST document operations ──────────────────────────── */
 
+/**
+ * Fully-qualified resource name for a document path.
+ * @param {string} docPath e.g. `groups/{gid}/anggota/{id}`
+ * @returns {string}
+ */
+export const resourceName = (docPath) =>
+  `projects/${PROJECT_ID}/databases/(default)/documents/${docPath}`;
+
+/**
+ * Build an error carrying the HTTP status and Firestore's own error body.
+ *
+ * The body is what separates a rejected write precondition — a normal,
+ * expected outcome — from a real infrastructure fault, and a status code alone
+ * cannot tell them apart.
+ *
+ * @param {string} message
+ * @param {number} status
+ * @param {string} body
+ * @returns {Error}
+ */
+const firestoreError = (message, status, body) => {
+  const error = new Error(body ? `${message} ${body}` : message);
+  error.status = status;
+  error.body = body;
+  return error;
+};
+
+/**
+ * True when a Firestore failure is a write precondition rejection rather than
+ * an infrastructure error. `fsCreateIfAbsent` relies on this.
+ * @param {Error & {body?: string}} error
+ * @returns {boolean}
+ */
+export const isPreconditionFailure = (error) =>
+  /FAILED_PRECONDITION|ALREADY_EXISTS|already exists/i.test(
+    `${error?.body || ''} ${error?.message || ''}`
+  );
+
 const docUrl = (docPath, query = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 
 /**
@@ -255,10 +293,45 @@ export async function fsCommit(writes, headers) {
     body: JSON.stringify({ writes })
   });
   if (!res.ok) {
-    console.error('[finkas] fsCommit failed:', res.status, await res.text().catch(() => ''));
-    throw new Error(`Gagal menulis batch (${res.status}).`);
+    const body = await res.text().catch(() => '');
+    console.error('[finkas] fsCommit failed:', res.status, body);
+    throw firestoreError(`Gagal menulis batch (${res.status}).`, res.status, body);
   }
   return true;
+}
+
+/**
+ * Write a document only when it does not already exist.
+ *
+ * Firestore evaluates the precondition atomically inside the commit, so unlike
+ * a read-then-write duplicate check this cannot be raced by a second serverless
+ * invocation — two concurrent submissions of the same dues payment resolve to
+ * one document and one "already recorded" response.
+ *
+ * @param {string} docPath
+ * @param {object} data
+ * @param {object} headers
+ * @returns {Promise<boolean>} true when written, false when it already existed.
+ */
+export async function fsCreateIfAbsent(docPath, data, headers) {
+  const res = await fetch(`${FIRESTORE_BASE}:commit`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      writes: [{
+        update: { name: resourceName(docPath), fields: encodeFields(data) },
+        currentDocument: { exists: false }
+      }]
+    })
+  });
+  if (res.ok) return true;
+
+  const body = await res.text().catch(() => '');
+  const error = firestoreError(`Gagal menyimpan dokumen (${res.status}).`, res.status, body);
+  if (isPreconditionFailure(error)) return false;
+
+  console.error('[finkas] fsCreateIfAbsent failed:', docPath, res.status, body);
+  throw error;
 }
 
 /**
@@ -284,5 +357,4 @@ export async function fsListAll(colPath, headers, maxPages = 40) {
 }
 
 /** Build a Firestore document name for a collection path + id. */
-export const docName = (colPath, id) =>
-  `projects/${PROJECT_ID}/databases/(default)/documents/${colPath}/${id}`;
+export const docName = (colPath, id) => resourceName(`${colPath}/${id}`);

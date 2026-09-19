@@ -9,6 +9,7 @@
 import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from './core/config.js';
 import { apiPost } from './core/api-client.js';
 import { setGroupSession } from './core/state.js';
+import { escapeHtml as esc } from './core/utils.js';
 import { initSkyJourney } from './journey.js';
 
 /** @type {Array<{id: string, nama: string}>} */
@@ -18,11 +19,6 @@ let groups = [];
 let active = null;
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
-
-const esc = (s) =>
-  String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
-  );
 
 const el = (id) => document.getElementById(id);
 

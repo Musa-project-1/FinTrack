@@ -1,9 +1,9 @@
 import { NAMA_BULAN } from "../core/config.js";
 import { getState, getIsAdminSession } from "../core/state.js";
 import { postToBackend, fetchAuditLogApi } from "../core/api.js";
-import { showToast, showDatabaseToast, escapeHtml, getInitials } from "../core/utils.js";
+import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
-import { renderAll, renderSkippedMonthsList } from "../render.js";
+import { renderSkippedMonthsList } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 
 export const openSkippedMonthsModal = () => {

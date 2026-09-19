@@ -153,11 +153,13 @@ export const renderGroupPicker = () => {
   }
 
   box.innerHTML = list.map((g) => {
-    const safeName = escapeHtml(g.nama || "?");
+    const rawName = g.nama || "?";
+    const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
+    const initial = escapeHtml(rawName.charAt(0).toUpperCase());
     return `
     <button class="group-item${g.id === active ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}">
-      <span class="avatar">${safeName.charAt(0).toUpperCase()}</span>
+      <span class="avatar">${initial}</span>
       <span><h3>${safeName}</h3><small>${g.id === active ? "Grup aktif" : "Ketuk untuk masuk"}</small></span>
       <span class="chev">›</span>
     </button>`;
@@ -330,10 +332,11 @@ export const renderGroupAdmin = () => {
 
   const activeId = getActiveGroupId();
   box.innerHTML = list.map((g, idx) => {
-    const safeName = escapeHtml(g.nama || "?");
+    const rawName = g.nama || "?";
+    const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
     const isActive = g.id === activeId;
-    const initial = safeName.charAt(0).toUpperCase();
+    const initial = escapeHtml(rawName.charAt(0).toUpperCase());
     return `
     <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}">
       <div class="group-card-main">

@@ -4,14 +4,28 @@
  */
 
 import { THEME_KEY, HEADER_STATS_KEY } from '../core/config.js';
-import { getCashFlowChart, getExpenseChart } from '../core/state.js';
 import { showToast } from '../core/utils.js';
+
+const safeGetItem = (key, fallback = null) => {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? val : fallback;
+  } catch (_) {
+    return fallback;
+  }
+};
+
+const safeSetItem = (key, val) => {
+  try {
+    localStorage.setItem(key, String(val));
+  } catch (_) {}
+};
 
 /**
  * Apply the saved header stats position preference.
  */
 export const applyHeaderStatsPreference = () => {
-  const isHeaderStats = localStorage.getItem(HEADER_STATS_KEY) === 'true';
+  const isHeaderStats = safeGetItem(HEADER_STATS_KEY) === 'true';
   document.body.classList.toggle('header-stats-active', isHeaderStats);
 
   const textEl = document.getElementById('text-toggle-stats-pos');
@@ -40,7 +54,7 @@ export const applyHeaderStatsPreference = () => {
  */
 export const setHeaderStatsPosition = (position) => {
   const isHeader = position === 'header';
-  localStorage.setItem(HEADER_STATS_KEY, String(isHeader));
+  safeSetItem(HEADER_STATS_KEY, String(isHeader));
   applyHeaderStatsPreference();
   document.querySelectorAll('#stats-pos-picker .style-option-card').forEach((card) => {
     card.classList.toggle('active', card.getAttribute('data-pos') === position);
@@ -51,10 +65,8 @@ export const setHeaderStatsPosition = (position) => {
  * Apply the saved density preference to document.body.
  */
 export const applyDensityPreference = () => {
-  try {
-    const isCompact = localStorage.getItem('finkas_density') === 'compact';
-    document.body.classList.toggle('density-compact', isCompact);
-  } catch (_) {}
+  const isCompact = safeGetItem('finkas_density') === 'compact';
+  document.body.classList.toggle('density-compact', isCompact);
 };
 
 /**
@@ -63,11 +75,7 @@ export const applyDensityPreference = () => {
  */
 export const setDensity = (densityKey) => {
   const isCompact = densityKey === 'compact';
-  try {
-    localStorage.setItem('finkas_density', isCompact ? 'compact' : 'normal');
-  } catch (e) {
-    console.warn('[finkas] Cannot persist density:', e?.message);
-  }
+  safeSetItem('finkas_density', isCompact ? 'compact' : 'normal');
   document.querySelectorAll('#density-picker .style-option-card').forEach((card) => {
     card.classList.toggle('active', card.getAttribute('data-density') === densityKey);
   });
@@ -78,9 +86,9 @@ export const setDensity = (densityKey) => {
  * Toggle header stats position preference.
  */
 export const toggleHeaderStats = () => {
-  const current = localStorage.getItem(HEADER_STATS_KEY) === 'true';
+  const current = safeGetItem(HEADER_STATS_KEY) === 'true';
   const next = !current;
-  localStorage.setItem(HEADER_STATS_KEY, String(next));
+  safeSetItem(HEADER_STATS_KEY, String(next));
   applyHeaderStatsPreference();
   showToast(next ? 'Ringkasan kas dipindahkan ke Header!' : 'Ringkasan kas dikembalikan ke Dashboard!', 'success');
 };
@@ -89,7 +97,7 @@ export const toggleHeaderStats = () => {
  * Apply the saved theme to the document and update meta theme-color.
  */
 export const applyTheme = () => {
-  const saved = localStorage.getItem(THEME_KEY) || 'light';
+  const saved = safeGetItem(THEME_KEY, 'light');
   let isDark = saved === 'dark';
   if (saved === 'auto') {
     isDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -121,7 +129,7 @@ export const applyTheme = () => {
  * @param {'light'|'dark'|'auto'} themeKey
  */
 export const setTheme = (themeKey) => {
-  localStorage.setItem(THEME_KEY, themeKey);
+  safeSetItem(THEME_KEY, themeKey);
   applyTheme();
   document.querySelectorAll('#theme-mode-picker .style-option-card').forEach((card) => {
     card.classList.toggle('active', card.getAttribute('data-theme') === themeKey);
@@ -132,18 +140,12 @@ export const setTheme = (themeKey) => {
  * Accent color palette preference ('emerald' | 'cyan' | 'indigo' | 'amber').
  */
 export const applyAccentPreference = () => {
-  try {
-    const accent = localStorage.getItem('finkas_accent_color') || 'emerald';
-    document.body.setAttribute('data-accent', accent);
-  } catch (_) {}
+  const accent = safeGetItem('finkas_accent_color', 'emerald');
+  document.body.setAttribute('data-accent', accent);
 };
 
 export const setAccentColor = (accentKey) => {
-  try {
-    localStorage.setItem('finkas_accent_color', accentKey);
-  } catch (e) {
-    console.warn('[finkas] Cannot persist accent color:', e?.message);
-  }
+  safeSetItem('finkas_accent_color', accentKey);
   document.querySelectorAll('#accent-picker .style-option-card').forEach((card) => {
     card.classList.toggle('active', card.getAttribute('data-accent') === accentKey);
   });
@@ -252,7 +254,7 @@ export const toggleTheme = () => {
   if (isTransitioning) return; // Prevent rapid multi-clicks triggering AbortError
 
   const isDark = document.body.classList.contains('dark-mode');
-  localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
+  safeSetItem(THEME_KEY, isDark ? 'light' : 'dark');
 
   // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+),
   // let the GPU take a screenshot and cross-fade the entire viewport seamlessly.

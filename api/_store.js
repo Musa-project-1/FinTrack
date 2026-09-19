@@ -36,12 +36,43 @@ export const settingsDoc = (gid) => `groups/${gid}/settings/app_config`;
 export const privateDoc = (gid) => `groups/${gid}/private/config`;
 
 /**
+ * Entropy floor for generated identifiers, in bytes.
+ *
+ * Identifiers are Firestore document ids and every write is an upsert, so a
+ * collision silently replaces whichever record already holds that id. At 4
+ * bytes (32 bits) that happens about once in 85 across 10,000 transactions —
+ * far too often for a cash ledger. At 8 bytes (64 bits) the same risk is below
+ * 1 in 10^10, for eight extra characters per id.
+ */
+const ID_BYTES = 8;
+
+/**
  * Generate an opaque identifier.
  * @param {string} prefix e.g. `TRX`
- * @param {number} bytes Entropy in bytes (4 bytes ≈ 8 hex characters).
+ * @param {number} [bytes] Requested entropy, raised to the floor above. Never
+ *   pass less than the floor for an id that can be written more than once,
+ *   such as a transaction.
  */
-export const newId = (prefix, bytes = 4) =>
-  `${prefix}-${crypto.randomBytes(bytes).toString('hex').toUpperCase()}`;
+export const newId = (prefix, bytes = ID_BYTES) =>
+  `${prefix}-${crypto.randomBytes(Math.max(bytes, ID_BYTES)).toString('hex').toUpperCase()}`;
+
+/**
+ * Deterministic identifier for one member's dues in one period.
+ *
+ * Two concurrent submissions for the same member and month therefore target the
+ * same document, so an atomic create-if-absent write rejects the second instead
+ * of appending a duplicate row to the ledger. The components are hashed so the
+ * id stays a fixed width whatever the member id or month name contains.
+ *
+ * @param {string} gid
+ * @param {{idAnggota: string, bulanIuran: string, tahunIuran: string}} input
+ * @returns {string}
+ */
+export const iuranId = (gid, input) => {
+  const key = [gid, input.idAnggota, input.bulanIuran, input.tahunIuran].join('|');
+  const digest = crypto.createHash('sha256').update(key).digest('hex').slice(0, 24);
+  return `TRX-${digest.toUpperCase()}`;
+};
 
 /** Current timestamp in the format the client already stores. */
 export const nowIso = () => new Date().toISOString();
@@ -52,7 +83,7 @@ export const nowIso = () => new Date().toISOString();
  */
 export async function writeAuditLog(gid, aksi, detail, headers) {
   try {
-    const id = newId('LOG', 5);
+    const id = newId('LOG');
     await fsPatch(col(gid, AUDIT_COLLECTION) + `/${id}`, {
       ID_Log: id,
       Timestamp: nowIso(),

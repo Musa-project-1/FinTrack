@@ -1,6 +1,6 @@
-import { getOfflineTransactions, deleteOfflineTransaction, syncOfflineTransactions } from "../core/offline.js";
-import { formatRp, showToast, escapeHtml } from "../core/utils.js";
-import { openModal, closeModal } from "../ui/modal.js";
+import { getOfflineTransactions } from "../core/offline.js";
+import { formatRp, escapeHtml } from "../core/utils.js";
+import { openModal } from "../ui/modal.js";
 
 export const renderOfflineQueueList = async () => {
   const container = document.getElementById('offline-queue-list');
@@ -15,7 +15,6 @@ export const renderOfflineQueueList = async () => {
     const actionLabels = {
       tambahTransaksi: 'Tambah Transaksi',
       tambahTransaksiMassal: 'Iuran Massal',
-      tambahIuran: 'Tambah Iuran',
       editTransaksi: 'Edit Transaksi',
       hapusTransaksi: 'Hapus Transaksi',
       tambahAnggota: 'Tambah Anggota',
@@ -61,8 +60,4 @@ export const openOfflineQueueModal = async () => {
   await renderOfflineQueueList();
   openModal('modal-offline-queue');
 };
-
-/* ══════════════════════════════════════════════════════════════════
-   PRINT RECEIPT / REPORT
-   ══════════════════════════════════════════════════════════════════ */
 

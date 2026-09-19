@@ -1,6 +1,6 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { formatRp, escapeHtml } from "../core/utils.js";
+import { formatCompactRp, escapeHtml } from "../core/utils.js";
 
 export const populateTahunRekap = () => {
   const selects = [
@@ -46,7 +46,7 @@ export const renderLunasHtml = () => {
     case 'round-star':
       return '<div class="status-lunas-dot style-round-star" title="Lunas"><i class="ph-fill ph-star"></i></div>';
     case 'nominal':
-      return '<div class="status-lunas-dot style-nominal" title="Lunas">10K</div>';
+      return `<div class="status-lunas-dot style-nominal" title="Lunas">${escapeHtml(formatCompactRp(DEFAULT_MONTHLY_FEE))}</div>`;
     case 'paid':
     default:
       return '<div class="status-lunas-dot style-paid" title="Lunas (PAID)"><span>PAID</span></div>';
@@ -154,9 +154,9 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
     NAMA_BULAN.forEach((bulan) => {
       if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) lunasBulan++;
     });
-    const progressPercent = (lunasBulan / 12) * 100;
+    const progressPercent = (lunasBulan / NAMA_BULAN.length) * 100;
     const nomorUrut = String(index + 1).padStart(2, '0');
-    const isFullPaid = lunasBulan === 12;
+    const isFullPaid = lunasBulan === NAMA_BULAN.length;
 
     const monthGridHTML = NAMA_BULAN.map((bulan, idx) => {
       const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
@@ -240,7 +240,7 @@ export const renderSkippedMonthsList = () => {
     card.className = 'skip-month-card';
     const parts = mm.split('-');
     const label = parts.length === 2 ? `${NAMA_BULAN[parseInt(parts[0], 10) - 1]} ${parts[1]}` : mm;
-    card.innerHTML = `<div class="fw-700">${label}</div><div class="flex-align-gap"><button class="btn btn-outline admin-only" data-action="remove-skip" data-month="${mm}">Hapus</button></div>`;
+    card.innerHTML = `<div class="fw-700">${escapeHtml(label)}</div><div class="flex-align-gap"><button class="btn btn-outline admin-only" data-action="remove-skip" data-month="${escapeHtml(mm)}">Hapus</button></div>`;
     container.appendChild(card);
   });
 };

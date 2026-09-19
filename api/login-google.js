@@ -102,6 +102,12 @@ async function loginWithGoogle(body, headers, ip) {
   }
 
   const gData = await googleRes.json();
+
+  const expectedClientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+  if (expectedClientId && !isAccessToken && gData.aud !== expectedClientId) {
+    return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
+  }
+
   const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
   if (!isVerified) {
     return { code: 401, payload: { status: false, message: 'Email Google belum diverifikasi.' } };

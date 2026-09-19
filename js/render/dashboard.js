@@ -68,7 +68,11 @@ const ensureChartJs = () => {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
       script.onload = () => resolve(window.Chart);
-      script.onerror = reject;
+      script.onerror = (err) => {
+        script.remove();
+        chartJsPromise = null;
+        reject(err);
+      };
       document.head.appendChild(script);
     });
   }

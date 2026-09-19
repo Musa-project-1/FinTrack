@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     console.error('[finkas] data gateway error:', error?.message);
     return sendJson(res, 500, {
       status: false,
-      message: error?.message || 'Terjadi kesalahan pada server data.'
+      message: 'Terjadi kesalahan pada server data.'
     });
   }
 }

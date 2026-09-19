@@ -12,8 +12,10 @@ const {
   addCategory,
   noteClientAudit,
   findDuplicateIuran,
+  restoreSnapshot,
   WRITE_HANDLERS
 } = await import('../api/_group-write.js');
+const { newId, iuranId } = await import('../api/_store.js');
 
 const GID = 'GRP-AAAA';
 /** Rejections happen before Firestore is touched, so headers are never read. */
@@ -201,4 +203,100 @@ test('the write dispatch table exposes exactly the expected actions', () => {
   for (const [name, handler] of Object.entries(WRITE_HANDLERS)) {
     assert.equal(typeof handler, 'function', `${name} must be a function`);
   }
+});
+
+/* ── Snapshot restore guards ─────────────────────────────────────── */
+
+test('restoreSnapshot rejects malformed snapshot payload before touching Firestore', async () => {
+  await expectRejected(restoreSnapshot(GID, {}, NO_HEADERS), 'empty payload');
+  await expectRejected(restoreSnapshot(GID, { data: {} }, NO_HEADERS), 'missing collections');
+  await expectRejected(restoreSnapshot(GID, { data: { anggota: 'not an array', transaksi: [] } }, NO_HEADERS), 'invalid anggota type');
+});
+
+test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firestore', async () => {
+  // Duplicate anggota
+  await expectRejected(
+    restoreSnapshot(
+      GID,
+      {
+        data: {
+          anggota: [
+            { ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' },
+            { ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Kembar' }
+          ],
+          kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+          transaksi: []
+        }
+      },
+      NO_HEADERS
+    ),
+    'duplicate ID_Anggota'
+  );
+
+  // Duplicate kategori
+  await expectRejected(
+    restoreSnapshot(
+      GID,
+      {
+        data: {
+          anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' }],
+          kategori: [
+            { ID_Kategori: 'KAT-1', Tipe: 'Masuk' },
+            { ID_Kategori: 'KAT-1', Tipe: 'Keluar' }
+          ],
+          transaksi: []
+        }
+      },
+      NO_HEADERS
+    ),
+    'duplicate ID_Kategori'
+  );
+
+  // Duplicate transaksi
+  await expectRejected(
+    restoreSnapshot(
+      GID,
+      {
+        data: {
+          anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' }],
+          kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+          transaksi: [
+            { ID_Transaksi: 'TRX-101', Nominal: 10000, Tipe_Arus: 'Masuk', ID_Kategori: 'KAT-1' },
+            { ID_Transaksi: 'TRX-101', Nominal: 20000, Tipe_Arus: 'Masuk', ID_Kategori: 'KAT-1' }
+          ]
+        }
+      },
+      NO_HEADERS
+    ),
+    'duplicate ID_Transaksi'
+  );
+});
+
+/* ── Identifier generation & entropy ─────────────────────────────── */
+
+test('newId enforces entropy floor and generates distinct values', () => {
+  const samples = new Set();
+  for (let i = 0; i < 500; i++) {
+    const id = newId('TRX');
+    assert.ok(id.startsWith('TRX-'), `Expected TRX- prefix, got: ${id}`);
+    // Floor is 8 bytes = 16 hex characters
+    const hexPart = id.replace('TRX-', '');
+    assert.ok(hexPart.length >= 16, `Expected hex part to be >= 16 chars, got ${hexPart.length} (${id})`);
+    samples.add(id);
+  }
+  assert.equal(samples.size, 500, 'All 500 generated IDs must be strictly unique');
+});
+
+test('iuranId produces deterministic hash-based IDs', () => {
+  const inputA = { idAnggota: 'ANG-01', bulanIuran: 'Januari', tahunIuran: '2026' };
+  const inputB = { idAnggota: 'ANG-01', bulanIuran: 'Februari', tahunIuran: '2026' };
+
+  const idA1 = iuranId(GID, inputA);
+  const idA2 = iuranId(GID, inputA);
+  const idB = iuranId(GID, inputB);
+
+  assert.equal(idA1, idA2, 'Same input must produce identical iuranId');
+  assert.notEqual(idA1, idB, 'Different periods must produce distinct iuranIds');
+  assert.ok(idA1.startsWith('TRX-'), `Expected TRX- prefix, got ${idA1}`);
+  assert.equal(idA1.replace('TRX-', '').length, 24, 'Hex digest length should be 24 chars');
 });

@@ -136,7 +136,13 @@ export const exportToCSV = () => {
   if (state.transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
   closeModal('modal-export');
 
-  const q = (s) => '"' + String(s ?? '').replace(/"/g, '""') + '"';
+  const q = (s) => {
+    let str = String(s ?? '');
+    if (/^[=+\-@\t\r]/.test(str)) {
+      str = "'" + str;
+    }
+    return '"' + str.replace(/"/g, '""') + '"';
+  };
   const header = ['ID Transaksi', 'Waktu', 'Tipe Arus', 'Kategori', 'Anggota', 'Bulan Iuran', 'Tahun Iuran', 'Nominal', 'Keterangan'];
   const lines = [header.map(q).join(';')];
 
@@ -216,13 +222,14 @@ const doCreateGroupReminderMessage = async () => {
     trxByMember[t.ID_Anggota].push(t);
   });
 
+  let expectedTotal = 0;
+  monthsRange.forEach((k) => { if (!skippedSet.has(k)) expectedTotal += monthlyFee; });
+
   const results = [];
   getState().anggota
     .filter((a) => a.Status_Aktif === 'Aktif')
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota))
     .forEach((ang) => {
-      let expectedTotal = 0;
-      monthsRange.forEach((k) => { if (!skippedSet.has(k)) expectedTotal += monthlyFee; });
       let paidTotal = 0;
       (trxByMember[ang.ID_Anggota] || []).forEach((t) => {
         if (t.Tipe_Arus !== 'Masuk' || !t.Tahun_Iuran || !t.Bulan_Iuran) return;
@@ -233,7 +240,7 @@ const doCreateGroupReminderMessage = async () => {
       });
       const arrears = expectedTotal - paidTotal;
       if (arrears > 0) {
-        results.push({ name: ang.Nama_Anggota, unpaidMonths: Math.floor(arrears / monthlyFee), amountRp: formatRp(arrears) });
+        results.push({ name: ang.Nama_Anggota, unpaidMonths: Math.ceil(arrears / monthlyFee), amountRp: formatRp(arrears) });
       }
     });
 

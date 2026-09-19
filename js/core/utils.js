@@ -72,6 +72,9 @@ export const getRawNominal = (id) => {
   return parseInt(val.replace(/[^0-9]/g, '')) || 0;
 };
 
+let lastToastKey = '';
+let lastToastTime = 0;
+
 /**
  * Show a floating toast notification.
  * @param {string} message - Message text.
@@ -85,12 +88,14 @@ export const showToast = (message, type = 'success', options = {}) => {
   const text = String(message || '').trim();
   if (!text) return;
 
-  // Cegah duplikasi notifikasi yang sama menumpuk
-  const existingToasts = Array.from(container.querySelectorAll('.toast-label'));
-  if (existingToasts.some((t) => t.textContent.trim() === text)) return;
+  const safeType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
+  const toastKey = `${safeType}:${options?.title || ''}:${text}`;
+  const now = Date.now();
+  if (toastKey === lastToastKey && now - lastToastTime < 350) return;
+  lastToastKey = toastKey;
+  lastToastTime = now;
 
   const toast = document.createElement('div');
-  const safeType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
   toast.className = `toast ${safeType}`;
 
   // Icon badge

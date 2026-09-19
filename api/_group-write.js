@@ -6,12 +6,21 @@
  * rejections and throw for infrastructure failures (the router maps those to
  * HTTP 500).
  */
-import { fsCommit, fsGet, fsPatch, fsDelete, fsListAll } from './_sa.js';
+import {
+  encodeFields,
+  fsCommit,
+  fsCreateIfAbsent,
+  fsDelete,
+  fsGet,
+  fsListAll,
+  fsPatch
+} from './_sa.js';
 import {
   CATEGORIES_COLLECTION,
   MEMBERS_COLLECTION,
   TRANSACTIONS_COLLECTION,
   col,
+  iuranId,
   newId,
   nowIso,
   settingsDoc,
@@ -78,14 +87,15 @@ export async function addTransaction(gid, payload, headers) {
   const input = parseTransactionInput(payload?.dataForm);
   if (input.error) return fail(input.error);
 
-  if (isIuranPayment(input)) {
+  const isIuran = isIuranPayment(input);
+  if (isIuran) {
     const transaksi = await readTransactions(gid, headers);
     if (findDuplicateIuran(transaksi, input)) {
       return ok(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat sebelumnya.`, { duplicate: true });
     }
   }
 
-  const idTrx = newId('TRX');
+  const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
   const doc = {
     ID_Transaksi: idTrx,
     Timestamp: nowIso(),
@@ -99,7 +109,15 @@ export async function addTransaction(gid, payload, headers) {
     groupId: gid
   };
 
-  await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
+  if (isIuran) {
+    const created = await fsCreateIfAbsent(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
+    if (!created) {
+      return ok(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat sebelumnya.`, { duplicate: true });
+    }
+  } else {
+    await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
+  }
+
   await writeAuditLog(gid, 'TAMBAH_TRANSAKSI', `${doc.Tipe_Arus} Rp${doc.Nominal} (${doc.Keterangan || doc.Bulan_Iuran})`, headers);
   return ok('Transaksi disimpan.', doc);
 }
@@ -145,22 +163,22 @@ export async function addBulkTransactions(gid, payload, headers) {
 
   const timestamp = nowIso();
   const writes = accepted.map((input) => {
-    const idTrx = newId('TRX');
+    const idTrx = isIuranPayment(input) ? iuranId(gid, input) : newId('TRX');
     return {
       update: {
         name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
-        fields: {
-          ID_Transaksi: { stringValue: idTrx },
-          Timestamp: { stringValue: timestamp },
-          Tipe_Arus: { stringValue: input.tipeArus },
-          ID_Kategori: { stringValue: input.idKategori },
-          ID_Anggota: { stringValue: input.idAnggota },
-          Bulan_Iuran: { stringValue: input.bulanIuran },
-          Tahun_Iuran: { stringValue: input.tahunIuran },
-          Nominal: { integerValue: String(input.nominal) },
-          Keterangan: { stringValue: input.keterangan },
-          groupId: { stringValue: gid }
-        }
+        fields: encodeFields({
+          ID_Transaksi: idTrx,
+          Timestamp: timestamp,
+          Tipe_Arus: input.tipeArus,
+          ID_Kategori: input.idKategori,
+          ID_Anggota: input.idAnggota,
+          Bulan_Iuran: input.bulanIuran,
+          Tahun_Iuran: input.tahunIuran,
+          Nominal: input.nominal,
+          Keterangan: input.keterangan,
+          groupId: gid
+        })
       }
     };
   });
@@ -365,20 +383,42 @@ export async function restoreSnapshot(gid, payload, headers) {
     ? data.skippedMonths.filter((m) => SKIPPED_MONTH_RE.test(m)).slice(0, 120)
     : [];
 
-  // Validate every record before touching Firestore.
+  // Validate every record and verify uniqueness before touching Firestore.
+  const seenMember = new Set();
   for (const a of anggota) {
-    if (!cleanText(a?.ID_Anggota, 40) || !cleanText(a?.Nama_Anggota, 80)) {
+    const id = cleanText(a?.ID_Anggota, 40);
+    if (!id || !cleanText(a?.Nama_Anggota, 80)) {
       return fail('Data anggota di snapshot tidak valid (ID atau Nama kosong).');
     }
+    if (seenMember.has(id)) {
+      return fail(`Snapshot mengandung duplikat ID_Anggota: ${id}`);
+    }
+    seenMember.add(id);
   }
+
+  const seenKat = new Set();
   for (const k of kategori) {
-    if (!cleanText(k?.ID_Kategori, 40) || !ARUS.includes(k?.Tipe)) {
+    const id = cleanText(k?.ID_Kategori, 40);
+    if (!id || !ARUS.includes(k?.Tipe)) {
       return fail('Data kategori di snapshot tidak valid.');
     }
+    if (seenKat.has(id)) {
+      return fail(`Snapshot mengandung duplikat ID_Kategori: ${id}`);
+    }
+    seenKat.add(id);
   }
+
+  const seenTrx = new Set();
   for (const t of transaksi) {
     const parsed = parseTransactionInput(t);
     if (parsed.error) return fail(`Transaksi di snapshot tidak valid: ${parsed.error}`);
+    const id = cleanText(t?.ID_Transaksi, 40);
+    if (id) {
+      if (seenTrx.has(id)) {
+        return fail(`Snapshot mengandung duplikat ID_Transaksi: ${id}`);
+      }
+      seenTrx.add(id);
+    }
   }
 
   // Delete all existing records in the three data collections.
@@ -397,13 +437,13 @@ export async function restoreSnapshot(gid, payload, headers) {
     const batch = anggota.slice(i, i + 400).map((a) => ({
       update: {
         name: memberName(gid, MEMBERS_COLLECTION, cleanText(a.ID_Anggota, 40)),
-        fields: {
-          ID_Anggota: { stringValue: cleanText(a.ID_Anggota, 40) },
-          Nama_Anggota: { stringValue: cleanText(a.Nama_Anggota, 80) },
-          Nomor_WA: { stringValue: cleanDigits(a.Nomor_WA, 20) },
-          Status_Aktif: { stringValue: STATUSES.includes(a.Status_Aktif) ? a.Status_Aktif : 'Aktif' },
-          groupId: { stringValue: gid }
-        }
+        fields: encodeFields({
+          ID_Anggota: cleanText(a.ID_Anggota, 40),
+          Nama_Anggota: cleanText(a.Nama_Anggota, 80),
+          Nomor_WA: cleanDigits(a.Nomor_WA, 20),
+          Status_Aktif: STATUSES.includes(a.Status_Aktif) ? a.Status_Aktif : 'Aktif',
+          groupId: gid
+        })
       }
     }));
     await fsCommit(batch, headers);
@@ -414,12 +454,12 @@ export async function restoreSnapshot(gid, payload, headers) {
     const batch = kategori.slice(i, i + 400).map((k) => ({
       update: {
         name: memberName(gid, CATEGORIES_COLLECTION, cleanText(k.ID_Kategori, 40)),
-        fields: {
-          ID_Kategori: { stringValue: cleanText(k.ID_Kategori, 40) },
-          Nama_Kategori: { stringValue: cleanText(k.Nama_Kategori, 60) },
-          Tipe: { stringValue: k.Tipe },
-          groupId: { stringValue: gid }
-        }
+        fields: encodeFields({
+          ID_Kategori: cleanText(k.ID_Kategori, 40),
+          Nama_Kategori: cleanText(k.Nama_Kategori, 60),
+          Tipe: k.Tipe,
+          groupId: gid
+        })
       }
     }));
     await fsCommit(batch, headers);
@@ -432,18 +472,18 @@ export async function restoreSnapshot(gid, payload, headers) {
       return {
         update: {
           name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
-          fields: {
-            ID_Transaksi: { stringValue: idTrx },
-            Timestamp: { stringValue: cleanText(t.Timestamp, 30) || timestamp },
-            Tipe_Arus: { stringValue: t.Tipe_Arus },
-            ID_Kategori: { stringValue: cleanText(t.ID_Kategori, 40) },
-            ID_Anggota: { stringValue: cleanText(t.ID_Anggota, 40) || '-' },
-            Bulan_Iuran: { stringValue: cleanText(t.Bulan_Iuran, 20) || '-' },
-            Tahun_Iuran: { stringValue: cleanText(t.Tahun_Iuran, 4) || '-' },
-            Nominal: { integerValue: String(Math.round(Number(t.Nominal) || 0)) },
-            Keterangan: { stringValue: cleanText(t.Keterangan, 200) },
-            groupId: { stringValue: gid }
-          }
+          fields: encodeFields({
+            ID_Transaksi: idTrx,
+            Timestamp: cleanText(t.Timestamp, 30) || timestamp,
+            Tipe_Arus: t.Tipe_Arus,
+            ID_Kategori: cleanText(t.ID_Kategori, 40),
+            ID_Anggota: cleanText(t.ID_Anggota, 40) || '-',
+            Bulan_Iuran: cleanText(t.Bulan_Iuran, 20) || '-',
+            Tahun_Iuran: cleanText(t.Tahun_Iuran, 4) || '-',
+            Nominal: Math.round(Number(t.Nominal) || 0),
+            Keterangan: cleanText(t.Keterangan, 200),
+            groupId: gid
+          })
         }
       };
     });

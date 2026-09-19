@@ -165,7 +165,7 @@ async function removeGroup(body, headers) {
     return { status: true, message: `Grup dihapus beserta ${deleted} dokumen isinya.` };
   } catch (err) {
     console.error('[finkas] Delete group tree failed:', groupId, err?.message);
-    return { status: false, message: `Penghapusan grup belum selesai sempurna. Silakan ulangi lagi: ${err?.message}` };
+    return { status: false, message: 'Penghapusan grup belum selesai sempurna. Silakan ulangi lagi.' };
   }
 }
 

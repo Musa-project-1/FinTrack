@@ -208,7 +208,7 @@ export const initMonthPickers = () => {
 };
 
 /** Re-read a hidden input value into its picker label. */
-export const syncMpick = (id = null) => {
+const syncMpick = (id = null) => {
   if (id) {
     const ui = registry.get(id);
     if (ui) syncLabel(ui);

@@ -4,8 +4,8 @@
  */
 
 import { getState, setState, saveCache, getIsAdminSession, getActiveGroupId, getGroups } from '../core/state.js';
-import { postToBackend } from '../core/api.js';
-import { showToast, escapeHtml } from '../core/utils.js';
+import { postToBackend, logAuditEvent } from '../core/api.js';
+import { showToast } from '../core/utils.js';
 import { renderAll } from '../render.js';
 import { closeModal } from '../ui/modal.js';
 

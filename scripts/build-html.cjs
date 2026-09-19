@@ -36,7 +36,11 @@ const modalsContent = modalFiles
   .filter(Boolean)
   .join('\n\n');
 
-const finalHtml = template.replace('<!-- @@INJECT_MODALS@@ -->', modalsContent);
+const marker = '<!-- @@INJECT_MODALS@@ -->';
+if (!template.includes(marker)) {
+  throw new Error(`[build:html] Marker "${marker}" not found in ${templatePath}`);
+}
+const finalHtml = template.replace(marker, () => modalsContent);
 fs.writeFileSync(outputPath, finalHtml, 'utf8');
 
 console.log(`[build:html] Successfully assembled index.html (${finalHtml.split('\n').length} lines) from ${modalFiles.length} modular fragments.`);

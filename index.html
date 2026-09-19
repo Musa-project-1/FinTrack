@@ -1278,7 +1278,7 @@
                 </div>
               </div>
 
-              <div class="summary-card">
+              <div class="summary-card" aria-live="polite" aria-atomic="true">
                 <div class="summary-item"><span>Terpilih:</span> <span id="summary-count">0 Orang</span></div>
                 <div class="summary-item"><span>Nominal:</span> <span id="summary-nominal">Rp 0</span></div>
                 <div class="summary-total"><span>TOTAL KAS:</span> <span id="summary-total">Rp 0</span></div>
@@ -1335,7 +1335,7 @@
                 </div>
               </div>
               
-              <div class="summary-card">
+              <div class="summary-card" aria-live="polite" aria-atomic="true">
                 <div class="summary-item"><span>Jenis:</span> <span id="summary-ops-tipe">Pengeluaran</span></div>
                 <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
                 <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
@@ -1423,10 +1423,28 @@
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
         </div>
-        <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi">
+        <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi" aria-live="polite" aria-atomic="true">
           <div class="edit-impact-icon"><i class="ph ph-arrows-left-right"></i></div>
-          <h3>Dampak koreksi</h3>
-          <p>Perubahan nominal dan tipe akan memperbarui saldo kas serta dicatat dalam log audit.</p>
+          <h3>Dampak Koreksi</h3>
+          <div class="edit-delta-rows">
+            <div class="edit-delta-row">
+              <span class="edit-delta-label">Tipe</span>
+              <span class="edit-delta-val" id="edit-delta-tipe">-</span>
+            </div>
+            <div class="edit-delta-row">
+              <span class="edit-delta-label">Nominal Lama</span>
+              <span class="edit-delta-val" id="edit-delta-before">-</span>
+            </div>
+            <div class="edit-delta-row">
+              <span class="edit-delta-label">Nominal Baru</span>
+              <span class="edit-delta-val" id="edit-delta-after">-</span>
+            </div>
+            <hr class="edit-delta-divider">
+            <div class="edit-delta-row is-total">
+              <span class="edit-delta-label">Selisih Saldo</span>
+              <span class="edit-delta-val" id="edit-delta-diff">-</span>
+            </div>
+          </div>
           <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span>Perubahan tersimpan dengan jejak audit.</span></div>
         </aside>
         </div>

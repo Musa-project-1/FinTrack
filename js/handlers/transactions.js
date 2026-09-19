@@ -12,7 +12,7 @@ import { getState, addTransaction, currentRekapYear } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
 import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials } from "../core/utils.js";
 import { queueOfflinePayload } from "../core/offline.js";
-import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog } from "../ui/modal.js";
+import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
   renderDashboard,
@@ -424,6 +424,22 @@ export const bukaModalEdit = (idTrx) => {
   syncCdrop("edit-bulan");
   document.getElementById("edit-tahun").value = trx.Tahun_Iuran || "";
   document.getElementById("edit-keterangan").value = trx.Keterangan || "";
+
+  // Populate delta preview with original values and bind live update
+  const _originalNominal = trx.Nominal || 0;
+  const _originalTipe = trx.Tipe_Arus;
+  updateEditDelta(_originalTipe, _originalNominal, _originalTipe, _originalNominal);
+
+  const _rebind = () => {
+    const newTipe = document.getElementById("edit-tipe")?.value || _originalTipe;
+    const newNominal = getRawNominal("edit-nominal");
+    updateEditDelta(_originalTipe, _originalNominal, newTipe, newNominal);
+  };
+  // Remove previous listeners if any then attach
+  const nomEl = document.getElementById("edit-nominal");
+  const tipeEl = document.getElementById("edit-tipe");
+  if (nomEl) { nomEl.removeEventListener("input", nomEl._deltaHandler); nomEl._deltaHandler = _rebind; nomEl.addEventListener("input", _rebind); }
+  if (tipeEl) { tipeEl.removeEventListener("change", tipeEl._deltaHandler); tipeEl._deltaHandler = _rebind; tipeEl.addEventListener("change", _rebind); }
 
   document.getElementById("modal-riwayat").classList.remove("active");
   openModal("modal-edit-transaksi");

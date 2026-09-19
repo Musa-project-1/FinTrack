@@ -333,4 +333,41 @@ export const closeHeaderDropdown = () => {
   if (btn) btn.setAttribute('aria-expanded', 'false');
 };
 
+/* ── Edit Delta Preview ─────────────────────────────────────────── */
+
+/**
+ * Compute and render the before/after balance delta in the edit modal.
+ * Pure arithmetic — no side effects beyond DOM writes.
+ *
+ * @param {string} origTipe  - 'Masuk' | 'Keluar' (original)
+ * @param {number} origNom   - original nominal (integer)
+ * @param {string} newTipe   - 'Masuk' | 'Keluar' (current form value)
+ * @param {number} newNom    - new nominal (integer, from getRawNominal)
+ */
+export const updateEditDelta = (origTipe, origNom, newTipe, newNom) => {
+  const elTipe   = document.getElementById('edit-delta-tipe');
+  const elBefore = document.getElementById('edit-delta-before');
+  const elAfter  = document.getElementById('edit-delta-after');
+  const elDiff   = document.getElementById('edit-delta-diff');
+  if (!elTipe || !elBefore || !elAfter || !elDiff) return;
+
+  // Signed contribution to balance: Masuk = +nom, Keluar = -nom
+  const sign = (tipe) => tipe === 'Masuk' ? 1 : -1;
+  const diff = (sign(newTipe) * newNom) - (sign(origTipe) * origNom);
+
+  const isMasuk = newTipe === 'Masuk';
+  elTipe.textContent = isMasuk ? 'PEMASUKAN' : 'PENGELUARAN';
+  elTipe.className = `edit-delta-val ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
+
+  elBefore.textContent = formatRp(origNom);
+  elBefore.className = `edit-delta-val ${origTipe === 'Masuk' ? 'is-masuk' : 'is-keluar'}`;
+
+  elAfter.textContent = formatRp(newNom);
+  elAfter.className = `edit-delta-val ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
+
+  const absDiff = Math.abs(diff);
+  elDiff.textContent = `${diff >= 0 ? '+' : '-'}${formatRp(absDiff)}`;
+  elDiff.className = `edit-delta-val ${diff >= 0 ? 'is-masuk' : 'is-keluar'}`;
+};
+
 /* ── Utility ───────────────────────────────────────────────────── */

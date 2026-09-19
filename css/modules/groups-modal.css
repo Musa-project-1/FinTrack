@@ -315,6 +315,7 @@ button.group-item:hover {
 }
 
 /* === AUTH MODAL === */
+.stealth-badge { cursor: pointer; user-select: none; }
 .auth-modal-form { display: flex; flex-direction: column; gap: 0; }
 .auth-form-group { margin-bottom: 12px; }
 .auth-form-group-pwd { margin-bottom: 18px; }

@@ -9,6 +9,7 @@ node_modules/
 *.zip
 
 # Local documentation (not for public repo)
+docs/
 CHANGELOG.md
 CODE-REVIEW.md
 HARDENING-CHECKLIST.md

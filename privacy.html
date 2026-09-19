@@ -9,9 +9,8 @@
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=123">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <style>
-    /* Origin visual system — dark only, matching onboarding.html */
     :root {
       /* Surfaces — Origin color step: abyss → canvas → graphite → steel */
       --lp-abyss: #090a0b;
@@ -42,6 +41,7 @@
       --lp-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --lp-font-display: 'Fraunces', Georgia, serif;
       --lp-font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+      --lp-tracking-tight: -0.02em;
       --lp-tracking-body: -0.01em;
       --lp-tracking-display: -0.03em;
       --lp-tracking-eyebrow: 0.14em;
@@ -61,139 +61,113 @@
 
       color-scheme: dark;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    .monogram { color: var(--lp-cloud); flex-shrink: 0; }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      max-width: 100%; padding: 4px 12px;
+      border-radius: var(--lp-r-pill);
+      background: var(--lp-steel); border: 1px solid var(--lp-line-soft);
+      font-family: var(--lp-font-mono); font-size: 10.5px; font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase;
+      color: var(--lp-cloud); white-space: normal; overflow-wrap: anywhere;
+    }
+    .btn-return {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--lp-sp-2);
+      background: var(--lp-pure); color: var(--lp-void); border: none;
+      border-radius: var(--lp-r-btn); padding: 14px 24px; min-height: 44px;
+      font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
+      transition: opacity var(--lp-t-state); white-space: nowrap;
+    }
+    .arrow { flex-shrink: 0; }
+    .btn-return:hover { opacity: 0.88; }
+    :focus-visible { outline: 2px solid var(--lp-pure); outline-offset: 3px; border-radius: 2px; }
+    a:focus:not(:focus-visible) { outline: none; }
+    @media (max-width: 359px) {
+      .btn-return { padding-inline: var(--lp-sp-2); }
+    }
     body {
-      font-family: var(--lp-font-sans);
-      background-color: var(--lp-canvas);
-      color: var(--lp-ash);
-      line-height: 1.6;
-      padding: 48px 16px;
-      letter-spacing: var(--lp-tracking-body);
+      font-family: var(--lp-font-sans); background-color: var(--lp-canvas);
+      color: var(--lp-ash); line-height: 1.6; letter-spacing: var(--lp-tracking-body);
+      padding: var(--lp-sp-12) var(--lp-sp-4);
     }
-    @media (min-width: 640px) {
-      body {
-        padding: 80px 24px;
-      }
-    }
+    @media (min-width: 640px) { body { padding: var(--lp-sp-20) var(--lp-sp-6); } }
     .wrap {
-      max-width: 680px;
-      margin: 0 auto;
-      background-color: var(--lp-graphite);
-      border: 1px solid var(--lp-line-soft);
+      max-width: 780px; margin: 0 auto; padding: var(--lp-sp-8);
+      background: var(--lp-graphite); border: 1px solid var(--lp-line-soft);
       border-radius: var(--lp-r-card);
-      padding: 2.25rem 2rem;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.25rem;
-      border-bottom: 1px solid var(--lp-line-soft);
-    }
-    .brand img { width: 36px; height: 36px; border-radius: var(--lp-r-btn); }
-    .brand h1 {
-      font-family: var(--lp-font-display);
-      font-size: 1.25rem;
-      font-weight: 600;
-      letter-spacing: var(--lp-tracking-tight);
-      color: var(--lp-cloud);
-    }
-    .brand span {
-      font-family: var(--lp-font-mono);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: var(--lp-tracking-eyebrow);
-      color: var(--lp-ash);
-      font-weight: 500;
-    }
-    h2 {
-      font-family: var(--lp-font-display);
-      font-size: 1.05rem;
-      font-weight: 600;
-      letter-spacing: var(--lp-tracking-tight);
-      margin: 1.75rem 0 0.5rem;
-      color: var(--lp-cloud);
-    }
-    p, li { font-size: 0.925rem; color: var(--lp-ash); margin-bottom: 0.75rem; }
-    ul { padding-left: 1.25rem; margin-bottom: 1rem; }
-    li { margin-bottom: 0.35rem; }
-    code {
-      font-family: var(--lp-font-mono);
-      font-size: 0.85em;
-      background: var(--lp-steel);
-      border: 1px solid var(--lp-line-soft);
-      border-radius: var(--lp-r-btn);
-      padding: 1px 5px;
-      color: var(--lp-cloud);
-    }
+    .brand { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lp-sp-3); margin-bottom: var(--lp-sp-6); }
+    .brand-name { font-family: var(--lp-font-display); font-size: 20px; font-weight: 300; letter-spacing: var(--lp-tracking-tight); color: var(--lp-cloud); }
+    h1, h2 { font-family: var(--lp-font-display); font-weight: 300; line-height: 1.05; color: var(--lp-cloud); }
+    h1 { font-size: clamp(36px, 5vw, 52px); letter-spacing: var(--lp-tracking-display); text-align: center; margin-bottom: var(--lp-sp-3); }
+    h2 { font-size: 20px; margin: var(--lp-sp-6) 0 var(--lp-sp-2); }
+    p, li { font-size: 15px; color: var(--lp-ash); line-height: 1.6; margin-bottom: var(--lp-sp-3); }
+    ul { padding-left: 20px; }
+    li { margin-bottom: var(--lp-sp-1); }
+    strong { font-weight: 600; color: var(--lp-cloud); }
+    code { font-family: var(--lp-font-mono); font-size: 0.85em; background: var(--lp-steel); color: var(--lp-cloud); border-radius: var(--lp-r-btn); padding: 1px 6px; }
+    .timestamp { font-family: var(--lp-font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: var(--lp-tracking-eyebrow); color: var(--lp-ash); margin-bottom: var(--lp-sp-6); }
     .footer-actions {
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--lp-line-soft);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.65rem 1.25rem;
-      border-radius: var(--lp-r-btn);
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-decoration: none;
-      background-color: var(--lp-pure);
-      color: var(--lp-void);
-      transition: opacity var(--lp-t-state);
-    }
-    .btn:hover { opacity: 0.88; }
-    .timestamp {
-      font-family: var(--lp-font-mono);
-      font-size: 0.75rem;
-      color: var(--lp-ash);
+      border-top: 1px solid var(--lp-line-soft); padding-top: var(--lp-sp-6); margin-top: var(--lp-sp-8);
+      display: flex; flex-wrap: wrap; gap: var(--lp-sp-4); justify-content: space-between; align-items: center;
     }
   </style>
 </head>
 <body>
   <main class="wrap">
     <header class="brand">
-      <img src="icons/icon-light-192.svg" alt="Logo Finkas">
-      <div>
-        <h1>Finkas</h1>
-        <span>Kebijakan Privasi & Keamanan Data</span>
-      </div>
+      <svg class="monogram" viewBox="0 0 192 192" width="34" height="34" role="img" aria-label="Logo Finkas" focusable="false">
+        <g transform="translate(51, 47)" fill="currentColor">
+          <rect x="0" y="0" width="18" height="98" rx="9" />
+          <rect x="0" y="0" width="82" height="18" rx="9" />
+          <rect x="0" y="36" width="60" height="18" rx="9" opacity="0.72" />
+          <circle cx="74" cy="45" r="9" opacity="0.55" />
+        </g>
+      </svg>
+      <span class="brand-name">Finkas</span>
+      <span class="badge-pill">KEBIJAKAN PRIVASI &amp; KEAMANAN DATA</span>
     </header>
+    <h1>Kebijakan Privasi</h1>
+    <p class="timestamp">PEMBARUAN TERAKHIR: SEPTEMBER 2026</p>
+    <p>Finkas berkomitmen menjaga privasi dan integritas data keuangan kelompok/komunitas Anda dengan prinsip sederhana, transparan, dan terisolasi.</p>
 
     <section>
-      <p>Finkas berkomitmen menjaga privasi dan integritas data keuangan kelompok/komunitas Anda dengan prinsip sederhana, transparan, dan terisolasi.</p>
-
       <h2>1. Data yang Dikelola</h2>
       <ul>
         <li><strong>Informasi Kas:</strong> Catatan transaksi pemasukan, pengeluaran, saldo, dan rekap iuran bulanan yang dimasukkan secara manual oleh pengurus kelompok.</li>
         <li><strong>Data Anggota:</strong> Nama atau inisial anggota serta nomor WhatsApp opsional untuk kemudahan konfirmasi rekap pembayaran.</li>
         <li><strong>Data Kredensial:</strong> PIN kelompok (4 digit) yang diverifikasi melalui hash aman di sisi peladen.</li>
       </ul>
+    </section>
 
-      <h2>2. Penyimpanan & Isolasi Data</h2>
+    <section>
+      <h2>2. Penyimpanan &amp; Isolasi Data</h2>
       <p>Seluruh rekaman kas disimpan secara cloud pada infrastruktur Google Cloud Firestore dalam skema isolasi per kelompok (<code>groupId</code>). Data satu kelompok tidak dapat diakses atau bercampur dengan kelompok lain.</p>
+    </section>
 
+    <section>
       <h2>3. Autentikasi Google</h2>
       <p>Fitur otentikasi Google Sign-In digunakan secara terbatas untuk verifikasi identitas pemilik/admin utama. Finkas hanya membaca alamat surel (email) dan profil dasar untuk pencocokan hak akses; tidak ada data kontak, email masuk, atau berkas Google Drive yang diakses.</p>
+    </section>
 
+    <section>
       <h2>4. Ketiadaan Pelacak Komersial</h2>
       <p>Finkas tidak menjual, membagikan, atau memonetisasi data pengguna kepada pihak ketiga untuk kepentingan periklanan. Seluruh interaksi ditujukan murni untuk efisiensi pembukuan kas komunitas.</p>
+    </section>
 
-      <h2>5. Hak Pengguna & Penghapusan</h2>
+    <section>
+      <h2>5. Hak Pengguna &amp; Penghapusan</h2>
       <p>Admin grup memiliki hak penuh untuk memperbarui, mengekspor salinan data kas (format Excel/CSV), atau mengajukan penghapusan rekaman data kelompok kapan saja.</p>
     </section>
 
     <footer class="footer-actions">
-      <span class="timestamp">Pembaruan terakhir: September 2026</span>
-      <a href="index.html" class="btn">Kembali ke Finkas</a>
+      <a class="btn-return" href="onboarding.html">KEMBALI KE BERANDA
+        <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+          <path d="M2.5 8h11M9 3.5 13.5 8 9 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
     </footer>
   </main>
 </body>

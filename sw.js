@@ -8,6 +8,7 @@ const LOCAL_ASSETS = [
   '404.html',
   'privacy.html',
   'css/onboarding.css',
+  'css/onboarding-icons.css',
   'css/onboarding-motion.css',
   'style.css',
   'manifest.json',
@@ -15,6 +16,7 @@ const LOCAL_ASSETS = [
      400 KB di Fase 0.5, jadi ia boleh di-precache supaya landing tetap utuh
      saat offline — tanpa ini panggungnya kehilangan langitnya. */
   'assets/hero-atmosphere.png',
+  'assets/hero-atmosphere.webp',
   'icons/favicon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',

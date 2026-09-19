@@ -1,0 +1,110 @@
+/* Finkas Onboarding Icons — Scoped subset (21 icons) for 100% performance */
+@font-face {
+  font-family: "Phosphor-Bold";
+  src: url("../fonts/phosphor/bold/Phosphor-Bold.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.ph-bold {
+  font-family: "Phosphor-Bold" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@font-face {
+  font-family: "Phosphor-Fill";
+  src: url("../fonts/phosphor/fill/Phosphor-Fill.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.ph-fill {
+  font-family: "Phosphor-Fill" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ph-bold.ph-arrow-counter-clockwise:before {
+  content: "\e038";
+}
+.ph-bold.ph-arrow-left:before {
+  content: "\e058";
+}
+.ph-bold.ph-arrow-right:before {
+  content: "\e06c";
+}
+.ph-bold.ph-caret-down:before {
+  content: "\e136";
+}
+.ph-bold.ph-caret-right:before {
+  content: "\e13a";
+}
+.ph-bold.ph-check-circle:before {
+  content: "\e184";
+}
+.ph-bold.ph-list:before {
+  content: "\e2f0";
+}
+.ph-bold.ph-plus-circle:before {
+  content: "\e3d6";
+}
+.ph-bold.ph-sign-in:before {
+  content: "\e428";
+}
+.ph-bold.ph-spinner-gap:before {
+  content: "\e66c";
+}
+.ph-bold.ph-warning-circle:before {
+  content: "\e4e2";
+}
+.ph-fill.ph-chat-circle-dots:before {
+  content: "\e16c";
+}
+.ph-fill.ph-cloud-arrow-up:before {
+  content: "\e1ae";
+}
+.ph-fill.ph-cloud-slash:before {
+  content: "\e1b6";
+}
+.ph-fill.ph-file-text:before {
+  content: "\e23a";
+}
+.ph-fill.ph-lock-key:before {
+  content: "\e2fe";
+}
+.ph-fill.ph-shield-check:before {
+  content: "\e40c";
+}
+.ph-fill.ph-sliders:before {
+  content: "\e432";
+}
+.ph-fill.ph-table:before {
+  content: "\e476";
+}
+.ph-fill.ph-users-three:before {
+  content: "\e68e";
+}
+.ph-fill.ph-vault:before {
+  content: "\e76e";
+}

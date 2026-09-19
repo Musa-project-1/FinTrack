@@ -180,7 +180,7 @@ body {
 /* Lapis 1 — langit malam. Banding abyss→canvas jadi dasar; foto atmosfer,
    sapuan kabut teal, dan scrim keterbacaan headline duduk di atasnya. */
 .sky-layer-sky { background: linear-gradient(180deg, var(--lp-abyss) 0%, var(--lp-canvas) 100%); }
-.sky-image { position: absolute; inset: 0; background: url('../assets/hero-atmosphere.png') center/cover no-repeat; opacity: var(--lp-sky-image-opacity); }
+.sky-image { position: absolute; inset: 0; background: url('../assets/hero-atmosphere.webp') center/cover no-repeat; opacity: var(--lp-sky-image-opacity); }
 .sky-mist { position: absolute; inset: -6% 0; background: linear-gradient(180deg, rgba(var(--lp-mist-tint), 0) 28%, rgba(var(--lp-mist-tint), 0.05) 54%, rgba(var(--lp-mist-tint), 0.08) 72%, rgba(var(--lp-mist-tint), 0) 96%); }
 .sky-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, var(--lp-sky-scrim-top) 0%, var(--lp-sky-scrim-mid) 44%, var(--lp-sky-scrim-bottom) 100%); }
 
@@ -268,8 +268,8 @@ body {
 .nav-hamburger:hover { border-color: var(--lp-line); color: var(--lp-pure); }
 
 /* ── Mobile Drawer (3.7) ──────────────────────────────────────────────── */
-.nav-drawer { position: fixed; top: 0; left: 0; right: 0; z-index: 39; background: rgba(15,16,17,0.98); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transform: translateY(-110%); transition: transform var(--lp-t-state); padding: 80px 24px 28px; display: flex; flex-direction: column; }
-.nav-drawer.is-open { transform: translateY(0); }
+.nav-drawer { position: fixed; top: 0; left: 0; right: 0; z-index: 39; background: rgba(15,16,17,0.98); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transform: translateY(-110%); visibility: hidden; transition: transform var(--lp-t-state), visibility var(--lp-t-state); padding: 80px 24px 28px; display: flex; flex-direction: column; }
+.nav-drawer.is-open { transform: translateY(0); visibility: visible; }
 .nav-backdrop { position: fixed; inset: 0; z-index: 38; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity var(--lp-t-state); }
 .nav-backdrop.is-open { opacity: 1; pointer-events: auto; }
 .drawer-links { display: flex; flex-direction: column; gap: 4px; }
@@ -303,7 +303,7 @@ body {
    gambar ikut berakhir. Sekarang satu .sky-stage memegang langit untuk
    seluruh halaman — termasuk foto atmosfer, sapuan kabut, dan scrim baca
    yang dulu dipegang ::after. Hero tinggal jadi tempat kontennya berdiri. */
-.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: var(--lp-sp-3); max-width: 780px; margin: 0 auto; padding: 0 var(--lp-sp-4); }
+.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: var(--lp-sp-3); max-width: 780px; min-height: 480px; margin: 0 auto; padding: 0 var(--lp-sp-4); }
 .hero-eyebrow { margin-bottom: var(--lp-sp-1); }
 /* Headline display besar (Fase 2 spec: Fraunces 300, clamp 48-88px, lh 0.95) */
 .hero-content h1 { font-family: var(--lp-font-display); font-size: clamp(48px, 7vw, 88px); font-weight: 300; line-height: 0.95; letter-spacing: var(--lp-tracking-display); color: var(--lp-cloud); text-wrap: balance; text-align: center; }
@@ -433,9 +433,9 @@ body {
 /* ── 6.10 Footer — hairline, mono uppercase ───────────────────────────── */
 .landing-footer { border-top: 1px solid var(--lp-line-soft); padding: var(--lp-sp-8) var(--lp-sp-4) var(--lp-sp-12); margin-top: var(--lp-sp-8); }
 .footer-inner { max-width: var(--lp-content-max); margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--lp-sp-4); }
-.footer-copy { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-fog); }
+.footer-copy { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-ash); }
 .footer-links { display: flex; gap: var(--lp-sp-4); }
-.footer-links a { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-fog); text-decoration: none; transition: color var(--lp-t-state); }
+.footer-links a { font-family: var(--lp-font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lp-ash); text-decoration: none; transition: color var(--lp-t-state); }
 .footer-links a:hover { color: var(--lp-pure); }
 
 /* ── 7.1 Portal Screens — nol border/shadow, canvas bg ───────────────── */

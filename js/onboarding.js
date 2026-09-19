@@ -452,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburger?.setAttribute('aria-expanded', 'true');
     if (hamburgerIcon) { hamburgerIcon.className = 'ph-bold ph-x'; }
     drawer?.setAttribute('aria-hidden', 'false');
+    drawer?.removeAttribute('inert');
     document.body.style.overflow = 'hidden'; /* scroll-lock */
     /* focus trap: first focusable */
     const first = drawer?.querySelector('a, button');
@@ -465,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburger?.setAttribute('aria-expanded', 'false');
     if (hamburgerIcon) { hamburgerIcon.className = 'ph-bold ph-list'; }
     drawer?.setAttribute('aria-hidden', 'true');
+    drawer?.setAttribute('inert', '');
     document.body.style.overflow = '';
     hamburger?.focus();
   }

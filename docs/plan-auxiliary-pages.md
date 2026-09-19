@@ -1,11 +1,15 @@
 # Rencana Redesign Halaman Pendukung (Privasi & 404) — Origin Dark
 
-> **Status:** 🟡 MENUNGGU PERSETUJUAN — belum ada satu baris pun kode diubah
+> **Status:** ✅ SELESAI sesuai lingkup eksekusi pengguna — verifikasi statis dan `npm run check` lulus; QA browser dikecualikan.
 > **Referensi sistem:** `onboarding.html` + `css/onboarding.css` (Origin dark), hasil `docs/plan-landing-redesign.md`
 > **File sasaran:** `privacy.html`, `404.html` (keduanya ditulis ulang penuh), `docs/AUDIT.md` (satu baris inventaris), `docs/plan-auxiliary-pages.md` (dokumen ini)
 > **Tanggal:** 19 September 2026
 > **Versi cache:** `finkas-v123` — **tidak berubah** (lihat §6.3, tidak ada aset baru)
 > **Cakupan:** 2 dokumen, 0 berkas CSS/JS/ikon/manifest/sw disentuh
+
+> **Kontrak eksekusi terbaru (menggantikan ketentuan lama yang bertentangan):** hanya `privacy.html`, `404.html`, dan progres dokumen ini boleh berubah. D1/D2/D3 DIPUTUSKAN: `#2e2e2e`, `rgba(255, 255, 255, 0.10)`, SVG inline `fill="currentColor"`. Tidak ada QA browser/CDP; verifikasi berupa parser HTML5/CSS, pembandingan teks legal, kontras, isolasi hash berkas, dan `npm run check`. `npm run build` serta perubahan `docs/AUDIT.md` dikecualikan karena menulis berkas di luar lingkup. Tanda `[x]` dengan catatan **DIKECUALIKAN** menutup administrasi item, bukan menyatakan pengujian/perubahan itu dilakukan. Kriteria AC-13 (pengukuran browser) dan AC-20 (AUDIT) juga dikecualikan; layout runtime/keyboard belum diuji.
+>
+> **Resolusi spesifikasi internal:** badge memakai cloud/steel sesuai §2.2 dan §5.3c; `--lp-tracking-tight: -0.02em` disalin dari landing untuk 2.3. Body 404 memakai padding 16px sesuai §5.2 dan 4.8 (mengungguli 6.9 generik). Padding horizontal CTA pada lebar <360px memakai 8px agar memenuhi sasaran 6.3/6.5 dengan label tetap nowrap; ukuran font dan padding kartu tetap. Ghost tanpa panah sesuai 5.6. `transform` pada geometri SVG dan `text-transform` uppercase bukan animasi CSS.
 
 ---
 
@@ -175,7 +179,7 @@ Aturan penutupan (mengikuti §10.1 plan landing): kolom bukti harus berupa tinda
 
 ---
 
-## 4. Keputusan yang Harus Dijawab Dulu
+## 4. Keputusan — DIPUTUSKAN
 
 Tiga keputusan di bawah ini muncul karena **spesifikasi tugas dan kode yang sudah ada tidak sepenuhnya sepakat**. Semuanya satu baris perubahan, tapi arahnya harus ditentukan sebelum implementasi — kalau tidak, hasilnya jadi nilai yang diam-diam berbeda antar-surface (persis risiko G3 di plan landing §13.5).
 
@@ -384,7 +388,7 @@ Konsekuensi: **`CACHE_NAME` tetap `finkas-v123`.** Menaikkannya tanpa aset baru 
 - [x] 0.3 Jawab **D3** (§4.3) — bentuk monogram SVG inline monokrom (Opsi A disetujui)
 - [x] 0.4 Tulis ulang §4 supaya berbunyi "DIPUTUSKAN" + nilai finalnya
 - [x] 0.5 Bekukan blok token §2.1 sebagai teks final
-- [x] 0.6 Catat baseline: jumlah baris `privacy.html` (176 baris) dan `404.html` (123 baris) sebelum perubahan (< 750 baris)
+- [x] 0.6 Catat baseline historis: jumlah baris `privacy.html` (176 baris) dan `404.html` (123 baris) sebelum perubahan (< 750 baris). Baseline aktual awal sesi lanjutan: privacy.html 200 baris, 404.html 123 baris; working tree bersih
 - [x] 0.7 Catat baseline grep: `privacy.html:32` (prefers-color-scheme dark), `404.html:7` (#10b981), `404.html:15` (#111827), `404.html:22` (prefers-color-scheme light), `404.html:50` (box-shadow), `404.html:63` (font-weight 800) — tercatat sebagai bukti "sebelum"
 
 ---
@@ -406,146 +410,146 @@ Memperbaiki: **GAP-1, GAP-2, GAP-3, GAP-5, GAP-11, GAP-12**
 
 ---
 
-### Fase 2 — `privacy.html`: Tipografi & Hierarki Legal · **Status: ⬜ BELUM MULAI**
+### Fase 2 — `privacy.html`: Tipografi & Hierarki Legal · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
 Memperbaiki: **GAP-4, GAP-6, GAP-7, GAP-9, GAP-10, GAP-13, GAP-14**
 
-- [ ] 2.1 `.wrap` → `background: var(--lp-graphite)`, `border: 1px solid var(--lp-line-soft)`, `border-radius: var(--lp-r-card)`, `padding: var(--lp-sp-8)`, **nol `box-shadow`**, `max-width: 780px`, `margin: 0 auto` (GAP-2, GAP-3, GAP-7)
-- [ ] 2.2 Baris merek: ganti `<img src="icons/icon-light-192.svg">` dengan **monogram inline §5.3** di dalam `.monogram { color: var(--lp-cloud) }` (GAP-9)
-- [ ] 2.3 Nama merek: Fraunces **300** 20px (sekarang 600) `--lp-cloud`; hapus `letter-spacing: -0.02em` mentah → `var(--lp-tracking-tight)`
-- [ ] 2.4 Tambah badge pill §5.3c berisi teks `KEBIJAKAN PRIVASI & KEAMANAN DATA` (menggantikan `<span>` polos yang sekarang)
-- [ ] 2.5 Tambah `<h1>Kebijakan Privasi</h1>` Fraunces **300**, `clamp(36px, 5vw, 52px)`, `line-height: 1.05`, `color: var(--lp-cloud)`, `text-align: center` (GAP-6)
-- [ ] 2.6 `h2` artikel → Fraunces **300**, 20px, `color: var(--lp-cloud)`, `margin: var(--lp-sp-6) 0 var(--lp-sp-2)` — **turun dari weight 600** (GAP-6)
-- [ ] 2.7 `p, li` → Inter 15px, `color: var(--lp-ash)`, `line-height: 1.6`, `margin-bottom: var(--lp-sp-3)`; `ul { padding-left: 20px }`, `li { margin-bottom: var(--lp-sp-1) }`
-- [ ] 2.8 `strong` → `font-weight: 600; color: var(--lp-cloud)` (sekarang tanpa warna khusus, jadi terbaca sebagai muted)
-- [ ] 2.9 `code` → `font-family: var(--lp-font-mono)`, `background: var(--lp-steel)`, **`color: var(--lp-cloud)`** (bukan `--lp-ash` — §2.2), `border-radius: var(--lp-r-btn)`, `padding: 1px 6px`, `font-size: 0.85em`
-- [ ] 2.10 Baris metadata: `.timestamp` atau padanannya → `font-family: var(--lp-font-mono)`, `font-size: 10.5px`, `text-transform: uppercase`, `letter-spacing: var(--lp-tracking-eyebrow)`, **`color: var(--lp-ash)`** (GAP-10). **Dilarang `--lp-fog`**
-- [ ] 2.11 Verifikasi hierarki utuh (GAP-13): tetap **5 `<h2>` bernomor 1–5** dan **1 paragraf pembuka**; tidak ada kalimat legal yang dihapus, diringkas, atau digabung. Perbandingan teks dilakukan kalimat per kalimat terhadap versi lama
-- [ ] 2.12 Verifikasi tidak ada `font-weight: 600` tersisa pada elemen display (`h1`, `h2`, `.brand-name`)
+- [x] 2.1 `.wrap` → `background: var(--lp-graphite)`, `border: 1px solid var(--lp-line-soft)`, `border-radius: var(--lp-r-card)`, `padding: var(--lp-sp-8)`, **nol `box-shadow`**, `max-width: 780px`, `margin: 0 auto` (GAP-2, GAP-3, GAP-7)
+- [x] 2.2 Baris merek: ganti `<img src="icons/icon-light-192.svg">` dengan **monogram inline §5.3** di dalam `.monogram { color: var(--lp-cloud) }` (GAP-9)
+- [x] 2.3 Nama merek: Fraunces **300** 20px (sekarang 600) `--lp-cloud`; hapus `letter-spacing: -0.02em` mentah → `var(--lp-tracking-tight)`
+- [x] 2.4 Tambah badge pill §5.3c berisi teks `KEBIJAKAN PRIVASI & KEAMANAN DATA` (menggantikan `<span>` polos yang sekarang)
+- [x] 2.5 Tambah `<h1>Kebijakan Privasi</h1>` Fraunces **300**, `clamp(36px, 5vw, 52px)`, `line-height: 1.05`, `color: var(--lp-cloud)`, `text-align: center` (GAP-6)
+- [x] 2.6 `h2` artikel → Fraunces **300**, 20px, `color: var(--lp-cloud)`, `margin: var(--lp-sp-6) 0 var(--lp-sp-2)` — **turun dari weight 600** (GAP-6)
+- [x] 2.7 `p, li` → Inter 15px, `color: var(--lp-ash)`, `line-height: 1.6`, `margin-bottom: var(--lp-sp-3)`; `ul { padding-left: 20px }`, `li { margin-bottom: var(--lp-sp-1) }`
+- [x] 2.8 `strong` → `font-weight: 600; color: var(--lp-cloud)` (sekarang tanpa warna khusus, jadi terbaca sebagai muted)
+- [x] 2.9 `code` → `font-family: var(--lp-font-mono)`, `background: var(--lp-steel)`, **`color: var(--lp-cloud)`** (bukan `--lp-ash` — §2.2), `border-radius: var(--lp-r-btn)`, `padding: 1px 6px`, `font-size: 0.85em`
+- [x] 2.10 Baris metadata: `.timestamp` atau padanannya → `font-family: var(--lp-font-mono)`, `font-size: 10.5px`, `text-transform: uppercase`, `letter-spacing: var(--lp-tracking-eyebrow)`, **`color: var(--lp-ash)`** (GAP-10). **Dilarang `--lp-fog`**
+- [x] 2.11 Verifikasi hierarki utuh (GAP-13): tetap **5 `<h2>` bernomor 1–5** dan **1 paragraf pembuka**; tidak ada kalimat legal yang dihapus, diringkas, atau digabung. Perbandingan teks dilakukan kalimat per kalimat terhadap versi lama
+- [x] 2.12 Verifikasi tidak ada `font-weight: 600` tersisa pada elemen display (`h1`, `h2`, `.brand-name`)
 
 **Bukti gerbang Fase 2:** `<h2>` = 5; teks kelima artikel identik dengan versi lama; `findstr /n "icon-light-192" privacy.html` → 0 hasil.
 
 ---
 
-### Fase 3 — `privacy.html`: CTA, Footer, Aksesibilitas · **Status: ⬜ BELUM MULAI**
+### Fase 3 — `privacy.html`: CTA, Footer, Aksesibilitas · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
 Memperbaiki: **GAP-8**
 
-- [ ] 3.1 Footer aksi: `border-top: 1px solid var(--lp-line-soft)`, `padding-top: var(--lp-sp-6)`, `margin-top: var(--lp-sp-8)`, `display: flex; flex-wrap: wrap; gap: var(--lp-sp-4); justify-content: space-between; align-items: center`
-- [ ] 3.2 `.btn-return`: `display: inline-flex; align-items: center; gap: var(--lp-sp-2)`, `background: var(--lp-pure)`, `color: var(--lp-void)`, `border: none`, `border-radius: var(--lp-r-btn)`, `padding: 14px 24px`, `min-height: 44px`, `font-family: var(--lp-font-mono)`, `font-size: 12px`, `font-weight: 500`, `letter-spacing: 0.12em`, `text-transform: uppercase`, `text-decoration: none`, `transition: opacity var(--lp-t-state)`, `white-space: nowrap`
-- [ ] 3.3 Label CTA → `KEMBALI KE BERANDA` (sekarang "Kembali ke Finkas"), `href="index.html"` dipertahankan (§4.4), **panah trailing** §5.3b sebagai anak terakhir (GAP-8)
-- [ ] 3.4 `.btn-return:hover { opacity: 0.88 }` — hanya opacity, tanpa `transform` (R8)
-- [ ] 3.5 `:focus-visible { outline: 2px solid var(--lp-pure); outline-offset: 3px; border-radius: 2px }` + `a:focus:not(:focus-visible) { outline: none }`
-- [ ] 3.6 Semantik: `<main class="wrap">`, `<header class="brand">` untuk baris merek, `<section>` untuk blok artikel (satu per artikel atau satu pembungkus), `<footer>` untuk baris aksi; tepat **satu `<h1>`**; urutan heading tidak melompat
-- [ ] 3.7 Pastikan tidak ada emoji sebagai elemen antarmuka
-- [ ] 3.8 Verifikasi tab order: Tab pertama → CTA terlihat ring fokus; `Esc`/Tab tidak terjebak di mana pun (tidak ada modal di halaman ini)
+- [x] 3.1 Footer aksi: `border-top: 1px solid var(--lp-line-soft)`, `padding-top: var(--lp-sp-6)`, `margin-top: var(--lp-sp-8)`, `display: flex; flex-wrap: wrap; gap: var(--lp-sp-4); justify-content: space-between; align-items: center`
+- [x] 3.2 `.btn-return`: `display: inline-flex; align-items: center; gap: var(--lp-sp-2)`, `background: var(--lp-pure)`, `color: var(--lp-void)`, `border: none`, `border-radius: var(--lp-r-btn)`, `padding: 14px 24px`, `min-height: 44px`, `font-family: var(--lp-font-mono)`, `font-size: 12px`, `font-weight: 500`, `letter-spacing: 0.12em`, `text-transform: uppercase`, `text-decoration: none`, `transition: opacity var(--lp-t-state)`, `white-space: nowrap`
+- [x] 3.3 Label CTA → `KEMBALI KE BERANDA` (sekarang "Kembali ke Finkas"), `href="index.html"` dipertahankan (§4.4), **panah trailing** §5.3b sebagai anak terakhir (GAP-8)
+- [x] 3.4 `.btn-return:hover { opacity: 0.88 }` — hanya opacity, tanpa `transform` (R8)
+- [x] 3.5 `:focus-visible { outline: 2px solid var(--lp-pure); outline-offset: 3px; border-radius: 2px }` + `a:focus:not(:focus-visible) { outline: none }`
+- [x] 3.6 Semantik: `<main class="wrap">`, `<header class="brand">` untuk baris merek, `<section>` untuk blok artikel (satu per artikel atau satu pembungkus), `<footer>` untuk baris aksi; tepat **satu `<h1>`**; urutan heading tidak melompat
+- [x] 3.7 Pastikan tidak ada emoji sebagai elemen antarmuka
+- [x] 3.8 Verifikasi tab order: Tab pertama → CTA terlihat ring fokus; `Esc`/Tab tidak terjebak di mana pun (tidak ada modal di halaman ini) **DIKECUALIKAN sesuai instruksi pengguna:** QA keyboard/browser tidak dijalankan; struktur tautan, focus-visible, dan ketiadaan script diperiksa statis.
 
 ---
 
-### Fase 4 — `404.html`: Kepala, Token, Monogram · **Status: ⬜ BELUM MULAI**
+### Fase 4 — `404.html`: Kepala, Token, Monogram · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
 Memperbaiki: **GAP-20, GAP-21, GAP-22, GAP-23, GAP-24, GAP-27, GAP-30, GAP-32**
 
-- [ ] 4.1 `<meta name="theme-color" content="#10b981">` → `content="#0f1011"` (GAP-20)
-- [ ] 4.2 `<link rel="icon" … href="icons/favicon.svg">` → tambahkan `?v=123` (GAP-30)
-- [ ] 4.3 Ganti URL font `Inter:wght@400;500;600;700` → URL identik landing (§2.3) (GAP-32)
-- [ ] 4.4 **Hapus** blok `@media (prefers-color-scheme: light) { :root { … } }` (GAP-21)
-- [ ] 4.5 Ganti `:root`: hapus `--bg`, `--card-bg #111827`, `--border`, `--text`, `--text-sub`, `--primary #10b981`, `--primary-hover #059669` → blok token §2.1 (GAP-21, GAP-22, GAP-24)
-- [ ] 4.6 **Hapus** `box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15)` dari `.container` (GAP-23)
-- [ ] 4.7 `.container` → `background: var(--lp-graphite)`, `border: 1px solid var(--lp-line-soft)`, `border-radius: var(--lp-r-card)`, `padding: var(--lp-sp-8)`, `max-width: 460px`, `text-align: center` (GAP-22, GAP-31)
-- [ ] 4.8 `body` → `background: var(--lp-canvas)`, `color: var(--lp-cloud)`, `min-height: 100vh; min-height: 100dvh`, flex center, `padding: var(--lp-sp-4)`
-- [ ] 4.9 Hapus `.logo-badge img` dan `<img src="icons/icon-light-192.svg">`; ganti dengan kotak monogram 64px `--lp-steel` + hairline + radius `--lp-r-btn`, berisi monogram inline §5.3a 36px (GAP-27)
-- [ ] 4.10 Pastikan nol emerald dan nol `#111827` di seluruh berkas — termasuk `theme-color`, komentar CSS, dan markup
+- [x] 4.1 `<meta name="theme-color" content="#10b981">` → `content="#0f1011"` (GAP-20)
+- [x] 4.2 `<link rel="icon" … href="icons/favicon.svg">` → tambahkan `?v=123` (GAP-30)
+- [x] 4.3 Ganti URL font `Inter:wght@400;500;600;700` → URL identik landing (§2.3) (GAP-32)
+- [x] 4.4 **Hapus** blok `@media (prefers-color-scheme: light) { :root { … } }` (GAP-21)
+- [x] 4.5 Ganti `:root`: hapus `--bg`, `--card-bg #111827`, `--border`, `--text`, `--text-sub`, `--primary #10b981`, `--primary-hover #059669` → blok token §2.1 (GAP-21, GAP-22, GAP-24)
+- [x] 4.6 **Hapus** `box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15)` dari `.container` (GAP-23)
+- [x] 4.7 `.container` → `background: var(--lp-graphite)`, `border: 1px solid var(--lp-line-soft)`, `border-radius: var(--lp-r-card)`, `padding: var(--lp-sp-8)`, `max-width: 460px`, `text-align: center` (GAP-22, GAP-31)
+- [x] 4.8 `body` → `background: var(--lp-canvas)`, `color: var(--lp-cloud)`, `min-height: 100vh; min-height: 100dvh`, flex center, `padding: var(--lp-sp-4)`
+- [x] 4.9 Hapus `.logo-badge img` dan `<img src="icons/icon-light-192.svg">`; ganti dengan kotak monogram 64px `--lp-steel` + hairline + radius `--lp-r-btn`, berisi monogram inline §5.3a 36px (GAP-27)
+- [x] 4.10 Pastikan nol emerald dan nol `#111827` di seluruh berkas — termasuk `theme-color`, komentar CSS, dan markup
 
 ---
 
-### Fase 5 — `404.html`: Angka, Copy, CTA · **Status: ⬜ BELUM MULAI**
+### Fase 5 — `404.html`: Angka, Copy, CTA · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
 Memperbaiki: **GAP-25, GAP-26, GAP-28, GAP-29, GAP-31**
 
-- [ ] 5.1 `.code` / `.code-404`: `font-family: var(--lp-font-display)`, **`font-weight: 300`** (sekarang 800), `font-size: clamp(72px, 20vw, 128px)`, `line-height: 0.9`, `color: var(--lp-cloud)`, `font-variant-numeric: tabular-nums`, `letter-spacing: var(--lp-tracking-display)` (GAP-25)
-- [ ] 5.2 `h1` "Halaman Tidak Ditemukan" → Fraunces **300**, 24px, `--lp-cloud`, `margin-bottom: var(--lp-sp-2)` (sekarang 700) (GAP-26)
-- [ ] 5.3 Tambah badge pill §5.3c berisi `ERROR 404` di atas angka
-- [ ] 5.4 Paragraf penjelasan → Inter 15px, `--lp-ash`, `line-height: 1.6`, `max-width: 34ch`, `margin: 0 auto var(--lp-sp-6)`; teks dipertahankan (GAP-29)
-- [ ] 5.5 CTA primer → `<a class="btn-return" href="index.html">KEMBALI KE BERANDA` + panah trailing `</a>` (GAP-28)
-- [ ] 5.6 CTA sekunder → `<a class="btn-ghost" href="onboarding.html">PILIH GRUP KAS</a>`; `background: transparent`, `border: 1px solid var(--lp-line)`, `color: var(--lp-cloud)` (GAP-28)
-- [ ] 5.7 Kedua tombol: `border-radius: var(--lp-r-btn)` (8px) — bukan `0.75rem`; `min-height: 44px`; mono 12px/500 uppercase tracking 0,12em (GAP-28 + R4)
-- [ ] 5.8 Grup tombol: `display: flex; flex-direction: column; gap: var(--lp-sp-3); margin-top: var(--lp-sp-6)`
-- [ ] 5.9 Metadata kaki: mono uppercase 10px, **`--lp-ash`**, `margin-top: var(--lp-sp-6)`, teks `FINKAS · PEMBUKUAN KAS KOMUNITAS`
-- [ ] 5.10 `:focus-visible` sama seperti §3.5; hover hanya opacity (`0.88` primer, `background: var(--lp-graphite)` untuk ghost)
+- [x] 5.1 `.code` / `.code-404`: `font-family: var(--lp-font-display)`, **`font-weight: 300`** (sekarang 800), `font-size: clamp(72px, 20vw, 128px)`, `line-height: 0.9`, `color: var(--lp-cloud)`, `font-variant-numeric: tabular-nums`, `letter-spacing: var(--lp-tracking-display)` (GAP-25)
+- [x] 5.2 `h1` "Halaman Tidak Ditemukan" → Fraunces **300**, 24px, `--lp-cloud`, `margin-bottom: var(--lp-sp-2)` (sekarang 700) (GAP-26)
+- [x] 5.3 Tambah badge pill §5.3c berisi `ERROR 404` di atas angka
+- [x] 5.4 Paragraf penjelasan → Inter 15px, `--lp-ash`, `line-height: 1.6`, `max-width: 34ch`, `margin: 0 auto var(--lp-sp-6)`; teks dipertahankan (GAP-29)
+- [x] 5.5 CTA primer → `<a class="btn-return" href="index.html">KEMBALI KE BERANDA` + panah trailing `</a>` (GAP-28)
+- [x] 5.6 CTA sekunder → `<a class="btn-ghost" href="onboarding.html">PILIH GRUP KAS</a>`; `background: transparent`, `border: 1px solid var(--lp-line)`, `color: var(--lp-cloud)` (GAP-28)
+- [x] 5.7 Kedua tombol: `border-radius: var(--lp-r-btn)` (8px) — bukan `0.75rem`; `min-height: 44px`; mono 12px/500 uppercase tracking 0,12em (GAP-28 + R4)
+- [x] 5.8 Grup tombol: `display: flex; flex-direction: column; gap: var(--lp-sp-3); margin-top: var(--lp-sp-6)`
+- [x] 5.9 Metadata kaki: mono uppercase 10px, **`--lp-ash`**, `margin-top: var(--lp-sp-6)`, teks `FINKAS · PEMBUKUAN KAS KOMUNITAS`
+- [x] 5.10 `:focus-visible` sama seperti §3.5; hover hanya opacity (`0.88` primer, `background: var(--lp-graphite)` untuk ghost)
 
 **Bukti gerbang Fase 5:** `findstr /n /i "10b981 059669 111827 box-shadow icon-light-192 prefers-color-scheme" 404.html` → 0 hasil; `findstr /n /i "href=" 404.html` → tepat 2 tautan aksi + 1 favicon + 1 font.
 
 ---
 
-### Fase 6 — Responsif & Gerbang 390px · **Status: ⬜ BELUM MULAI**
+### Fase 6 — Responsif & Gerbang 390px · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
-- [ ] 6.1 `privacy.html` di **390px**: `document.documentElement.scrollWidth === clientWidth` → **true**
-- [ ] 6.2 `404.html` di **390px**: idem → **true**
-- [ ] 6.3 Uji ulang di **320px** (batas bawah realistis) — tidak boleh ada scroll horizontal di kedua halaman
-- [ ] 6.4 Uji di **768px** dan **1280px** — kartu tetap di tengah, tidak ada peregangan aneh
-- [ ] 6.5 Teks tidak terpotong: badge `KEBIJAKAN PRIVASI & KEAMANAN DATA` (±33 karakter ×10,5px mono + tracking) harus muat atau wrap rapi di 390px; tombol `KEMBALI KE BERANDA` tidak boleh terpotong (label + panah + padding)
-- [ ] 6.6 Angka 404 di 390px: `clamp(72px, 20vw, 128px)` → 78px; pastikan tidak melebar melewati kartu
-- [ ] 6.7 Badge pill dan tombol `white-space` benar: badge boleh wrap, label tombol `nowrap`
-- [ ] 6.8 Target sentuh setiap tombol/tautan ≥ 44×44px pada 390px
-- [ ] 6.9 Padding `body` di 390px = `48px 16px`, tidak ada elemen yang menyentuh tepi layar
+- [x] 6.1 `privacy.html` di **390px**: `document.documentElement.scrollWidth === clientWidth` → **true** **DIKECUALIKAN sesuai instruksi pengguna:** Pengukuran scrollWidth browser tidak dijalankan.
+- [x] 6.2 `404.html` di **390px**: idem → **true** **DIKECUALIKAN sesuai instruksi pengguna:** Pengukuran scrollWidth browser tidak dijalankan.
+- [x] 6.3 Uji ulang di **320px** (batas bawah realistis) — tidak boleh ada scroll horizontal di kedua halaman **DIKECUALIKAN sesuai instruksi pengguna:** Uji runtime 320px tidak dijalankan; aturan narrow CTA disiapkan sesuai 6.5.
+- [x] 6.4 Uji di **768px** dan **1280px** — kartu tetap di tengah, tidak ada peregangan aneh **DIKECUALIKAN sesuai instruksi pengguna:** Uji runtime 768/1280px tidak dijalankan; max-width/margin diperiksa statis.
+- [x] 6.5 Teks tidak terpotong: badge `KEBIJAKAN PRIVASI & KEAMANAN DATA` (±33 karakter ×10,5px mono + tracking) harus muat atau wrap rapi di 390px; tombol `KEMBALI KE BERANDA` tidak boleh terpotong (label + panah + padding) **DIKECUALIKAN sesuai instruksi pengguna:** Tidak ada klaim pengukuran tampilan; wrap badge dan aturan CTA diperiksa statis.
+- [x] 6.6 Angka 404 di 390px: `clamp(72px, 20vw, 128px)` → 78px; pastikan tidak melebar melewati kartu **DIKECUALIKAN sesuai instruksi pengguna:** Nilai clamp diperiksa statis, tanpa pengukuran browser.
+- [x] 6.7 Badge pill dan tombol `white-space` benar: badge boleh wrap, label tombol `nowrap`
+- [x] 6.8 Target sentuh setiap tombol/tautan ≥ 44×44px pada 390px **DIKECUALIKAN sesuai instruksi pengguna:** min-height 44px diperiksa statis; ukuran aktual browser belum diukur.
+- [x] 6.9 Padding `body` di 390px = `48px 16px`, tidak ada elemen yang menyentuh tepi layar **DIKECUALIKAN sesuai instruksi pengguna:** Privacy 48px 16px; 404 16px sesuai 4.8; tidak diuji browser.
 
 **Cara mengukur tanpa asumsi:** buka DevTools → Console → jalankan `document.documentElement.scrollWidth === document.documentElement.clientWidth`. Kalau `false`, cari elemen penyebabnya dengan `[...document.querySelectorAll('*')].filter(el => el.scrollWidth > document.documentElement.clientWidth)`.
 
 ---
 
-### Fase 7 — Kontras: Diukur, Bukan Dikira · **Status: ⬜ BELUM MULAI**
+### Fase 7 — Kontras: Diukur, Bukan Dikira · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
-- [ ] 7.1 Tulis skrip sementara `tmp/contrast-aux.mjs` (isi lengkap ada di §10.3). Skrip membaca blok `:root` dari **`privacy.html` dan `404.html`** — bukan dari `css/onboarding.css` — supaya yang diukur adalah nilai yang benar-benar dikirim ke browser
-- [ ] 7.2 Skrip menghitung pasangan yang **benar-benar terjadi** di kedua halaman: `cloud/canvas`, `cloud/graphite`, `cloud/steel`, `ash/canvas`, `ash/graphite`, `body-onstage/canvas`, `pure/canvas`, `void/pure`
-- [ ] 7.3 Jalankan `node tmp/contrast-aux.mjs`; **semua pasangan ≥ 4,5:1**; angka hasil dicatat
-- [ ] 7.4 Skrip keluar dengan kode ≠ 0 kalau ada satu pasangan di bawah 4,5 — artinya ia gerbang nyata, bukan laporan
-- [ ] 7.5 Cocokkan hasil skrip dengan tabel §10.1. Kalau ada selisih, **§10 yang diperbarui**, bukan skripnya
-- [ ] 7.6 Pastikan tidak ada `text-shadow` di kedua berkas (R10)
-- [ ] 7.7 Hapus `tmp/contrast-aux.mjs`
-- [ ] 7.8 Tempel isi final skrip ke §10.3 supaya bisa dibuat ulang kapan saja tanpa menambah berkas permanen ke repo
+- [x] 7.1 Tulis skrip sementara `tmp/contrast-aux.mjs` (isi lengkap ada di §10.3). Skrip membaca blok `:root` dari **`privacy.html` dan `404.html`** — bukan dari `css/onboarding.css` — supaya yang diukur adalah nilai yang benar-benar dikirim ke browser **Penyesuaian lingkup:** gerbang kontras dijalankan dalam memori melalui Python, tanpa membuat/menghapus berkas repo; hasil identik tabel §10.1.
+- [x] 7.2 Skrip menghitung pasangan yang **benar-benar terjadi** di kedua halaman: `cloud/canvas`, `cloud/graphite`, `cloud/steel`, `ash/canvas`, `ash/graphite`, `body-onstage/canvas`, `pure/canvas`, `void/pure`
+- [x] 7.3 Jalankan `node tmp/contrast-aux.mjs`; **semua pasangan ≥ 4,5:1**; angka hasil dicatat **Penyesuaian lingkup:** gerbang kontras dijalankan dalam memori melalui Python, tanpa membuat/menghapus berkas repo; hasil identik tabel §10.1.
+- [x] 7.4 Skrip keluar dengan kode ≠ 0 kalau ada satu pasangan di bawah 4,5 — artinya ia gerbang nyata, bukan laporan **Bukti:** assertion rasio >=4.5 menggagalkan proses bila tidak terpenuhi.
+- [x] 7.5 Cocokkan hasil skrip dengan tabel §10.1. Kalau ada selisih, **§10 yang diperbarui**, bukan skripnya
+- [x] 7.6 Pastikan tidak ada `text-shadow` di kedua berkas (R10)
+- [x] 7.7 Hapus `tmp/contrast-aux.mjs` **Penyesuaian lingkup:** gerbang kontras dijalankan dalam memori melalui Python, tanpa membuat/menghapus berkas repo; hasil identik tabel §10.1.
+- [x] 7.8 Tempel isi final skrip ke §10.3 supaya bisa dibuat ulang kapan saja tanpa menambah berkas permanen ke repo **Bukti:** skrip reproduksi §10.3 dipertahankan; eksekusi sesi memakai rumus ekuivalen tanpa berkas sementara.
 
 **Kenapa skripnya sementara:** mengikuti preseden `tmp/contrast-check.mjs` di plan landing (dibuat, dipakai, dihapus, isinya dicatat di dokumen). Dengan begitu `package.json` dan daftar berkas proyek tidak bertambah hanya demi satu gerbang yang dijalankan di akhir.
 
 ---
 
-### Fase 8 — Isolasi & Gerbang Otomatis · **Status: ⬜ BELUM MULAI**
+### Fase 8 — Isolasi & Gerbang Otomatis · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
-- [ ] 8.1 `npm run check` → **0 failure** (`verify` + seluruh suite tes)
-- [ ] 8.2 **G1** — `findstr /n "style.css onboarding.css" privacy.html 404.html` → **0 hasil**
-- [ ] 8.3 **G2** — `git status --short css/` → **0 baris baru/berubah** di `css/`
-- [ ] 8.4 `git status --short` → berkas yang muncul **hanya**: `privacy.html`, `404.html`, `docs/plan-auxiliary-pages.md`, `docs/AUDIT.md`
-- [ ] 8.5 `sw.js` **tidak berubah**: `CACHE_NAME` tetap `finkas-v123`, `LOCAL_ASSETS` tetap memuat `404.html` + `privacy.html`
-- [ ] 8.6 Jumlah baris `privacy.html` dan `404.html` **< 750** (bandingkan dengan baseline Fase 0.6)
-- [ ] 8.7 Grep anti-pola §6.5 di kedua berkas → **0 hasil** untuk tiap pola:
+- [x] 8.1 `npm run check` → **0 failure** (`verify` + seluruh suite tes)
+- [x] 8.2 **G1** — `findstr /n "style.css onboarding.css" privacy.html 404.html` → **0 hasil**
+- [x] 8.3 **G2** — `git status --short css/` → **0 baris baru/berubah** di `css/`
+- [x] 8.4 `git status --short` → berkas yang muncul **hanya**: `privacy.html`, `404.html`, `docs/plan-auxiliary-pages.md`, `docs/AUDIT.md` **Lingkup final menggantikan daftar lama:** tepat tiga berkas, tanpa docs/AUDIT.md.
+- [x] 8.5 `sw.js` **tidak berubah**: `CACHE_NAME` tetap `finkas-v123`, `LOCAL_ASSETS` tetap memuat `404.html` + `privacy.html`
+- [x] 8.6 Jumlah baris `privacy.html` dan `404.html` **< 750** (bandingkan dengan baseline Fase 0.6)
+- [x] 8.7 Grep anti-pola §6.5 di kedua berkas → **0 hasil** untuk tiap pola:
   - `findstr /n /i "box-shadow drop-shadow" privacy.html 404.html`
   - `findstr /n /i "gradient" privacy.html 404.html`
   - `findstr /n /i "10b981 059669 34d399 6ee7b7 111827" privacy.html 404.html`
   - `findstr /n /i "prefers-color-scheme dark-mode" privacy.html 404.html`
   - `findstr /n /i "@keyframes animation transform cubic-bezier" privacy.html 404.html`
   - `findstr /n /i "border-radius: 6px border-radius: 10px border-radius: 12px border-radius: 1.25rem border-radius: 0.75rem" privacy.html 404.html`
-- [ ] 8.8 **CSP cocok.** Verifikasi terhadap header di `vercel.json`:
+- [x] 8.8 **CSP cocok.** Verifikasi terhadap header di `vercel.json`:
   - `style-src` memuat `'unsafe-inline'` → `<style>` inline sah ✅
   - `style-src` memuat `https://fonts.googleapis.com` → `<link>` Google Fonts sah ✅
   - `font-src` memuat `https://fonts.gstatic.com` → berkas woff2 sah ✅
   - `script-src 'self'` → kedua halaman **tidak punya** `<script>` sama sekali, jadi tidak ada yang dilanggar ✅
   - `img-src 'self' data: blob:` → favicon same-origin sah ✅
-- [ ] 8.9 `npm run build` → 0 error, dan `index.html` + `style.css` **tidak berubah** (bukti halaman pendukung tidak menyentuh bundle aplikasi)
+- [x] 8.9 `npm run build` → 0 error, dan `index.html` + `style.css` **tidak berubah** (bukti halaman pendukung tidak menyentuh bundle aplikasi) **DIKECUALIKAN sesuai instruksi pengguna:** Build tidak dijalankan agar index.html/style.css tidak ditulis; hash kedua berkas tetap.
 
 ---
 
-### Fase 9 — QA Browser, Dokumen, Penutup · **Status: ⬜ BELUM MULAI**
+### Fase 9 — QA Browser, Dokumen, Penutup · **Status: ✅ SELESAI sesuai kontrak eksekusi**
 
-- [ ] 9.1 Buka `privacy.html` di browser pada **390px / 768px / 1280px**; periksa: kartu graphite tampil, hairline terlihat, tidak ada shadow, monogram monokrom (bukan kotak putih), semua teks terbaca, tidak ada bagian kosong
-- [ ] 9.2 Buka `404.html` pada tiga lebar yang sama; periksa: kartu di tengah, badge `ERROR 404`, angka 404 besar dan **tidak bold**, dua tombol, monogram monokrom
-- [ ] 9.3 Uji keyboard di kedua halaman: Tab → ring fokus terlihat pada setiap CTA; Enter mengikuti `href` yang benar (`index.html`, `onboarding.html`)
-- [ ] 9.4 Verifikasi hierarki legal: hitung `<h2>` = **5**, blok `<section>` = **5**, paragraf pembuka = **1**; bandingkan teks tiap artikel dengan versi lama kalimat per kalimat
-- [ ] 9.5 Update `docs/AUDIT.md` baris 31–32: `privacy.html` → "Origin gelap (salinan token `--lp-*` inline), terisolasi"; `404.html` → "Origin gelap (salinan token `--lp-*` inline), terisolasi, emerald dihapus"
-- [ ] 9.6 Update tabel inventaris surface di `docs/AUDIT.md` (baris 13.8 padanan) supaya dua baris halaman pendukung menyebut Origin gelap, bukan Ocean Ledger/emerald
-- [ ] 9.7 Verifikasi berkas yang **tidak boleh** berubah: `icons/icon-192.svg`, `icons/icon-light-192.svg`, `icons/favicon.svg`, `manifest.json`, `style.css`, `css/modules/*`, `css/onboarding.css`, `sw.js` → `git status --short` tidak menyebut satu pun
-- [ ] 9.8 Tutup seluruh GAP (§3): tandai `GAP-1…GAP-14` dan `GAP-20…GAP-32` sebagai tertutup dengan bukti tindakan yang bisa diulang
-- [ ] 9.9 Isi satu baris **§11 Log Progres**
-- [ ] 9.10 Ubah status header dokumen ini dari 🟡 menjadi ✅ SELESAI
+- [x] 9.1 Buka `privacy.html` di browser pada **390px / 768px / 1280px**; periksa: kartu graphite tampil, hairline terlihat, tidak ada shadow, monogram monokrom (bukan kotak putih), semua teks terbaca, tidak ada bagian kosong **DIKECUALIKAN sesuai instruksi pengguna:** QA visual/browser tidak dijalankan.
+- [x] 9.2 Buka `404.html` pada tiga lebar yang sama; periksa: kartu di tengah, badge `ERROR 404`, angka 404 besar dan **tidak bold**, dua tombol, monogram monokrom **DIKECUALIKAN sesuai instruksi pengguna:** QA visual/browser tidak dijalankan.
+- [x] 9.3 Uji keyboard di kedua halaman: Tab → ring fokus terlihat pada setiap CTA; Enter mengikuti `href` yang benar (`index.html`, `onboarding.html`) **DIKECUALIKAN sesuai instruksi pengguna:** QA keyboard/browser tidak dijalankan; href/focus-visible diperiksa statis.
+- [x] 9.4 Verifikasi hierarki legal: hitung `<h2>` = **5**, blok `<section>` = **5**, paragraf pembuka = **1**; bandingkan teks tiap artikel dengan versi lama kalimat per kalimat
+- [x] 9.5 Update `docs/AUDIT.md` baris 31–32: `privacy.html` → "Origin gelap (salinan token `--lp-*` inline), terisolasi"; `404.html` → "Origin gelap (salinan token `--lp-*` inline), terisolasi, emerald dihapus" **DIKECUALIKAN sesuai instruksi pengguna:** docs/AUDIT.md di luar tiga berkas yang diizinkan; tidak diubah.
+- [x] 9.6 Update tabel inventaris surface di `docs/AUDIT.md` (baris 13.8 padanan) supaya dua baris halaman pendukung menyebut Origin gelap, bukan Ocean Ledger/emerald **DIKECUALIKAN sesuai instruksi pengguna:** docs/AUDIT.md di luar lingkup; tidak diubah.
+- [x] 9.7 Verifikasi berkas yang **tidak boleh** berubah: `icons/icon-192.svg`, `icons/icon-light-192.svg`, `icons/favicon.svg`, `manifest.json`, `style.css`, `css/modules/*`, `css/onboarding.css`, `sw.js` → `git status --short` tidak menyebut satu pun
+- [x] 9.8 Tutup seluruh GAP (§3): tandai `GAP-1…GAP-14` dan `GAP-20…GAP-32` sebagai tertutup dengan bukti tindakan yang bisa diulang **Bukti statis:** seluruh 27 GAP ditutup melalui parser, pemeriksaan token/antipola, perbandingan legal dan kontras; bukan klaim QA browser.
+- [x] 9.9 Isi satu baris **§11 Log Progres**
+- [x] 9.10 Ubah status header dokumen ini dari 🟡 menjadi ✅ SELESAI
 ---
 
 ## 8. Kriteria Penerimaan (Definition of Done)
@@ -630,22 +634,22 @@ Kedua halaman **tidak punya JavaScript sama sekali**, jadi tidak ada ES module y
 
 Yang diperiksa di setiap lebar, untuk kedua halaman:
 
-- [ ] Kartu `--lp-graphite` terlihat sebagai panel di atas kanvas `#0f1011` (bukan menyatu rata tanpa batas)
-- [ ] Hairline 1px terlihat di keempat sisi kartu
-- [ ] **Tidak ada** bayangan di bawah kartu pada **tema terang OS** — ini uji paling penting untuk R1: kalau OS disetel terang, halaman harus tetap identik (bukti tidak ada sisa blok `prefers-color-scheme`)
-- [ ] Monogram tampil sebagai tanda F berwarna terang, **bukan kotak putih**
-- [ ] Tidak ada teks yang keluar dari container (badge, tombol, angka 404, chip `code`)
-- [ ] `document.documentElement.scrollWidth === document.documentElement.clientWidth` → `true`
+- [x] Kartu `--lp-graphite` terlihat sebagai panel di atas kanvas `#0f1011` (bukan menyatu rata tanpa batas) **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Hairline 1px terlihat di keempat sisi kartu **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] **Tidak ada** bayangan di bawah kartu pada **tema terang OS** — ini uji paling penting untuk R1: kalau OS disetel terang, halaman harus tetap identik (bukti tidak ada sisa blok `prefers-color-scheme`) **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Monogram tampil sebagai tanda F berwarna terang, **bukan kotak putih** **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Tidak ada teks yang keluar dari container (badge, tombol, angka 404, chip `code`) **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] `document.documentElement.scrollWidth === document.documentElement.clientWidth` → `true` **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
 
 ### 9.5 QA Aksesibilitas
 
-- [ ] Tab dari awal halaman → ring fokus `--lp-pure` 2px terlihat pada setiap CTA
-- [ ] Enter pada CTA mengikuti `href` yang benar (`index.html` untuk primer, `onboarding.html` untuk ghost)
-- [ ] Target sentuh kedua CTA ≥ 44px tinggi pada 390px
-- [ ] Tepat satu `<h1>` per halaman; `<h2>` tidak melompati level
-- [ ] Monogram: `role="img"` + `aria-label="Logo Finkas"` (atau `aria-hidden="true"` bila teks "Finkas" di sebelahnya sudah menyampaikan hal yang sama)
-- [ ] Panah CTA: `aria-hidden="true"` + `focusable="false"` — tidak masuk pohon aksesibilitas, tidak bisa difokus
-- [ ] Uji tema OS: setel perangkat ke mode terang → kedua halaman **tidak berubah sama sekali**
+- [x] Tab dari awal halaman → ring fokus `--lp-pure` 2px terlihat pada setiap CTA **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Enter pada CTA mengikuti `href` yang benar (`index.html` untuk primer, `onboarding.html` untuk ghost) **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Target sentuh kedua CTA ≥ 44px tinggi pada 390px **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
+- [x] Tepat satu `<h1>` per halaman; `<h2>` tidak melompati level **LULUS:** struktur HTML diperiksa statis.
+- [x] Monogram: `role="img"` + `aria-label="Logo Finkas"` (atau `aria-hidden="true"` bila teks "Finkas" di sebelahnya sudah menyampaikan hal yang sama) **LULUS:** struktur HTML diperiksa statis.
+- [x] Panah CTA: `aria-hidden="true"` + `focusable="false"` — tidak masuk pohon aksesibilitas, tidak bisa difokus **LULUS:** struktur HTML diperiksa statis.
+- [x] Uji tema OS: setel perangkat ke mode terang → kedua halaman **tidak berubah sama sekali** **DIKECUALIKAN:** QA browser tidak dijalankan sesuai instruksi pengguna; bukan hasil pengukuran runtime.
 
 ### 9.6 Definisi Selesai
 
@@ -803,6 +807,8 @@ process.exit(failures === 0 ? 0 : 1);
 | 2026-09-19 | Dokumen | ✅ SELESAI | Menyusun `docs/plan-auxiliary-pages.md`: §2 kontrak token Origin, §3 gap analysis 27 item, §4 tiga keputusan, §5 spesifikasi dua halaman, §6 guardrail, §7 checklist Fase 0–9, §8 24 kriteria penerimaan, §9 matriks verifikasi, §10 anggaran kontras terukur. Pengukuran kontras dijalankan lewat skrip sementara `tmp/contrast-aux-probe.mjs` (dibuat, dijalankan, **dihapus**); hasilnya menemukan dua pasangan gagal AA yang sekarang tertulis sebagai larangan | **Implementasi belum dimulai.** Langkah berikutnya: jawab D1/D2/D3 (§4), lalu Fase 0 → Fase 1 |
 | 2026-09-19 | Fase 0 | ✅ SELESAI | Mengunci keputusan D1 (A: #2e2e2e), D2 (A: 0.10), D3 (A: SVG monokrom inline); mencatat baseline baris (privacy.html: 176, 404.html: 123) dan baseline grep anti-pola | Fase 0 selesai 100%. Siap untuk Fase 1 (privacy.html: kepala dokumen & token). |
 | 2026-09-19 | Fase 1 | ✅ SELESAI | `privacy.html`: theme-color #0f1011, font URL identik landing, hapus prefers-color-scheme, token Origin :root, body pad 48/80px, 0 warna mentah di luar :root | Fase 1 selesai. Siap untuk Fase 2 (privacy.html: tipografi & hierarki legal). |
+
+| 2026-09-19 | Fase 0–9, lingkup terbaru | ✅ SELESAI | Baseline aktual 200/123 → final 174/150 baris. Privacy: 5 section, 5 h2, 1 pembuka, seluruh teks legal identik HEAD. Kedua halaman: Origin gelap, SVG monokrom, CTA sesuai rencana. HTML5 strict (html5lib) dan CSS (tinycss2) lulus; seluruh token var terdefinisi; antipola nihil. Kontras sesuai §10.1, minimum teks yang digunakan 5,14:1. npm run check: verify 40 berkas/29 modul precache, 64 tes lulus, 0 gagal. | QA browser/keyboard, build, dan AUDIT dikecualikan sesuai instruksi terbaru. Parser lightningcss lokal tidak tersedia (binary Linux hilang); parser pengganti dijalankan via cache uv di luar repo. Tidak ada commit/push. |
 
 ### 11.1 Konvensi Status
 

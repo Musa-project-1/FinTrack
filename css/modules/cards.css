@@ -347,6 +347,52 @@ body.header-stats-active .dashboard {
   transition: width 0.5s ease;
 }
 
+/* Stat card interactive (menunggak — clickable WA copy) */
+.stat-card-interactive {
+  cursor: pointer;
+}
+
+.stat-card-interactive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.stat-wa-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+}
+
+.stat-arrears-val { color: var(--warning); }
+.stat-danger-val  { color: var(--danger); }
+
+/* Export backup row */
+.export-backup-row {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.export-backup-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.export-backup-btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+.export-restore-label {
+  cursor: pointer;
+  text-align: center;
+}
+
 .stat-card-note {
   font-size: 12.5px;
   line-height: 1.5;

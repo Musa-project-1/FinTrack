@@ -14,7 +14,8 @@ Aplikasi manajemen kas anggota dan kas operasional berbasis web (**Progressive W
 - **Bulan Libur (Skipped Months)** — Mengatur bulan libur agar tidak dihitung sebagai tunggakan.
 - **Riwayat & Filter Lengkap** — Pencarian instan, filter bulan/tahun periode iuran, serta preset rentang waktu.
 - **Profil & Statistik Anggota** — Riwayat kontribusi dan persentase pembayaran per individu.
-- **Ekspor & Pelaporan** — Ekspor CSV/Excel, cetak struk, cetak rekap tahunan, dan generator pesan pengingat tagihan WhatsApp.
+- **Ekspor & Pelaporan** — Ekspor CSV/Excel (dengan sanitasi formula injection), cetak struk, cetak rekap tahunan, dan generator pesan pengingat tagihan WhatsApp.
+- **Disaster Recovery (Backup & Restore JSON)** — Ekspor snapshot JSON terstruktur dan pemulihan aman dengan validasi keunikan dokumen sebelum penulisan database.
 - **Offline-First (PWA)** — Dapat diinstall di Android/iOS/Desktop. Saat internet mati, transaksi tetap tersimpan di IndexedDB dan disinkronkan otomatis saat kembali online.
 - **Multi-Grup** — Setiap kelompok punya ruang datanya sendiri, dilindungi PIN 4 digit.
 
@@ -40,8 +41,10 @@ Semua baca/tulis melewati serverless function di `api/`, yang memakai service ac
 | PIN grup | Hash hanya tersimpan di `groups/{gid}/private/config` yang tak bisa dibaca klien |
 | Pembatasan percobaan | Dihitung di sisi **server** (per grup dan per IP) lewat koleksi `_ratelimit` |
 | Otorisasi | Per-peran: `member` (baca grupnya), `group_admin` (baca dan tulis grupnya), `superadmin` (semua grup) |
+| Integritas Transaksi | Entropi ID transaksi minimal 64-bit (`ID_BYTES = 8`) dan pencegahan duplikasi iuran atomik via commit precondition (`fsCreateIfAbsent` + deterministic hash `iuranId`) |
+| Proteksi Ekspor | Sanitasi formula injection CSV pada karakter awalan `=`, `+`, `-`, `@`, `\t`, `\r` |
 | Penyimpanan token di klien | `localStorage` dengan kedaluwarsa waktu nyata (TTL bertanda tangan HMAC) |
-| Header | CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Header Keamanan | CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` (HSTS) |
 
 Data lama tetap kompatibel: hash format lama dibaca sekali, lalu otomatis ditingkatkan
 ke scrypt saat login/PIN berhasil pertama kali.
@@ -64,12 +67,12 @@ ke scrypt saat login/PIN berhasil pertama kali.
 
 ```
 ├── api/                      # Vercel serverless functions (satu-satunya jalur ke Firestore)
-│   ├── _sa.js                # Service account, REST Firestore, codec nilai, constant-time compare
+│   ├── _sa.js                # Service account, REST Firestore, commit precondition (fsCreateIfAbsent), codec
 │   ├── _session.js           # Token sesi bertanda tangan, scrypt, pembatasan percobaan
-│   ├── _store.js             # Tata letak koleksi, path, audit log, hapus grup
+│   ├── _store.js             # Tata letak koleksi, path, entropi ID (newId, iuranId), audit log
 │   ├── _group-read.js        # Baca data satu grup
-│   ├── _group-write.js       # Semua mutasi data grup (validasi di sisi server)
-│   ├── data.js               # Gateway data yang terautentikasi
+│   ├── _group-write.js       # Mutasi data grup, de-duplikasi atomik, restore snapshot
+│   ├── data.js               # Gateway data yang terautentikasi (error-masked)
 │   ├── login.js              # Login admin grup dan admin master
 │   ├── login-google.js       # Login Google Super Admin dan kelola whitelist
 │   ├── create-group.js       # Kelola grup (khusus Super Admin)
@@ -83,7 +86,7 @@ ke scrypt saat login/PIN berhasil pertama kali.
 ├── html/                     # Fragmen HTML modal + template
 ├── css/                      # Design tokens dan modul CSS
 ├── scripts/                  # build-html.cjs, verify.mjs, utilitas migrasi
-├── tests/                    # Suite node:test
+├── tests/                    # Suite node:test (85 pengujian regresi & kontrak)
 ├── firestore.rules           # Menolak seluruh akses klien
 └── sw.js                     # Service Worker (precache + sinkronisasi offline)
 ```
@@ -128,7 +131,7 @@ Netlify, Firebase Hosting, atau hosting statis lain yang mendukung serverless.
 
 ```bash
 npm run verify     # Cek sintaks semua modul, daftar precache SW, dan kesegaran index.html
-npm test           # Jalankan suite pengujian
+npm test           # Jalankan 85 node:test suites (codec, security, state, dom contract)
 npm run check      # verify + test
 npm run build      # Susun index.html dari fragmen, lalu build CSS
 npm run dev:css    # Watch CSS

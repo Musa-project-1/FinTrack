@@ -148,7 +148,7 @@ export const renderGroupPicker = () => {
   const active = getActiveGroupId();
 
   if (!list.length) {
-    box.innerHTML = '<p class="text-muted" style="text-align:center;padding:12px">Belum ada grup. Minta admin pemilik membuatkan grup.</p>';
+    box.innerHTML = '<div class="group-empty-state"><p class="text-muted">Belum ada grup. Minta admin pemilik membuatkan grup.</p></div>';
     return;
   }
 
@@ -371,11 +371,11 @@ export const renderGroupAdmin = () => {
 export const renderSuperAdminList = async () => {
   const container = document.getElementById("superadmin-emails-list");
   if (!container) return;
-  container.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Memuat daftar superadmin...</span>';
+  container.innerHTML = '<span class="superadmin-empty-text">Memuat daftar superadmin...</span>';
 
   const res = await fetchSuperAdminsApi();
   if (!res.status || !Array.isArray(res.data)) {
-    container.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Tidak dapat memuat daftar superadmin.</span>';
+    container.innerHTML = '<span class="superadmin-empty-text">Tidak dapat memuat daftar superadmin.</span>';
     return;
   }
 
@@ -383,9 +383,9 @@ export const renderSuperAdminList = async () => {
     const isPrimary = item.isPrimary;
     const email = escapeHtml(item.email);
     return `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.7);border-radius:6px;font-size:11px">
-      <span><strong>${email}</strong> ${isPrimary ? '<span style="color:#10b981;font-weight:600">(Pemilik Utama)</span>' : ""}</span>
-      ${!isPrimary ? `<button type="button" data-action="remove-superadmin-email" data-email="${email}" style="border:none;background:transparent;color:#ef4444;cursor:pointer;padding:2px 6px" aria-label="Cabut akses ${email}"><i class="ph-bold ph-trash"></i></button>` : ""}
+    <div class="superadmin-email-item">
+      <span class="superadmin-email-text"><strong>${email}</strong> ${isPrimary ? '<span class="superadmin-email-tag">(Pemilik Utama)</span>' : ""}</span>
+      ${!isPrimary ? `<button type="button" class="superadmin-email-del" data-action="remove-superadmin-email" data-email="${email}" aria-label="Cabut akses ${email}"><i class="ph-bold ph-trash"></i></button>` : ""}
     </div>`;
   }).join("");
 };

@@ -147,7 +147,7 @@ export const syncOfflineTransactions = async (onSuccess) => {
       showToast(skippedOtherGroup > 0 ? `${msg} ${skippedOtherGroup} antrean grup lain menunggu.` : msg, 'success');
       if (onSuccess) onSuccess();
     } else if (skippedOtherGroup > 0) {
-      showToast(`${skippedOtherGroup} antrean milik grup lain — pindah grup untuk mengirim.`, 'info');
+      showToast(`${skippedOtherGroup} antrean milik grup lain – pindah grup untuk mengirim.`, 'info');
     }
   } catch (error) {
     console.error('Sync offline transactions failed', error);

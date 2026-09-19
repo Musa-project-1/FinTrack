@@ -130,7 +130,7 @@ export const renderTableTransaksi = () => {
 
     const isAdmin = getIsAdminSession();
     const aksiHtml = isAdmin ? `
-          <button class="btn btn-outline btn-master-action admin-only" data-action="edit" data-id="${trx.ID_Transaksi}" title="Edit Data Transaksi">
+          <button class="btn btn-outline btn-master-action admin-only" data-action="edit" data-id="${escapeHtml(trx.ID_Transaksi)}" title="Edit Data Transaksi">
             <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
           </button>
         ` : '';

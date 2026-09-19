@@ -1,6 +1,6 @@
   <!-- 10. Modal Panduan & FAQ -->
   <div class="modal-overlay" id="modal-faq">
-    <div class="modal-content modal-md">
+    <div class="modal-content modal-md" role="dialog" aria-modal="true" aria-labelledby="modal-faq-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -8,58 +8,68 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Bantuan // Panduan</span>
-            <h2>Panduan & FAQ</h2>
+            <h2 id="modal-faq-title">Panduan &amp; FAQ</h2>
             <p>Pertanyaan umum seputar penggunaan Finkas</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="faq-list">
-        <div class="faq-item">
-          <h4 class="faq-item-title">
-            <i class="ph-fill ph-check-circle"></i> Siapa yang bisa mencatat transaksi?
-          </h4>
+      <div class="faq-list" role="list">
+        <details class="faq-item" role="listitem">
+          <summary class="faq-item-title">
+            <i class="ph-fill ph-check-circle" aria-hidden="true"></i>
+            <span>Siapa yang bisa mencatat transaksi?</span>
+            <i class="ph-bold ph-caret-down faq-chevron" aria-hidden="true"></i>
+          </summary>
           <p class="faq-item-desc">
             Hanya Pengurus/Admin yang telah memasukkan kata sandi admin. Anggota umum dapat melihat saldo dan rekap iuran secara transparan.
           </p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4 class="faq-item-title">
-            <i class="ph-fill ph-shield-check"></i> Apakah data kas kelompok aman?
-          </h4>
+        <details class="faq-item" role="listitem">
+          <summary class="faq-item-title">
+            <i class="ph-fill ph-shield-check" aria-hidden="true"></i>
+            <span>Apakah data kas kelompok aman?</span>
+            <i class="ph-bold ph-caret-down faq-chevron" aria-hidden="true"></i>
+          </summary>
           <p class="faq-item-desc">
             Data disimpan di Cloud Firestore dan hanya bisa diakses lewat server aplikasi &mdash; tidak ada koneksi langsung dari browser ke database. Setiap kelompok terisolasi dan dilindungi PIN 4 digit, dengan pembatasan jumlah percobaan di sisi server.
           </p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4 class="faq-item-title">
-            <i class="ph-fill ph-whatsapp-logo"></i> Bagaimana cara menyalin laporan ke WA?
-          </h4>
+        <details class="faq-item" role="listitem">
+          <summary class="faq-item-title">
+            <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>
+            <span>Bagaimana cara menyalin laporan ke WA?</span>
+            <i class="ph-bold ph-caret-down faq-chevron" aria-hidden="true"></i>
+          </summary>
           <p class="faq-item-desc">
             Buka menu "Ekspor Data" lalu pilih "Salin Rekap Bulan Ini (WA)". Pesan otomatis terformat rapi dan siap ditempel langsung ke grup chat.
           </p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4 class="faq-item-title">
-            <i class="ph-fill ph-cloud-slash"></i> Bisa mencatat tanpa koneksi internet?
-          </h4>
+        <details class="faq-item" role="listitem">
+          <summary class="faq-item-title">
+            <i class="ph-fill ph-cloud-slash" aria-hidden="true"></i>
+            <span>Bisa mencatat tanpa koneksi internet?</span>
+            <i class="ph-bold ph-caret-down faq-chevron" aria-hidden="true"></i>
+          </summary>
           <p class="faq-item-desc">
             Bisa. Transaksi akan disimpan di Antrean Offline lokal (IndexedDB) dan otomatis disinkronkan saat ponsel kembali terhubung ke internet.
           </p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4 class="faq-item-title">
-            <i class="ph-fill ph-device-mobile"></i> Bagaimana jika berganti perangkat?
-          </h4>
+        <details class="faq-item" role="listitem">
+          <summary class="faq-item-title">
+            <i class="ph-fill ph-device-mobile" aria-hidden="true"></i>
+            <span>Bagaimana jika berganti perangkat?</span>
+            <i class="ph-bold ph-caret-down faq-chevron" aria-hidden="true"></i>
+          </summary>
           <p class="faq-item-desc">
             Cukup buka tautan Finkas, pilih nama kelompok Anda di daftar kelompok, lalu masukkan 4-digit PIN kelompok.
           </p>
-        </div>
+        </details>
       </div>
     </div>
   </div>

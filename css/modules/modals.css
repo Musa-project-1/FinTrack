@@ -486,39 +486,76 @@
   scrollbar-gutter: stable;
 }
 
-.faq-item {
+/* === FAQ ACCORDION === */
+details.faq-item {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: 14px 16px;
   background: var(--surface);
-  transition: border-color 0.15s ease;
+  transition: border-color var(--t-fast);
+  overflow: hidden;
 }
 
-.faq-item:hover {
+details.faq-item[open] {
+  border-color: var(--accent-border);
+}
+
+details.faq-item:hover {
   border-color: var(--border-strong);
 }
 
+details.faq-item[open]:hover {
+  border-color: var(--accent-border);
+}
+
 .faq-item-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 6px 0;
-  color: var(--accent-strong);
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
 }
 
-.faq-item-title i {
+.faq-item-title::-webkit-details-marker { display: none; }
+
+.faq-item-title > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.faq-item-title > i:first-child {
   font-size: 16px;
   color: var(--accent);
   flex-shrink: 0;
 }
 
+.faq-chevron {
+  font-size: 13px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  transition: transform var(--t-fast);
+}
+
+details.faq-item[open] .faq-chevron {
+  transform: rotate(180deg);
+  color: var(--accent-strong);
+}
+
+details.faq-item[open] .faq-item-title {
+  color: var(--accent-strong);
+  border-bottom: 1px solid var(--border);
+}
+
 .faq-item-desc {
   font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
+  padding: 12px 16px 14px;
 }
 
 /* === TOUCH TARGETS ===

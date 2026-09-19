@@ -10,7 +10,7 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
-import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal } from "../core/utils.js";
+import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials } from "../core/utils.js";
 import { queueOfflinePayload } from "../core/offline.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
@@ -101,8 +101,7 @@ export const openQuickPaySheet = (idAnggota, bulan) => {
   document.getElementById("qp-periode").innerText = `Iuran ${bulan} ${currentRekapYear}`;
 
   const avatar = document.getElementById("qp-avatar");
-  const idx = anggotaList.findIndex((a) => a.ID_Anggota === idAnggota);
-  avatar.innerText = idx !== -1 ? String(idx + 1).padStart(2, "0") : "01";
+  avatar.innerText = getInitials(ang.Nama_Anggota);
 
   document.getElementById("qp-nominal").value = DEFAULT_FEE_DISPLAY;
   openModal("modal-quickpay");

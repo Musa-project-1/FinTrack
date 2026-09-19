@@ -194,6 +194,7 @@ body.header-stats-active .dashboard {
 }
 
 .header-stat-pill.pill-masuk .header-stat-val { color: var(--accent-strong); }
+.header-stat-pill.pill-keluar .header-stat-val { color: var(--danger); }
 
 @media (max-width: 900px) {
   .header-stats {

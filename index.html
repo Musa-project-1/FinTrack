@@ -709,13 +709,13 @@
           <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
-      <div class="table-responsive table-scrollable max-h-55vh">
-        <table class="m-0">
-          <thead>
+      <div class="audit-ledger-wrapper">
+        <table class="audit-ledger-table m-0">
+          <thead class="sticky-thead">
             <tr>
-              <th class="th-bg-nowrap">Waktu</th>
-              <th class="th-bg">Aksi</th>
-              <th class="th-bg">Detail</th>
+              <th class="audit-th-waktu">Waktu</th>
+              <th class="audit-th-aksi">Aksi</th>
+              <th class="audit-th-detail">Detail</th>
             </tr>
           </thead>
           <tbody id="audit-log-tbody">
@@ -1120,8 +1120,8 @@
   <!-- === Modal Module: riwayat.html === -->
 <!-- 12. Modal Riwayat Transaksi -->
   <div class="modal-overlay modal-top" id="modal-riwayat">
-    <div class="modal-content modal-xl riwayat-modal-content">
-      <!-- Standardized Modal Header -->
+    <div class="modal-content modal-xl riwayat-modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-riwayat-title">
+      <!-- Header -->
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -1129,96 +1129,103 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Buku Besar // Riwayat</span>
-            <h2>Riwayat Transaksi</h2>
+            <h2 id="modal-riwayat-title">Riwayat Transaksi</h2>
             <p>Pencatatan lengkap arus kas masuk, keluar, dan iuran anggota</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <!-- Controls & Filter Toolbar -->
-      <div class="riwayat-toolbar">
-        <div class="search-wrapper riwayat-search">
-          <i class="ph ph-magnifying-glass"></i>
-          <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota, kategori...">
-        </div>
+      <!-- Split Body: Filter Rail (left) + Ledger Table (right) -->
+      <div class="riwayat-split-body">
 
-        <div class="riwayat-selectors">
-          <div class="select-pill-wrap">
-            <i class="ph ph-calendar"></i>
-            <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
-              <option value="all">Semua Bulan</option>
-              <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
-              <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
-              <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
-              <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-            </select>
+        <!-- Left: Filter Rail -->
+        <aside class="riwayat-filter-rail">
+          <!-- Search -->
+          <div class="search-wrapper riwayat-search">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota...">
           </div>
 
-          <div class="select-pill-wrap">
-            <i class="ph ph-calendar-blank"></i>
-            <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
-              <option value="all">Semua Tahun</option>
-            </select>
+          <!-- Period Selectors -->
+          <div class="riwayat-selectors">
+            <div class="select-pill-wrap">
+              <i class="ph ph-calendar"></i>
+              <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
+                <option value="all">Semua Bulan</option>
+                <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+                <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+                <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+                <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+              </select>
+            </div>
+            <div class="select-pill-wrap">
+              <i class="ph ph-calendar-blank"></i>
+              <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
+                <option value="all">Semua Tahun</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Preset Chips -->
+          <div class="riwayat-rail-section-label">Periode</div>
+          <div class="riwayat-chips-group" id="history-filter-chips">
+            <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
+            <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month">Bulan Lalu</button>
+            <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time">Semua Waktu</button>
+          </div>
+
+          <!-- Flow Filter Chips -->
+          <div class="riwayat-rail-section-label">Jenis Arus</div>
+          <div class="riwayat-chips-group">
+            <button class="chip-btn active" data-action="set-history-filter" data-filter="semua">Semua</button>
+            <button class="chip-btn" data-action="set-history-filter" data-filter="masuk">Masuk</button>
+            <button class="chip-btn" data-action="set-history-filter" data-filter="keluar">Keluar</button>
+            <button class="chip-btn" data-action="set-history-filter" data-filter="iuran">Iuran</button>
+            <button class="chip-btn" data-action="set-history-filter" data-filter="operasional">Operasional</button>
+          </div>
+
+          <!-- Summary Metrics (anchored to bottom) -->
+          <div class="riwayat-summary-bar" id="riwayat-summary-bar" aria-live="polite" aria-atomic="true">
+            <div class="riwayat-summary-item">
+              <span class="riwayat-summary-label">Ditemukan</span>
+              <span class="riwayat-summary-value" id="rw-count">0 transaksi</span>
+            </div>
+            <div class="riwayat-summary-metrics">
+              <span class="metric-pill metric-in" id="rw-masuk">+Rp 0</span>
+              <span class="metric-pill metric-out" id="rw-keluar">-Rp 0</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right: Ledger Table -->
+        <div class="riwayat-table-wrapper">
+          <div class="table-responsive table-scrollable">
+            <table class="m-0" id="table-riwayat">
+              <thead class="sticky-thead">
+                <tr>
+                  <th class="th-rw-waktu">Waktu</th>
+                  <th class="th-rw-keterangan">Keterangan &amp; Catatan</th>
+                  <th class="th-rw-nominal text-right">Nominal</th>
+                  <th class="th-rw-tipe text-center">Tipe Arus</th>
+                  <th class="w-140 text-center admin-only">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-riwayat-data">
+                <tr><td colspan="5" class="td-muted-center">Memuat riwayat transaksi...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Load More -->
+          <div class="riwayat-footer">
+            <button id="btn-load-more" class="btn btn-outline btn-load-more" data-action="load-more">
+              <i class="ph ph-caret-down"></i> Tampilkan Lebih Banyak
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Segmented Chips Filter -->
-      <div class="riwayat-chips-bar" id="history-filter-chips">
-        <div class="chips-group">
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="this-month">Bulan Ini</button>
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="last-month">Bulan Lalu</button>
-          <button class="chip-btn" data-action="set-riwayat-preset" data-preset="all-time">Semua Waktu</button>
-        </div>
-        <div class="chips-divider"></div>
-        <div class="chips-group">
-          <button class="chip-btn active" data-action="set-history-filter" data-filter="semua">Semua</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="masuk">Masuk</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="keluar">Keluar</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="iuran">Iuran</button>
-          <button class="chip-btn" data-action="set-history-filter" data-filter="operasional">Operasional</button>
-        </div>
-      </div>
-
-      <!-- Quick Summary Sub-bar -->
-      <div class="riwayat-summary-bar" id="riwayat-summary-bar">
-        <div class="riwayat-summary-item">
-          <span class="riwayat-summary-label">Total Ditemukan:</span>
-          <span class="riwayat-summary-value" id="rw-count">0 transaksi</span>
-        </div>
-        <div class="riwayat-summary-metrics">
-          <span class="metric-pill metric-in" id="rw-masuk">+Rp 0</span>
-          <span class="metric-pill metric-out" id="rw-keluar">-Rp 0</span>
-        </div>
-      </div>
-
-      <!-- Main History Table Container -->
-      <div class="riwayat-table-wrapper">
-        <div class="table-responsive table-scrollable">
-          <table class="m-0" id="table-riwayat">
-            <thead class="sticky-thead">
-              <tr>
-                <th class="th-rw-waktu">Waktu</th>
-                <th class="th-rw-keterangan">Keterangan & Catatan</th>
-                <th class="th-rw-nominal text-right">Nominal</th>
-                <th class="th-rw-tipe text-center">Tipe Arus</th>
-                <th class="w-140 text-center admin-only">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="table-riwayat-data">
-              <tr><td colspan="5" class="td-muted-center">Memuat riwayat transaksi...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Load More Button -->
-      <div class="riwayat-footer">
-        <button id="btn-load-more" class="btn btn-outline btn-load-more" data-action="load-more">
-          <i class="ph ph-caret-down"></i> Tampilkan Lebih Banyak
-        </button>
-      </div>
+      </div><!-- /riwayat-split-body -->
     </div>
   </div>
 

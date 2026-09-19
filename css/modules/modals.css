@@ -7,20 +7,6 @@
 .modal-xl { width: min(960px, calc(100vw - 32px)); max-width: 100%; }
 .modal-center-dialog { width: min(380px, calc(100vw - 32px)); max-width: 100%; }
 
-@media (min-width: 769px) {
-  #modal-transaksi .modal-content,
-  #modal-statistik .modal-content,
-  #modal-riwayat .modal-content,
-  #modal-audit-log .modal-content { min-height: 540px; }
-}
-
-.tab-content { min-height: 380px; }
-#tab-master-anggota,
-#tab-master-kategori,
-#tab-master-skipped { min-height: 0; }
-#tab-iuran,
-#tab-operasional { min-height: 380px; }
-
 /* 2. Unified header */
 .modal-header-standard {
   display: flex;
@@ -283,6 +269,76 @@
 
 /* Confirmation dialog priority */
 #modal-logout, #modal-hapus, #modal-confirm-action { z-index: 1000010 !important; }
+
+/* === AUDIT LOG LEDGER === */
+.audit-ledger-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+  max-height: 55vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.audit-ledger-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.audit-ledger-table thead th {
+  background: var(--table-header-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.audit-th-waktu { width: 150px; }
+.audit-th-aksi  { width: 140px; }
+.audit-th-detail { min-width: 0; }
+
+.audit-ledger-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.45;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.audit-ledger-table tbody tr:last-child td { border-bottom: none; }
+
+.audit-ledger-table tbody tr:hover td { background: var(--surface-2); }
+
+.audit-ledger-table td:first-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text-faint);
+  font-size: 11.5px;
+}
+
+.audit-ledger-table td:nth-child(2) {
+  color: var(--accent-strong);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.audit-ledger-table td:nth-child(3) {
+  color: var(--text-muted);
+  word-break: break-word;
+}
 
 /* === TAMPILAN SEGMENTED MODAL (VERCEL / LINEAR BENCHMARK) === */
 .tampilan-segmented-modal {

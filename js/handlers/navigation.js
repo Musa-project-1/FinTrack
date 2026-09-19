@@ -23,7 +23,7 @@ export const closeActiveModal = () => {
 
 export const setHistoryFilter = (filter, btn) => {
   setCurrentHistoryFilter(filter);
-  document.querySelectorAll('#history-filter-chips .chip-btn').forEach((b) => b.classList.remove('active'));
+  document.querySelectorAll('[data-action="set-history-filter"]').forEach((b) => b.classList.remove('active'));
   btn.classList.add('active');
   setItemsToShow(20);
   renderTableTransaksi();

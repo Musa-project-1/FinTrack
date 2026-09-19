@@ -1,6 +1,6 @@
   <!-- 1. Modal Login Admin -->
   <div class="modal-overlay modal-top" id="modal-login">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon" id="badge-admin-login" data-action="stealth-badge-click" style="cursor:pointer;user-select:none">
@@ -8,7 +8,7 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Akses // Pengurus</span>
-            <h2>Akses Pengurus</h2>
+            <h2 id="modal-login-title">Akses Pengurus</h2>
             <p>Kelola kas &amp; pencatatan grup aktif</p>
           </div>
         </div>
@@ -16,7 +16,7 @@
       </div>
 
       <form id="form-login-admin" class="auth-modal-form">
-        <div class="form-group" style="margin-bottom:12px">
+        <div class="form-group auth-form-group">
           <label>Email Pengurus</label>
           <div class="input-with-icon">
             <i class="ph ph-envelope group-input-icon"></i>
@@ -24,18 +24,18 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:18px">
+        <div class="form-group auth-form-group auth-form-group-pwd">
           <label>Password</label>
-          <div class="input-with-icon" style="position:relative">
+          <div class="input-with-icon">
             <i class="ph ph-key group-input-icon"></i>
-            <input type="password" id="input-admin-pwd" class="form-control group-form-input" style="padding-right:42px !important" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
+            <input type="password" id="input-admin-pwd" class="form-control group-form-input auth-pwd-input" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
             <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
               <i class="ph ph-eye" id="icon-toggle-pwd"></i>
             </button>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width:100%;height:42px;border-radius:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px">
+        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-submit-login">
           <i class="ph-bold ph-sign-in"></i> Masuk sebagai Pengurus
         </button>
       </form>
@@ -44,11 +44,11 @@
 
   <!-- 2. Modal Logout Admin Confirmation -->
   <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content modal-sm modal-center-dialog">
+    <div class="modal-content modal-sm modal-center-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-logout-title">
       <div class="modal-badge-icon slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
-      <h2>Keluar Sesi Admin?</h2>
+      <h2 id="modal-logout-title">Keluar Sesi Admin?</h2>
       <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
@@ -59,7 +59,7 @@
 
   <!-- 2b. Modal About -->
   <div class="modal-overlay modal-top" id="modal-about">
-    <div class="modal-content modal-sm about-sheet">
+    <div class="modal-content modal-sm about-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-about-title">
       <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
 
       <div class="about-logo-wrap">
@@ -68,7 +68,7 @@
       </div>
 
       <div class="about-body">
-        <h2 class="about-name">Finkas</h2>
+        <h2 class="about-name" id="modal-about-title">Finkas</h2>
         <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
 
         <div class="about-meta">
@@ -87,7 +87,7 @@
         </div>
 
         <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
-        <p style="text-align:center; margin-top:8px;"><a href="privacy.html" style="font-size:12px; color:var(--accent-strong); text-decoration:underline;">Kebijakan Privasi</a></p>
+        <p class="about-privacy-link"><a href="privacy.html">Kebijakan Privasi</a></p>
       </div>
     </div>
   </div>

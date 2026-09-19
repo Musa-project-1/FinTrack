@@ -1,6 +1,6 @@
   <!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
   <div class="modal-overlay modal-top" id="modal-group-pin">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="group-pin-name">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -21,8 +21,8 @@
         <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
       </div>
       <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
-      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%">Masuk Grup</button>
-      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px">Ganti Grup</button>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Salah 5 kali, terkunci 5 menit.</p>
+      <button class="btn btn-primary pin-action-btn" data-action="submit-group-pin">Masuk Grup</button>
+      <button class="btn btn-outline pin-action-btn pin-action-btn-secondary" data-action="open-groups">Ganti Grup</button>
+      <p class="pin-rate-limit-note">Salah 5 kali, terkunci 5 menit.</p>
     </div>
   </div>

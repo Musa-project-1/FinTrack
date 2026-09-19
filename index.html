@@ -210,7 +210,7 @@
     <!-- === Modal Module: auth.html === -->
 <!-- 1. Modal Login Admin -->
   <div class="modal-overlay modal-top" id="modal-login">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon" id="badge-admin-login" data-action="stealth-badge-click" style="cursor:pointer;user-select:none">
@@ -218,7 +218,7 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Akses // Pengurus</span>
-            <h2>Akses Pengurus</h2>
+            <h2 id="modal-login-title">Akses Pengurus</h2>
             <p>Kelola kas &amp; pencatatan grup aktif</p>
           </div>
         </div>
@@ -226,7 +226,7 @@
       </div>
 
       <form id="form-login-admin" class="auth-modal-form">
-        <div class="form-group" style="margin-bottom:12px">
+        <div class="form-group auth-form-group">
           <label>Email Pengurus</label>
           <div class="input-with-icon">
             <i class="ph ph-envelope group-input-icon"></i>
@@ -234,18 +234,18 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:18px">
+        <div class="form-group auth-form-group auth-form-group-pwd">
           <label>Password</label>
-          <div class="input-with-icon" style="position:relative">
+          <div class="input-with-icon">
             <i class="ph ph-key group-input-icon"></i>
-            <input type="password" id="input-admin-pwd" class="form-control group-form-input" style="padding-right:42px !important" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
+            <input type="password" id="input-admin-pwd" class="form-control group-form-input auth-pwd-input" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
             <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
               <i class="ph ph-eye" id="icon-toggle-pwd"></i>
             </button>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width:100%;height:42px;border-radius:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px">
+        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-submit-login">
           <i class="ph-bold ph-sign-in"></i> Masuk sebagai Pengurus
         </button>
       </form>
@@ -254,11 +254,11 @@
 
   <!-- 2. Modal Logout Admin Confirmation -->
   <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content modal-sm modal-center-dialog">
+    <div class="modal-content modal-sm modal-center-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-logout-title">
       <div class="modal-badge-icon slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
-      <h2>Keluar Sesi Admin?</h2>
+      <h2 id="modal-logout-title">Keluar Sesi Admin?</h2>
       <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
         <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
@@ -269,7 +269,7 @@
 
   <!-- 2b. Modal About -->
   <div class="modal-overlay modal-top" id="modal-about">
-    <div class="modal-content modal-sm about-sheet">
+    <div class="modal-content modal-sm about-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-about-title">
       <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
 
       <div class="about-logo-wrap">
@@ -278,7 +278,7 @@
       </div>
 
       <div class="about-body">
-        <h2 class="about-name">Finkas</h2>
+        <h2 class="about-name" id="modal-about-title">Finkas</h2>
         <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
 
         <div class="about-meta">
@@ -297,7 +297,7 @@
         </div>
 
         <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
-        <p style="text-align:center; margin-top:8px;"><a href="privacy.html" style="font-size:12px; color:var(--accent-strong); text-decoration:underline;">Kebijakan Privasi</a></p>
+        <p class="about-privacy-link"><a href="privacy.html">Kebijakan Privasi</a></p>
       </div>
     </div>
   </div>
@@ -305,7 +305,7 @@
   <!-- === Modal Module: groups.html === -->
 <!-- 0. Modal Pilih Grup (multi-grup tahap 1) -->
   <div class="modal-overlay modal-top" id="modal-groups">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-groups-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -313,7 +313,7 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Grup // Pilih</span>
-            <h2>Pilih Grup</h2>
+            <h2 id="modal-groups-title">Pilih Grup</h2>
             <p>Tiap grup ruangannya sendiri, data tidak campur</p>
           </div>
         </div>
@@ -321,17 +321,17 @@
       </div>
       <div id="group-picker-list" class="group-picker-list"></div>
       <div class="group-picker-actions">
-        <a class="btn btn-outline" href="onboarding.html" style="width:100%;margin-top:8px;text-align:center;text-decoration:none;display:block">Buka halaman sambutan</a>
-        <button class="btn btn-outline" data-action="exit-group" style="width:100%;margin-top:8px">Keluar grup aktif</button>
+        <a class="btn btn-outline group-picker-cta" href="onboarding.html">Buka halaman sambutan</a>
+        <button class="btn btn-outline group-picker-cta" data-action="exit-group">Keluar grup aktif</button>
       </div>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
+      <p class="group-picker-hint">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
     </div>
   </div>
 
   <!-- === Modal Module: group-pin.html === -->
 <!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
   <div class="modal-overlay modal-top" id="modal-group-pin">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="group-pin-name">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -352,16 +352,16 @@
         <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
       </div>
       <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
-      <button class="btn btn-primary" data-action="submit-group-pin" style="width:100%">Masuk Grup</button>
-      <button class="btn btn-outline" data-action="open-groups" style="width:100%;margin-top:8px">Ganti Grup</button>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Salah 5 kali, terkunci 5 menit.</p>
+      <button class="btn btn-primary pin-action-btn" data-action="submit-group-pin">Masuk Grup</button>
+      <button class="btn btn-outline pin-action-btn pin-action-btn-secondary" data-action="open-groups">Ganti Grup</button>
+      <p class="pin-rate-limit-note">Salah 5 kali, terkunci 5 menit.</p>
     </div>
   </div>
 
   <!-- === Modal Module: group-admin.html === -->
 <!-- 0c. Modal Kelola Grup: khusus admin pemilik (tahap 4) -->
   <div class="modal-overlay modal-top" id="modal-group-admin">
-    <div class="modal-content modal-md group-admin-modal">
+    <div class="modal-content modal-md group-admin-modal" role="dialog" aria-modal="true" aria-labelledby="modal-group-admin-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -369,14 +369,14 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Grup // Kelola</span>
-            <h2>Kelola Grup</h2>
+            <h2 id="modal-group-admin-title">Kelola Grup</h2>
             <p>Atur kelas atau buat ruang kas baru</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <!-- Form Tambah Grup Baru (Linear / Vercel Card Style) -->
+      <!-- Form Tambah Grup Baru -->
       <div class="group-admin-create-box">
         <div class="group-section-header">
           <i class="ph-bold ph-plus-circle text-primary"></i>
@@ -399,12 +399,12 @@
           </div>
 
           <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
-          <div class="group-admin-opt-wrap" style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-main)">
+          <div class="group-admin-opt-wrap">
+            <label class="group-admin-opt-label">
               <input type="checkbox" id="chk-group-admin-auto" checked>
               <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
             </label>
-            <div id="box-group-admin-creds" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <div id="box-group-admin-creds" class="group-admin-creds-row">
               <div class="input-with-icon flex-1 min-w-160">
                 <i class="ph ph-envelope group-input-icon"></i>
                 <input type="email" id="input-group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
@@ -413,7 +413,7 @@
                 <i class="ph ph-key group-input-icon"></i>
                 <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
               </div>
-              <button type="button" class="btn btn-outline" id="btn-refresh-admin-pwd" title="Acak ulang password" style="padding:0 12px">
+              <button type="button" class="btn btn-outline btn-refresh-pwd" id="btn-refresh-admin-pwd" title="Acak ulang password">
                 <i class="ph-bold ph-arrows-clockwise"></i>
               </button>
             </div>
@@ -429,25 +429,25 @@
 
       <div id="group-admin-list" class="group-admin-list"></div>
 
-      <!-- Bagian Kelola Akses Super Admin (Google Whitelist) -->
-      <div class="group-superadmin-card" style="margin-top:18px;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)">
-        <div class="group-section-header" style="margin-bottom:8px">
+      <!-- Bagian Kelola Akses Super Admin -->
+      <div class="group-superadmin-card">
+        <div class="group-section-header">
           <i class="ph-bold ph-shield-check text-primary"></i>
-          <span style="font-weight:600;font-size:13px">Daftar Super Admin (Google Login)</span>
+          <span class="group-superadmin-title">Daftar Super Admin (Google Login)</span>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
-        
-        <div id="superadmin-emails-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+        <p class="group-superadmin-note">Hanya email Google terdaftar yang dapat masuk melalui tautan rahasia pemilik.</p>
 
-        <form id="form-add-superadmin" style="display:flex;gap:8px">
-          <input type="email" id="input-add-superadmin" class="form-control" placeholder="tambah.email.google@gmail.com" required style="font-size:12px">
-          <button type="submit" class="btn btn-outline btn-sm" style="white-space:nowrap">
+        <div id="superadmin-emails-list" class="superadmin-emails-list"></div>
+
+        <form id="form-add-superadmin" class="superadmin-add-form">
+          <input type="email" id="input-add-superadmin" class="form-control superadmin-email-input" placeholder="tambah.email.google@gmail.com" required>
+          <button type="submit" class="btn btn-outline btn-sm">
             <i class="ph-bold ph-plus"></i> Tambah
           </button>
         </form>
       </div>
 
-      <div class="group-admin-footer-notice" style="margin-top:12px">
+      <div class="group-admin-footer-notice">
         <i class="ph-fill ph-shield-check"></i>
         <span>Data tiap grup terisolasi aman. Hapus grup memerlukan konfirmasi nama.</span>
       </div>
@@ -456,7 +456,7 @@
 
   <!-- 0d. Modal Kartu Kredensial Grup (Siap Kirim WhatsApp) -->
   <div class="modal-overlay modal-top" id="modal-group-credentials">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-cred-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -464,25 +464,25 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Grup // Kredensial</span>
-            <h2>Kredensial Grup</h2>
+            <h2 id="modal-cred-title">Kredensial Grup</h2>
             <p id="cred-modal-subtitle">Akun siap dibagikan ke pengurus</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="cred-card-box" style="margin:12px 0;padding:14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border);font-size:13px;line-height:1.6">
-        <div style="margin-bottom:6px"><strong>Grup:</strong> <span id="cred-disp-nama">-</span></div>
-        <div style="margin-bottom:6px"><strong>PIN Warga:</strong> <code id="cred-disp-pin" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">1234</code></div>
-        <div style="margin-bottom:6px"><strong>Email Admin:</strong> <span id="cred-disp-email" style="word-break:break-all">-</span></div>
-        <div><strong>Password Admin:</strong> <code id="cred-disp-pwd" style="background:var(--surface-2);padding:2px 6px;border-radius:var(--r-sm);font-weight:600">-</code></div>
+      <div class="cred-card-box">
+        <div class="cred-card-row"><strong>Grup:</strong> <span id="cred-disp-nama">-</span></div>
+        <div class="cred-card-row"><strong>PIN Warga:</strong> <code class="cred-code" id="cred-disp-pin">1234</code></div>
+        <div class="cred-card-row"><strong>Email Admin:</strong> <span class="cred-email" id="cred-disp-email">-</span></div>
+        <div class="cred-card-row"><strong>Password Admin:</strong> <code class="cred-code" id="cred-disp-pwd">-</code></div>
       </div>
 
-      <div class="modal-dialog-actions" style="display:flex;flex-direction:column;gap:8px">
-        <button type="button" class="btn btn-primary" id="btn-copy-cred-wa" data-action="copy-cred-wa" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-          <i class="ph-bold ph-whatsapp-logo" style="font-size:18px"></i> Salin Format WhatsApp
+      <div class="cred-actions">
+        <button type="button" class="btn btn-primary cred-wa-btn" id="btn-copy-cred-wa" data-action="copy-cred-wa">
+          <i class="ph-bold ph-whatsapp-logo cred-wa-icon"></i> Salin Format WhatsApp
         </button>
-        <button type="button" class="btn btn-outline" data-action="close-modal" style="width:100%">Tutup</button>
+        <button type="button" class="btn btn-outline cred-close-btn" data-action="close-modal">Tutup</button>
       </div>
     </div>
   </div>

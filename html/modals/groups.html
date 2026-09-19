@@ -1,6 +1,6 @@
   <!-- 0. Modal Pilih Grup (multi-grup tahap 1) -->
   <div class="modal-overlay modal-top" id="modal-groups">
-    <div class="modal-content modal-sm">
+    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-groups-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
@@ -8,7 +8,7 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Grup // Pilih</span>
-            <h2>Pilih Grup</h2>
+            <h2 id="modal-groups-title">Pilih Grup</h2>
             <p>Tiap grup ruangannya sendiri, data tidak campur</p>
           </div>
         </div>
@@ -16,9 +16,9 @@
       </div>
       <div id="group-picker-list" class="group-picker-list"></div>
       <div class="group-picker-actions">
-        <a class="btn btn-outline" href="onboarding.html" style="width:100%;margin-top:8px;text-align:center;text-decoration:none;display:block">Buka halaman sambutan</a>
-        <button class="btn btn-outline" data-action="exit-group" style="width:100%;margin-top:8px">Keluar grup aktif</button>
+        <a class="btn btn-outline group-picker-cta" href="onboarding.html">Buka halaman sambutan</a>
+        <button class="btn btn-outline group-picker-cta" data-action="exit-group">Keluar grup aktif</button>
       </div>
-      <p class="text-muted" style="font-size:12px;text-align:center;margin-top:8px">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
+      <p class="group-picker-hint">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
     </div>
   </div>

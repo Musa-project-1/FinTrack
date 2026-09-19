@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!-- Clean solid background adapting with high clarity -->
   <style>
-    .bg { fill: #ffffff; stroke: #e2e8f0; stroke-width: 8; }
-    .stem, .arm { fill: #059669; }
-    .bar { fill: #10b981; }
-    .dot { fill: #047857; }
+    .bg { fill: #f7fbfd; stroke: #c8dced; stroke-width: 8; }
+    .stem, .arm { fill: #0d9488; }
+    .bar { fill: #0f766e; }
+    .dot { fill: #0d9488; }
     @media (prefers-color-scheme: dark) {
-      .bg { fill: #0f172a; stroke: none; }
-      .stem, .arm { fill: #10b981; }
-      .bar { fill: #34d399; }
-      .dot { fill: #6ee7b7; }
+      .bg { fill: #08131d; stroke: none; }
+      .stem, .arm { fill: #2dd4bf; }
+      .bar { fill: #5eead4; }
+      .dot { fill: #99f6e4; }
     }
   </style>
   <rect class="bg" width="512" height="512" rx="112"/>

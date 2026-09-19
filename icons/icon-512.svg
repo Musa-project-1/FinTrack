@@ -1,19 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Clean solid background with gentle rounding -->
-  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <!-- Dark mode: Abyssal Deep Sea background + Seafoam Teal monogram -->
+  <rect width="512" height="512" rx="112" fill="#08131d"/>
 
-  <!-- Minimalist Geometric Monogram: Interlocking F & Cash Fold -->
+  <!-- Minimalist Geometric Monogram: F -->
   <g transform="translate(136, 126)">
-    <!-- Primary stem (Bold geometric bar) -->
-    <rect x="0" y="0" width="48" height="260" rx="24" fill="#10b981"/>
-
-    <!-- Top horizontal arm (Finance forward) -->
-    <rect x="0" y="0" width="220" height="48" rx="24" fill="#10b981"/>
-
-    <!-- Middle bar / folded currency dynamic angle -->
-    <rect x="0" y="96" width="160" height="48" rx="24" fill="#34d399"/>
-
-    <!-- Accent dot: precise vault focal point -->
-    <circle cx="196" cy="120" r="24" fill="#6ee7b7"/>
+    <rect x="0" y="0" width="48" height="260" rx="24" fill="#2dd4bf"/>
+    <rect x="0" y="0" width="220" height="48" rx="24" fill="#2dd4bf"/>
+    <rect x="0" y="96" width="160" height="48" rx="24" fill="#5eead4"/>
+    <circle cx="196" cy="120" r="24" fill="#99f6e4"/>
   </g>
 </svg>

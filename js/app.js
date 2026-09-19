@@ -379,12 +379,13 @@ export const initApp = async (forceRemote = false) => {
       renderAll();
       setConnectionStatus(true);
     } else {
-      setConnectionStatus(false);
       if (resJSON?.unauthorized) {
-        showToast(resJSON.message, 'error');
+        if (hasCache) renderAll();
+        showToast(resJSON.message || 'Sesi telah berakhir. Silakan masuk kembali.', 'warning');
         openGroupPicker();
         return;
       }
+      setConnectionStatus(false);
       if (hasCache) {
         renderAll();
         showToast('Server sibuk: Menggunakan data tersimpan (offline).', 'warning');

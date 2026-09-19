@@ -61,8 +61,8 @@
       <div id="tab-master-anggota" class="tab-content active">
         <div class="master-form-card mb-16">
           <form id="form-tambah-anggota" class="master-form-row">
-            <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required>
-            <input type="text" id="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)...">
+            <input type="text" id="input-nama-anggota" name="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required aria-label="Nama Anggota Baru">
+            <input type="text" id="input-wa-anggota" name="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)..." aria-label="No. WhatsApp Anggota">
             <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
@@ -89,11 +89,11 @@
         <div class="master-form-card mb-16">
           <form id="form-tambah-kategori" class="master-form-row master-add-form">
             <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
-            <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
+            <select id="input-tipe-kategori" name="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
               <option value="Masuk">Kas Masuk</option>
               <option value="Keluar">Kas Keluar</option>
             </select>
-            <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
+            <input type="text" id="input-nama-kategori" name="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required aria-label="Nama Kategori Baru">
             <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
@@ -119,7 +119,7 @@
         <div class="master-form-card mb-16 skip-month-body">
           <p class="text-muted mb-12 master-skip-hint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
           <div class="skip-month-input-row">
-            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
+            <input type="month" id="input-skip-month" name="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." aria-label="Pilih Bulan Libur" />
             <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </div>
         </div>
@@ -166,17 +166,17 @@
 
         <div class="form-group mb-12">
           <label for="edit-master-nama-input">Nama Anggota</label>
-          <input type="text" id="edit-master-nama-input" class="form-control" required placeholder="Nama lengkap anggota...">
+          <input type="text" id="edit-master-nama-input" name="edit-master-nama-input" class="form-control" required placeholder="Nama lengkap anggota...">
         </div>
 
         <div class="form-group mb-12">
           <label for="edit-master-wa-input">Nomor WhatsApp</label>
-          <input type="text" id="edit-master-wa-input" class="form-control" placeholder="08xxxxxxxxxx">
+          <input type="text" id="edit-master-wa-input" name="edit-master-wa-input" class="form-control" placeholder="08xxxxxxxxxx">
         </div>
 
         <div class="form-group mb-16">
           <label for="edit-master-status-select">Status Keanggotaan</label>
-          <select id="edit-master-status-select" class="form-control cdrop" required>
+          <select id="edit-master-status-select" name="edit-master-status-select" class="form-control cdrop" required>
             <option value="Aktif">Aktif</option>
             <option value="Nonaktif">Nonaktif</option>
           </select>

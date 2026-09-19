@@ -5,7 +5,7 @@
         <h2 id="modal-menu-title" class="sr-only">Menu Navigasi Finkas</h2>
         <div class="command-search-bar">
           <i class="ph-bold ph-magnifying-glass command-search-icon"></i>
-          <input type="text" id="search-nav-menu" class="command-search-input" placeholder="Cari menu, aksi, atau laporan..." autocomplete="off" spellcheck="false" aria-label="Cari navigasi menu">
+          <input type="text" id="search-nav-menu" name="search-nav-menu" class="command-search-input" placeholder="Cari menu, aksi, atau laporan..." autocomplete="off" spellcheck="false" aria-label="Cari navigasi menu">
           <button class="command-esc-badge" data-action="close-modal" aria-label="Tutup menu">ESC</button>
         </div>
       </div>
@@ -186,10 +186,10 @@
           </div>
         </div>
         <div class="form-group mb-16">
-          <label>Nominal Pembayaran</label>
+          <label for="qp-nominal">Nominal Pembayaran</label>
           <div class="input-with-prefix">
             <span>Rp</span>
-            <input type="text" id="qp-nominal" class="form-control input-qp-nominal font-mono tabular-nums" inputmode="numeric" required>
+            <input type="text" id="qp-nominal" name="qp-nominal" class="form-control input-qp-nominal font-mono tabular-nums" inputmode="numeric" required>
           </div>
         </div>
         <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-quickpay">

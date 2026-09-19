@@ -155,6 +155,10 @@ const setup = (select) => {
     searchWrap.className = 'cdrop-search';
     searchInput = document.createElement('input');
     searchInput.type = 'text';
+    if (select.id) {
+      searchInput.id = `${select.id}-search`;
+      searchInput.name = `${select.id}-search`;
+    }
     searchInput.placeholder = 'Cari...';
     searchInput.setAttribute('aria-label', 'Cari pilihan');
     searchInput.addEventListener('input', () => filterItems(ui, searchInput.value));

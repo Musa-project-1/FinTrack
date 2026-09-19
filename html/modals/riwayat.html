@@ -24,14 +24,14 @@
           <!-- Search -->
           <div class="search-wrapper riwayat-search">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota...">
+            <input type="text" id="search-trx" name="search-trx" class="form-control" placeholder="Cari transaksi, anggota..." aria-label="Cari transaksi atau anggota">
           </div>
 
           <!-- Period Selectors -->
           <div class="riwayat-selectors">
             <div class="select-pill-wrap">
               <i class="ph ph-calendar"></i>
-              <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
+              <select id="filter-bulan" name="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
                 <option value="all">Semua Bulan</option>
                 <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
                 <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
@@ -41,7 +41,7 @@
             </div>
             <div class="select-pill-wrap">
               <i class="ph ph-calendar-blank"></i>
-              <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
+              <select id="filter-tahun" name="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
                 <option value="all">Semua Tahun</option>
               </select>
             </div>

@@ -268,8 +268,8 @@ export const renderCheckboxIuran = () => {
       const isLunas = mapLunas[ang.ID_Anggota];
       if (isLunas) {
         htmlParts.push(`
-          <label class="checkbox-item item-disabled-lunas">
-            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" disabled checked>
+          <label class="checkbox-item item-disabled-lunas" for="chk-iuran-${escapeHtml(ang.ID_Anggota)}">
+            <input type="checkbox" id="chk-iuran-${escapeHtml(ang.ID_Anggota)}" name="iuran-anggota" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" disabled checked>
             <div class="chk-info-col">
               <span class="chk-name-lunas">${escapeHtml(ang.Nama_Anggota)}</span>
               <div class="chk-badge-lunas"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
@@ -277,8 +277,8 @@ export const renderCheckboxIuran = () => {
           </label>`);
       } else {
         htmlParts.push(`
-          <label class="checkbox-item">
-            <input type="checkbox" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}">
+          <label class="checkbox-item" for="chk-iuran-${escapeHtml(ang.ID_Anggota)}">
+            <input type="checkbox" id="chk-iuran-${escapeHtml(ang.ID_Anggota)}" name="iuran-anggota" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}">
             <div class="chk-info-col">
               <span class="chk-name-pending">${escapeHtml(ang.Nama_Anggota)}</span>
               <div class="chk-badge-pending">BELUM BAYAR</div>

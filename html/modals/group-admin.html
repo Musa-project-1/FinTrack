@@ -25,11 +25,11 @@
           <div class="group-create-grid">
             <div class="input-with-icon flex-1 min-w-200">
               <i class="ph ph-users group-input-icon"></i>
-              <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+              <input type="text" id="input-group-nama" name="group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
             </div>
             <div class="input-with-icon w-140">
               <i class="ph ph-lock-key group-input-icon"></i>
-              <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
+              <input type="password" id="input-group-pin" name="group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary btn-create-submit">
               <i class="ph-bold ph-plus"></i>
@@ -39,18 +39,18 @@
 
           <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
           <div class="group-admin-opt-wrap">
-            <label class="group-admin-opt-label">
-              <input type="checkbox" id="chk-group-admin-auto" checked>
+            <label class="group-admin-opt-label" for="chk-group-admin-auto">
+              <input type="checkbox" id="chk-group-admin-auto" name="chk-group-admin-auto" checked>
               <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
             </label>
             <div id="box-group-admin-creds" class="group-admin-creds-row">
               <div class="input-with-icon flex-1 min-w-160">
                 <i class="ph ph-envelope group-input-icon"></i>
-                <input type="email" id="input-group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
+                <input type="email" id="input-group-admin-email" name="group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
               </div>
               <div class="input-with-icon w-140">
                 <i class="ph ph-key group-input-icon"></i>
-                <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
+                <input type="text" id="input-group-admin-pwd" name="group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
               </div>
               <button type="button" class="btn btn-outline btn-refresh-pwd" id="btn-refresh-admin-pwd" title="Acak ulang password">
                 <i class="ph-bold ph-arrows-clockwise"></i>
@@ -79,7 +79,7 @@
         <div id="superadmin-emails-list" class="superadmin-emails-list"></div>
 
         <form id="form-add-superadmin" class="superadmin-add-form">
-          <input type="email" id="input-add-superadmin" class="form-control superadmin-email-input" placeholder="tambah.email.google@gmail.com" required>
+          <input type="email" id="input-add-superadmin" name="add-superadmin-email" class="form-control superadmin-email-input" placeholder="tambah.email.google@gmail.com" required>
           <button type="submit" class="btn btn-outline btn-sm">
             <i class="ph-bold ph-plus"></i> Tambah
           </button>

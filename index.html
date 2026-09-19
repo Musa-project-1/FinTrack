@@ -227,18 +227,18 @@
 
       <form id="form-login-admin" class="auth-modal-form">
         <div class="form-group auth-form-group">
-          <label>Email Pengurus</label>
+          <label for="input-admin-email">Email Pengurus</label>
           <div class="input-with-icon">
             <i class="ph ph-envelope group-input-icon"></i>
-            <input type="email" id="input-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="username">
+            <input type="email" id="input-admin-email" name="admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="username">
           </div>
         </div>
 
         <div class="form-group auth-form-group auth-form-group-pwd">
-          <label>Password</label>
+          <label for="input-admin-pwd">Password</label>
           <div class="input-with-icon">
             <i class="ph ph-key group-input-icon"></i>
-            <input type="password" id="input-admin-pwd" class="form-control group-form-input auth-pwd-input" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
+            <input type="password" id="input-admin-pwd" name="admin-pwd" class="form-control group-form-input auth-pwd-input" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
             <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
               <i class="ph ph-eye" id="icon-toggle-pwd"></i>
             </button>
@@ -346,10 +346,10 @@
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
       <div class="pin-row">
-        <input id="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="0">
-        <input id="pin1" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="1">
-        <input id="pin2" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="2">
-        <input id="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3">
+        <input id="pin0" name="pin0" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="0" aria-label="Digit PIN 1">
+        <input id="pin1" name="pin1" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="1" aria-label="Digit PIN 2">
+        <input id="pin2" name="pin2" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="2" aria-label="Digit PIN 3">
+        <input id="pin3" name="pin3" class="pin-box" inputmode="numeric" maxlength="1" autocomplete="off" data-pin="3" aria-label="Digit PIN 4">
       </div>
       <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
       <button class="btn btn-primary pin-action-btn" data-action="submit-group-pin">Masuk Grup</button>
@@ -386,11 +386,11 @@
           <div class="group-create-grid">
             <div class="input-with-icon flex-1 min-w-200">
               <i class="ph ph-users group-input-icon"></i>
-              <input type="text" id="input-group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
+              <input type="text" id="input-group-nama" name="group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off">
             </div>
             <div class="input-with-icon w-140">
               <i class="ph ph-lock-key group-input-icon"></i>
-              <input type="password" id="input-group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
+              <input type="password" id="input-group-pin" name="group-pin" class="form-control group-form-input text-center" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary btn-create-submit">
               <i class="ph-bold ph-plus"></i>
@@ -400,18 +400,18 @@
 
           <!-- Opsi Pembuatan Akun Admin Grup Otomatis -->
           <div class="group-admin-opt-wrap">
-            <label class="group-admin-opt-label">
-              <input type="checkbox" id="chk-group-admin-auto" checked>
+            <label class="group-admin-opt-label" for="chk-group-admin-auto">
+              <input type="checkbox" id="chk-group-admin-auto" name="chk-group-admin-auto" checked>
               <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
             </label>
             <div id="box-group-admin-creds" class="group-admin-creds-row">
               <div class="input-with-icon flex-1 min-w-160">
                 <i class="ph ph-envelope group-input-icon"></i>
-                <input type="email" id="input-group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
+                <input type="email" id="input-group-admin-email" name="group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off">
               </div>
               <div class="input-with-icon w-140">
                 <i class="ph ph-key group-input-icon"></i>
-                <input type="text" id="input-group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
+                <input type="text" id="input-group-admin-pwd" name="group-admin-pwd" class="form-control group-form-input" placeholder="Password acak..." autocomplete="off">
               </div>
               <button type="button" class="btn btn-outline btn-refresh-pwd" id="btn-refresh-admin-pwd" title="Acak ulang password">
                 <i class="ph-bold ph-arrows-clockwise"></i>
@@ -440,7 +440,7 @@
         <div id="superadmin-emails-list" class="superadmin-emails-list"></div>
 
         <form id="form-add-superadmin" class="superadmin-add-form">
-          <input type="email" id="input-add-superadmin" class="form-control superadmin-email-input" placeholder="tambah.email.google@gmail.com" required>
+          <input type="email" id="input-add-superadmin" name="add-superadmin-email" class="form-control superadmin-email-input" placeholder="tambah.email.google@gmail.com" required>
           <button type="submit" class="btn btn-outline btn-sm">
             <i class="ph-bold ph-plus"></i> Tambah
           </button>
@@ -495,7 +495,7 @@
         <h2 id="modal-menu-title" class="sr-only">Menu Navigasi Finkas</h2>
         <div class="command-search-bar">
           <i class="ph-bold ph-magnifying-glass command-search-icon"></i>
-          <input type="text" id="search-nav-menu" class="command-search-input" placeholder="Cari menu, aksi, atau laporan..." autocomplete="off" spellcheck="false" aria-label="Cari navigasi menu">
+          <input type="text" id="search-nav-menu" name="search-nav-menu" class="command-search-input" placeholder="Cari menu, aksi, atau laporan..." autocomplete="off" spellcheck="false" aria-label="Cari navigasi menu">
           <button class="command-esc-badge" data-action="close-modal" aria-label="Tutup menu">ESC</button>
         </div>
       </div>
@@ -676,10 +676,10 @@
           </div>
         </div>
         <div class="form-group mb-16">
-          <label>Nominal Pembayaran</label>
+          <label for="qp-nominal">Nominal Pembayaran</label>
           <div class="input-with-prefix">
             <span>Rp</span>
-            <input type="text" id="qp-nominal" class="form-control input-qp-nominal font-mono tabular-nums" inputmode="numeric" required>
+            <input type="text" id="qp-nominal" name="qp-nominal" class="form-control input-qp-nominal font-mono tabular-nums" inputmode="numeric" required>
           </div>
         </div>
         <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-quickpay">
@@ -753,8 +753,8 @@
       <div id="tab-master-anggota" class="tab-content active">
         <div class="master-form-card mb-16">
           <form id="form-tambah-anggota" class="master-form-row">
-            <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required>
-            <input type="text" id="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)...">
+            <input type="text" id="input-nama-anggota" name="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required aria-label="Nama Anggota Baru">
+            <input type="text" id="input-wa-anggota" name="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)..." aria-label="No. WhatsApp Anggota">
             <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
@@ -781,11 +781,11 @@
         <div class="master-form-card mb-16">
           <form id="form-tambah-kategori" class="master-form-row master-add-form">
             <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
-            <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
+            <select id="input-tipe-kategori" name="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
               <option value="Masuk">Kas Masuk</option>
               <option value="Keluar">Kas Keluar</option>
             </select>
-            <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
+            <input type="text" id="input-nama-kategori" name="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required aria-label="Nama Kategori Baru">
             <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
@@ -811,7 +811,7 @@
         <div class="master-form-card mb-16 skip-month-body">
           <p class="text-muted mb-12 master-skip-hint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
           <div class="skip-month-input-row">
-            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
+            <input type="month" id="input-skip-month" name="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." aria-label="Pilih Bulan Libur" />
             <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </div>
         </div>
@@ -858,17 +858,17 @@
 
         <div class="form-group mb-12">
           <label for="edit-master-nama-input">Nama Anggota</label>
-          <input type="text" id="edit-master-nama-input" class="form-control" required placeholder="Nama lengkap anggota...">
+          <input type="text" id="edit-master-nama-input" name="edit-master-nama-input" class="form-control" required placeholder="Nama lengkap anggota...">
         </div>
 
         <div class="form-group mb-12">
           <label for="edit-master-wa-input">Nomor WhatsApp</label>
-          <input type="text" id="edit-master-wa-input" class="form-control" placeholder="08xxxxxxxxxx">
+          <input type="text" id="edit-master-wa-input" name="edit-master-wa-input" class="form-control" placeholder="08xxxxxxxxxx">
         </div>
 
         <div class="form-group mb-16">
           <label for="edit-master-status-select">Status Keanggotaan</label>
-          <select id="edit-master-status-select" class="form-control cdrop" required>
+          <select id="edit-master-status-select" name="edit-master-status-select" class="form-control cdrop" required>
             <option value="Aktif">Aktif</option>
             <option value="Nonaktif">Nonaktif</option>
           </select>
@@ -996,9 +996,9 @@
             <button class="btn btn-outline export-backup-btn" data-action="export-json-backup" title="Download snapshot JSON database">
               <i class="ph ph-floppy-disk"></i> Backup JSON
             </button>
-            <label class="btn btn-outline export-backup-btn export-restore-label" title="Restore snapshot JSON database">
+            <label class="btn btn-outline export-backup-btn export-restore-label" for="input-restore-json" title="Restore snapshot JSON database">
               <i class="ph ph-upload-simple"></i> Restore JSON
-              <input type="file" id="input-restore-json" accept=".json" class="sr-only">
+              <input type="file" id="input-restore-json" name="restore-json" accept=".json" class="sr-only">
             </label>
           </div>
         </div>
@@ -1144,14 +1144,14 @@
           <!-- Search -->
           <div class="search-wrapper riwayat-search">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-trx" class="form-control" placeholder="Cari transaksi, anggota...">
+            <input type="text" id="search-trx" name="search-trx" class="form-control" placeholder="Cari transaksi, anggota..." aria-label="Cari transaksi atau anggota">
           </div>
 
           <!-- Period Selectors -->
           <div class="riwayat-selectors">
             <div class="select-pill-wrap">
               <i class="ph ph-calendar"></i>
-              <select id="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
+              <select id="filter-bulan" name="filter-bulan" class="riwayat-select cdrop" aria-label="Filter Bulan">
                 <option value="all">Semua Bulan</option>
                 <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
                 <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
@@ -1161,7 +1161,7 @@
             </div>
             <div class="select-pill-wrap">
               <i class="ph ph-calendar-blank"></i>
-              <select id="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
+              <select id="filter-tahun" name="filter-tahun" class="riwayat-select cdrop" aria-label="Filter Tahun">
                 <option value="all">Semua Tahun</option>
               </select>
             </div>
@@ -1258,21 +1258,21 @@
             <div class="modal-side-info">
               <div class="form-group">
                 <label for="iuran-kategori">Kategori</label>
-                <select id="iuran-kategori" class="form-control cdrop" required aria-label="Kategori Iuran"></select>
+                <select id="iuran-kategori" name="iuran-kategori" class="form-control cdrop" required aria-label="Kategori Iuran"></select>
               </div>
               
               <div class="form-group">
-                <label>Nominal (per orang)</label>
+                <label for="iuran-nominal">Nominal (per orang)</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
-                  <input type="text" id="iuran-nominal" class="form-control" required inputmode="numeric" value="10.000">
+                  <input type="text" id="iuran-nominal" name="iuran-nominal" class="form-control" required inputmode="numeric" value="10.000">
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label for="iuran-bulan">Bulan</label>
-                  <select id="iuran-bulan" class="form-control cdrop" required aria-label="Bulan Iuran">
+                  <select id="iuran-bulan" name="iuran-bulan" class="form-control cdrop" required aria-label="Bulan Iuran">
                     <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
                     <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
                     <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
@@ -1280,8 +1280,8 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Tahun</label>
-                  <input type="number" id="iuran-tahun" class="form-control" required min="2000" max="2100">
+                  <label for="iuran-tahun">Tahun</label>
+                  <input type="number" id="iuran-tahun" name="iuran-tahun" class="form-control" required min="2000" max="2100">
                 </div>
               </div>
 
@@ -1296,15 +1296,15 @@
 
             <div class="modal-main-selection">
               <div class="selection-header-row">
-                <label class="selection-label">
+                <div class="selection-label">
                   <span>Pilih Anggota</span> <span class="badge-count-terpilih" id="count-terpilih">0</span>
-                </label>
+                </div>
                 <button type="button" id="btn-pilih-semua" class="btn btn-outline btn-select-all">Pilih Semua</button>
               </div>
 
               <div class="search-wrapper mb-16">
                 <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
+                <input type="text" id="search-anggota-iuran" name="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
               </div>
 
               <div class="checkbox-grid-wrapper">
@@ -1323,7 +1323,7 @@
             <div class="modal-side-info">
               <div class="form-group">
                 <label for="ops-tipe">Tipe Kas</label>
-                <select id="ops-tipe" class="form-control cdrop" required aria-label="Tipe Kas">
+                <select id="ops-tipe" name="ops-tipe" class="form-control cdrop" required aria-label="Tipe Kas">
                   <option value="Keluar">Pengeluaran (-)</option>
                   <option value="Masuk">Pemasukan (+)</option>
                 </select>
@@ -1331,14 +1331,14 @@
               
               <div class="form-group">
                 <label for="ops-kategori">Kategori</label>
-                <select id="ops-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi Kas"></select>
+                <select id="ops-kategori" name="ops-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi Kas"></select>
               </div>
 
               <div class="form-group">
-                <label>Nominal</label>
+                <label for="ops-nominal">Nominal</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
-                  <input type="text" id="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
+                  <input type="text" id="ops-nominal" name="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
                 </div>
               </div>
               
@@ -1354,12 +1354,12 @@
             <div class="modal-main-selection">
               <div class="form-group">
                 <label for="ops-anggota">Terkait Anggota (Opsional)</label>
-                <select id="ops-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
+                <select id="ops-anggota" name="ops-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
               </div>
 
               <div class="form-group">
-                <label>Keterangan / Keperluan</label>
-                <textarea id="ops-keterangan" class="form-control" rows="5" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
+                <label for="ops-keterangan">Keterangan / Keperluan</label>
+                <textarea id="ops-keterangan" name="ops-keterangan" class="form-control" rows="5" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
               </div>
             </div>
           </div>
@@ -1392,28 +1392,28 @@
           <div class="form-row">
           <div class="form-group">
             <label for="edit-tipe">Tipe Transaksi</label>
-            <select id="edit-tipe" class="form-control cdrop" required aria-label="Tipe Transaksi">
+            <select id="edit-tipe" name="edit-tipe" class="form-control cdrop" required aria-label="Tipe Transaksi">
               <option value="Masuk">Pemasukan (+)</option>
               <option value="Keluar">Pengeluaran (-)</option>
             </select>
           </div>
           <div class="form-group">
             <label for="edit-kategori">Kategori</label>
-            <select id="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
+            <select id="edit-kategori" name="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
           </div>
         </div>
         <div class="form-group">
           <label for="edit-nominal">Nominal (Rp)</label>
-          <input type="number" id="edit-nominal" class="form-control" required min="1">
+          <input type="number" id="edit-nominal" name="edit-nominal" class="form-control" required min="1">
         </div>
         <div class="form-group">
           <label for="edit-anggota">Terkait Anggota</label>
-          <select id="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
+          <select id="edit-anggota" name="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
         </div>
         <div class="form-row">
            <div class="form-group">
             <label for="edit-bulan">Bulan</label>
-            <select id="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
+            <select id="edit-bulan" name="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
               <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
               <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
               <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
@@ -1422,12 +1422,12 @@
           </div>
           <div class="form-group">
             <label for="edit-tahun">Tahun</label>
-            <input type="number" id="edit-tahun" class="form-control">
+            <input type="number" id="edit-tahun" name="edit-tahun" class="form-control">
           </div>
         </div>
         <div class="form-group">
           <label for="edit-keterangan">Keterangan</label>
-          <input type="text" id="edit-keterangan" class="form-control">
+          <input type="text" id="edit-keterangan" name="edit-keterangan" class="form-control">
         </div>
         </div>
         <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi" aria-live="polite" aria-atomic="true">

@@ -1,11 +1,12 @@
 /**
  * Pre-flight verification for Finkas.
  *
- * Three checks that have all silently broken in the past:
+ * Four checks that have all silently broken in the past:
  *   1. Every .js/.mjs file under js/ and api/ parses.
  *   2. The service worker's precache list matches the modules that actually
  *      exist (a missing entry works online and 404s offline).
  *   3. index.html is not older than the html/ fragments it is assembled from.
+ *   4. style.css is not older than the css/ modules it is built from.
  *
  * Run with: npm run verify
  */
@@ -19,6 +20,9 @@ const MODULE_DIRS = ['js', 'api'];
 const SW_PATH = path.join(ROOT, 'sw.js');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 const HTML_DIR = path.join(ROOT, 'html');
+const STYLE_PATH = path.join(ROOT, 'style.css');
+const CSS_ENTRY = path.join(ROOT, 'css', 'input.css');
+const CSS_MODULE_DIR = path.join(ROOT, 'css', 'modules');
 
 const failures = [];
 
@@ -123,6 +127,35 @@ if (!fs.existsSync(INDEX_PATH)) {
   }
 }
 
+/* ── 4. style.css freshness ──────────────────────────────────────── */
+
+/**
+ * Newest modification time among the Tailwind entrypoint and the module files
+ * it imports.
+ *
+ * Only `css/input.css` and `css/modules/**` are considered: the onboarding
+ * stylesheets are linked directly by `onboarding.html` and are not part of the
+ * generated bundle, so touching them must not demand a rebuild.
+ */
+function newestCssMtime() {
+  const candidates = [CSS_ENTRY, ...collectFiles(CSS_MODULE_DIR, /\.css$/)];
+
+  let newest = 0;
+  for (const file of candidates) {
+    if (!fs.existsSync(file)) continue;
+    newest = Math.max(newest, fs.statSync(file).mtimeMs);
+  }
+  return newest;
+}
+
+if (!fs.existsSync(STYLE_PATH)) {
+  failures.push('style.css is missing — run `npm run build:css`.');
+} else if (newestCssMtime() > fs.statSync(STYLE_PATH).mtimeMs) {
+  failures.push(
+    'style.css is older than the css/ modules it is built from — run `npm run build:css`.'
+  );
+}
+
 /* ── Report ──────────────────────────────────────────────────────── */
 
 if (failures.length) {
@@ -131,4 +164,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html is current.`);
+console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html and style.css are current.`);

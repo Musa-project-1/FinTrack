@@ -151,7 +151,7 @@ document.addEventListener('click', (e) => {
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
     case 'toggle-status-from-modal': {
       const idAng = document.getElementById('edit-master-anggota-id')?.value;
-      const nextSt = document.getElementById('edit-master-anggota-status')?.value;
+      const nextSt = document.getElementById('edit-master-status-select')?.value;
       if (idAng && nextSt) {
         closeModal('modal-edit-master-anggota');
         toggleStatusAnggotaAction(idAng, nextSt);

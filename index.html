@@ -28,11 +28,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="fonts/phosphor/phosphor.css?v=122">
+  <link rel="stylesheet" href="fonts/phosphor/phosphor.css?v=123">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=122">
-  <link rel="stylesheet" href="style.css?v=122">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg?v=123">
+  <link rel="stylesheet" href="style.css?v=123">
 </head>
 <body>
 
@@ -700,26 +700,26 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Audit // Aktivitas</span>
-            <h2 id="modal-audit-log-title" data-i18n="audit.title">Log Aktivitas Admin</h2>
-            <p data-i18n="audit.subtitle">Jejak audit dan rekaman histori aksi pengurus kas</p>
+            <h2 id="modal-audit-log-title">Log Aktivitas Admin</h2>
+            <p>Jejak audit dan rekaman histori aksi pengurus kas</p>
           </div>
         </div>
         <div class="flex-align-gap">
-          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> <span data-i18n="audit.refresh">Refresh</span></button>
-          <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+          <button class="btn btn-outline" data-action="refresh-audit-log"><i class="ph ph-arrow-clockwise"></i> <span>Refresh</span></button>
+          <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
         </div>
       </div>
       <div class="table-responsive table-scrollable max-h-55vh">
         <table class="m-0">
           <thead>
             <tr>
-              <th class="th-bg-nowrap" data-i18n="audit.time">Waktu</th>
-              <th class="th-bg" data-i18n="audit.action">Aksi</th>
-              <th class="th-bg" data-i18n="audit.detail">Detail</th>
+              <th class="th-bg-nowrap">Waktu</th>
+              <th class="th-bg">Aksi</th>
+              <th class="th-bg">Detail</th>
             </tr>
           </thead>
           <tbody id="audit-log-tbody">
-            <tr><td colspan="3" class="td-muted-center" data-i18n="gadmin.loading">Memuat...</td></tr>
+            <tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>
           </tbody>
         </table>
       </div>
@@ -736,41 +736,41 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Data Master // Anggota</span>
-            <h2 id="modal-kelola-master-title" data-i18n="master.title">Data Master</h2>
-            <p data-i18n="master.subtitle">Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
+            <h2 id="modal-kelola-master-title">Data Master</h2>
+            <p>Pengaturan anggota, pos kategori, dan bulan libur iuran</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-buttons mb-16">
-        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota" data-i18n="master.tabMembers">Anggota</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori" data-i18n="master.tabCats">Kategori</button>
-        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped" data-i18n="master.tabSkip">Bulan Libur</button>
+        <button class="tab-btn active" data-action="switch-tab" data-tab="tab-master-anggota">Anggota</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-kategori">Kategori</button>
+        <button class="tab-btn" data-action="switch-tab" data-tab="tab-master-skipped">Bulan Libur</button>
       </div>
 
       <!-- Tab 1: Anggota -->
       <div id="tab-master-anggota" class="tab-content active">
         <div class="master-form-card mb-16">
           <form id="form-tambah-anggota" class="master-form-row">
-            <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" data-i18n-ph="master.namePh" placeholder="Nama Anggota Baru..." required>
-            <input type="text" id="input-wa-anggota" class="form-control w-180" data-i18n-ph="master.waPh" placeholder="No. WA (Opsional)...">
-            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            <input type="text" id="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required>
+            <input type="text" id="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)...">
+            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
         <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
           <table class="m-0 table-master table-master-anggota" id="table-master-anggota">
           <thead>
             <tr>
-              <th class="w-100" data-i18n="master.colId">ID</th>
-              <th data-i18n="master.colMember">Nama Anggota</th>
-              <th data-i18n="master.colWa">No. WhatsApp</th>
-              <th class="w-110 text-center" data-i18n="master.colStatus">Status</th>
-              <th class="w-130 text-center" data-i18n="master.colAction">Aksi</th>
+              <th class="w-100">ID</th>
+              <th>Nama Anggota</th>
+              <th>No. WhatsApp</th>
+              <th class="w-110 text-center">Status</th>
+              <th class="w-130 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="master-anggota-tbody">
-            <tr><td colspan="5" class="td-muted-center" data-i18n="master.loadMembers">Memuat data anggota...</td></tr>
+            <tr><td colspan="5" class="td-muted-center">Memuat data anggota...</td></tr>
           </tbody>
           </table>
         </div>
@@ -780,27 +780,27 @@
       <div id="tab-master-kategori" class="tab-content">
         <div class="master-form-card mb-16">
           <form id="form-tambah-kategori" class="master-form-row master-add-form">
-            <label for="input-tipe-kategori" class="sr-only" data-i18n="master.catType">Tipe Kategori Kas</label>
-            <select id="input-tipe-kategori" class="form-control w-140 cdrop" required data-i18n-aria="master.catType" aria-label="Tipe Kategori Kas">
-              <option value="Masuk" data-i18n="master.cashIn">Kas Masuk</option>
-              <option value="Keluar" data-i18n="master.cashOut">Kas Keluar</option>
+            <label for="input-tipe-kategori" class="sr-only">Tipe Kategori Kas</label>
+            <select id="input-tipe-kategori" class="form-control w-140 cdrop" required aria-label="Tipe Kategori Kas">
+              <option value="Masuk">Kas Masuk</option>
+              <option value="Keluar">Kas Keluar</option>
             </select>
-            <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" data-i18n-ph="master.catPh" placeholder="Nama Kategori Baru..." required>
-            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            <input type="text" id="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required>
+            <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </form>
         </div>
         <div class="table-responsive table-scrollable max-h-45vh master-table-wrapper">
           <table class="m-0 table-master table-master-kategori" id="table-master-kategori">
           <thead>
             <tr>
-              <th class="w-110" data-i18n="master.colId">ID</th>
-              <th data-i18n="master.colCat">Nama Kategori</th>
-              <th class="w-120 text-center" data-i18n="master.colFlow">Tipe Arus</th>
-              <th class="w-100 text-center" data-i18n="master.colAction">Aksi</th>
+              <th class="w-110">ID</th>
+              <th>Nama Kategori</th>
+              <th class="w-120 text-center">Tipe Arus</th>
+              <th class="w-100 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="master-kategori-tbody">
-            <tr><td colspan="4" class="td-muted-center" data-i18n="master.loadCats">Memuat data kategori...</td></tr>
+            <tr><td colspan="4" class="td-muted-center">Memuat data kategori...</td></tr>
           </tbody>
           </table>
         </div>
@@ -809,15 +809,15 @@
       <!-- Tab 3: Bulan Libur -->
       <div id="tab-master-skipped" class="tab-content">
         <div class="master-form-card mb-16 skip-month-body">
-          <p class="text-muted mb-12 master-skip-hint" data-i18n="master.skipHint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
+          <p class="text-muted mb-12 master-skip-hint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
           <div class="skip-month-input-row">
-            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-i18n-data-ph="master.skipPh" data-placeholder="Pilih bulan libur..." />
-            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span data-i18n="master.add">Tambah</span></button>
+            <input type="month" id="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." />
+            <button class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus"></i> <span>Tambah</span></button>
           </div>
         </div>
         <div class="master-table-wrapper master-skipped-card-panel">
           <div id="skipped-months-list" class="skipped-months-container">
-            <div class="text-muted" data-i18n="master.loadSkip">Memuat data bulan libur...</div>
+            <div class="text-muted">Memuat data bulan libur...</div>
           </div>
         </div>
       </div>
@@ -838,7 +838,7 @@
             <p>Perbarui identitas, nomor WhatsApp, dan status keanggotaan</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <form id="form-edit-master-anggota">
@@ -898,7 +898,7 @@
             <p>Informasi pos arus kas dan tindakan penghapusan</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <input type="hidden" id="edit-master-kategori-id">
@@ -935,21 +935,21 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Sinkronisasi // Antrean</span>
-            <h2 id="modal-offline-queue-title" data-i18n="queue.title">Antrean Transaksi Offline</h2>
-            <p data-i18n="queue.subtitle">Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
+            <h2 id="modal-offline-queue-title">Antrean Transaksi Offline</h2>
+            <p>Data tersimpan di perangkat lokal, siap disinkronkan ke server</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
-      <div class="queue-status-bar"><span><i class="ph-fill ph-wifi-high"></i> <span data-i18n="queue.status">Status antrean</span></span><span class="queue-pending-label" data-i18n="queue.pending">Tersimpan lokal</span></div>
+      <div class="queue-status-bar"><span><i class="ph-fill ph-wifi-high"></i> <span>Status antrean</span></span><span class="queue-pending-label">Tersimpan lokal</span></div>
       <div class="queue-actions">
-        <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> <span data-i18n="queue.refresh">Refresh</span></button>
-        <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> <span data-i18n="queue.syncNow">Sinkron Sekarang</span></button>
+        <button class="btn btn-outline" data-action="refresh-offline"><i class="ph ph-arrow-clockwise"></i> <span>Refresh</span></button>
+        <button class="btn btn-primary" data-action="sync-now"><i class="ph-bold ph-arrows-clockwise"></i> <span>Sinkron Sekarang</span></button>
       </div>
 
       <div id="offline-queue-list" class="offline-queue-container">
-        <div class="text-muted" data-i18n="queue.loading">Memuat antrean...</div>
+        <div class="text-muted">Memuat antrean...</div>
       </div>
     </div>
   </div>
@@ -1233,16 +1233,16 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Transaksi // Catat Baru</span>
-            <h2 id="modal-transaksi-title" data-i18n="trx.title">Catat Transaksi Baru</h2>
-            <p data-i18n="trx.subtitle">Pilih tab pembayaran iuran anggota atau pencatatan kas operasional</p>
+            <h2 id="modal-transaksi-title">Catat Transaksi Baru</h2>
+            <p>Pilih tab pembayaran iuran anggota atau pencatatan kas operasional</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <div class="tab-header">
-        <button class="tab-btn active" id="btn-tab-iuran" data-action="switch-tab" data-tab="iuran" data-i18n="trx.tabDues">Iuran Anggota</button>
-        <button class="tab-btn" id="btn-tab-operasional" data-action="switch-tab" data-tab="operasional" data-i18n="trx.tabOps">Kas Operasional</button>
+        <button class="tab-btn active" id="btn-tab-iuran" data-action="switch-tab" data-tab="iuran">Iuran Anggota</button>
+        <button class="tab-btn" id="btn-tab-operasional" data-action="switch-tab" data-tab="operasional">Kas Operasional</button>
       </div>
 
       <div class="tab-content active" id="tab-iuran">
@@ -1250,12 +1250,12 @@
           <div class="modal-grid split-body split-transaction-body">
             <div class="modal-side-info">
               <div class="form-group">
-                <label for="iuran-kategori" data-i18n="trx.category">Kategori</label>
-                <select id="iuran-kategori" class="form-control cdrop" required data-i18n-aria="trx.catAria" aria-label="Kategori Iuran"></select>
+                <label for="iuran-kategori">Kategori</label>
+                <select id="iuran-kategori" class="form-control cdrop" required aria-label="Kategori Iuran"></select>
               </div>
               
               <div class="form-group">
-                <label data-i18n="trx.nominalEach">Nominal (per orang)</label>
+                <label>Nominal (per orang)</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
                   <input type="text" id="iuran-nominal" class="form-control" required inputmode="numeric" value="10.000">
@@ -1264,8 +1264,8 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="iuran-bulan" data-i18n="trx.month">Bulan</label>
-                  <select id="iuran-bulan" class="form-control cdrop" required data-i18n-aria="trx.monthAria" aria-label="Bulan Iuran">
+                  <label for="iuran-bulan">Bulan</label>
+                  <select id="iuran-bulan" class="form-control cdrop" required aria-label="Bulan Iuran">
                     <option value="Januari">Januari</option> <option value="Februari">Februari</option> <option value="Maret">Maret</option>
                     <option value="April">April</option> <option value="Mei">Mei</option> <option value="Juni">Juni</option>
                     <option value="Juli">Juli</option> <option value="Agustus">Agustus</option> <option value="September">September</option>
@@ -1273,36 +1273,36 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label data-i18n="trx.year">Tahun</label>
+                  <label>Tahun</label>
                   <input type="number" id="iuran-tahun" class="form-control" required min="2000" max="2100">
                 </div>
               </div>
 
               <div class="summary-card">
-                <div class="summary-item"><span data-i18n="trx.selected">Terpilih:</span> <span id="summary-count">0 Orang</span></div>
-                <div class="summary-item"><span data-i18n="trx.amount">Nominal:</span> <span id="summary-nominal">Rp 0</span></div>
-                <div class="summary-total"><span data-i18n="trx.totalCash">TOTAL KAS:</span> <span id="summary-total">Rp 0</span></div>
+                <div class="summary-item"><span>Terpilih:</span> <span id="summary-count">0 Orang</span></div>
+                <div class="summary-item"><span>Nominal:</span> <span id="summary-nominal">Rp 0</span></div>
+                <div class="summary-total"><span>TOTAL KAS:</span> <span id="summary-total">Rp 0</span></div>
               </div>
               
-              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-iuran" data-i18n="trx.saveDues">SIMPAN IURAN</button>
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-iuran">SIMPAN IURAN</button>
             </div>
 
             <div class="modal-main-selection">
               <div class="selection-header-row">
                 <label class="selection-label">
-                  <span data-i18n="trx.pickMembers">Pilih Anggota</span> <span class="badge-count-terpilih" id="count-terpilih">0</span>
+                  <span>Pilih Anggota</span> <span class="badge-count-terpilih" id="count-terpilih">0</span>
                 </label>
-                <button type="button" id="btn-pilih-semua" class="btn btn-outline btn-select-all" data-i18n="trx.pickAll">Pilih Semua</button>
+                <button type="button" id="btn-pilih-semua" class="btn btn-outline btn-select-all">Pilih Semua</button>
               </div>
 
               <div class="search-wrapper mb-16">
                 <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="search-anggota-iuran" class="form-control" data-i18n-ph="rekap.searchPh" placeholder="Cari nama anggota...">
+                <input type="text" id="search-anggota-iuran" class="form-control" placeholder="Cari nama anggota...">
               </div>
 
               <div class="checkbox-grid-wrapper">
                 <div class="checkbox-grid" id="iuran-checkbox-anggota">
-                  <div class="text-muted" data-i18n="trx.loadMembers">Memuat daftar anggota...</div>
+                  <div class="text-muted">Memuat daftar anggota...</div>
                 </div>
               </div>
             </div>
@@ -1315,20 +1315,20 @@
           <div class="modal-grid split-body split-transaction-body">
             <div class="modal-side-info">
               <div class="form-group">
-                <label for="ops-tipe" data-i18n="trx.cashType">Tipe Kas</label>
-                <select id="ops-tipe" class="form-control cdrop" required data-i18n-aria="trx.typeAria" aria-label="Tipe Kas">
-                  <option value="Keluar" data-i18n="trx.outOpt">Pengeluaran (-)</option>
-                  <option value="Masuk" data-i18n="trx.inOpt">Pemasukan (+)</option>
+                <label for="ops-tipe">Tipe Kas</label>
+                <select id="ops-tipe" class="form-control cdrop" required aria-label="Tipe Kas">
+                  <option value="Keluar">Pengeluaran (-)</option>
+                  <option value="Masuk">Pemasukan (+)</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label for="ops-kategori" data-i18n="trx.category">Kategori</label>
-                <select id="ops-kategori" class="form-control cdrop" required data-i18n-aria="trx.catTrxAria" aria-label="Kategori Transaksi Kas"></select>
+                <label for="ops-kategori">Kategori</label>
+                <select id="ops-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi Kas"></select>
               </div>
 
               <div class="form-group">
-                <label data-i18n="trx.nominal">Nominal</label>
+                <label>Nominal</label>
                 <div class="input-with-prefix">
                   <span>Rp</span>
                   <input type="text" id="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
@@ -1336,23 +1336,23 @@
               </div>
               
               <div class="summary-card">
-                <div class="summary-item"><span data-i18n="trx.kind">Jenis:</span> <span id="summary-ops-tipe">Pengeluaran</span></div>
-                <div class="summary-item"><span data-i18n="trx.nominal">Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
+                <div class="summary-item"><span>Jenis:</span> <span id="summary-ops-tipe">Pengeluaran</span></div>
+                <div class="summary-item"><span>Nominal:</span> <span id="summary-ops-nominal">Rp 0</span></div>
                 <div class="summary-total"><span id="summary-ops-label">SALDO BERKURANG:</span> <span id="summary-ops-total">Rp 0</span></div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops" data-i18n="trx.saveTrx">SIMPAN TRANSAKSI</button>
+              <button type="submit" class="btn btn-primary btn-submit-large" id="btn-submit-ops">SIMPAN TRANSAKSI</button>
             </div>
 
             <div class="modal-main-selection">
               <div class="form-group">
-                <label for="ops-anggota" data-i18n="trx.relMember">Terkait Anggota (Opsional)</label>
-                <select id="ops-anggota" class="form-control cdrop" data-search="true" data-i18n-aria="trx.relMemberAria" aria-label="Terkait Anggota"></select>
+                <label for="ops-anggota">Terkait Anggota (Opsional)</label>
+                <select id="ops-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
               </div>
 
               <div class="form-group">
-                <label data-i18n="trx.desc">Keterangan / Keperluan</label>
-                <textarea id="ops-keterangan" class="form-control" rows="5" data-i18n-ph="trx.descPh" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
+                <label>Keterangan / Keperluan</label>
+                <textarea id="ops-keterangan" class="form-control" rows="5" placeholder="Tulis rincian transaksi pengeluaran/pemasukan kas..." required></textarea>
               </div>
             </div>
           </div>
@@ -1371,11 +1371,11 @@
           </div>
           <div class="modal-title-wrap">
             <span class="eyebrow">Transaksi // Koreksi</span>
-            <h2 id="modal-edit-transaksi-title" data-i18n="edit.title">Edit Data Transaksi</h2>
-            <p data-i18n="edit.subtitle">Koreksi nominal, kategori, atau catatan pembukuan</p>
+            <h2 id="modal-edit-transaksi-title">Edit Data Transaksi</h2>
+            <p>Koreksi nominal, kategori, atau catatan pembukuan</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" data-i18n-aria="menu.close" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
 
       <form id="form-edit-transaksi">
@@ -1384,29 +1384,29 @@
           <div class="edit-form-fields">
           <div class="form-row">
           <div class="form-group">
-            <label for="edit-tipe" data-i18n="edit.type">Tipe Transaksi</label>
-            <select id="edit-tipe" class="form-control cdrop" required data-i18n-aria="edit.type" aria-label="Tipe Transaksi">
-              <option value="Masuk" data-i18n="edit.inOpt">Pemasukan (+)</option>
-              <option value="Keluar" data-i18n="edit.outOpt">Pengeluaran (-)</option>
+            <label for="edit-tipe">Tipe Transaksi</label>
+            <select id="edit-tipe" class="form-control cdrop" required aria-label="Tipe Transaksi">
+              <option value="Masuk">Pemasukan (+)</option>
+              <option value="Keluar">Pengeluaran (-)</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="edit-kategori" data-i18n="edit.category">Kategori</label>
-            <select id="edit-kategori" class="form-control cdrop" required data-i18n-aria="edit.catAria" aria-label="Kategori Transaksi"></select>
+            <label for="edit-kategori">Kategori</label>
+            <select id="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
           </div>
         </div>
         <div class="form-group">
-          <label for="edit-nominal" data-i18n="edit.nominal">Nominal (Rp)</label>
+          <label for="edit-nominal">Nominal (Rp)</label>
           <input type="number" id="edit-nominal" class="form-control" required min="1">
         </div>
         <div class="form-group">
-          <label for="edit-anggota" data-i18n="edit.member">Terkait Anggota</label>
-          <select id="edit-anggota" class="form-control cdrop" data-search="true" data-i18n-aria="edit.memberAria" aria-label="Terkait Anggota"></select>
+          <label for="edit-anggota">Terkait Anggota</label>
+          <select id="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
         </div>
         <div class="form-row">
            <div class="form-group">
-            <label for="edit-bulan" data-i18n="edit.month">Bulan</label>
-            <select id="edit-bulan" class="form-control cdrop" data-i18n-aria="edit.monthAria" aria-label="Bulan Iuran">
+            <label for="edit-bulan">Bulan</label>
+            <select id="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
               <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
               <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
               <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
@@ -1414,20 +1414,20 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="edit-tahun" data-i18n="edit.year">Tahun</label>
+            <label for="edit-tahun">Tahun</label>
             <input type="number" id="edit-tahun" class="form-control">
           </div>
         </div>
         <div class="form-group">
-          <label for="edit-keterangan" data-i18n="edit.note">Keterangan</label>
+          <label for="edit-keterangan">Keterangan</label>
           <input type="text" id="edit-keterangan" class="form-control">
         </div>
         </div>
         <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi">
           <div class="edit-impact-icon"><i class="ph ph-arrows-left-right"></i></div>
-          <h3 data-i18n="edit.impactTitle">Dampak koreksi</h3>
-          <p data-i18n="edit.impactDesc">Perubahan nominal dan tipe akan memperbarui saldo kas serta dicatat dalam log audit.</p>
-          <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span data-i18n="edit.auditNote">Perubahan tersimpan dengan jejak audit.</span></div>
+          <h3>Dampak koreksi</h3>
+          <p>Perubahan nominal dan tipe akan memperbarui saldo kas serta dicatat dalam log audit.</p>
+          <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span>Perubahan tersimpan dengan jejak audit.</span></div>
         </aside>
         </div>
         <div class="modal-footer-actions edit-footer-actions">
@@ -1439,7 +1439,7 @@
               <i class="ph-bold ph-trash"></i> <span>Hapus</span>
             </button>
           </div>
-          <button type="submit" class="btn btn-primary" id="btn-submit-edit" data-i18n="edit.save">SIMPAN PERUBAHAN</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit">SIMPAN PERUBAHAN</button>
         </div>
       </form>
     </div>
@@ -1451,12 +1451,12 @@
       <div class="modal-badge-icon danger">
         <i class="ph-bold ph-trash"></i>
       </div>
-      <h2 id="modal-hapus-title" data-i18n="del.title">Hapus Transaksi?</h2>
-      <p data-i18n="del.msg">Data yang dihapus akan dicatat ke log aktivitas dan saldo kas akan disesuaikan.</p>
+      <h2 id="modal-hapus-title">Hapus Transaksi?</h2>
+      <p>Data yang dihapus akan dicatat ke log aktivitas dan saldo kas akan disesuaikan.</p>
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
-        <button class="btn btn-outline" data-action="cancel-delete" data-i18n="del.cancel">Batal</button>
-        <button class="btn btn-primary btn-danger-solid" data-action="confirm-delete" id="btn-hapus" data-i18n="del.yes">Ya, Hapus</button>
+        <button class="btn btn-outline" data-action="cancel-delete">Batal</button>
+        <button class="btn btn-primary btn-danger-solid" data-action="confirm-delete" id="btn-hapus">Ya, Hapus</button>
       </div>
     </div>
   </div>
@@ -1467,11 +1467,11 @@
       <div class="modal-badge-icon" id="confirm-badge-icon">
         <i class="ph-fill ph-database" id="confirm-icon"></i>
       </div>
-      <h2 id="confirm-title" data-i18n="confirm.title">Konfirmasi Perubahan</h2>
-      <p id="confirm-message" data-i18n="confirm.msg">Apakah Anda yakin ingin menyimpan perubahan ini ke database?</p>
+      <h2 id="confirm-title">Konfirmasi Perubahan</h2>
+      <p id="confirm-message">Apakah Anda yakin ingin menyimpan perubahan ini ke database?</p>
       <div class="modal-dialog-actions">
-        <button type="button" class="btn btn-outline" data-action="cancel-confirm-action" data-i18n="confirm.cancel">Batal</button>
-        <button type="button" class="btn btn-primary" id="btn-confirm-action-submit" data-i18n="confirm.yes">Ya, Lanjutkan</button>
+        <button type="button" class="btn btn-outline" data-action="cancel-confirm-action">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-action-submit">Ya, Lanjutkan</button>
       </div>
     </div>
   </div>
@@ -2036,7 +2036,7 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=122"></script>
-  <script src="js/sw-register.js?v=122" defer></script>
+  <script type="module" src="js/app.js?v=123"></script>
+  <script src="js/sw-register.js?v=123" defer></script>
 </body>
 </html>

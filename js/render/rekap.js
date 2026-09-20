@@ -1,6 +1,6 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { formatCompactRp, escapeHtml } from "../core/utils.js";
+import { formatCompactRp, escapeHtml, calculateMemberRekapProgress } from "../core/utils.js";
 
 export const populateTahunRekap = () => {
   const selects = [
@@ -63,7 +63,7 @@ export const renderTableRekap = () => {
 
   const mapPembayaran = {};
   state.transaksi.forEach((t) => {
-    if (t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
+    if (t.Tipe_Arus === 'Masuk' && t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
       mapPembayaran[`${t.ID_Anggota}_${t.Bulan_Iuran}`] = true;
     }
   });
@@ -150,13 +150,14 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
 
   const state = getState();
   const cardsHTML = filteredAnggota.map((ang, index) => {
-    let lunasBulan = 0;
-    NAMA_BULAN.forEach((bulan) => {
-      if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) lunasBulan++;
-    });
-    const progressPercent = (lunasBulan / NAMA_BULAN.length) * 100;
+    const { lunasBulan, totalOwedMonths, progressPercent, isFullPaid } = calculateMemberRekapProgress(
+      ang.ID_Anggota,
+      mapPembayaran,
+      state.skippedMonths,
+      currentRekapYear,
+      NAMA_BULAN
+    );
     const nomorUrut = String(index + 1).padStart(2, '0');
-    const isFullPaid = lunasBulan === NAMA_BULAN.length;
 
     const monthGridHTML = NAMA_BULAN.map((bulan, idx) => {
       const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
@@ -176,16 +177,21 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       `;
     }).join('');
 
+    const firstUnpaidMonth = NAMA_BULAN.find((b, idx) =>
+      !mapPembayaran[`${ang.ID_Anggota}_${b}`] &&
+      !(state.skippedMonths || []).includes(`${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`)
+    ) || NAMA_BULAN[0];
+
     return `
       <div class="iuran-member-card" data-action="toggle-card" tabindex="0" role="button" aria-expanded="false">
         <div class="iuran-card-header">
           <div class="iuran-card-index">${nomorUrut}</div>
           <div class="iuran-card-main-info">
             <div class="iuran-card-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</div>
-            <div class="iuran-progress-subtext">${lunasBulan}/12 Bulan Lunas</div>
+            <div class="iuran-progress-subtext">${lunasBulan}/${totalOwedMonths} Bulan Lunas</div>
           </div>
           <div class="iuran-card-status">
-            <span class="iuran-card-badge ${isFullPaid ? 'lunas' : 'pending'}">${isFullPaid ? 'LUNAS' : `${lunasBulan}/12`}</span>
+            <span class="iuran-card-badge ${isFullPaid ? 'lunas' : 'pending'}">${isFullPaid ? 'LUNAS' : `${lunasBulan}/${totalOwedMonths}`}</span>
             <div class="iuran-card-toggle"><i class="ph-bold ph-caret-down"></i></div>
           </div>
         </div>
@@ -195,7 +201,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
         <div class="iuran-card-details">
           <div class="iuran-month-grid">${monthGridHTML}</div>
           <div class="iuran-action-buttons">
-            <button class="iuran-btn-pay admin-only" data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(NAMA_BULAN[new Date().getMonth()])}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
+            <button class="iuran-btn-pay admin-only" data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(firstUnpaidMonth)}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
             <button class="iuran-btn-detail" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-info"></i> Detail</button>
           </div>
         </div>

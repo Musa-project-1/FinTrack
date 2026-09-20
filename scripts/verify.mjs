@@ -103,7 +103,9 @@ if (fs.existsSync(swRegisterPath)) {
   const regSource = fs.readFileSync(swRegisterPath, 'utf8');
   const swVer = (/const CACHE_NAME = 'finkas-v([^']+)';/.exec(swSource) || [])[1];
   const regVer = (/sw\.js\?v=([^'&]+)/.exec(regSource) || [])[1];
-  if (swVer && regVer && swVer !== regVer) {
+  if (!swVer || !regVer) {
+    failures.push('verify: could not read the service-worker version from sw.js and/or js/sw-register.js.');
+  } else if (swVer !== regVer) {
     failures.push(`sw.js CACHE_NAME version ('${swVer}') does not match js/sw-register.js ('${regVer}').`);
   }
 }

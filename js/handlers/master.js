@@ -1,4 +1,3 @@
-import { NAMA_BULAN } from "../core/config.js";
 import { getState, getIsAdminSession } from "../core/state.js";
 import { postToBackend, fetchAuditLogApi } from "../core/api.js";
 import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
@@ -475,7 +474,3 @@ export const hapusMasterKategoriAction = async (idKategori) => {
     }
   });
 };
-
-/* ══════════════════════════════════════════════════════════════════
-   OFFLINE QUEUE UI
-   ══════════════════════════════════════════════════════════════════ */

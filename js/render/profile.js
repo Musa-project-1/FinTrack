@@ -1,6 +1,6 @@
 import { NAMA_BULAN } from "../core/config.js";
 import { getState } from "../core/state.js";
-import { formatRp, escapeHtml } from "../core/utils.js";
+import { formatRp, escapeHtml, calculateMemberContribution } from "../core/utils.js";
 import { openModal } from "../ui/modal.js";
 
 /* ── Member profile modal ──────────────────────────────────────── */
@@ -17,13 +17,12 @@ export const bukaProfilAnggota = (idAnggota) => {
   statusBadge.className = ang.Status_Aktif === 'Aktif' ? 'badge badge-masuk' : 'badge badge-keluar';
 
   const userTrx = state.transaksi.filter((t) => t.ID_Anggota === idAnggota).reverse();
-  let totalKontribusi = 0;
+  const totalKontribusi = calculateMemberContribution(userTrx, idAnggota);
   const bulanCount = {};
   const tahunSet = new Set();
 
   userTrx.forEach((t) => {
-    totalKontribusi += Number(t.Nominal) || 0;
-    if (t.Bulan_Iuran && t.Bulan_Iuran !== '-') {
+    if (t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran && t.Bulan_Iuran !== '-') {
       bulanCount[t.Bulan_Iuran] = (bulanCount[t.Bulan_Iuran] || 0) + 1;
     }
     const year = new Date(t.Timestamp).getFullYear();

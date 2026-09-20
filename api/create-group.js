@@ -104,6 +104,9 @@ async function setAdminCredential(body, headers) {
   const adminPassword = String(body?.adminPassword || '').trim();
 
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
+  const existing = await fsGet(groupDoc(groupId), headers);
+  if (!existing) return { status: false, message: 'Grup tidak ditemukan.' };
+
   if (adminEmail && !isValidEmail(adminEmail)) {
     return { status: false, message: 'Format email admin tidak valid.' };
   }
@@ -128,6 +131,9 @@ async function setGroupPin(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   const pin = cleanPin(body?.pin);
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
+  const existing = await fsGet(groupDoc(groupId), headers);
+  if (!existing) return { status: false, message: 'Grup tidak ditemukan.' };
+
   if (pin.length !== 4) return { status: false, message: 'PIN harus 4 angka.' };
 
   await setPrivateConfig(groupId, { pin_hash: hashSecret(pin, `finkas-pin:${groupId}`) }, headers);
@@ -142,6 +148,9 @@ async function renameGroup(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   const nama = cleanName(body?.nama);
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
+  const existing = await fsGet(groupDoc(groupId), headers);
+  if (!existing) return { status: false, message: 'Grup tidak ditemukan.' };
+
   if (nama.length < 3) return { status: false, message: 'Nama grup minimal 3 huruf.' };
 
   await fsPatch(groupDoc(groupId), { nama }, headers, ['nama']);

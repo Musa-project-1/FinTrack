@@ -119,24 +119,42 @@ export const readSession = (body) => verifySession(String(body?.sessionToken || 
 
 /**
  * True when the session may read the given group's data.
+ * Supports server-side revocation if groupInfo.revokedAfter is present.
  * @param {object|null} session
  * @param {string} groupId
+ * @param {object|null} [groupInfo]
  */
-export const canReadGroup = (session, groupId) => {
+export const canReadGroup = (session, groupId, groupInfo = null) => {
   if (!session) return false;
   if (session.role === ROLES.SUPERADMIN) return true;
-  return Boolean(groupId) && session.gid === groupId;
+  if (!groupId || session.gid !== groupId) return false;
+  if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
+    const revokedSec = typeof groupInfo.revokedAfter === 'number'
+      ? groupInfo.revokedAfter
+      : Math.floor(new Date(groupInfo.revokedAfter).getTime() / 1000);
+    if (session.iat < revokedSec) return false;
+  }
+  return true;
 };
 
 /**
  * True when the session may mutate the given group's data.
+ * Supports server-side revocation if groupInfo.revokedAfter is present.
  * @param {object|null} session
  * @param {string} groupId
+ * @param {object|null} [groupInfo]
  */
-export const canWriteGroup = (session, groupId) => {
+export const canWriteGroup = (session, groupId, groupInfo = null) => {
   if (!session) return false;
   if (session.role === ROLES.SUPERADMIN) return true;
-  return session.role === ROLES.GROUP_ADMIN && Boolean(groupId) && session.gid === groupId;
+  if (session.role !== ROLES.GROUP_ADMIN || !groupId || session.gid !== groupId) return false;
+  if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
+    const revokedSec = typeof groupInfo.revokedAfter === 'number'
+      ? groupInfo.revokedAfter
+      : Math.floor(new Date(groupInfo.revokedAfter).getTime() / 1000);
+    if (session.iat < revokedSec) return false;
+  }
+  return true;
 };
 
 /* ── Secret hashing (scrypt) ─────────────────────────────────────── */

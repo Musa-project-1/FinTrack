@@ -103,9 +103,17 @@ async function loginWithGoogle(body, headers, ip) {
 
   const gData = await googleRes.json();
 
-  const expectedClientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
-  if (expectedClientId && !isAccessToken && gData.aud !== expectedClientId) {
-    return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
+  const DEFAULT_GOOGLE_CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
+  const expectedClientId = (
+    process.env.GOOGLE_CLIENT_ID ||
+    process.env.VITE_GOOGLE_CLIENT_ID ||
+    DEFAULT_GOOGLE_CLIENT_ID
+  ).trim();
+
+  if (!isAccessToken) {
+    if (!gData.aud || gData.aud !== expectedClientId) {
+      return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
+    }
   }
 
   const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;

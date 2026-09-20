@@ -174,6 +174,14 @@ export const clearGroupSession = (gid) => {
   persistGroupSessions();
 };
 
+/** Clear all stored group tokens. */
+export const clearAllGroupSessions = () => {
+  for (const k of Object.keys(groupSessions)) {
+    delete groupSessions[k];
+  }
+  persistGroupSessions();
+};
+
 /** @type {string} Signed token for the signed-in admin (group admin or superadmin). */
 let adminSessionToken = safelyRead(localStorage, ADMIN_SESSION_KEY);
 
@@ -231,11 +239,12 @@ export const setAdminEmail = (email) => {
   persistSessionField(ADMIN_EMAIL_KEY, adminUserEmail);
 };
 
-/** Drop the admin session entirely. */
+/** Drop the admin session and all group credentials. */
 export const clearAdminSession = () => {
   setAdminSession('');
   setAdminRole('');
   setAdminEmail('');
+  clearAllGroupSessions();
 };
 
 /**

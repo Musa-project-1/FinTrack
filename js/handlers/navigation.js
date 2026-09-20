@@ -16,10 +16,7 @@ export const closeActiveModal = () => {
   if (active) closeModal(active.id);
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   ADMIN UI MANAGEMENT
-   ══════════════════════════════════════════════════════════════════ */
-
+/* ── History Filter ─────────────────────────────────────────────── */
 
 export const setHistoryFilter = (filter, btn) => {
   setCurrentHistoryFilter(filter);

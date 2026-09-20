@@ -27,8 +27,14 @@ const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHL
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
 
 /** Optimistic rows get a clearly temporary id until the server confirms. */
-const tempTransactionId = () =>
-  `TRX-TEMP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+const tempTransactionId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `TRX-TEMP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  }
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  return `TRX-TEMP-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+};
 
 /**
  * Deliver a mutation, queueing it when the device is offline or unreachable.
@@ -486,7 +492,8 @@ export const submitEditTransaksi = async (e) => {
         if (!res) return showToast("Tidak dapat terhubung ke server.", "error");
         if (!res.status) return showToast(res.message, "error");
 
-        showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${idTransaksi} berhasil diperbarui.`);
+        const finalId = res.data?.idTransaksi || idTransaksi;
+        showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
         closeModal("modal-edit-transaksi");
         await refreshAppData();
       }

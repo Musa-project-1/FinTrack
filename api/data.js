@@ -72,6 +72,9 @@ export default async function handler(req, res) {
       const headers = await requireFirestoreHeaders();
 
       if (action === 'audit') {
+        if (!canWriteGroup(session, groupId)) {
+          return sendJson(res, 403, { status: false, message: 'Hanya admin yang dapat membaca riwayat audit.' });
+        }
         return sendJson(res, 200, { status: true, data: { log: await readAuditLog(groupId, headers) } });
       }
       return sendJson(res, 200, { status: true, data: await readGroupData(groupId, headers) });

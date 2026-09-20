@@ -20,7 +20,8 @@ import {
   signSession
 } from './_session.js';
 
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS_IP = 5;
+const MAX_ATTEMPTS_GROUP = 25;
 const LOCK_WINDOW_MS = 5 * 60 * 1000;
 const GENERIC_PIN_ERROR = 'PIN salah.';
 
@@ -62,14 +63,18 @@ export default async function handler(req, res) {
     }
 
     const ip = clientIp(req);
-    const attemptKey = `pin:${groupId}:${ip}`;
-    const lock = await checkRateLimit(attemptKey);
-    if (lock.locked) {
-      return sendJson(res, 429, {
-        status: false,
-        message: `Terlalu banyak percobaan. Coba lagi dalam ${lock.retryAfterSec} detik.`,
-        data: { retryAfterSec: lock.retryAfterSec }
-      });
+    const ipKey = `pin:${groupId}:${ip}`;
+    const groupKey = `pin:${groupId}`;
+
+    for (const key of [ipKey, groupKey]) {
+      const lock = await checkRateLimit(key);
+      if (lock.locked) {
+        return sendJson(res, 429, {
+          status: false,
+          message: `Terlalu banyak percobaan. Coba lagi dalam ${lock.retryAfterSec} detik.`,
+          data: { retryAfterSec: lock.retryAfterSec }
+        });
+      }
     }
 
     const headers = await requireFirestoreHeaders();
@@ -93,13 +98,18 @@ export default async function handler(req, res) {
     }
 
     if (!secretMatches(pin, candidate, pinScope(groupId), pinScope(groupId))) {
-      const attempt = await registerFailedAttempt(attemptKey, MAX_ATTEMPTS, LOCK_WINDOW_MS);
+      const [attemptIp, attemptGroup] = await Promise.all([
+        registerFailedAttempt(ipKey, MAX_ATTEMPTS_IP, LOCK_WINDOW_MS),
+        registerFailedAttempt(groupKey, MAX_ATTEMPTS_GROUP, LOCK_WINDOW_MS)
+      ]);
       await writeAuditLog(groupId, 'PIN_SALAH', `Percobaan gagal dari ${ip}`, headers);
-      if (attempt.locked) {
+      const isLocked = attemptIp.locked || attemptGroup.locked;
+      if (isLocked) {
+        const retryAfterSec = Math.max(attemptIp.retryAfterSec || 0, attemptGroup.retryAfterSec || 0);
         return sendJson(res, 429, {
           status: false,
-          message: `Salah ${MAX_ATTEMPTS} kali. Terkunci ${attempt.retryAfterSec} detik.`,
-          data: { retryAfterSec: attempt.retryAfterSec }
+          message: `Terlalu banyak percobaan salah. Terkunci ${retryAfterSec} detik.`,
+          data: { retryAfterSec }
         });
       }
       return sendJson(res, 401, { status: false, message: GENERIC_PIN_ERROR });
@@ -112,7 +122,7 @@ export default async function handler(req, res) {
         console.error('[finkas] Legacy pin_hash cleanup failed:', err?.message));
     }
 
-    await clearRateLimit(attemptKey);
+    await clearRateLimit(ipKey);
     await writeAuditLog(groupId, 'PIN_BENAR', `Masuk grup dari ${ip}`, headers);
 
     return sendJson(res, 200, {

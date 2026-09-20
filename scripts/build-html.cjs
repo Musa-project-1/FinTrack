@@ -23,17 +23,29 @@ const modalFiles = [
   'tampilan.html'
 ];
 
+const dirFiles = fs.readdirSync(modalsDir).filter(f => f.endsWith('.html'));
+const dirSet = new Set(dirFiles);
+const declaredSet = new Set(modalFiles);
+
+for (const file of modalFiles) {
+  if (!dirSet.has(file)) {
+    throw new Error(`[build:html] Declared modal fragment "${file}" does not exist in ${modalsDir}`);
+  }
+}
+
+for (const file of dirFiles) {
+  if (!declaredSet.has(file)) {
+    throw new Error(`[build:html] Found untracked modal fragment "${file}" in ${modalsDir} that is not listed in modalFiles.`);
+  }
+}
+
 let template = fs.readFileSync(templatePath, 'utf8');
 
 const modalsContent = modalFiles
   .map(file => {
     const filePath = path.join(modalsDir, file);
-    if (fs.existsSync(filePath)) {
-      return `  <!-- === Modal Module: ${file} === -->\n` + fs.readFileSync(filePath, 'utf8').trim();
-    }
-    return '';
+    return `  <!-- === Modal Module: ${file} === -->\n` + fs.readFileSync(filePath, 'utf8').trim();
   })
-  .filter(Boolean)
   .join('\n\n');
 
 const marker = '<!-- @@INJECT_MODALS@@ -->';

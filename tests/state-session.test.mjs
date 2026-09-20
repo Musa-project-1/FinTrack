@@ -82,10 +82,11 @@ test('an admin session toggles the admin and superadmin flags', () => {
   assert.equal(state.getIsSuperAdmin(), true);
 });
 
-test('clearing the admin session clears every field', () => {
+test('clearing the admin session clears every field and group sessions', () => {
   state.setAdminSession('admin-token');
   state.setAdminRole('superadmin');
   state.setAdminEmail('owner@finkas.id');
+  state.setGroupSession('GRP-TO-CLEAR', 'token-to-clear');
 
   state.clearAdminSession();
 
@@ -94,6 +95,7 @@ test('clearing the admin session clears every field', () => {
   assert.equal(state.getAdminEmail(), '');
   assert.equal(state.getIsAdminSession(), false);
   assert.equal(state.getIsSuperAdmin(), false);
+  assert.equal(state.getGroupSession('GRP-TO-CLEAR'), '');
   assert.equal(localStorage.getItem(ADMIN_SESSION_KEY), null);
 });
 

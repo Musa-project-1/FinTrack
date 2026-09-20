@@ -45,24 +45,24 @@ const cleanDigits = (value, max) => String(value ?? '').replace(/\D/g, '').slice
  *            bulanIuran: string, tahunIuran: string, keterangan: string}|{error: string}}
  */
 function parseTransactionInput(dataForm) {
-  const nominal = Number(dataForm?.nominal);
+  const nominal = Number(dataForm?.nominal ?? dataForm?.Nominal);
   if (!Number.isFinite(nominal) || nominal <= 0) return { error: 'Nominal transaksi harus lebih besar dari 0.' };
   if (nominal > 1_000_000_000_000) return { error: 'Nominal transaksi melebihi batas wajar.' };
 
-  const tipeArus = dataForm?.tipeArus;
+  const tipeArus = dataForm?.tipeArus ?? dataForm?.Tipe_Arus;
   if (!ARUS.includes(tipeArus)) return { error: 'Tipe arus harus Masuk atau Keluar.' };
 
-  const idKategori = cleanText(dataForm?.idKategori, 40);
+  const idKategori = cleanText(dataForm?.idKategori ?? dataForm?.ID_Kategori, 40);
   if (!idKategori || idKategori === '-') return { error: 'Kategori transaksi harus dipilih.' };
 
   return {
     nominal: Math.round(nominal),
     tipeArus,
     idKategori,
-    idAnggota: cleanText(dataForm?.idAnggota, 40) || '-',
-    bulanIuran: cleanText(dataForm?.bulanIuran, 20) || '-',
-    tahunIuran: cleanText(dataForm?.tahunIuran, 4) || '-',
-    keterangan: cleanText(dataForm?.keterangan, 200)
+    idAnggota: cleanText(dataForm?.idAnggota ?? dataForm?.ID_Anggota, 40) || '-',
+    bulanIuran: cleanText(dataForm?.bulanIuran ?? dataForm?.Bulan_Iuran, 20) || '-',
+    tahunIuran: cleanText(dataForm?.tahunIuran ?? dataForm?.Tahun_Iuran, 4) || '-',
+    keterangan: cleanText(dataForm?.keterangan ?? dataForm?.Keterangan, 200)
   };
 }
 
@@ -73,13 +73,17 @@ function parseTransactionInput(dataForm) {
 export const findDuplicateIuran = (transactions, input, excludeId = null) =>
   transactions.find((t) =>
     (!excludeId || t.ID_Transaksi !== excludeId) &&
+    t.Tipe_Arus === 'Masuk' &&
     t.ID_Anggota === input.idAnggota &&
     t.Bulan_Iuran === input.bulanIuran &&
     String(t.Tahun_Iuran) === String(input.tahunIuran)
   );
 
-const isIuranPayment = (input) =>
-  input.idAnggota !== '-' && input.bulanIuran !== '-' && input.tahunIuran !== '-';
+export const isIuranPayment = (input) =>
+  input?.tipeArus === 'Masuk' &&
+  input?.idAnggota !== '-' &&
+  input?.bulanIuran !== '-' &&
+  input?.tahunIuran !== '-';
 
 /* ── Transactions ────────────────────────────────────────────────── */
 
@@ -162,30 +166,46 @@ export async function addBulkTransactions(gid, payload, headers) {
   }
 
   const timestamp = nowIso();
-  const writes = accepted.map((input) => {
-    const idTrx = isIuranPayment(input) ? iuranId(gid, input) : newId('TRX');
-    return {
-      update: {
-        name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
-        fields: encodeFields({
-          ID_Transaksi: idTrx,
-          Timestamp: timestamp,
-          Tipe_Arus: input.tipeArus,
-          ID_Kategori: input.idKategori,
-          ID_Anggota: input.idAnggota,
-          Bulan_Iuran: input.bulanIuran,
-          Tahun_Iuran: input.tahunIuran,
-          Nominal: input.nominal,
-          Keterangan: input.keterangan,
-          groupId: gid
-        })
-      }
-    };
-  });
+  const writeResults = await Promise.all(
+    accepted.map(async (input) => {
+      const isIuran = isIuranPayment(input);
+      const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
+      const doc = {
+        ID_Transaksi: idTrx,
+        Timestamp: timestamp,
+        Tipe_Arus: input.tipeArus,
+        ID_Kategori: input.idKategori,
+        ID_Anggota: input.idAnggota,
+        Bulan_Iuran: input.bulanIuran,
+        Tahun_Iuran: input.tahunIuran,
+        Nominal: input.nominal,
+        Keterangan: input.keterangan,
+        groupId: gid
+      };
 
-  await fsCommit(writes, headers);
-  await writeAuditLog(gid, 'TAMBAH_IURAN_MASSAL', `${accepted.length} iuran dicatat, ${skipped.length} dilewati`, headers);
-  return ok(`${accepted.length} transaksi massal berhasil disimpan.`, { inserted: accepted.length, skipped });
+      if (isIuran) {
+        const created = await fsCreateIfAbsent(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
+        if (!created) {
+          return { ok: false, idAnggota: input.idAnggota };
+        }
+      } else {
+        await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
+      }
+      return { ok: true, idAnggota: input.idAnggota };
+    })
+  );
+
+  let insertedCount = 0;
+  for (const r of writeResults) {
+    if (r.ok) {
+      insertedCount += 1;
+    } else {
+      skipped.push(r.idAnggota);
+    }
+  }
+
+  await writeAuditLog(gid, 'TAMBAH_IURAN_MASSAL', `${insertedCount} iuran dicatat, ${skipped.length} dilewati`, headers);
+  return ok(`${insertedCount} transaksi massal berhasil disimpan.`, { inserted: insertedCount, skipped });
 }
 
 export async function editTransaction(gid, payload, headers) {
@@ -198,26 +218,63 @@ export async function editTransaction(gid, payload, headers) {
   const existing = await fsGet(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
   if (!existing) return fail('Transaksi tidak ditemukan.');
 
-  if (isIuranPayment(input)) {
+  const isIuran = isIuranPayment(input);
+  if (isIuran) {
     const transaksi = await readTransactions(gid, headers);
     if (findDuplicateIuran(transaksi, input, idTarget)) {
       return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
     }
   }
 
-  const updated = {
-    Tipe_Arus: input.tipeArus,
-    ID_Kategori: input.idKategori,
-    ID_Anggota: input.idAnggota,
-    Bulan_Iuran: input.bulanIuran,
-    Tahun_Iuran: input.tahunIuran,
-    Nominal: input.nominal,
-    Keterangan: input.keterangan
-  };
+  const wasIuran =
+    existing.Tipe_Arus === 'Masuk' &&
+    existing.ID_Anggota &&
+    existing.ID_Anggota !== '-' &&
+    existing.Bulan_Iuran &&
+    existing.Bulan_Iuran !== '-' &&
+    existing.Tahun_Iuran &&
+    existing.Tahun_Iuran !== '-';
 
-  await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, updated, headers, Object.keys(updated));
-  await writeAuditLog(gid, 'EDIT_TRANSAKSI', `ID: ${idTarget}`, headers);
-  return ok('Transaksi berhasil diupdate.');
+  const targetId = isIuran ? iuranId(gid, input) : (wasIuran ? newId('TRX') : idTarget);
+
+  if (targetId !== idTarget) {
+    const doc = {
+      ID_Transaksi: targetId,
+      Timestamp: existing.Timestamp || nowIso(),
+      Tipe_Arus: input.tipeArus,
+      ID_Kategori: input.idKategori,
+      ID_Anggota: input.idAnggota,
+      Bulan_Iuran: input.bulanIuran,
+      Tahun_Iuran: input.tahunIuran,
+      Nominal: input.nominal,
+      Keterangan: input.keterangan,
+      groupId: gid
+    };
+
+    if (isIuran) {
+      const created = await fsCreateIfAbsent(`${col(gid, TRANSACTIONS_COLLECTION)}/${targetId}`, doc, headers);
+      if (!created) {
+        return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
+      }
+    } else {
+      await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${targetId}`, doc, headers);
+    }
+    await fsDelete(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
+  } else {
+    const updated = {
+      Tipe_Arus: input.tipeArus,
+      ID_Kategori: input.idKategori,
+      ID_Anggota: input.idAnggota,
+      Bulan_Iuran: input.bulanIuran,
+      Tahun_Iuran: input.tahunIuran,
+      Nominal: input.nominal,
+      Keterangan: input.keterangan
+    };
+    await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, updated, headers, Object.keys(updated));
+  }
+
+  await writeAuditLog(gid, 'EDIT_TRANSAKSI', `ID: ${idTarget}${targetId !== idTarget ? ` -> ${targetId}` : ''}`, headers);
+  return ok('Transaksi berhasil diupdate.', { idTransaksi: targetId });
 }
 
 /* ── Group-scoped document deletion ──────────────────────────────── */
@@ -359,9 +416,97 @@ export async function noteClientAudit(gid, payload, headers) {
 /* ── Restore snapshot ─────────────────────────────────────────────── */
 
 /**
- * Replace the group's data collections with a validated JSON backup snapshot.
+ * Validate full snapshot data shape, limits and record integrity before writing.
+ * Exported so both backup and restore paths can be tested without network calls.
  *
- * Strategy: delete all existing anggota, kategori, transaksi and settings docs,
+ * @param {object} data
+ * @returns {{valid: boolean, error?: string, data?: {anggota: Array, kategori: Array, transaksi: Array, skippedMonths: Array}}}
+ */
+export function validateSnapshot(data) {
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Format snapshot tidak valid.' };
+  }
+  if (!Array.isArray(data.anggota) || !Array.isArray(data.transaksi)) {
+    return { valid: false, error: 'Format snapshot tidak valid.' };
+  }
+
+  const anggota = data.anggota;
+  const kategori = Array.isArray(data.kategori) ? data.kategori : [];
+  const transaksi = data.transaksi;
+  const rawSkipped = data.skippedMonths;
+
+  if (anggota.length > 1000) {
+    return { valid: false, error: 'Snapshot melebihi batas maksimum anggota (1.000).' };
+  }
+  if (kategori.length > 200) {
+    return { valid: false, error: 'Snapshot melebihi batas maksimum kategori (200).' };
+  }
+  if (transaksi.length > 10000) {
+    return { valid: false, error: 'Snapshot melebihi batas maksimum transaksi (10.000).' };
+  }
+  if (Array.isArray(rawSkipped) && rawSkipped.length > 120) {
+    return { valid: false, error: 'Snapshot melebihi batas maksimum bulan dilewati (120).' };
+  }
+
+  const skippedMonths = Array.isArray(rawSkipped)
+    ? rawSkipped.filter((m) => SKIPPED_MONTH_RE.test(m))
+    : [];
+
+  // Validate every record and verify uniqueness before touching Firestore.
+  const seenMember = new Set();
+  for (const a of anggota) {
+    const id = cleanText(a?.ID_Anggota ?? a?.idAnggota, 40);
+    const nama = cleanText(a?.Nama_Anggota ?? a?.namaAnggota, 80);
+    if (!id || !nama) {
+      return { valid: false, error: 'Data anggota di snapshot tidak valid (ID atau Nama kosong).' };
+    }
+    if (seenMember.has(id)) {
+      return { valid: false, error: `Snapshot mengandung duplikat ID_Anggota: ${id}` };
+    }
+    seenMember.add(id);
+  }
+
+  const seenKat = new Set();
+  for (const k of kategori) {
+    const id = cleanText(k?.ID_Kategori ?? k?.idKategori, 40);
+    const tipe = k?.Tipe ?? k?.tipe;
+    if (!id || !ARUS.includes(tipe)) {
+      return { valid: false, error: 'Data kategori di snapshot tidak valid.' };
+    }
+    if (seenKat.has(id)) {
+      return { valid: false, error: `Snapshot mengandung duplikat ID_Kategori: ${id}` };
+    }
+    seenKat.add(id);
+  }
+
+  const seenTrx = new Set();
+  for (const t of transaksi) {
+    const parsed = parseTransactionInput(t);
+    if (parsed.error) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
+    const id = cleanText(t?.ID_Transaksi ?? t?.idTransaksi, 40);
+    if (id) {
+      if (seenTrx.has(id)) {
+        return { valid: false, error: `Snapshot mengandung duplikat ID_Transaksi: ${id}` };
+      }
+      seenTrx.add(id);
+    }
+  }
+
+  return {
+    valid: true,
+    data: {
+      anggota,
+      kategori,
+      transaksi,
+      skippedMonths
+    }
+  };
+}
+
+/**
+ * Restore a full database snapshot into a group.
+ *
+ * Deletes all existing documents in members, categories, and transactions,
  * then write the backup records in batches of 400 (Firestore commit limit).
  * Each record is validated before any writes begin so a malformed backup is
  * rejected cleanly rather than leaving the group in a partial state.
@@ -371,55 +516,12 @@ export async function noteClientAudit(gid, payload, headers) {
  * @param {object} headers
  */
 export async function restoreSnapshot(gid, payload, headers) {
-  const data = payload?.data;
-  if (!data || !Array.isArray(data.anggota) || !Array.isArray(data.transaksi)) {
-    return fail('Format snapshot tidak valid.');
+  const validated = validateSnapshot(payload?.data);
+  if (!validated.valid) {
+    return fail(validated.error);
   }
 
-  const anggota = data.anggota.slice(0, 1000);
-  const kategori = Array.isArray(data.kategori) ? data.kategori.slice(0, 200) : [];
-  const transaksi = data.transaksi.slice(0, 10000);
-  const skippedMonths = Array.isArray(data.skippedMonths)
-    ? data.skippedMonths.filter((m) => SKIPPED_MONTH_RE.test(m)).slice(0, 120)
-    : [];
-
-  // Validate every record and verify uniqueness before touching Firestore.
-  const seenMember = new Set();
-  for (const a of anggota) {
-    const id = cleanText(a?.ID_Anggota, 40);
-    if (!id || !cleanText(a?.Nama_Anggota, 80)) {
-      return fail('Data anggota di snapshot tidak valid (ID atau Nama kosong).');
-    }
-    if (seenMember.has(id)) {
-      return fail(`Snapshot mengandung duplikat ID_Anggota: ${id}`);
-    }
-    seenMember.add(id);
-  }
-
-  const seenKat = new Set();
-  for (const k of kategori) {
-    const id = cleanText(k?.ID_Kategori, 40);
-    if (!id || !ARUS.includes(k?.Tipe)) {
-      return fail('Data kategori di snapshot tidak valid.');
-    }
-    if (seenKat.has(id)) {
-      return fail(`Snapshot mengandung duplikat ID_Kategori: ${id}`);
-    }
-    seenKat.add(id);
-  }
-
-  const seenTrx = new Set();
-  for (const t of transaksi) {
-    const parsed = parseTransactionInput(t);
-    if (parsed.error) return fail(`Transaksi di snapshot tidak valid: ${parsed.error}`);
-    const id = cleanText(t?.ID_Transaksi, 40);
-    if (id) {
-      if (seenTrx.has(id)) {
-        return fail(`Snapshot mengandung duplikat ID_Transaksi: ${id}`);
-      }
-      seenTrx.add(id);
-    }
-  }
+  const { anggota, kategori, transaksi, skippedMonths } = validated.data;
 
   // Delete all existing records in the three data collections.
   for (const collName of [MEMBERS_COLLECTION, CATEGORIES_COLLECTION, TRANSACTIONS_COLLECTION]) {
@@ -436,12 +538,12 @@ export async function restoreSnapshot(gid, payload, headers) {
   for (let i = 0; i < anggota.length; i += 400) {
     const batch = anggota.slice(i, i + 400).map((a) => ({
       update: {
-        name: memberName(gid, MEMBERS_COLLECTION, cleanText(a.ID_Anggota, 40)),
+        name: memberName(gid, MEMBERS_COLLECTION, cleanText(a.ID_Anggota ?? a.idAnggota, 40)),
         fields: encodeFields({
-          ID_Anggota: cleanText(a.ID_Anggota, 40),
-          Nama_Anggota: cleanText(a.Nama_Anggota, 80),
-          Nomor_WA: cleanDigits(a.Nomor_WA, 20),
-          Status_Aktif: STATUSES.includes(a.Status_Aktif) ? a.Status_Aktif : 'Aktif',
+          ID_Anggota: cleanText(a.ID_Anggota ?? a.idAnggota, 40),
+          Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
+          Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
+          Status_Aktif: STATUSES.includes(a.Status_Aktif ?? a.statusAktif) ? (a.Status_Aktif ?? a.statusAktif) : 'Aktif',
           groupId: gid
         })
       }
@@ -453,11 +555,11 @@ export async function restoreSnapshot(gid, payload, headers) {
   for (let i = 0; i < kategori.length; i += 400) {
     const batch = kategori.slice(i, i + 400).map((k) => ({
       update: {
-        name: memberName(gid, CATEGORIES_COLLECTION, cleanText(k.ID_Kategori, 40)),
+        name: memberName(gid, CATEGORIES_COLLECTION, cleanText(k.ID_Kategori ?? k.idKategori, 40)),
         fields: encodeFields({
-          ID_Kategori: cleanText(k.ID_Kategori, 40),
-          Nama_Kategori: cleanText(k.Nama_Kategori, 60),
-          Tipe: k.Tipe,
+          ID_Kategori: cleanText(k.ID_Kategori ?? k.idKategori, 40),
+          Nama_Kategori: cleanText(k.Nama_Kategori ?? k.namaKategori, 60),
+          Tipe: k.Tipe ?? k.tipe,
           groupId: gid
         })
       }
@@ -468,20 +570,20 @@ export async function restoreSnapshot(gid, payload, headers) {
   // Write transaksi.
   for (let i = 0; i < transaksi.length; i += 400) {
     const batch = transaksi.slice(i, i + 400).map((t) => {
-      const idTrx = cleanText(t.ID_Transaksi, 40) || newId('TRX');
+      const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40) || newId('TRX');
       return {
         update: {
           name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
           fields: encodeFields({
             ID_Transaksi: idTrx,
-            Timestamp: cleanText(t.Timestamp, 30) || timestamp,
-            Tipe_Arus: t.Tipe_Arus,
-            ID_Kategori: cleanText(t.ID_Kategori, 40),
-            ID_Anggota: cleanText(t.ID_Anggota, 40) || '-',
-            Bulan_Iuran: cleanText(t.Bulan_Iuran, 20) || '-',
-            Tahun_Iuran: cleanText(t.Tahun_Iuran, 4) || '-',
-            Nominal: Math.round(Number(t.Nominal) || 0),
-            Keterangan: cleanText(t.Keterangan, 200),
+            Timestamp: cleanText(t.Timestamp ?? t.timestamp, 30) || timestamp,
+            Tipe_Arus: t.Tipe_Arus ?? t.tipeArus,
+            ID_Kategori: cleanText(t.ID_Kategori ?? t.idKategori, 40),
+            ID_Anggota: cleanText(t.ID_Anggota ?? t.idAnggota, 40) || '-',
+            Bulan_Iuran: cleanText(t.Bulan_Iuran ?? t.bulanIuran, 20) || '-',
+            Tahun_Iuran: cleanText(t.Tahun_Iuran ?? t.tahunIuran, 4) || '-',
+            Nominal: Math.round(Number(t.Nominal ?? t.nominal) || 0),
+            Keterangan: cleanText(t.Keterangan ?? t.keterangan, 200),
             groupId: gid
           })
         }

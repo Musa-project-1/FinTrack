@@ -69,12 +69,12 @@ export const openModal = (id) => {
  */
 export const closeModal = (id) => {
   const el = document.getElementById(id);
-  if (el) {
-    el.classList.remove('active');
-    if (el._focusHandler) {
-      el.removeEventListener('keydown', el._focusHandler);
-      delete el._focusHandler;
-    }
+  if (!el || !el.classList.contains('active')) return;
+
+  el.classList.remove('active');
+  if (el._focusHandler) {
+    el.removeEventListener('keydown', el._focusHandler);
+    delete el._focusHandler;
   }
   if (!document.querySelector('.modal-overlay.active')) {
     document.body.classList.remove('modal-open');

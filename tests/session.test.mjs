@@ -107,6 +107,21 @@ test('a superadmin may read and write every group', () => {
   assert.equal(canReadGroup(root, 'anything'), true);
 });
 
+test('canReadGroup and canWriteGroup reject sessions issued before revokedAfter', () => {
+  const member = { role: ROLES.MEMBER, gid: GROUP, iat: 1000 };
+  const admin = { role: ROLES.GROUP_ADMIN, gid: GROUP, iat: 1000 };
+
+  // Sessions issued before revokedAfter (1000 < 2000) are rejected
+  assert.equal(canReadGroup(member, GROUP, { revokedAfter: 2000 }), false);
+  assert.equal(canWriteGroup(admin, GROUP, { revokedAfter: 2000 }), false);
+
+  // Sessions issued after revokedAfter (2500 >= 2000) are accepted
+  const freshMember = { role: ROLES.MEMBER, gid: GROUP, iat: 2500 };
+  const freshAdmin = { role: ROLES.GROUP_ADMIN, gid: GROUP, iat: 2500 };
+  assert.equal(canReadGroup(freshMember, GROUP, { revokedAfter: 2000 }), true);
+  assert.equal(canWriteGroup(freshAdmin, GROUP, { revokedAfter: 2000 }), true);
+});
+
 /* ── Secret hashing ──────────────────────────────────────────────── */
 
 test('scrypt hashes round-trip and reject the wrong secret', () => {

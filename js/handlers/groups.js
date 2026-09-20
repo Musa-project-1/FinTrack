@@ -10,6 +10,7 @@
 import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from "../core/config.js";
 import {
   clearAdminSession,
+  clearGroupSession,
   getActiveGroupId,
   getAdminEmail,
   getAdminSession,
@@ -198,6 +199,10 @@ export const enterGroup = (id) => {
 
 /** Keluar dari grup aktif. */
 export const exitGroup = () => {
+  const currentGid = getActiveGroupId();
+  if (currentGid) {
+    clearGroupSession(currentGid);
+  }
   if (!getIsSuperAdmin()) {
     clearAdminSession();
     handleUI();
@@ -229,7 +234,7 @@ const callGroupAdmin = async (body) => {
 export const showCredentialsModal = (info) => {
   latestCreds = { ...info };
   document.getElementById("cred-disp-nama")?.replaceChildren(document.createTextNode(info.nama || "-"));
-  document.getElementById("cred-disp-pin")?.replaceChildren(document.createTextNode(info.pin || "1234"));
+  document.getElementById("cred-disp-pin")?.replaceChildren(document.createTextNode(info.pin || "-"));
   document.getElementById("cred-disp-email")?.replaceChildren(document.createTextNode(info.email || "-"));
   document.getElementById("cred-disp-pwd")?.replaceChildren(document.createTextNode(info.pwd || "-"));
   openModal("modal-group-credentials");
@@ -239,18 +244,27 @@ export const showCredentialsModal = (info) => {
 export const copyGroupWhatsAppAction = async () => {
   const { nama, pin, email, pwd } = latestCreds;
   const origin = window.location.origin;
-  const text = `*AKUN KAS & IURAN FINKAS*
-Grup: ${nama || "Grup Kas"}
 
-📌 *Akses Warga (Lihat Rekap & Kas)*
-PIN Masuk: ${pin || "1234"}
+  const lines = [
+    `*AKUN KAS & IURAN FINKAS*`,
+    `Grup: ${nama || "Grup Kas"}`
+  ];
 
-🔐 *Akses Pengurus (Catat & Edit Kas)*
-Email Admin: ${email || "-"}
-Password Admin: ${pwd || "-"}
+  if (pin && pin !== '-' && pin !== '1234') {
+    lines.push(`\n📌 *Akses Warga (Lihat Rekap & Kas)*\nPIN Masuk: ${pin}`);
+  }
 
-🌐 Akses Aplikasi:
-${origin}`;
+  const hasEmail = email && email !== '-';
+  const hasPwd = pwd && pwd !== '-';
+  if (hasEmail || hasPwd) {
+    const adminLines = [`\n🔐 *Akses Pengurus (Catat & Edit Kas)*`];
+    if (hasEmail) adminLines.push(`Email Admin: ${email}`);
+    if (hasPwd) adminLines.push(`Password Admin: ${pwd}`);
+    lines.push(adminLines.join('\n'));
+  }
+
+  lines.push(`\n🌐 Akses Aplikasi:\n${origin}`);
+  const text = lines.join('\n');
 
   try {
     await navigator.clipboard.writeText(text);

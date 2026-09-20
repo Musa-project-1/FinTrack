@@ -17,6 +17,7 @@ export const cetakStruk = (idTrx) => {
   const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>FINKAS</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${escapeHtml(trx.ID_Transaksi)}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${escapeHtml(tglStr)}</div><div class="row"><span>Tipe Arus:</span><span><b>${escapeHtml(trx.Tipe_Arus.toUpperCase())}</b></span></div><div class="row"><span>Kategori:</span><span>${escapeHtml(namaKat)}</span></div><div class="row"><span>Anggota:</span><span>${escapeHtml(namaAnggota)}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${escapeHtml(trx.Keterangan || '-')}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
 
   const pw = window.open('', '_blank', 'width=400,height=600');
+  if (!pw) return showToast('Izinkan pop-up untuk mencetak bukti transaksi.', 'warning');
   pw.document.write(html);
   pw.document.close();
   pw.focus();
@@ -31,7 +32,7 @@ export const cetakLaporanTahunan = () => {
   const skipSet = new Set(state.skippedMonths || []);
   const mapPembayaran = {};
   state.transaksi.forEach((t) => {
-    if (t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
+    if (t.Tipe_Arus === 'Masuk' && t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
       mapPembayaran[`${t.ID_Anggota}_${t.Bulan_Iuran}`] = true;
     }
   });
@@ -67,6 +68,7 @@ export const cetakLaporanTahunan = () => {
   const html = `<html><head><title>Laporan Rekap Iuran ${currentRekapYear}</title><style>body{font-family:'Segoe UI',sans-serif;padding:20px;color:#111}h2{text-align:center;margin-bottom:5px}p{text-align:center;margin-top:0;color:#555;font-size:14px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{border:1px solid #aaa;padding:8px 4px}th{background-color:#eee;text-transform:uppercase;font-size:11px;text-align:center}@media print{@page{size:landscape;margin:15mm}}</style></head><body><h2>Laporan Rekap Iuran Anggota</h2><p>Tahun: <b>${currentRekapYear}</b> | Dicetak pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p><table><thead><tr><th style="width:30px;">No</th><th style="text-align:left;padding-left:8px;width:180px;">Nama Anggota</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Jul</th><th>Agu</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Des</th></tr></thead><tbody>${tbodyHTML}${totalsRow}</tbody></table>${skippedNote}<p style="text-align:center;color:#777;font-size:11px;margin-top:10px;">Keterangan: &#10003; = Lunas &nbsp;|&nbsp; - = Bulan libur (tidak dihitung tunggakan)</p><div style="margin-top:50px;text-align:right;padding-right:60px;"><p style="text-align:right;color:#111;">Mengetahui,</p><br><br><br><p style="text-align:right;color:#111;"><b>Pengurus Kas</b></p></div></body></html>`;
 
   const pw = window.open('', '_blank');
+  if (!pw) return showToast('Izinkan pop-up untuk mencetak laporan rekap.', 'warning');
   pw.document.write(html);
   pw.document.close();
   pw.focus();
@@ -136,15 +138,15 @@ export const exportToCSV = () => {
   if (state.transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
   closeModal('modal-export');
 
-  const q = (s) => {
+  const q = (s, isNumeric = false) => {
     let str = String(s ?? '');
-    if (/^[=+\-@\t\r]/.test(str)) {
+    if (!isNumeric && /^[=+\-@\t\r]/.test(str)) {
       str = "'" + str;
     }
     return '"' + str.replace(/"/g, '""') + '"';
   };
   const header = ['ID Transaksi', 'Waktu', 'Tipe Arus', 'Kategori', 'Anggota', 'Bulan Iuran', 'Tahun Iuran', 'Nominal', 'Keterangan'];
-  const lines = [header.map(q).join(';')];
+  const lines = [header.map((h) => q(h, false)).join(';')];
 
   [...state.transaksi]
     .sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
@@ -153,16 +155,16 @@ export const exportToCSV = () => {
       const kat = state.kategori.find((k) => k.ID_Kategori === row.ID_Kategori);
       const ang = row.ID_Anggota && row.ID_Anggota !== '-' ? state.anggota.find((a) => a.ID_Anggota === row.ID_Anggota) : null;
       lines.push([
-        row.ID_Transaksi,
-        waktu,
-        row.Tipe_Arus,
-        kat ? kat.Nama_Kategori : (row.ID_Kategori || '-'),
-        ang ? ang.Nama_Anggota : '-',
-        row.Bulan_Iuran || '-',
-        row.Tahun_Iuran || '-',
-        row.Nominal,
-        row.Keterangan || ''
-      ].map(q).join(';'));
+        q(row.ID_Transaksi),
+        q(waktu),
+        q(row.Tipe_Arus),
+        q(kat ? kat.Nama_Kategori : (row.ID_Kategori || '-')),
+        q(ang ? ang.Nama_Anggota : '-'),
+        q(row.Bulan_Iuran || '-'),
+        q(row.Tahun_Iuran || '-'),
+        q(row.Nominal, true),
+        q(row.Keterangan || '')
+      ].join(';'));
     });
 
   // BOM (\uFEFF) agar Excel membaca UTF-8 dengan benar; ';' sesuai locale Excel Indonesia

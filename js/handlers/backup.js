@@ -18,6 +18,13 @@ export const exportJSONBackup = () => {
   }
 
   const state = getState();
+  if (state.transaksi.length > 10000) {
+    return showToast('Jumlah transaksi melebihi batas backup (10.000).', 'error');
+  }
+  if (state.anggota.length > 1000) {
+    return showToast('Jumlah anggota melebihi batas backup (1.000).', 'error');
+  }
+
   const gid = getActiveGroupId();
   const gname = getGroups().find((g) => g.id === gid)?.nama || gid;
   const backupData = {
@@ -78,6 +85,19 @@ export const restoreJSONBackup = (file) => {
       }
 
       const { anggota, kategori, transaksi, skippedMonths } = content.data;
+      if (anggota.length > 1000) {
+        return showToast('File backup melebihi batas maksimum anggota (1.000).', 'error');
+      }
+      if (transaksi.length > 10000) {
+        return showToast('File backup melebihi batas maksimum transaksi (10.000).', 'error');
+      }
+      if (Array.isArray(kategori) && kategori.length > 200) {
+        return showToast('File backup melebihi batas maksimum kategori (200).', 'error');
+      }
+      if (Array.isArray(skippedMonths) && skippedMonths.length > 120) {
+        return showToast('File backup melebihi batas maksimum bulan dilewati (120).', 'error');
+      }
+
       const countTrx = transaksi.length;
       const countAng = anggota.length;
       const srcGroup = content.group?.nama || content.group?.id || 'tak diketahui';
@@ -116,7 +136,8 @@ export const restoreJSONBackup = (file) => {
       saveCache();
       renderAll();
 
-      showToast(`Database berhasil dipulihkan (${countTrx} transaksi)!`, 'success');
+      const countRestored = res.data?.transaksi ?? countTrx;
+      showToast(`Database berhasil dipulihkan (${countRestored} transaksi)!`, 'success');
       closeModal('modal-export');
     } catch (err) {
       console.error('Restore error:', err);

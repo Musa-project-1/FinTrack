@@ -76,8 +76,8 @@ export const dataRequest = async ({ action, payload = {}, needsWrite = false, re
   const result = await apiPost(API.DATA, { ...payload, action, groupId, sessionToken });
   if (!result) return null;
 
-  if (requiresAuth && result.httpStatus === 401) {
-    // The token is gone or expired — drop it so the user is asked for the PIN again.
+  if (requiresAuth && (result.httpStatus === 401 || result.httpStatus === 403)) {
+    // The token is gone, expired, or forbidden/revoked — drop it so the user is asked for the PIN again.
     clearGroupSession(groupId);
     return { ...result, unauthorized: true };
   }

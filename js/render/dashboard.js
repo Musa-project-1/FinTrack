@@ -1,6 +1,6 @@
-import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance } from "../core/utils.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
@@ -96,7 +96,7 @@ export const renderChart = async () => {
   const ctx = chartEl.getContext('2d');
 
   const now = new Date();
-  const startDate = new Date(2025, 10, 1);
+  const startDate = new Date(GROUP_START_YEAR, GROUP_START_MONTH - 1, 1);
   const months = [];
   const monthLabels = [];
   let cursor = new Date(startDate);
@@ -113,39 +113,37 @@ export const renderChart = async () => {
   const skipSet = new Set(state.skippedMonths || []);
   const activeMembers = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
   const monthlyFee = DEFAULT_MONTHLY_FEE;
-  const numActive = activeMembers.length || 1;
 
-  // Target iuran bulanan riil (jumlah anggota aktif x nominal iuran per bulan wajib)
-  const expectedThisMonth = months.map((m) => {
+  // Hoist loop invariant: expected dues per member across the tracked window
+  const expectedTotalPerMember = months.reduce((sum, m) => {
     const key = `${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`;
-    return skipSet.has(key) ? 0 : monthlyFee * numActive;
+    return sum + (skipSet.has(key) ? 0 : monthlyFee);
+  }, 0);
+
+  const windowPeriodSet = new Set(
+    months.map((m) => `${NAMA_BULAN[m.monthIndex]}_${m.year}`)
+  );
+
+  const memberStatus = activeMembers.map((ang) => {
+    const paidTotal = state.transaksi
+      .filter((t) =>
+        t.ID_Anggota === ang.ID_Anggota &&
+        t.Tipe_Arus === 'Masuk' &&
+        t.Bulan_Iuran &&
+        t.Bulan_Iuran !== '-' &&
+        windowPeriodSet.has(`${t.Bulan_Iuran}_${t.Tahun_Iuran}`)
+      )
+      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
+    return { ang, paidTotal, expectedTotal: expectedTotalPerMember, arrears: Math.max(0, expectedTotalPerMember - paidTotal) };
   });
 
-  const totalExpected = expectedThisMonth.reduce((sum, val) => sum + val, 0);
-
-  // Total iuran yang terkumpul dari seluruh anggota aktif
-  const totalCollected = state.transaksi
-    .filter((t) => t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran && t.Bulan_Iuran !== '-')
-    .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
-
-  const healthPct = totalExpected === 0 ? 100 : Math.min(100, Math.round((totalCollected / totalExpected) * 100));
+  const { totalExpected, totalCollected, healthPct } = calculateCompliance(memberStatus);
 
   document.getElementById('stat-health-pct').innerText = `${healthPct}%`;
   document.getElementById('stat-health-fill').style.width = `${healthPct}%`;
   document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari target iuran ${formatRp(totalExpected)} (${healthPct}% kepatuhan).`;
   const noteEl = document.getElementById('stat-health-note');
   if (noteEl) noteEl.innerText = '';
-
-  const memberStatus = activeMembers.map((ang) => {
-    const paidTotal = state.transaksi
-      .filter((t) => t.ID_Anggota === ang.ID_Anggota && t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran && t.Bulan_Iuran !== '-')
-      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
-    const expectedTotal = months.reduce((sum, m) => {
-      const key = `${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`;
-      return sum + (skipSet.has(key) ? 0 : monthlyFee);
-    }, 0);
-    return { ang, paidTotal, expectedTotal, arrears: Math.max(0, expectedTotal - paidTotal) };
-  });
 
   const fullyPaidCount = memberStatus.filter((item) => item.arrears === 0).length;
   const withArrearsCount = memberStatus.filter((item) => item.arrears > 0).length;

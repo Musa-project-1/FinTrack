@@ -202,7 +202,11 @@ document.addEventListener('click', (e) => {
       break;
 
     /* ── Modals ───────────────────────────────────── */
-    case 'close-modal':       closeModal(target.closest('.modal-overlay').id); break;
+    case 'close-modal': {
+      const modalEl = target.closest('.modal-overlay');
+      if (modalEl?.id) closeModal(modalEl.id);
+      break;
+    }
     case 'switch-tab':        switchTab(target.getAttribute('data-tab'), target.closest('.modal-content').closest('.modal-overlay').id); break;
 
     /* ── Member profile ───────────────────────────── */
@@ -299,6 +303,12 @@ document.addEventListener('keydown', (e) => {
     closeHeaderDropdown();
     const activeModal = document.querySelector('.modal-overlay.active');
     if (activeModal) closeModal(activeModal.id);
+  }
+
+  /* Accessibility: activate mobile cards on Enter / Space */
+  if ((e.key === 'Enter' || e.key === ' ') && e.target?.getAttribute('data-action') === 'toggle-card') {
+    e.preventDefault();
+    e.target.click();
   }
 });
 

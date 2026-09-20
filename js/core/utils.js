@@ -244,3 +244,81 @@ export const escapeHtml = (str) => {
   if (str == null) return '';
   return String(str).replace(_ESCAPE_RE, (ch) => _ESCAPE_MAP[ch]);
 };
+
+/* ── Financial & progress calculations ────────────────────────────── */
+
+/**
+ * Calculate paid months and progress percentage for a member in a rekap year,
+ * accounting for skipped months (not owed).
+ *
+ * @param {string} memberId
+ * @param {object} mapPembayaran Key: `${memberId}_${bulan}` -> true
+ * @param {Array<string>} skippedMonths Array of 'MM-YYYY'
+ * @param {string|number} rekapYear
+ * @param {Array<string>} monthNames Array of 12 month names
+ * @returns {{lunasBulan: number, totalOwedMonths: number, progressPercent: number, isFullPaid: boolean}}
+ */
+export const calculateMemberRekapProgress = (
+  memberId,
+  mapPembayaran,
+  skippedMonths = [],
+  rekapYear,
+  monthNames
+) => {
+  const skipSet = new Set(skippedMonths || []);
+  const yearStr = String(rekapYear);
+  const activeMonths = monthNames.filter((_, idx) => {
+    const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${yearStr}`;
+    return !skipSet.has(monthKey);
+  });
+
+  const totalOwedMonths = activeMonths.length;
+  let lunasBulan = 0;
+  activeMonths.forEach((bulan) => {
+    if (mapPembayaran[`${memberId}_${bulan}`]) lunasBulan++;
+  });
+
+  const progressPercent = totalOwedMonths > 0 ? (lunasBulan / totalOwedMonths) * 100 : 100;
+  const isFullPaid = totalOwedMonths === 0 || lunasBulan >= totalOwedMonths;
+
+  return {
+    lunasBulan,
+    totalOwedMonths,
+    progressPercent,
+    isFullPaid
+  };
+};
+
+/**
+ * Calculate total income contributions for a member, excluding outgoing rows.
+ *
+ * @param {Array<object>} transactions
+ * @param {string} memberId
+ * @returns {number}
+ */
+export const calculateMemberContribution = (transactions, memberId) => {
+  if (!Array.isArray(transactions) || !memberId) return 0;
+  return transactions
+    .filter((t) => t.ID_Anggota === memberId && t.Tipe_Arus === 'Masuk')
+    .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
+};
+
+/**
+ * Calculate compliance metric over an identical population of active members
+ * and identical window of months.
+ *
+ * @param {Array<object>} memberStatus Array of { ang, paidTotal, expectedTotal, arrears }
+ * @returns {{totalExpected: number, totalCollected: number, healthPct: number}}
+ */
+export const calculateCompliance = (memberStatus) => {
+  if (!Array.isArray(memberStatus) || memberStatus.length === 0) {
+    return { totalExpected: 0, totalCollected: 0, healthPct: 100 };
+  }
+  const totalExpected = memberStatus.reduce((sum, item) => sum + (item.expectedTotal || 0), 0);
+  const totalCollected = memberStatus.reduce((sum, item) => sum + (item.paidTotal || 0), 0);
+  const healthPct = totalExpected === 0
+    ? 100
+    : Math.min(100, Math.round((totalCollected / totalExpected) * 100));
+
+  return { totalExpected, totalCollected, healthPct };
+};

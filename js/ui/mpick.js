@@ -206,13 +206,3 @@ export const initMonthPickers = () => {
   });
   window.addEventListener('resize', () => closeAll());
 };
-
-/** Re-read a hidden input value into its picker label. */
-const syncMpick = (id = null) => {
-  if (id) {
-    const ui = registry.get(id);
-    if (ui) syncLabel(ui);
-    return;
-  }
-  registry.forEach(syncLabel);
-};

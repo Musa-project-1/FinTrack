@@ -1,5 +1,5 @@
 import { NAMA_BULAN } from "../core/config.js";
-import { getState, currentHistoryFilter, itemsToShow, setItemsToShow, incrementItemsToShow, getIsAdminSession } from "../core/state.js";
+import { getState, currentHistoryFilter, itemsToShow, incrementItemsToShow, getIsAdminSession } from "../core/state.js";
 import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
 
 /* ── Transaction history table ─────────────────────────────────── */
@@ -47,7 +47,7 @@ export const renderTableTransaksi = () => {
 
     // Iuran rows are matched by their iuran period (Bulan_Iuran/Tahun_Iuran),
     // not by the date they were recorded. Operasional rows use the timestamp.
-    const isIuranRow = trx.ID_Anggota !== '-' && trx.Bulan_Iuran && trx.Bulan_Iuran !== '-';
+    const isIuranRow = trx.Tipe_Arus === 'Masuk' && trx.ID_Anggota !== '-' && trx.Bulan_Iuran && trx.Bulan_Iuran !== '-';
     const iuranMonthIdx = isIuranRow ? NAMA_BULAN.indexOf(trx.Bulan_Iuran) : -1;
     const trxMonth = iuranMonthIdx !== -1 ? iuranMonthIdx : tglObj.getMonth();
     const trxYear = isIuranRow && trx.Tahun_Iuran && trx.Tahun_Iuran !== '-' ? String(trx.Tahun_Iuran) : String(tglObj.getFullYear());

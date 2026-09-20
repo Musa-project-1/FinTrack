@@ -101,13 +101,15 @@ export async function writeAuditLog(gid, aksi, detail, headers) {
  */
 export async function listGroups(headers) {
   const docs = await fsListAll('groups', headers);
-  return docs.map((doc) => {
-    const fields = doc.fields || {};
-    return {
-      id: doc.name.split('/').pop(),
-      nama: fields.nama || 'Grup'
-    };
-  });
+  return docs
+    .filter((doc) => Boolean(doc.fields?.nama))
+    .map((doc) => {
+      const fields = doc.fields || {};
+      return {
+        id: doc.name.split('/').pop(),
+        nama: fields.nama || 'Grup'
+      };
+    });
 }
 
 /**

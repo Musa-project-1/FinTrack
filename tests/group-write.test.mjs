@@ -12,6 +12,8 @@ const {
   addCategory,
   noteClientAudit,
   findDuplicateIuran,
+  isIuranPayment,
+  validateSnapshot,
   restoreSnapshot,
   WRITE_HANDLERS
 } = await import('../api/_group-write.js');
@@ -74,6 +76,141 @@ test('addBulkTransactions rejects a list of invalid entries', async () => {
 test('editTransaction requires an id and a valid body', async () => {
   await expectRejected(editTransaction(GID, { dataForm: { nominal: 10000, tipeArus: 'Masuk', idKategori: 'K' } }, NO_HEADERS), 'missing id');
   await expectRejected(editTransaction(GID, { idTransaksi: 'TRX-1', dataForm: { nominal: 0, tipeArus: 'Masuk', idKategori: 'K' } }, NO_HEADERS), 'zero nominal');
+});
+
+test('editTransaction moves document to target iuranId when period changes and deletes old document', async () => {
+  const originalFetch = globalThis.fetch;
+  const deletedDocs = [];
+  const createdDocs = [];
+
+  const janInput = { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' };
+  const marInput = { idAnggota: 'ANG-1', bulanIuran: 'Maret', tahunIuran: '2026' };
+  const janId = iuranId(GID, janInput);
+  const marId = iuranId(GID, marInput);
+
+  try {
+    globalThis.fetch = async (url, options) => {
+      const urlStr = String(url);
+      // fsGet existing document
+      if ((!options?.method || options.method === 'GET') && urlStr.includes(janId)) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            name: `projects/p/databases/(default)/documents/groups/${GID}/transaksi/${janId}`,
+            fields: {
+              ID_Transaksi: { stringValue: janId },
+              Timestamp: { stringValue: '2026-01-01T00:00:00.000Z' },
+              Tipe_Arus: { stringValue: 'Masuk' },
+              ID_Kategori: { stringValue: 'KAT-1' },
+              ID_Anggota: { stringValue: 'ANG-1' },
+              Bulan_Iuran: { stringValue: 'Januari' },
+              Tahun_Iuran: { stringValue: '2026' },
+              Nominal: { integerValue: '10000' }
+            }
+          })
+        };
+      }
+      // fsListAll (readTransactions) returns existing jan doc
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            documents: [{
+              name: `projects/p/databases/(default)/documents/groups/${GID}/transaksi/${janId}`,
+              fields: {
+                ID_Transaksi: { stringValue: janId },
+                Tipe_Arus: { stringValue: 'Masuk' },
+                ID_Anggota: { stringValue: 'ANG-1' },
+                Bulan_Iuran: { stringValue: 'Januari' },
+                Tahun_Iuran: { stringValue: '2026' }
+              }
+            }]
+          })
+        };
+      }
+      // fsCreateIfAbsent / audit (commit)
+      if (options?.method === 'POST' && urlStr.includes(':commit')) {
+        const body = JSON.parse(options.body);
+        createdDocs.push(body);
+        return { ok: true, status: 200, json: async () => ({ writeResults: [{}] }) };
+      }
+      // fsDelete
+      if (options?.method === 'DELETE') {
+        deletedDocs.push(urlStr);
+        return { ok: true, status: 200, json: async () => ({}) };
+      }
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+
+    const res = await editTransaction(
+      GID,
+      {
+        idTransaksi: janId,
+        dataForm: {
+          tipeArus: 'Masuk',
+          idKategori: 'KAT-1',
+          idAnggota: 'ANG-1',
+          bulanIuran: 'Maret',
+          tahunIuran: '2026',
+          nominal: 10000,
+          keterangan: 'Pindah ke Maret'
+        }
+      },
+      { Authorization: 'Bearer test' }
+    );
+
+    assert.equal(res.status, true);
+    assert.equal(res.data.idTransaksi, marId);
+    assert.ok(deletedDocs.some((u) => u.includes(janId)), 'old janId document should be deleted');
+    assert.ok(createdDocs.some((b) => JSON.stringify(b).includes(marId)), 'new marId document should be created');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('addBulkTransactions uses fsCreateIfAbsent precondition and handles duplicates gracefully', async () => {
+  const originalFetch = globalThis.fetch;
+  const dupId = iuranId(GID, { idAnggota: 'ANG-DUP', bulanIuran: 'Januari', tahunIuran: '2026' });
+
+  try {
+    globalThis.fetch = async (url, options) => {
+      const urlStr = String(url);
+      // readTransactions (fsListAll) returns empty
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
+        return { ok: true, status: 200, json: async () => ({ documents: [] }) };
+      }
+      // Simulate fsCreateIfAbsent: first member succeeds, second fails precondition (already exists)
+      if (options?.method === 'POST' && urlStr.includes(':commit')) {
+        const body = JSON.parse(options.body);
+        const writeName = body.writes?.[0]?.update?.name || '';
+        if (writeName.includes(dupId)) {
+          return {
+            ok: false,
+            status: 409,
+            text: async () => 'FAILED_PRECONDITION: document already exists'
+          };
+        }
+        return { ok: true, status: 200, json: async () => ({ writeResults: [{}] }) };
+      }
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+
+    const payload = {
+      listTrx: [
+        { tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-OK', bulanIuran: 'Januari', tahunIuran: '2026', nominal: 10000 },
+        { tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-DUP', bulanIuran: 'Januari', tahunIuran: '2026', nominal: 10000 }
+      ]
+    };
+
+    const res = await addBulkTransactions(GID, payload, { Authorization: 'Bearer test' });
+    assert.equal(res.status, true);
+    assert.equal(res.data.inserted, 1);
+    assert.deepEqual(res.data.skipped, ['ANG-DUP']);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 /* ── Deletion ────────────────────────────────────────────────────── */
@@ -152,11 +289,11 @@ test('noteClientAudit only accepts the allow-listed actions', async () => {
 
 /* ── Duplicate detection ─────────────────────────────────────────── */
 
-test('findDuplicateIuran matches only the same member and period', () => {
+test('findDuplicateIuran matches only the same member and period with Tipe_Arus Masuk', () => {
   const transactions = [
-    { ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026' },
-    { ID_Anggota: 'ANG-1', Bulan_Iuran: 'Februari', Tahun_Iuran: '2026' },
-    { ID_Anggota: 'ANG-2', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026' }
+    { ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' },
+    { ID_Anggota: 'ANG-1', Bulan_Iuran: 'Februari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' },
+    { ID_Anggota: 'ANG-2', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' }
   ];
 
   assert.ok(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }));
@@ -167,17 +304,32 @@ test('findDuplicateIuran matches only the same member and period', () => {
 
 test('findDuplicateIuran compares the year as a string', () => {
   // Years arrive as strings from Firestore but may be numbers in a payload.
-  const transactions = [{ ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026' }];
+  const transactions = [{ ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' }];
   assert.ok(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: 2026 }));
 });
 
 test('findDuplicateIuran ignores transaction with excludeId', () => {
   const transactions = [
-    { ID_Transaksi: 'TRX-101', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026' },
-    { ID_Transaksi: 'TRX-102', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Februari', Tahun_Iuran: '2026' }
+    { ID_Transaksi: 'TRX-101', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' },
+    { ID_Transaksi: 'TRX-102', ID_Anggota: 'ANG-1', Bulan_Iuran: 'Februari', Tahun_Iuran: '2026', Tipe_Arus: 'Masuk' }
   ];
   assert.equal(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }, 'TRX-101'), undefined);
   assert.ok(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }, 'TRX-999'));
+});
+
+test('findDuplicateIuran ignores transactions with Tipe_Arus Keluar', () => {
+  const transactions = [
+    { ID_Anggota: 'ANG-1', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Tipe_Arus: 'Keluar' }
+  ];
+  assert.equal(findDuplicateIuran(transactions, { idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }), undefined);
+});
+
+test('isIuranPayment requires Tipe_Arus Masuk and valid member & period', () => {
+  assert.equal(isIuranPayment({ tipeArus: 'Masuk', idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }), true);
+  assert.equal(isIuranPayment({ tipeArus: 'Keluar', idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '2026' }), false);
+  assert.equal(isIuranPayment({ tipeArus: 'Masuk', idAnggota: '-', bulanIuran: 'Januari', tahunIuran: '2026' }), false);
+  assert.equal(isIuranPayment({ tipeArus: 'Masuk', idAnggota: 'ANG-1', bulanIuran: '-', tahunIuran: '2026' }), false);
+  assert.equal(isIuranPayment({ tipeArus: 'Masuk', idAnggota: 'ANG-1', bulanIuran: 'Januari', tahunIuran: '-' }), false);
 });
 
 /* ── Dispatch table ──────────────────────────────────────────────── */
@@ -215,7 +367,7 @@ test('restoreSnapshot rejects malformed snapshot payload before touching Firesto
 
 test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firestore', async () => {
   // Duplicate anggota
-  await expectRejected(
+  const resAng = await expectRejected(
     restoreSnapshot(
       GID,
       {
@@ -232,9 +384,10 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
     ),
     'duplicate ID_Anggota'
   );
+  assert.match(resAng.message, /duplikat ID_Anggota/);
 
   // Duplicate kategori
-  await expectRejected(
+  const resKat = await expectRejected(
     restoreSnapshot(
       GID,
       {
@@ -251,9 +404,10 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
     ),
     'duplicate ID_Kategori'
   );
+  assert.match(resKat.message, /duplikat ID_Kategori/);
 
   // Duplicate transaksi
-  await expectRejected(
+  const resTrx = await expectRejected(
     restoreSnapshot(
       GID,
       {
@@ -270,6 +424,133 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
     ),
     'duplicate ID_Transaksi'
   );
+  assert.match(resTrx.message, /duplikat ID_Transaksi/);
+});
+
+test('restoreSnapshot rejects snapshot exceeding collection limits', async () => {
+  const overAng = Array.from({ length: 1001 }, (_, i) => ({ ID_Anggota: `A-${i}`, Nama_Anggota: `User ${i}` }));
+  const resAng = await expectRejected(
+    restoreSnapshot(GID, { data: { anggota: overAng, transaksi: [] } }, NO_HEADERS),
+    'over 1000 anggota'
+  );
+  assert.match(resAng.message, /batas maksimum anggota/);
+
+  const overTrx = Array.from({ length: 10001 }, (_, i) => ({
+    ID_Transaksi: `T-${i}`,
+    Nominal: 1000,
+    Tipe_Arus: 'Masuk',
+    ID_Kategori: 'KAT-1'
+  }));
+  const resTrx = await expectRejected(
+    restoreSnapshot(GID, { data: { anggota: [], transaksi: overTrx } }, NO_HEADERS),
+    'over 10000 transaksi'
+  );
+  assert.match(resTrx.message, /batas maksimum transaksi/);
+});
+
+test('validateSnapshot accepts realistic snapshot shape produced by exportJSONBackup', () => {
+  const realisticSnapshot = {
+    anggota: [
+      {
+        ID_Anggota: 'ANG-1',
+        Nama_Anggota: 'Budi Santoso',
+        Nomor_WA: '08123456789',
+        Status_Aktif: 'Aktif'
+      }
+    ],
+    kategori: [
+      {
+        ID_Kategori: 'KAT-1',
+        Nama_Kategori: 'Iuran Bulanan',
+        Tipe: 'Masuk'
+      }
+    ],
+    transaksi: [
+      {
+        ID_Transaksi: 'TRX-977FA9E41BD0DF20',
+        Timestamp: '2026-03-20T10:00:00.000Z',
+        Tipe_Arus: 'Masuk',
+        ID_Kategori: 'KAT-1',
+        ID_Anggota: 'ANG-1',
+        Bulan_Iuran: 'Maret',
+        Tahun_Iuran: '2026',
+        Nominal: 10000,
+        Keterangan: 'Iuran Kas Maret'
+      }
+    ],
+    skippedMonths: ['01-2026']
+  };
+
+  const validated = validateSnapshot(realisticSnapshot);
+  assert.equal(validated.valid, true);
+  assert.equal(validated.data.transaksi.length, 1);
+  assert.equal(validated.data.transaksi[0].ID_Transaksi, 'TRX-977FA9E41BD0DF20');
+  assert.equal(validated.data.transaksi[0].Nominal, 10000);
+});
+
+test('restoreSnapshot accepts valid snapshot end-to-end with mocked Firestore REST', async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async (url, options) => {
+      // Mock fsListAll returning empty documents
+      if (!options?.method || options.method === 'GET') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ documents: [] })
+        };
+      }
+      // Mock fsCommit or fsPatch
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ writeResults: [{}] })
+      };
+    };
+
+    const realisticPayload = {
+      data: {
+        anggota: [
+          {
+            ID_Anggota: 'ANG-1',
+            Nama_Anggota: 'Budi Santoso',
+            Nomor_WA: '08123456789',
+            Status_Aktif: 'Aktif'
+          }
+        ],
+        kategori: [
+          {
+            ID_Kategori: 'KAT-1',
+            Nama_Kategori: 'Iuran Kas',
+            Tipe: 'Masuk'
+          }
+        ],
+        transaksi: [
+          {
+            ID_Transaksi: 'TRX-101',
+            Timestamp: '2026-03-20T10:00:00.000Z',
+            Tipe_Arus: 'Masuk',
+            ID_Kategori: 'KAT-1',
+            ID_Anggota: 'ANG-1',
+            Bulan_Iuran: 'Maret',
+            Tahun_Iuran: '2026',
+            Nominal: 10000,
+            Keterangan: 'Iuran Maret'
+          }
+        ],
+        skippedMonths: ['01-2026']
+      }
+    };
+
+    const result = await restoreSnapshot(GID, realisticPayload, { Authorization: 'Bearer test' });
+    assert.equal(result.status, true);
+    assert.equal(result.data.transaksi, 1);
+    assert.equal(result.data.anggota, 1);
+    assert.equal(result.data.kategori, 1);
+    assert.match(result.message, /Database berhasil dipulihkan/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 /* ── Identifier generation & entropy ─────────────────────────────── */

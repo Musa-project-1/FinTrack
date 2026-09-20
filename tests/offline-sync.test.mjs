@@ -1,0 +1,66 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { classifySyncResponse } from '../js/core/offline.js';
+
+test('classifySyncResponse returns unreachable when network or backend gives no response', () => {
+  assert.equal(classifySyncResponse(null), 'unreachable');
+  assert.equal(classifySyncResponse(undefined), 'unreachable');
+});
+
+test('classifySyncResponse returns success when response status is true', () => {
+  assert.equal(classifySyncResponse({ status: true, message: 'Berhasil' }), 'success');
+  assert.equal(classifySyncResponse({ status: true, data: { inserted: 1 } }), 'success');
+});
+
+test('classifySyncResponse returns duplicate when backend flags already paid dues', () => {
+  assert.equal(classifySyncResponse({ status: false, data: { duplicate: true } }), 'duplicate');
+});
+
+test('classifySyncResponse returns rejected when backend rejects invalid payload (W-13, T-5)', () => {
+  // Invalid nominal or malformed schema returns status: false without duplicate flag
+  const rejectedResponse = { status: false, message: 'Nominal transaksi harus lebih besar dari 0.' };
+  assert.equal(classifySyncResponse(rejectedResponse), 'rejected');
+
+  const rejectedMember = { status: false, message: 'Anggota tidak ditemukan.' };
+  assert.equal(classifySyncResponse(rejectedMember), 'rejected');
+});
+
+test('offline replay simulation: rejects bad item, drains valid items, and halts on network outage', () => {
+  const mockQueue = [
+    { id: 1, payload: { nominal: 0 } },         // Will be rejected (invalid)
+    { id: 2, payload: { nominal: 10000 } },     // Will succeed
+    { id: 3, payload: { nominal: 20000 } }      // Will encounter network error
+  ];
+
+  const outcomes = [];
+  const deletedIds = [];
+
+  for (const item of mockQueue) {
+    let mockResponse;
+    if (item.id === 1) mockResponse = { status: false, message: 'Nominal harus > 0' };
+    else if (item.id === 2) mockResponse = { status: true, message: 'Berhasil' };
+    else if (item.id === 3) mockResponse = null; // Network failure
+
+    const outcome = classifySyncResponse(mockResponse);
+    outcomes.push({ id: item.id, outcome });
+
+    if (outcome === 'unreachable') {
+      // Must abort loop on unreachable so remaining items stay queued
+      break;
+    }
+
+    if (outcome === 'success' || outcome === 'duplicate' || outcome === 'rejected') {
+      // Deleted from queue so rejected items do NOT loop forever (W-13 fix)
+      deletedIds.push(item.id);
+    }
+  }
+
+  assert.deepEqual(outcomes, [
+    { id: 1, outcome: 'rejected' },
+    { id: 2, outcome: 'success' },
+    { id: 3, outcome: 'unreachable' }
+  ]);
+
+  // Item 1 (rejected) and Item 2 (success) were removed; Item 3 stays in queue
+  assert.deepEqual(deletedIds, [1, 2]);
+});

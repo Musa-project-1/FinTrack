@@ -35,7 +35,7 @@ Semua baca/tulis melewati serverless function di `api/`, yang memakai service ac
 
 | Aspek | Implementasi |
 |---|---|
-| Sesi | Token bertanda tangan HMAC dengan masa berlaku (`api/_session.js`), bukan kredensial statis |
+| Sesi | Token bertanda tangan HMAC dengan masa berlaku (`api/_session.js`), pembersihan saat keluar/logout, dan pencabutan sisi server (`revokedAfter`) |
 | Password | scrypt (memory-hard) dengan salt acak per kredensial |
 | Password master | scrypt, dan hash-nya hanya ada di dokumen server-only `settings/app_config` |
 | PIN grup | Hash hanya tersimpan di `groups/{gid}/private/config` yang tak bisa dibaca klien |

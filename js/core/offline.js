@@ -95,6 +95,20 @@ export const queueOfflinePayload = async (payload) => {
 };
 
 /**
+ * Determine the outcome of a single queued item sync response.
+ * Exported so offline sync decision logic can be tested directly without IndexedDB.
+ *
+ * @param {object|null} resJSON
+ * @returns {'unreachable' | 'success' | 'duplicate' | 'rejected'}
+ */
+export const classifySyncResponse = (resJSON) => {
+  if (!resJSON) return 'unreachable';
+  if (resJSON.status) return 'success';
+  if (resJSON.data?.duplicate) return 'duplicate';
+  return 'rejected';
+};
+
+/**
  * Sync all pending offline transactions to the backend.
  * @param {Function} [onSuccess] - Called after successful full sync.
  * @returns {Promise<void>}
@@ -120,14 +134,16 @@ export const syncOfflineTransactions = async (onSuccess) => {
       delete payloadToSend.queuedAt;
 
       const resJSON = await postToBackend(payloadToSend);
-      if (!resJSON) {
+      const outcome = classifySyncResponse(resJSON);
+
+      if (outcome === 'unreachable') {
         showToast('Tidak dapat menyinkronkan transaksi tertunda saat ini.', 'error');
         return;
       }
 
-      if (resJSON.status || resJSON.data?.duplicate) {
+      if (outcome === 'success' || outcome === 'duplicate') {
         await deleteOfflineTransaction(item.id);
-        if (resJSON.data?.duplicate) {
+        if (outcome === 'duplicate') {
           duplicateCount += 1;
         } else {
           successCount += 1;

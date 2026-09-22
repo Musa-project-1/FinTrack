@@ -79,10 +79,16 @@
   .select-pill-wrap {
     justify-content: space-between;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .select-pill-wrap select {
     width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
   }
 
   .riwayat-select {
@@ -91,23 +97,15 @@
     font-size: 12px !important;
   }
 
-  /* Chips: clean horizontal scroll on mobile without vertical wrap clutter */
+  /* Chips wrap cleanly on mobile so no chip is clipped off the card edge */
   .riwayat-chips-group {
     display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    scrollbar-width: none !important;
-    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: wrap !important;
     gap: 6px !important;
-    padding-bottom: 2px !important;
-  }
-
-  .riwayat-chips-group::-webkit-scrollbar {
-    display: none !important;
   }
 
   .riwayat-chips-group .chip-btn {
-    flex-shrink: 0 !important;
+    flex: 0 0 auto !important;
     white-space: nowrap !important;
   }
 

@@ -389,6 +389,23 @@ button.group-item:hover {
   flex-wrap: wrap;
 }
 .btn-refresh-pwd { padding: 0 12px; }
+
+/* Mobile: stack creation form fields full-width so fixed min-widths
+   (min-w-200 / min-w-160 / w-140) never overflow the narrow modal. */
+@media (max-width: 599px) {
+  .group-create-grid,
+  .group-admin-creds-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .group-create-grid > *,
+  .group-admin-creds-row > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    box-sizing: border-box;
+  }
+}
 .group-superadmin-card {
   margin-top: 18px;
   padding: 14px;

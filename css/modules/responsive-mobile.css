@@ -163,6 +163,36 @@ body { padding: 6px 0 100px 0; }
     padding: 0 12px;
     height: 40px;
   }
+
+  /* Prevent Status Iuran header row overflow when WA button is visible (admin) */
+  .table-header.mobile-only .table-header-top {
+    gap: 8px;
+    min-width: 0;
+  }
+  .table-header.mobile-only .table-header-left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .table-header.mobile-only .table-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .table-header.mobile-only .table-header-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+  .table-header.mobile-only .year-pill {
+    max-width: 128px;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+  .table-header.mobile-only .year-pill label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   
   .tab-header {
     max-width: 100%;

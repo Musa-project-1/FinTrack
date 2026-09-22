@@ -138,7 +138,7 @@ export const submitQuickPay = async (e) => {
     onConfirm: () => withBusyButton(
       "btn-submit-quickpay",
       '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...',
-      '<i class="ph-bold ph-check-circle"></i> BAYAR SEKARANG',
+      '<i class="ph-bold ph-check-circle"></i> SIMPAN PEMBAYARAN',
       async () => {
         const payload = {
           action: "tambahTransaksi",

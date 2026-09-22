@@ -217,6 +217,12 @@ test('every data-action emitted by the markup or the renderers is handled', () =
   assert.deepEqual(unhandled, [], `data-action with no handler in js/app.js: ${unhandled.join(', ')}`);
 });
 
+test('modal-confirm-action buttons have valid data-actions', () => {
+  const modalHtml = read('html/modals/transactions.html');
+  assert.match(modalHtml, /data-action="cancel-confirm-action"/);
+  assert.match(modalHtml, /data-action="confirm-action-submit"/);
+});
+
 /* ── Reverse direction ──────────────────────────────────────────── */
 
 test('every literal DOM lookup in js/ resolves to a real element', () => {

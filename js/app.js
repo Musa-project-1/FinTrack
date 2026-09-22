@@ -262,6 +262,7 @@ document.addEventListener('click', (e) => {
     /* ── Delete confirmation ──────────────────────── */
     case 'confirm-delete':    eksekusiHapus(); break;
     case 'cancel-delete':     closeModal('modal-hapus'); break;
+    case 'confirm-action-submit': executeConfirmAction(); break;
     case 'cancel-confirm-action': closeConfirmDialog(); break;
 
     /* ── Offline sync ─────────────────────────────── */

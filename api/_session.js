@@ -16,7 +16,7 @@ export const ROLES = {
 };
 
 export const GROUP_SESSION_TTL = 30 * 24 * 60 * 60; // 30 hari
-export const SUPERADMIN_SESSION_TTL = 8 * 60 * 60;
+export const SUPERADMIN_SESSION_TTL = 30 * 24 * 60 * 60; // 30 hari
 
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1, keylen: 64 };
 const RATE_LIMIT_COLLECTION = '_ratelimit';

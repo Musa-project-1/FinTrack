@@ -311,7 +311,9 @@ export const openGroupAdmin = async () => {
   await fetchGroups();
   renderGroupAdmin();
   refreshAutoAdminCreds();
-  renderSuperAdminList();
+  if (getIsSuperAdmin()) {
+    renderSuperAdminList();
+  }
   openModal("modal-group-admin");
 };
 
@@ -392,6 +394,13 @@ export const renderSuperAdminList = async () => {
 
   const res = await fetchSuperAdminsApi();
   if (!res.status || !Array.isArray(res.data)) {
+    if (res.httpStatus === 403 || res.message?.includes("tidak valid") || res.message?.includes("berakhir")) {
+      clearAdminSession();
+      handleUI();
+      closeModal("modal-group-admin");
+      showToast("Sesi Super Admin telah berakhir. Silakan login kembali.", "warning");
+      return;
+    }
     container.innerHTML = '<span class="superadmin-empty-text">Tidak dapat memuat daftar superadmin.</span>';
     return;
   }
@@ -418,6 +427,13 @@ export const submitAddSuperAdminAction = async (e) => {
   }
 
   const res = await addSuperAdminApi(email);
+  if (res.httpStatus === 403 || res.message?.includes("tidak valid") || res.message?.includes("berakhir")) {
+    clearAdminSession();
+    handleUI();
+    closeModal("modal-group-admin");
+    showToast("Sesi Super Admin telah berakhir. Silakan login kembali.", "warning");
+    return;
+  }
   showToast(res.message, res.status ? "success" : "error");
   if (res.status) {
     if (input) input.value = "";
@@ -429,6 +445,13 @@ export const submitAddSuperAdminAction = async (e) => {
 export const removeSuperAdminAction = async (email) => {
   if (!window.confirm(`Cabut akses Super Admin untuk ${email}?`)) return;
   const res = await removeSuperAdminApi(email);
+  if (res.httpStatus === 403 || res.message?.includes("tidak valid") || res.message?.includes("berakhir")) {
+    clearAdminSession();
+    handleUI();
+    closeModal("modal-group-admin");
+    showToast("Sesi Super Admin telah berakhir. Silakan login kembali.", "warning");
+    return;
+  }
   showToast(res.message, res.status ? "success" : "error");
   if (res.status) renderSuperAdminList();
 };

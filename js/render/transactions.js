@@ -115,18 +115,29 @@ export const renderTableTransaksi = () => {
     const badgeClass = isMasuk ? 'badge-masuk' : 'badge-keluar';
     const iconPh = isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
 
-    let ketExtra = trx.Keterangan || '';
+    const dayMonth = tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    const timeOnly = tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+    const tglTime = `${dayMonth} • ${timeOnly}`;
+    const tglTimeMobile = `${dayMonth} ${timeOnly}`;
+
+    let ketExtra = '';
     if (trx.ID_Anggota && trx.ID_Anggota !== '-') {
       const angObj = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
       const namaAnggota = angObj ? angObj.Nama_Anggota : trx.ID_Anggota;
-      ketExtra = `<strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong><span class="trx-period">Iuran • ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}</span><span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
+      const bulanShort = (trx.Bulan_Iuran || '').slice(0, 3);
+      const periodShort = trx.Bulan_Iuran ? `${bulanShort} ${trx.Tahun_Iuran || ''}`.trim() : '';
+      const hasCustomNote = trx.Keterangan && trx.Keterangan.trim().toLowerCase() !== 'iuran anggota' && trx.Keterangan.trim() !== '-';
+
+      ketExtra = `<div class="trx-title-row"><strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong><span class="trx-period desktop-only-inline">Iuran • ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}</span></div><div class="trx-meta-row mono"><span class="trx-meta-pill">${escapeHtml(periodShort)}</span><span class="trx-meta-sep">·</span><span class="trx-meta-time">${tglTimeMobile}</span>${hasCustomNote ? `<span class="trx-meta-note">· ${escapeHtml(trx.Keterangan)}</span>` : ''}</div>${hasCustomNote ? `<span class="trx-subnote desktop-only-block">${escapeHtml(trx.Keterangan)}</span>` : ''}`;
     } else {
       const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
       const namaKat = objKat ? objKat.Nama_Kategori : 'Operasional';
-      ketExtra = `<strong class="trx-category-title">${escapeHtml(namaKat)}</strong> <br> <span class="trx-subnote">${escapeHtml(ketExtra)}</span>`;
-    }
+      const hasKet = trx.Keterangan && trx.Keterangan.trim() !== '-' && trx.Keterangan.trim() !== '';
+      const opTitle = hasKet ? trx.Keterangan : namaKat;
+      const opSub = hasKet ? namaKat : 'Operasional';
 
-    const tglTime = `${tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} • ${tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+      ketExtra = `<div class="trx-title-row"><strong class="trx-category-title">${escapeHtml(opTitle)}</strong></div><div class="trx-meta-row mono"><span class="trx-meta-pill">${escapeHtml(opSub)}</span><span class="trx-meta-sep">·</span><span class="trx-meta-time">${tglTimeMobile}</span></div>${hasKet ? `<span class="trx-subnote desktop-only-block">${escapeHtml(namaKat)}</span>` : ''}`;
+    }
 
     const isAdmin = getIsAdminSession();
     const aksiHtml = isAdmin ? `

@@ -110,3 +110,38 @@ test('data gateway rejects unknown action with 400', async () => {
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.message, 'Aksi tidak dikenal.');
 });
+
+test('data gateway allows a member to call checkUpdate on its own group', async () => {
+  const memberToken = signSession({ role: ROLES.MEMBER, gid: GID_A }, GROUP_SESSION_TTL);
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: {
+      action: 'checkUpdate',
+      groupId: GID_A,
+      sessionToken: memberToken,
+      since: '2026-01-01T00:00:00.000Z'
+    }
+  }, res);
+  // Passes authorization (a member may read its group). Without a live service
+  // account the Firestore read then fails with 500 — but never 401/403, proving
+  // checkUpdate is routed as a member-readable action.
+  assert.notEqual(res.statusCode, 401);
+  assert.notEqual(res.statusCode, 403);
+});
+
+test('data gateway rejects checkUpdate from a member of a different group with 403', async () => {
+  const memberToken = signSession({ role: ROLES.MEMBER, gid: GID_A }, GROUP_SESSION_TTL);
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: {
+      action: 'checkUpdate',
+      groupId: GID_B,
+      sessionToken: memberToken,
+      since: '2026-01-01T00:00:00.000Z'
+    }
+  }, res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.message, 'Tidak memiliki akses ke grup ini.');
+});

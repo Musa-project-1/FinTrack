@@ -32,7 +32,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=126">
+  <link rel="stylesheet" href="style.css?v=127">
 </head>
 <body>
 
@@ -131,6 +131,16 @@
             <i class="ph-fill ph-users-three"></i>
             Status Iuran
           </h2>
+          <button
+            id="btn-sync-rekap"
+            class="btn-sync-rekap is-clean"
+            data-action="sync-rekap-data"
+            title="Data sinkron — klik untuk muat ulang"
+            aria-label="Status sinkronisasi data iuran"
+          >
+            <i class="ph ph-arrows-clockwise sync-rekap-icon"></i>
+            <span class="sync-rekap-dot"></span>
+          </button>
         </div>
         <div class="table-header-controls">
           <div class="year-pill">
@@ -160,6 +170,16 @@
               <i class="ph-fill ph-users-three"></i>
               Status Iuran
             </h2>
+            <button
+              id="btn-sync-rekap-mobile"
+              class="btn-sync-rekap is-clean"
+              data-action="sync-rekap-data"
+              title="Data sinkron — klik untuk muat ulang"
+              aria-label="Status sinkronisasi data iuran"
+            >
+              <i class="ph ph-arrows-clockwise sync-rekap-icon"></i>
+              <span class="sync-rekap-dot"></span>
+            </button>
           </div>
           <div class="table-header-actions">
             <div class="year-pill">
@@ -2071,7 +2091,7 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=126"></script>
-  <script src="js/sw-register.js?v=126" defer></script>
+  <script type="module" src="js/app.js?v=127"></script>
+  <script src="js/sw-register.js?v=127" defer></script>
 </body>
 </html>

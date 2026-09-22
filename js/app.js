@@ -15,6 +15,7 @@ import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./
 import { syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
+import { initSync, destroySync, notifySynced } from "./core/sync.js";
 import {
   applyTheme, toggleTheme, setTheme, applyHeaderStatsPreference, toggleHeaderStats, setHeaderStatsPosition,
   applyDensityPreference, setDensity, applyAccentPreference, setAccentColor, applyNumberFontPreference, setNumberFont,
@@ -65,6 +66,26 @@ import {
 } from "./handlers/groups.js";
 
 let isLoading = false;
+
+/* ── Sync badge helpers ──────────────────────────────────────────── */
+
+const SYNC_BTNS = ['btn-sync-rekap', 'btn-sync-rekap-mobile'];
+
+const setSyncBadge = (state) => {
+  SYNC_BTNS.forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.remove('is-clean', 'has-update', 'is-syncing');
+    btn.classList.add(state);
+    const label = state === 'has-update'
+      ? 'Ada data baru — klik untuk muat ulang'
+      : state === 'is-syncing'
+        ? 'Sedang memuat data...'
+        : 'Data sinkron — klik untuk muat ulang';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+  });
+};
 
 /* ══════════════════════════════════════════════════════════════════
    Cross-module hooks
@@ -265,6 +286,12 @@ document.addEventListener('click', (e) => {
     case 'confirm-action-submit': executeConfirmAction(); break;
     case 'cancel-confirm-action': closeConfirmDialog(); break;
 
+    /* ── Sync rekap badge ─────────────────────────── */
+    case 'sync-rekap-data':
+      setSyncBadge('is-syncing');
+      initApp(true).then(() => setSyncBadge('is-clean'));
+      break;
+
     /* ── Offline sync ─────────────────────────────── */
     case 'sync-now':          syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
     case 'refresh-offline':   renderOfflineQueueList(); break;
@@ -387,6 +414,8 @@ export const initApp = async (forceRemote = false) => {
         skippedMonths: resJSON.data.settings?.skippedMonths || []
       });
       saveCache();
+      notifySynced();
+      setSyncBadge('is-clean');
       renderAll();
       setConnectionStatus(true);
     } else {
@@ -455,7 +484,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btn) btn.style.display = 'flex';
   });
 
-  initGroupsUI(() => initApp(true));
+  initGroupsUI(() => {
+    // On every group change: reset the freshness signal and re-arm the sync
+    // listeners for the newly active group, then pull its data.
+    destroySync();
+    initSync((hasUpdate) => setSyncBadge(hasUpdate ? 'has-update' : 'is-clean'));
+    initApp(true);
+  });
 
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 

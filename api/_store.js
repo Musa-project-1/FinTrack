@@ -96,6 +96,23 @@ export async function writeAuditLog(gid, aksi, detail, headers) {
 }
 
 /**
+ * Stamp the group root document with the current timestamp whenever a
+ * mutation succeeds. Clients poll this field via the lightweight
+ * `checkUpdate` action to detect remote changes without a full data pull.
+ * Best-effort — never fails the caller's write.
+ */
+export async function touchGroupUpdated(gid, headers) {
+  const ts = nowIso();
+  try {
+    await fsPatch(groupDoc(gid), { updatedAt: ts }, headers, ['updatedAt']);
+    return ts;
+  } catch (err) {
+    console.error('[finkas] touchGroupUpdated failed:', gid, err?.message);
+    return null;
+  }
+}
+
+/**
  * Public directory of groups — identifiers and names only, never credentials.
  * @returns {Promise<Array<{id: string, nama: string}>>}
  */

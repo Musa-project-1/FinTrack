@@ -87,6 +87,14 @@ export const postToBackend = async (payload) => {
 
   const res = await dataRequest({ action: payload.action, payload, needsWrite: true });
   if (!res) return null;
+  if (res.status && typeof window !== 'undefined') {
+    // Announce a successful mutation so the sync module can advance this tab's
+    // freshness marker and signal sibling tabs — decoupled via a window event
+    // to avoid a circular import between api.js and sync.js.
+    window.dispatchEvent(new CustomEvent('finkas:mutation-success', {
+      detail: { updatedAt: res.updatedAt || null }
+    }));
+  }
   return res;
 };
 
@@ -109,4 +117,22 @@ export const fetchGroupsApi = async () => {
   const res = await dataRequest({ action: 'groups', requiresAuth: false });
   if (!res || !res.status) return [];
   return res.data?.groups || [];
+};
+
+/**
+ * Lightweight update check — costs exactly 1 Firestore read.
+ * Returns whether the server has newer data than the client's last sync.
+ * @param {string} since ISO timestamp of the client's last successful sync
+ * @returns {Promise<{hasUpdate: boolean, updatedAt: string|null}>}
+ */
+export const checkGroupUpdate = async (since) => {
+  try {
+    const groupId = getActiveGroupId();
+    if (!groupId) return { hasUpdate: false, updatedAt: null };
+    const res = await dataRequest({ action: 'checkUpdate', payload: { groupId, since } });
+    if (!res || !res.status) return { hasUpdate: false, updatedAt: null };
+    return { hasUpdate: Boolean(res.data?.hasUpdate), updatedAt: res.data?.updatedAt || null };
+  } catch {
+    return { hasUpdate: false, updatedAt: null };
+  }
 };

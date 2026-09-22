@@ -6,13 +6,13 @@
  * and enforces per-group read/write authorization before touching the database.
  */
 import { requireFirestoreHeaders } from './_sa.js';
-import { isValidGroupId, listGroups } from './_store.js';
-import { readGroupData, readAuditLog } from './_group-read.js';
+import { isValidGroupId, listGroups, touchGroupUpdated } from './_store.js';
+import { readGroupData, readAuditLog, readGroupVersion } from './_group-read.js';
 import { WRITE_HANDLERS } from './_group-write.js';
 import { canReadGroup, canWriteGroup, readSession } from './_session.js';
 
 const PUBLIC_ACTIONS = ['groups'];
-const READ_ACTIONS = ['read', 'audit'];
+const READ_ACTIONS = ['read', 'audit', 'checkUpdate'];
 
 /** Send a JSON response with caching disabled. */
 const sendJson = (res, status, payload) => {
@@ -78,6 +78,13 @@ export default async function handler(req, res) {
         return sendJson(res, 200, { status: true, data: { log: await readAuditLog(groupId, headers) } });
       }
 
+      if (action === 'checkUpdate') {
+        const since = String(body?.since || '').trim() || null;
+        const headers = await requireFirestoreHeaders();
+        const { hasUpdate, updatedAt } = await readGroupVersion(groupId, headers, since);
+        return sendJson(res, 200, { status: true, data: { hasUpdate, updatedAt } });
+      }
+
       const headers = await requireFirestoreHeaders();
       return sendJson(res, 200, { status: true, data: await readGroupData(groupId, headers) });
     }
@@ -90,6 +97,13 @@ export default async function handler(req, res) {
       }
       const headers = await requireFirestoreHeaders();
       const result = await writeHandler(groupId, body, headers);
+      if (result.status) {
+        // Stamp group updatedAt so other clients detect the change, and hand the
+        // timestamp back so the writing client can advance its own sync marker
+        // (prevents its own badge turning red on the next heartbeat).
+        const updatedAt = await touchGroupUpdated(groupId, headers);
+        if (updatedAt) result.updatedAt = updatedAt;
+      }
       return sendJson(res, result.status ? 200 : 400, result);
     }
 

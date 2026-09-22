@@ -69,14 +69,16 @@ export default async function handler(req, res) {
       if (!canReadGroup(session, groupId)) {
         return sendJson(res, 403, { status: false, message: 'Tidak memiliki akses ke grup ini.' });
       }
-      const headers = await requireFirestoreHeaders();
 
       if (action === 'audit') {
         if (!canWriteGroup(session, groupId)) {
           return sendJson(res, 403, { status: false, message: 'Hanya admin yang dapat membaca riwayat audit.' });
         }
+        const headers = await requireFirestoreHeaders();
         return sendJson(res, 200, { status: true, data: { log: await readAuditLog(groupId, headers) } });
       }
+
+      const headers = await requireFirestoreHeaders();
       return sendJson(res, 200, { status: true, data: await readGroupData(groupId, headers) });
     }
 

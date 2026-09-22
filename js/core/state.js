@@ -49,10 +49,20 @@ export const addTransaction = (trx) => {
   state.transaksi.push(trx);
 };
 
-/** Safe read helper shared by the session/cache accessors. */
-const safelyRead = (storage, key) => {
+/** Safe access to localStorage across browser and test environments. */
+const getLocalStorage = () => {
   try {
-    return storage.getItem(key) || '';
+    if (typeof localStorage !== 'undefined') return localStorage;
+    if (typeof globalThis !== 'undefined' && globalThis.localStorage) return globalThis.localStorage;
+  } catch {}
+  return null;
+};
+
+/** Safe read helper shared by the session/cache accessors. */
+const safelyRead = (key) => {
+  try {
+    const storage = getLocalStorage();
+    return storage ? (storage.getItem(key) || '') : '';
   } catch (err) {
     return '';
   }
@@ -61,7 +71,7 @@ const safelyRead = (storage, key) => {
 /* ── Active group ────────────────────────────────────────────────── */
 
 /** @type {string} ID grup aktif, tersimpan di localStorage. */
-let activeGroupId = safelyRead(localStorage, ACTIVE_GROUP_KEY);
+let activeGroupId = safelyRead(ACTIVE_GROUP_KEY);
 
 /** @type {Array} Daftar grup yang tersedia. */
 let groups = [];
@@ -76,8 +86,9 @@ export const getActiveGroupId = () => activeGroupId;
 export const setActiveGroupId = (id) => {
   activeGroupId = id || '';
   try {
-    if (activeGroupId) localStorage.setItem(ACTIVE_GROUP_KEY, activeGroupId);
-    else localStorage.removeItem(ACTIVE_GROUP_KEY);
+    const storage = getLocalStorage();
+    if (activeGroupId) storage?.setItem(ACTIVE_GROUP_KEY, activeGroupId);
+    else storage?.removeItem(ACTIVE_GROUP_KEY);
   } catch (err) {
     console.warn('[finkas] Cannot persist active group:', err?.message);
   }
@@ -100,7 +111,7 @@ export const getGroupName = (id) => groups.find((g) => g.id === id)?.nama || id;
 /** Save current state to localStorage, scoped to the active group. */
 export const saveCache = () => {
   try {
-    localStorage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
+    getLocalStorage()?.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
   } catch (err) {
     console.warn('[finkas] Cache write failed:', err?.message);
   }
@@ -113,9 +124,10 @@ export const saveCache = () => {
 export const loadCache = () => {
   let cached = null;
   try {
-    cached = localStorage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
+    const storage = getLocalStorage();
+    cached = storage?.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
       // One-time migration: pre-scoping caches belong to the default group.
-      || (getActiveGroupId() === DEFAULT_GROUP_ID ? localStorage.getItem(CACHE_KEY) : null);
+      || (getActiveGroupId() === DEFAULT_GROUP_ID ? storage?.getItem(CACHE_KEY) : null);
   } catch (err) {
     return false;
   }
@@ -136,7 +148,7 @@ export const loadCache = () => {
 let groupSessions = {};
 
 try {
-  const raw = localStorage.getItem(GROUP_SESSIONS_KEY);
+  const raw = getLocalStorage()?.getItem(GROUP_SESSIONS_KEY);
   if (raw) groupSessions = JSON.parse(raw) || {};
 } catch (err) {
   groupSessions = {};
@@ -144,7 +156,7 @@ try {
 
 const persistGroupSessions = () => {
   try {
-    localStorage.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
+    getLocalStorage()?.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
   } catch (err) {
     console.warn('[finkas] Cannot persist group sessions:', err?.message);
   }
@@ -183,18 +195,19 @@ export const clearAllGroupSessions = () => {
 };
 
 /** @type {string} Signed token for the signed-in admin (group admin or superadmin). */
-let adminSessionToken = safelyRead(localStorage, ADMIN_SESSION_KEY);
+let adminSessionToken = safelyRead(ADMIN_SESSION_KEY);
 
 /** @type {string} Role: 'superadmin' | 'group_admin' | '' */
-let adminRole = safelyRead(localStorage, ADMIN_ROLE_KEY);
+let adminRole = safelyRead(ADMIN_ROLE_KEY);
 
 /** @type {string} Admin user email */
-let adminUserEmail = safelyRead(localStorage, ADMIN_EMAIL_KEY);
+let adminUserEmail = safelyRead(ADMIN_EMAIL_KEY);
 
 const persistSessionField = (key, value) => {
   try {
-    if (value) localStorage.setItem(key, value);
-    else localStorage.removeItem(key);
+    const storage = getLocalStorage();
+    if (value) storage?.setItem(key, value);
+    else storage?.removeItem(key);
   } catch (err) {
     console.warn('[finkas] Cannot persist session field:', key, err?.message);
   }

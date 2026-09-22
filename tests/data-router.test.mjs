@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+
+process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
+
 import handler from '../api/data.js';
 import { ROLES, signSession, GROUP_SESSION_TTL } from '../api/_session.js';
 

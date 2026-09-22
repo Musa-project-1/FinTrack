@@ -1,6 +1,29 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifySyncResponse } from '../js/core/offline.js';
+
+/**
+ * Minimal in-memory Web Storage for isolated Node test workers.
+ */
+const makeStorage = () => {
+  const store = new Map();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => { store.set(key, String(value)); },
+    removeItem: (key) => { store.delete(key); },
+    clear: () => { store.clear(); },
+    key: (index) => Array.from(store.keys())[index] ?? null,
+    get length() { return store.size; }
+  };
+};
+
+if (typeof globalThis.localStorage === 'undefined' || !globalThis.localStorage) {
+  globalThis.localStorage = makeStorage();
+}
+if (typeof globalThis.sessionStorage === 'undefined' || !globalThis.sessionStorage) {
+  globalThis.sessionStorage = makeStorage();
+}
+
+const { classifySyncResponse } = await import('../js/core/offline.js');
 
 test('classifySyncResponse returns unreachable when network or backend gives no response', () => {
   assert.equal(classifySyncResponse(null), 'unreachable');

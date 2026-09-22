@@ -134,13 +134,13 @@
     overflow: hidden;
     background: var(--surface);
   }
-}
 
-.riwayat-table-wrapper .table-responsive {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  .riwayat-table-wrapper .table-responsive {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
 }
 
 .riwayat-footer {

@@ -22,7 +22,10 @@
   .riwayat-table-wrapper,
   .riwayat-table-wrapper .table-responsive {
     overflow-x: visible !important;
+    overflow-y: visible !important;
     width: 100% !important;
+    flex: none !important;
+    min-height: auto !important;
   }
 
   #table-riwayat-data,
@@ -82,19 +85,30 @@
     width: 100%;
   }
 
-  /* Chips split to 2 rows on mobile: preset row + filter row */
-  .riwayat-chips-bar {
-    flex-wrap: wrap;
-    overflow-x: visible;
+  .riwayat-select {
+    padding-left: 28px !important;
+    padding-right: 8px !important;
+    font-size: 12px !important;
   }
-  .riwayat-chips-bar .chips-group {
-    flex-basis: 100%;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
+
+  /* Chips: clean horizontal scroll on mobile without vertical wrap clutter */
+  .riwayat-chips-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    padding-bottom: 2px !important;
   }
-  .riwayat-chips-bar .chips-divider {
-    display: none;
+
+  .riwayat-chips-group::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .riwayat-chips-group .chip-btn {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 
   /* Date section header stays a slim full-width strip */

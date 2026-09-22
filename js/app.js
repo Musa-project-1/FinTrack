@@ -35,7 +35,7 @@ import {
   handleUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
 } from "./handlers/auth.js";
 import {
-  setBottomNavActive, closeActiveModal, setHistoryFilter, applyRiwayatPreset, clearRiwayatPresetHighlight, setupRekapSearchListener,
+  setBottomNavActive, closeActiveModal, setHistoryFilter, setupRekapSearchListener,
   openTampilanModal, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode,
   openCommandHubModal, setupMenuSearchListener
 } from "./handlers/navigation.js";
@@ -264,7 +264,6 @@ document.addEventListener('click', (e) => {
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
-    case 'set-riwayat-preset': applyRiwayatPreset(target.getAttribute('data-preset'), target); break;
     case 'load-more':         loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
@@ -536,10 +535,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (searchTrx) searchTrx.addEventListener('input', renderTableTransaksi);
 
   const filterBulan = document.getElementById('filter-bulan');
-  if (filterBulan) filterBulan.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
+  if (filterBulan) filterBulan.addEventListener('change', renderTableTransaksi);
 
   const filterTahun = document.getElementById('filter-tahun');
-  if (filterTahun) filterTahun.addEventListener('change', () => { clearRiwayatPresetHighlight(); renderTableTransaksi(); });
+  if (filterTahun) filterTahun.addEventListener('change', renderTableTransaksi);
 
   const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
   if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('keyup', filterAnggotaIuran);

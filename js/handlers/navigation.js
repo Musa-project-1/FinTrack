@@ -1,6 +1,5 @@
 import { setCurrentHistoryFilter, setItemsToShow } from "../core/state.js";
 import { openModal, closeModal } from "../ui/modal.js";
-import { syncCdrop } from "../ui/cdrop.js";
 import { renderAll, renderTableTransaksi, renderTableRekap } from "../render.js";
 
 /* ── Bottom nav helpers ────────────────────────────────────────── */
@@ -26,47 +25,7 @@ export const setHistoryFilter = (filter, btn) => {
   renderTableTransaksi();
 };
 
-/* ── Quick presets: Bulan Ini / Bulan Lalu / Semua Waktu ───────── */
 
-export const clearRiwayatPresetHighlight = () => {
-  document.querySelectorAll('#history-filter-chips [data-preset]').forEach((b) => b.classList.remove('active'));
-};
-
-export const applyRiwayatPreset = (preset, btn) => {
-  const now = new Date();
-  let year = now.getFullYear();
-  let monthIdx = now.getMonth();
-  if (preset === 'last-month') {
-    monthIdx -= 1;
-    if (monthIdx < 0) { monthIdx = 11; year -= 1; }
-  }
-
-  const bulanSel = document.getElementById('filter-bulan');
-  const tahunSel = document.getElementById('filter-tahun');
-  if (!bulanSel || !tahunSel) return;
-
-  if (preset === 'all-time') {
-    bulanSel.value = 'all';
-    tahunSel.value = 'all';
-  } else {
-    const yearStr = String(year);
-    if (!Array.from(tahunSel.options).some((o) => o.value === yearStr)) {
-      const opt = document.createElement('option');
-      opt.value = yearStr;
-      opt.text = yearStr;
-      tahunSel.appendChild(opt);
-    }
-    bulanSel.value = String(monthIdx);
-    tahunSel.value = yearStr;
-  }
-  syncCdrop('filter-bulan');
-  syncCdrop('filter-tahun');
-
-  clearRiwayatPresetHighlight();
-  btn.classList.add('active');
-  setItemsToShow(20);
-  renderTableTransaksi();
-};
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH LISTENERS

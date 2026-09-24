@@ -45,11 +45,15 @@ export const cetakLaporanTahunan = () => {
       let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${escapeHtml(ang.Nama_Anggota)}</td>`;
       NAMA_BULAN.forEach((bulan, idx) => {
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
+        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
         if (skipSet.has(monthKey)) {
           tr += '<td style="text-align:center;color:#999;">-</td>';
         } else if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) {
           monthTotals[idx]++;
           tr += '<td style="text-align:center;color:#059669;font-weight:700;">&#10003;</td>';
+        } else if (notOwed) {
+          // Member had not joined yet — not a debt, shown like a holiday month.
+          tr += '<td style="text-align:center;color:#999;">-</td>';
         } else {
           tr += '<td style="text-align:center;"></td>';
         }

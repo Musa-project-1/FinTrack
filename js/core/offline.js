@@ -109,14 +109,16 @@ export const classifySyncResponse = (resJSON) => {
 };
 
 /**
- * True when a transaction id is safe to sync/queue as a duplicate-free key.
- * Ids beginning with the temp prefix are optimistic rows that have not yet been
- * assigned a server id, so they must never be edited or deleted through the
- * offline queue (the server has no such document to act on).
+ * True when an id belongs to an optimistic row whose create has not been
+ * confirmed by the server yet. Such rows carry a `-TEMP-` marker (TRX-TEMP-,
+ * ANG-TEMP-, KAT-M-TEMP-, …); the server has no matching document, so they must
+ * never be edited or deleted through the offline queue — the queued mutation
+ * would target an id that will never exist (the create replays under a fresh
+ * server id), so it can only be rejected as "not found".
  * @param {string} id
  * @returns {boolean}
  */
-export const isUnsyncedTempId = (id) => typeof id === 'string' && id.startsWith('TRX-TEMP-');
+export const isUnsyncedTempId = (id) => typeof id === 'string' && /-TEMP-/.test(id);
 
 /**
  * Sync all pending offline transactions to the backend.

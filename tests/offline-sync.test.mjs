@@ -23,7 +23,7 @@ if (typeof globalThis.sessionStorage === 'undefined' || !globalThis.sessionStora
   globalThis.sessionStorage = makeStorage();
 }
 
-const { classifySyncResponse } = await import('../js/core/offline.js');
+const { classifySyncResponse, isUnsyncedTempId } = await import('../js/core/offline.js');
 
 test('classifySyncResponse returns unreachable when network or backend gives no response', () => {
   assert.equal(classifySyncResponse(null), 'unreachable');
@@ -86,4 +86,21 @@ test('offline replay simulation: rejects bad item, drains valid items, and halts
 
   // Item 1 (rejected) and Item 2 (success) were removed; Item 3 stays in queue
   assert.deepEqual(deletedIds, [1, 2]);
+});
+
+test('isUnsyncedTempId matches optimistic rows across every collection prefix, not just transactions', () => {
+  // Optimistic ids from tempTransactionId() and tempMasterId(prefix) all carry
+  // the "-TEMP-" marker. Editing/deleting one through the offline queue would
+  // target a server id that will never exist, so the guard must catch them all.
+  assert.equal(isUnsyncedTempId('TRX-TEMP-9F3A2B10'), true);
+  assert.equal(isUnsyncedTempId('ANG-TEMP-1C2D3E4F'), true);
+  assert.equal(isUnsyncedTempId('KAT-M-TEMP-AABBCCDD'), true);
+  assert.equal(isUnsyncedTempId('KAT-K-TEMP-11223344'), true);
+
+  // Real server ids and non-string input must never be treated as temp.
+  assert.equal(isUnsyncedTempId('TRX-20260101-0001'), false);
+  assert.equal(isUnsyncedTempId('ANG-1'), false);
+  assert.equal(isUnsyncedTempId(''), false);
+  assert.equal(isUnsyncedTempId(null), false);
+  assert.equal(isUnsyncedTempId(undefined), false);
 });

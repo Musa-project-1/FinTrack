@@ -2,27 +2,12 @@
  * Read operations for a single group's data.
  */
 import { fsGet, fsListAll } from './_sa.js';
-import { MEMBERS_COLLECTION, CATEGORIES_COLLECTION, TRANSACTIONS_COLLECTION, col, groupDoc, settingsDoc } from './_store.js';
+import { MEMBERS_COLLECTION, CATEGORIES_COLLECTION, TRANSACTIONS_COLLECTION, col, settingsDoc } from './_store.js';
 
 const byTimestampDesc = (a, b) =>
   new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime();
 
 const fieldsOf = (docs) => docs.map((doc) => doc.fields || {});
-
-/**
- * Read only the updatedAt field from the group root document.
- * Costs exactly 1 Firestore read.
- * @param {string} gid
- * @param {object} headers
- * @param {string} since ISO timestamp the client last synced
- * @returns {Promise<{hasUpdate: boolean, updatedAt: string|null}>}
- */
-export async function readGroupVersion(gid, headers, since) {
-  const doc = await fsGet(groupDoc(gid), headers);
-  const updatedAt = doc?.updatedAt || null;
-  const hasUpdate = updatedAt ? (since ? updatedAt > since : true) : false;
-  return { hasUpdate, updatedAt };
-}
 
 /**
  * Load only the transactions collection for one group.

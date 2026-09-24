@@ -1,6 +1,6 @@
 import { getState, getIsAdminSession } from "../core/state.js";
 import { postToBackend, fetchAuditLogApi } from "../core/api.js";
-import { queueOfflinePayload } from "../core/offline.js";
+import { queueOfflinePayload, isUnsyncedTempId } from "../core/offline.js";
 import { showToast, showDatabaseToast, escapeHtml, isOnline } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { renderSkippedMonthsList } from "../render.js";
@@ -318,6 +318,12 @@ export const submitEditMasterAnggota = async (e) => {
   if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
   if (nama.length < 2) return showToast('Nama anggota minimal 2 karakter.', 'error');
 
+  // Optimistic row whose create has not synced yet — the server has no matching
+  // document, so a queued edit can only fail as "not found". Block until synced.
+  if (isUnsyncedTempId(idAnggota)) {
+    return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengeditnya.', 'warning');
+  }
+
   const btn = document.getElementById('btn-submit-edit-anggota');
   if (btn) btn.disabled = true;
 
@@ -435,6 +441,10 @@ export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
   const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
   const angName = ang?.Nama_Anggota || 'Anggota';
 
+  if (isUnsyncedTempId(idAnggota)) {
+    return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengubah statusnya.', 'warning');
+  }
+
   showConfirmDialog({
     title: 'Ubah Status Anggota?',
     message: `Ubah status ${angName} menjadi "${nextStatus}"? Anggota nonaktif tidak akan dimasukkan ke penagihan iuran aktif.`,
@@ -465,6 +475,10 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
   if (!idAnggota) return showToast('ID anggota tidak valid.', 'error');
   const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
   const angName = ang?.Nama_Anggota || 'Anggota';
+
+  if (isUnsyncedTempId(idAnggota)) {
+    return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.', 'warning');
+  }
 
   showConfirmDialog({
     title: 'Hapus Anggota?',
@@ -540,6 +554,10 @@ export const hapusMasterKategoriAction = async (idKategori) => {
   if (!idKategori) return showToast('ID kategori tidak valid.', 'error');
   const kat = (getState().kategori || []).find((k) => k.ID_Kategori === idKategori);
   const katName = kat?.Nama_Kategori || 'Kategori';
+
+  if (isUnsyncedTempId(idKategori)) {
+    return showToast('Kategori ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.', 'warning');
+  }
 
   showConfirmDialog({
     title: 'Hapus Kategori?',

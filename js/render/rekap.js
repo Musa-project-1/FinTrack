@@ -1,6 +1,6 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { formatCompactRp, escapeHtml, calculateMemberRekapProgress } from "../core/utils.js";
+import { formatCompactRp, escapeHtml, calculateMemberRekapProgress, isMonthOwedByMember } from "../core/utils.js";
 
 export const populateTahunRekap = () => {
   const selects = [
@@ -94,11 +94,19 @@ export const renderTableRekap = () => {
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
         const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
         const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
+        // Months before this member joined are not owed, so they must not look
+        // like an unpaid debt (keeps the matrix consistent with dashboard/WA
+        // arrears, which skip pre-join months).
+        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
 
         if (isSkipped) {
           tdBulan.className = 'text-center td-skipped';
           tdBulan.innerHTML = '<span class="skipped-month-label">-</span>';
           tdBulan.title = 'Bulan Libur (tidak dihitung sebagai tunggakan)';
+        } else if (notOwed && !isLunas) {
+          tdBulan.className = 'text-center td-skipped';
+          tdBulan.innerHTML = '<span class="skipped-month-label">-</span>';
+          tdBulan.title = 'Belum bergabung (tidak dihitung sebagai tunggakan)';
         } else {
           tdBulan.className = 'text-center td-clickable';
           if (isLunas) {
@@ -164,9 +172,12 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
       const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
       const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
-      const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : 'belum';
-      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : 'Klik untuk bayar';
-      const allowAction = getIsAdminSession() && !isSkipped && !isLunas;
+      // Pre-join months are not a debt — render them like skipped months so the
+      // mobile grid matches the desktop matrix and the arrears math.
+      const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
+      const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : notOwed ? 'skipped' : 'belum';
+      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : notOwed ? 'Belum bergabung' : 'Klik untuk bayar';
+      const allowAction = getIsAdminSession() && !isSkipped && !isLunas && !notOwed;
       const onclick = allowAction
         ? `data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(bulan)}"`
         : '';
@@ -180,7 +191,8 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
 
     const firstUnpaidMonth = NAMA_BULAN.find((b, idx) =>
       !mapPembayaran[`${ang.ID_Anggota}_${b}`] &&
-      !(state.skippedMonths || []).includes(`${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`)
+      !(state.skippedMonths || []).includes(`${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`) &&
+      isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung)
     ) || NAMA_BULAN[0];
 
     return `

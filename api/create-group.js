@@ -118,10 +118,15 @@ async function setAdminCredential(body, headers) {
     admin_email: adminEmail,
     admin_password_hash: hashSecret(adminPassword, `finkas-admin:${groupId}`)
   }, headers);
-  // Credentials live only in the private document from here on.
-  await fsPatch(groupDoc(groupId), { admin_email: null, admin_password_hash: null }, headers,
-    ['admin_email', 'admin_password_hash']
-  ).catch((err) => console.error('[finkas] Group credential cleanup failed:', err?.message));
+  // Credentials live only in the private document from here on. Stamp
+  // revokedAfter so any session issued before this credential change is
+  // rejected on its next request (see canReadGroup/canWriteGroup).
+  await fsPatch(groupDoc(groupId), {
+    admin_email: null,
+    admin_password_hash: null,
+    revokedAfter: Math.floor(Date.now() / 1000)
+  }, headers, ['admin_email', 'admin_password_hash', 'revokedAfter'])
+    .catch((err) => console.error('[finkas] Group credential cleanup failed:', err?.message));
 
   await writeAuditLog(groupId, 'UBAH_KREDENSIAL_ADMIN', adminEmail || '(tanpa email)', headers);
   return { status: true, message: 'Kredensial Admin Grup berhasil diperbarui!' };
@@ -137,7 +142,12 @@ async function setGroupPin(body, headers) {
   if (pin.length !== 4) return { status: false, message: 'PIN harus 4 angka.' };
 
   await setPrivateConfig(groupId, { pin_hash: hashSecret(pin, `finkas-pin:${groupId}`) }, headers);
-  await fsPatch(groupDoc(groupId), { pin_hash: null }, headers, ['pin_hash'])
+  // Stamp revokedAfter so member sessions issued under the old PIN are rejected
+  // on their next request (see canReadGroup/canWriteGroup).
+  await fsPatch(groupDoc(groupId), {
+    pin_hash: null,
+    revokedAfter: Math.floor(Date.now() / 1000)
+  }, headers, ['pin_hash', 'revokedAfter'])
     .catch((err) => console.error('[finkas] Group pin cleanup failed:', err?.message));
 
   await writeAuditLog(groupId, 'UBAH_PIN', 'PIN grup diperbarui', headers);

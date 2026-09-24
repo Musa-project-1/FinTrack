@@ -303,13 +303,17 @@ export const calculateMemberRekapProgress = (
   mapPembayaran,
   skippedMonths = [],
   rekapYear,
-  monthNames
+  monthNames,
+  joinDateIso
 ) => {
   const skipSet = new Set(skippedMonths || []);
   const yearStr = String(rekapYear);
   const activeMonths = monthNames.filter((_, idx) => {
     const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${yearStr}`;
-    return !skipSet.has(monthKey);
+    if (skipSet.has(monthKey)) return false;
+    // Months before the member joined are not owed, so they must not inflate
+    // the denominator (keeps rekap progress consistent with dashboard dues).
+    return isMonthOwedByMember(idx, yearStr, joinDateIso);
   });
 
   const totalOwedMonths = activeMonths.length;
@@ -361,4 +365,56 @@ export const calculateCompliance = (memberStatus) => {
     : Math.min(100, Math.round((totalCollected / totalExpected) * 100));
 
   return { totalExpected, totalCollected, healthPct };
+};
+
+/* ── Join-date-aware dues ─────────────────────────────────────────── */
+
+/**
+ * First day of the month a member joined, or null when no/invalid join date.
+ * Day-of-month is discarded so a mid-month join still owes that whole month.
+ * @param {string} joinDateIso
+ * @returns {Date|null}
+ */
+export const memberJoinFirstOfMonth = (joinDateIso) => {
+  if (!joinDateIso) return null;
+  const d = new Date(joinDateIso);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+};
+
+/**
+ * Whether a member owes dues for a given calendar month.
+ *
+ * A member owes a month only if it is on or after their join month. Members
+ * with no recorded join date (legacy records) are treated as having joined at
+ * the group's start, so they owe every month — preserving prior behavior.
+ *
+ * @param {number} monthIndex 0-11
+ * @param {number|string} year
+ * @param {string} [joinDateIso]
+ * @returns {boolean}
+ */
+export const isMonthOwedByMember = (monthIndex, year, joinDateIso) => {
+  const joinFirst = memberJoinFirstOfMonth(joinDateIso);
+  if (!joinFirst) return true;
+  return new Date(Number(year), monthIndex, 1).getTime() >= joinFirst.getTime();
+};
+
+/**
+ * Total dues a member is expected to have paid across a window of months,
+ * skipping holiday months and any month before the member joined.
+ *
+ * @param {Array<{monthIndex: number, year: number|string}>} months
+ * @param {Set<string>} skipSet Holiday month keys as 'MM-YYYY'.
+ * @param {number} monthlyFee
+ * @param {string} [joinDateIso]
+ * @returns {number}
+ */
+export const expectedDuesForMember = (months, skipSet, monthlyFee, joinDateIso) => {
+  return months.reduce((sum, m) => {
+    const key = `${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`;
+    if (skipSet.has(key)) return sum;
+    if (!isMonthOwedByMember(m.monthIndex, m.year, joinDateIso)) return sum;
+    return sum + monthlyFee;
+  }, 0);
 };

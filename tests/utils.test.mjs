@@ -10,7 +10,9 @@ import {
   isoToDateInput,
   calculateMemberRekapProgress,
   calculateMemberContribution,
-  calculateCompliance
+  calculateCompliance,
+  isMonthOwedByMember,
+  expectedDuesForMember
 } from '../js/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
@@ -150,6 +152,16 @@ test('calculateMemberRekapProgress accounts for skipped months in denominator an
   assert.equal(resPartial.totalOwedMonths, 11);
   assert.equal(resPartial.lunasBulan, 10);
   assert.equal(resPartial.isFullPaid, false);
+
+  // Scenario 4: member joined in March 2026 -> only Mar..Dec (10 months) owed,
+  // so paying all of those is 10/10 = 100% even with Jan/Feb unpaid.
+  const joinedMar = new Date(2026, 2, 10).toISOString();
+  const mapFromMar = {};
+  MONTHS_12.slice(2).forEach((b) => { mapFromMar[`ANG-1_${b}`] = true; });
+  const resJoin = calculateMemberRekapProgress('ANG-1', mapFromMar, [], '2026', MONTHS_12, joinedMar);
+  assert.equal(resJoin.totalOwedMonths, 10);
+  assert.equal(resJoin.lunasBulan, 10);
+  assert.equal(resJoin.isFullPaid, true);
 });
 
 test('calculateMemberContribution sums only income rows for the specified member', () => {
@@ -180,4 +192,43 @@ test('calculateCompliance compares identical populations and caps at 100%', () =
     { paidTotal: 30000, expectedTotal: 20000 }
   ];
   assert.equal(calculateCompliance(overpaid).healthPct, 100);
+});
+
+/* ── Join-date-aware dues ─────────────────────────────────────────── */
+
+test('isMonthOwedByMember bills only months on or after the join month', () => {
+  // Joined 15 March 2026 → owes Mar 2026 onward, not Jan/Feb.
+  const joined = new Date(2026, 2, 15).toISOString();
+  assert.equal(isMonthOwedByMember(0, 2026, joined), false); // Jan
+  assert.equal(isMonthOwedByMember(1, 2026, joined), false); // Feb
+  assert.equal(isMonthOwedByMember(2, 2026, joined), true);  // Mar (join month, full month owed)
+  assert.equal(isMonthOwedByMember(3, 2026, joined), true);  // Apr
+  // A month in a later year is always owed once past the join month.
+  assert.equal(isMonthOwedByMember(0, 2027, joined), true);
+});
+
+test('isMonthOwedByMember treats a missing or invalid join date as legacy (owes all)', () => {
+  assert.equal(isMonthOwedByMember(0, 2026, undefined), true);
+  assert.equal(isMonthOwedByMember(0, 2026, ''), true);
+  assert.equal(isMonthOwedByMember(0, 2026, 'not-a-date'), true);
+});
+
+test('expectedDuesForMember prorates to join month and skips holiday months', () => {
+  const months = [
+    { monthIndex: 0, year: 2026 }, // Jan
+    { monthIndex: 1, year: 2026 }, // Feb
+    { monthIndex: 2, year: 2026 }, // Mar
+    { monthIndex: 3, year: 2026 }  // Apr
+  ];
+  const fee = 10000;
+
+  // Legacy member (no join date), no holidays → owes all 4 months.
+  assert.equal(expectedDuesForMember(months, new Set(), fee), 40000);
+
+  // Joined in March → owes Mar + Apr only.
+  const joinedMar = new Date(2026, 2, 1).toISOString();
+  assert.equal(expectedDuesForMember(months, new Set(), fee, joinedMar), 20000);
+
+  // Joined in March, but April is a holiday → owes Mar only.
+  assert.equal(expectedDuesForMember(months, new Set(['04-2026']), fee, joinedMar), 10000);
 });

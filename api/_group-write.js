@@ -367,6 +367,9 @@ export async function addMember(gid, payload, headers) {
     Nama_Anggota: nama,
     Nomor_WA: cleanDigits(payload?.noWa, 20),
     Status_Aktif: 'Aktif',
+    // Records the join month so dues are billed only from when a member joined,
+    // not retroactively to the group's start.
+    Tanggal_Gabung: nowIso(),
     groupId: gid
   };
 
@@ -583,6 +586,9 @@ export async function restoreSnapshot(gid, payload, headers) {
             Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
             Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
             Status_Aktif: STATUSES.includes(a.Status_Aktif ?? a.statusAktif) ? (a.Status_Aktif ?? a.statusAktif) : 'Aktif',
+            // Preserve the join date from the backup when present; blank means
+            // "legacy member" (owes the full window), matching addMember's default.
+            Tanggal_Gabung: cleanText(a.Tanggal_Gabung ?? a.tanggalGabung, 30),
             groupId: gid
           })
         }

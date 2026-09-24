@@ -390,6 +390,46 @@ const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timest
   document.getElementById("iuran-nominal").value = DEFAULT_FEE_DISPLAY;
 };
 
+/** Re-render every ledger-derived view after a local (offline) mutation. */
+const rerenderAfterLedgerChange = () => {
+  populateTahunRekap();
+  renderDashboard();
+  renderTableTransaksi();
+  renderTableRekap();
+  renderChart();
+};
+
+/**
+ * Apply an edit to the matching local ledger row so the offline UI reflects the
+ * change until the queued mutation replays. Field names map dataForm → stored
+ * transaction shape. No-op when the row is not in local state.
+ * @param {string} idTransaksi
+ * @param {object} dataForm
+ */
+const applyEditOptimistically = (idTransaksi, dataForm) => {
+  const trx = getState().transaksi.find((t) => t.ID_Transaksi === idTransaksi);
+  if (!trx) return;
+  trx.Tipe_Arus = dataForm.tipeArus;
+  trx.ID_Kategori = dataForm.idKategori;
+  trx.ID_Anggota = dataForm.idAnggota;
+  trx.Bulan_Iuran = dataForm.bulanIuran;
+  trx.Tahun_Iuran = dataForm.tahunIuran;
+  trx.Nominal = dataForm.nominal;
+  trx.Keterangan = dataForm.keterangan;
+  if (dataForm.timestamp) trx.Timestamp = dataForm.timestamp;
+};
+
+/**
+ * Drop a transaction from the local ledger so the offline UI matches until the
+ * queued delete replays. No-op when the row is not in local state.
+ * @param {string} idTarget
+ */
+const removeTransactionOptimistically = (idTarget) => {
+  const arr = getState().transaksi;
+  const idx = arr.findIndex((t) => t.ID_Transaksi === idTarget);
+  if (idx !== -1) arr.splice(idx, 1);
+};
+
 /* ── Operasional ─────────────────────────────────────────────────── */
 
 /** Submit a single operational (non-iuran) transaction. */

@@ -155,7 +155,8 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       mapPembayaran,
       state.skippedMonths,
       currentRekapYear,
-      NAMA_BULAN
+      NAMA_BULAN,
+      ang.Tanggal_Gabung
     );
     const nomorUrut = String(index + 1).padStart(2, '0');
 

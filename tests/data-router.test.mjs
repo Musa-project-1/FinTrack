@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
 
 import handler from '../api/data.js';
-import { ROLES, signSession, GROUP_SESSION_TTL } from '../api/_session.js';
+import { ROLES, signSession, GROUP_SESSION_TTL, checkReadRateLimit } from '../api/_session.js';
 
 const GID_A = 'GRP-TESTA';
 const GID_B = 'GRP-TESTB';
@@ -144,4 +144,24 @@ test('data gateway rejects checkUpdate from a member of a different group with 4
   }, res);
   assert.equal(res.statusCode, 403);
   assert.equal(res.body.message, 'Tidak memiliki akses ke grup ini.');
+});
+
+/* ── Read rate limiting (cost guard) ─────────────────────────────── */
+
+test('checkReadRateLimit blocks once the per-window cap is exceeded', () => {
+  const key = `test-read:${Math.random()}`;
+  // 3 requests allowed, the 4th is limited.
+  assert.equal(checkReadRateLimit(key, 3, 60_000).limited, false);
+  assert.equal(checkReadRateLimit(key, 3, 60_000).limited, false);
+  assert.equal(checkReadRateLimit(key, 3, 60_000).limited, false);
+  const fourth = checkReadRateLimit(key, 3, 60_000);
+  assert.equal(fourth.limited, true);
+  assert.ok(fourth.retryAfterSec > 0);
+});
+
+test('checkReadRateLimit starts a fresh window after it elapses', () => {
+  const key = `test-read-window:${Math.random()}`;
+  // A zero-length window means each call opens a new window → never limited.
+  assert.equal(checkReadRateLimit(key, 1, 0).limited, false);
+  assert.equal(checkReadRateLimit(key, 1, 0).limited, false);
 });

@@ -1,6 +1,6 @@
 import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, setArrearsRankChart, getArrearsRankChart } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance, expectedDuesForMember } from "../core/utils.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
@@ -117,17 +117,15 @@ export const renderChart = async () => {
   const activeMembers = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
   const monthlyFee = DEFAULT_MONTHLY_FEE;
 
-  // Hoist loop invariant: expected dues per member across the tracked window
-  const expectedTotalPerMember = months.reduce((sum, m) => {
-    const key = `${(m.monthIndex + 1).toString().padStart(2, '0')}-${m.year}`;
-    return sum + (skipSet.has(key) ? 0 : monthlyFee);
-  }, 0);
-
   const windowPeriodSet = new Set(
     months.map((m) => `${NAMA_BULAN[m.monthIndex]}_${m.year}`)
   );
 
   const memberStatus = activeMembers.map((ang) => {
+    // Expected dues are prorated to each member's join month: a member who
+    // joined in March is not billed for Jan/Feb. Legacy members with no
+    // Tanggal_Gabung owe the full window (join date treated as group start).
+    const expectedTotal = expectedDuesForMember(months, skipSet, monthlyFee, ang.Tanggal_Gabung);
     const paidTotal = state.transaksi
       .filter((t) =>
         t.ID_Anggota === ang.ID_Anggota &&
@@ -137,7 +135,7 @@ export const renderChart = async () => {
         windowPeriodSet.has(`${t.Bulan_Iuran}_${t.Tahun_Iuran}`)
       )
       .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
-    return { ang, paidTotal, expectedTotal: expectedTotalPerMember, arrears: Math.max(0, expectedTotalPerMember - paidTotal) };
+    return { ang, paidTotal, expectedTotal, arrears: Math.max(0, expectedTotal - paidTotal) };
   });
 
   const { totalExpected, totalCollected, healthPct } = calculateCompliance(memberStatus);

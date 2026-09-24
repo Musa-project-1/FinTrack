@@ -295,19 +295,64 @@ export async function clearRateLimit(key) {
   }
 }
 
+/* ── In-memory read rate limiting (per warm instance, zero Firestore cost) ── */
+
+/** @type {Map<string, {count: number, windowStart: number}>} */
+const readCounters = new Map();
+const READ_WINDOW_MS = 60_000;
+const READ_MAX_PER_WINDOW = 120; // ~2 reads/sec sustained per identity
+
+/**
+ * Best-effort in-memory sliding-window limiter for read traffic.
+ *
+ * Keyed by a stable per-caller identity so one client cannot hammer expensive
+ * reads (a full group pull lists four collections) to run up Firestore read
+ * costs. Deliberately memory-only: it adds NO Firestore writes, so reads stay
+ * cheap, and it resets on cold start — acceptable for a cost guard rather than a
+ * security boundary. A single abusive client mostly reuses one warm instance,
+ * where this cap bites.
+ *
+ * @param {string} key Stable identity, e.g. `read:GRP-1:1.2.3.4`.
+ * @param {number} [maxPerWindow]
+ * @param {number} [windowMs]
+ * @returns {{limited: boolean, retryAfterSec: number}}
+ */
+export function checkReadRateLimit(key, maxPerWindow = READ_MAX_PER_WINDOW, windowMs = READ_WINDOW_MS) {
+  const now = Date.now();
+  const entry = readCounters.get(key);
+
+  if (!entry || now - entry.windowStart >= windowMs) {
+    readCounters.set(key, { count: 1, windowStart: now });
+    // Opportunistic cleanup so the map cannot grow without bound.
+    if (readCounters.size > 5000) {
+      for (const [k, v] of readCounters) {
+        if (now - v.windowStart >= windowMs) readCounters.delete(k);
+      }
+    }
+    return { limited: false, retryAfterSec: 0 };
+  }
+
+  entry.count += 1;
+  if (entry.count > maxPerWindow) {
+    return { limited: true, retryAfterSec: Math.ceil((entry.windowStart + windowMs - now) / 1000) };
+  }
+  return { limited: false, retryAfterSec: 0 };
+}
+
 /**
  * Best-effort client IP extraction behind a proxy.
  * Prefers x-real-ip from the edge or the rightmost x-forwarded-for entry to prevent
  * spoofed-header rate-limit bypasses.
  */
 export const clientIp = (req) => {
-  const real = req.headers['x-real-ip'];
+  const headers = req?.headers || {};
+  const real = headers['x-real-ip'];
   if (typeof real === 'string' && real.trim().length) return real.trim();
 
-  const forwarded = req.headers['x-forwarded-for'];
+  const forwarded = headers['x-forwarded-for'];
   if (typeof forwarded === 'string' && forwarded.length) {
     const parts = forwarded.split(',').map((p) => p.trim()).filter(Boolean);
     if (parts.length) return parts[parts.length - 1];
   }
-  return req.socket?.remoteAddress || 'unknown';
+  return req?.socket?.remoteAddress || 'unknown';
 };

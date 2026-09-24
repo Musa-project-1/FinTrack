@@ -1,6 +1,6 @@
 import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
-import { formatRp, showToast, escapeHtml } from "../core/utils.js";
+import { formatRp, showToast, escapeHtml, isMonthOwedByMember } from "../core/utils.js";
 import { closeModal } from "../ui/modal.js";
 import { trackEvent } from "../core/analytics.js";
 
@@ -224,14 +224,22 @@ const doCreateGroupReminderMessage = async () => {
     trxByMember[t.ID_Anggota].push(t);
   });
 
-  let expectedTotal = 0;
-  monthsRange.forEach((k) => { if (!skippedSet.has(k)) expectedTotal += monthlyFee; });
-
   const results = [];
   getState().anggota
     .filter((a) => a.Status_Aktif === 'Aktif')
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota))
     .forEach((ang) => {
+      // Expected dues are prorated to the member's join month: a member who
+      // joined mid-window is not billed for months before they joined. Legacy
+      // members without Tanggal_Gabung owe every non-holiday month.
+      let expectedTotal = 0;
+      monthsRange.forEach((k) => {
+        if (skippedSet.has(k)) return;
+        const [mm, yyyy] = k.split('-');
+        if (!isMonthOwedByMember(Number(mm) - 1, yyyy, ang.Tanggal_Gabung)) return;
+        expectedTotal += monthlyFee;
+      });
+
       let paidTotal = 0;
       (trxByMember[ang.ID_Anggota] || []).forEach((t) => {
         if (t.Tipe_Arus !== 'Masuk' || !t.Tahun_Iuran || !t.Bulan_Iuran) return;

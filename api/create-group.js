@@ -79,7 +79,11 @@ async function createGroup(body, headers) {
   const id = newId('GRP');
   await fsPatch(groupDoc(id), { nama, dibuat: nowIso(), groupId: id }, headers);
   await setPrivateConfig(id, { pin_hash: hashSecret(pin, `finkas-pin:${id}`) }, headers);
-  await fsPatch(settingsDoc(id), { skippedMonths: [] }, headers, ['skippedMonths']);
+  // Seed the dues window origin to the creation month (MM-YYYY) so a brand-new
+  // group bills from when it was created, not the legacy hardcoded start.
+  const created = new Date();
+  const kasStart = `${String(created.getMonth() + 1).padStart(2, '0')}-${created.getFullYear()}`;
+  await fsPatch(settingsDoc(id), { skippedMonths: [], kasStart }, headers, ['skippedMonths', 'kasStart']);
 
   let issuedPassword = '';
   if (!skipAdmin) {

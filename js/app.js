@@ -45,7 +45,7 @@ import {
 } from "./handlers/transactions.js";
 import {
   openSkippedMonthsModal, renderAuditLogList, openAuditLogModal, addSkippedMonth,
-  removeSkippedMonth, renderMasterAnggotaTable, renderMasterKategoriTable,
+  removeSkippedMonth, saveKasStart, populateKasStartInput, renderMasterAnggotaTable, renderMasterKategoriTable,
   openKelolaMasterModal, submitTambahAnggota, toggleStatusAnggotaAction,
   hapusMasterAnggotaAction, submitTambahKategori, hapusMasterKategoriAction,
   bukaModalEditMasterAnggota, bukaModalEditMasterKategori, submitEditMasterAnggota
@@ -261,6 +261,7 @@ document.addEventListener('click', (e) => {
     /* ── Skipped months ───────────────────────────── */
     case 'add-skip':          addSkippedMonth(); break;
     case 'remove-skip':       removeSkippedMonth(month); break;
+    case 'save-kas-start':    saveKasStart(); break;
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
@@ -410,7 +411,8 @@ export const initApp = async (forceRemote = false) => {
         anggota: resJSON.data.anggota || [],
         kategori: resJSON.data.kategori || [],
         transaksi: resJSON.data.transaksi || [],
-        skippedMonths: resJSON.data.settings?.skippedMonths || []
+        skippedMonths: resJSON.data.settings?.skippedMonths || [],
+        kasStart: resJSON.data.settings?.kasStart || ''
       });
       saveCache();
       notifySynced();

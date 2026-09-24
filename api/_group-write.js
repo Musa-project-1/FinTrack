@@ -354,6 +354,32 @@ export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
   return ok('Pengaturan bulan libur diperbarui.', { skippedMonths: updated });
 }
 
+/**
+ * Set the month a group starts billing dues (the arrears window origin).
+ *
+ * Stored on the settings document as `kasStart` (MM-YYYY) so it costs no extra
+ * read — readGroupData already fetches that document. An empty string clears it,
+ * which makes the client fall back to the legacy GROUP_START constant. A future
+ * month is rejected so the arrears window can never start after "now".
+ */
+export async function setKasStart(gid, payload, headers) {
+  const raw = cleanText(payload?.kasStart, 7);
+
+  // Empty clears the override (revert to the legacy fallback).
+  if (raw !== '') {
+    if (!SKIPPED_MONTH_RE.test(raw)) return fail('Format awal kas harus MM-YYYY.');
+    const [mm, yyyy] = raw.split('-').map(Number);
+    const start = new Date(yyyy, mm - 1, 1).getTime();
+    const now = new Date();
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    if (start > thisMonth) return fail('Awal kas tidak boleh melewati bulan berjalan.');
+  }
+
+  await fsPatch(settingsDoc(gid), { kasStart: raw }, headers, ['kasStart']);
+  await writeAuditLog(gid, 'UBAH_AWAL_KAS', raw || '(dikosongkan)', headers);
+  return ok('Awal mulai kas diperbarui.', { kasStart: raw });
+}
+
 /* ── Members ─────────────────────────────────────────────────────── */
 
 export async function addMember(gid, payload, headers) {
@@ -676,6 +702,7 @@ export const WRITE_HANDLERS = {
   tambahKategori: addCategory,
   addSkippedMonth: (gid, payload, headers) => changeSkippedMonth(gid, payload, headers, true),
   removeSkippedMonth: (gid, payload, headers) => changeSkippedMonth(gid, payload, headers, false),
+  setKasStart,
   catatAktivitas: noteClientAudit,
   restoreSnapshot
 };

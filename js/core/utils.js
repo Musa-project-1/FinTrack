@@ -304,7 +304,10 @@ export const calculateMemberRekapProgress = (
   skippedMonths = [],
   rekapYear,
   monthNames,
-  joinDateIso
+  joinDateIso,
+  kasStart = '',
+  fallbackYear,
+  fallbackMonth
 ) => {
   const skipSet = new Set(skippedMonths || []);
   const yearStr = String(rekapYear);
@@ -313,7 +316,14 @@ export const calculateMemberRekapProgress = (
     if (skipSet.has(monthKey)) return false;
     // Months before the member joined are not owed, so they must not inflate
     // the denominator (keeps rekap progress consistent with dashboard dues).
-    return isMonthOwedByMember(idx, yearStr, joinDateIso);
+    if (!isMonthOwedByMember(idx, yearStr, joinDateIso)) return false;
+    // Months before the group started billing are likewise not owed. When the
+    // fallback is omitted (legacy callers), an empty kasStart makes this a no-op.
+    if (fallbackYear !== undefined && fallbackMonth !== undefined &&
+        !isMonthOwedByGroup(idx, yearStr, kasStart, fallbackYear, fallbackMonth)) {
+      return false;
+    }
+    return true;
   });
 
   const totalOwedMonths = activeMonths.length;
@@ -368,6 +378,55 @@ export const calculateCompliance = (memberStatus) => {
 };
 
 /* ── Join-date-aware dues ─────────────────────────────────────────── */
+
+/**
+ * Parse a stored kas-start value (MM-YYYY) into { monthIndex, year }, or null
+ * when absent/invalid. Empty means "no override — use the legacy fallback".
+ * @param {string} kasStart
+ * @returns {{monthIndex: number, year: number}|null}
+ */
+export const parseKasStart = (kasStart) => {
+  if (!kasStart || typeof kasStart !== 'string') return null;
+  const m = /^(0[1-9]|1[0-2])-(\d{4})$/.exec(kasStart.trim());
+  if (!m) return null;
+  return { monthIndex: Number(m[1]) - 1, year: Number(m[2]) };
+};
+
+/**
+ * First day of the month a group starts billing dues.
+ *
+ * Uses the stored `kasStart` override when present; otherwise falls back to the
+ * legacy GROUP_START constants so existing groups keep their current window
+ * (zero migration). The fallback is passed in to keep this module free of a
+ * config import cycle.
+ *
+ * @param {string} kasStart Stored MM-YYYY value ('' = use fallback).
+ * @param {number} fallbackYear
+ * @param {number} fallbackMonth 1-12
+ * @returns {Date}
+ */
+export const kasStartFirstOfMonth = (kasStart, fallbackYear, fallbackMonth) => {
+  const parsed = parseKasStart(kasStart);
+  if (parsed) return new Date(parsed.year, parsed.monthIndex, 1);
+  return new Date(fallbackYear, fallbackMonth - 1, 1);
+};
+
+/**
+ * Whether a calendar month is on or after the group's kas-start month, i.e. a
+ * month the group actually bills dues for. Months before the start are not a
+ * debt for anyone.
+ *
+ * @param {number} monthIndex 0-11
+ * @param {number|string} year
+ * @param {string} kasStart Stored MM-YYYY value ('' = use fallback).
+ * @param {number} fallbackYear
+ * @param {number} fallbackMonth 1-12
+ * @returns {boolean}
+ */
+export const isMonthOwedByGroup = (monthIndex, year, kasStart, fallbackYear, fallbackMonth) => {
+  const start = kasStartFirstOfMonth(kasStart, fallbackYear, fallbackMonth).getTime();
+  return new Date(Number(year), monthIndex, 1).getTime() >= start;
+};
 
 /**
  * First day of the month a member joined, or null when no/invalid join date.

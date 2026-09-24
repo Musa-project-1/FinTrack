@@ -1,6 +1,6 @@
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { formatCompactRp, escapeHtml, calculateMemberRekapProgress, isMonthOwedByMember } from "../core/utils.js";
+import { formatCompactRp, escapeHtml, calculateMemberRekapProgress, isMonthOwedByMember, isMonthOwedByGroup } from "../core/utils.js";
 
 export const populateTahunRekap = () => {
   const selects = [
@@ -94,10 +94,11 @@ export const renderTableRekap = () => {
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
         const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
         const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
-        // Months before this member joined are not owed, so they must not look
-        // like an unpaid debt (keeps the matrix consistent with dashboard/WA
-        // arrears, which skip pre-join months).
-        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
+        // Months before this member joined OR before the group's kas start are
+        // not owed, so they must not look like an unpaid debt (keeps the matrix
+        // consistent with dashboard/WA arrears).
+        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) ||
+          !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
 
         if (isSkipped) {
           tdBulan.className = 'text-center td-skipped';
@@ -164,7 +165,10 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       state.skippedMonths,
       currentRekapYear,
       NAMA_BULAN,
-      ang.Tanggal_Gabung
+      ang.Tanggal_Gabung,
+      state.kasStart,
+      GROUP_START_YEAR,
+      GROUP_START_MONTH
     );
     const nomorUrut = String(index + 1).padStart(2, '0');
 
@@ -172,11 +176,12 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
       const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
       const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
       const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
-      // Pre-join months are not a debt — render them like skipped months so the
-      // mobile grid matches the desktop matrix and the arrears math.
-      const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
+      // Pre-join / pre-kas-start months are not a debt — render them like
+      // skipped months so the mobile grid matches the desktop matrix.
+      const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) ||
+        !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
       const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : notOwed ? 'skipped' : 'belum';
-      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : notOwed ? 'Belum bergabung' : 'Klik untuk bayar';
+      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : notOwed ? 'Belum mulai kas' : 'Klik untuk bayar';
       const allowAction = getIsAdminSession() && !isSkipped && !isLunas && !notOwed;
       const onclick = allowAction
         ? `data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(bulan)}"`
@@ -192,7 +197,8 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
     const firstUnpaidMonth = NAMA_BULAN.find((b, idx) =>
       !mapPembayaran[`${ang.ID_Anggota}_${b}`] &&
       !(state.skippedMonths || []).includes(`${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`) &&
-      isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung)
+      isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) &&
+      isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH)
     ) || NAMA_BULAN[0];
 
     return `

@@ -386,6 +386,7 @@ test('the write dispatch table exposes exactly the expected actions', () => {
     'tambahKategori',
     'addSkippedMonth',
     'removeSkippedMonth',
+    'setKasStart',
     'catatAktivitas',
     'restoreSnapshot'
   ];

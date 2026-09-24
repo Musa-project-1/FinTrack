@@ -188,6 +188,48 @@ export const removeSkippedMonth = async (key) => {
   });
 };
 
+/* ── Kas start (awal mulai kas) ──────────────────────────────────── */
+
+/** Populate the kas-start month picker from state (YYYY-MM for input type=month). */
+export const populateKasStartInput = () => {
+  const el = document.getElementById('input-kas-start');
+  if (!el) return;
+  const kasStart = getState().kasStart || '';
+  // Stored as MM-YYYY; the month input needs YYYY-MM.
+  const m = /^(\d{2})-(\d{4})$/.exec(kasStart);
+  el.value = m ? `${m[2]}-${m[1]}` : '';
+};
+
+export const saveKasStart = async () => {
+  const el = document.getElementById('input-kas-start');
+  if (!el || !el.value) return showToast('Pilih bulan awal mulai kas terlebih dahulu.', 'error');
+  const parts = el.value.split('-'); // YYYY-MM from the month input
+  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return showToast('Format bulan salah.', 'error');
+  const key = `${parts[1].padStart(2, '0')}-${parts[0]}`; // → MM-YYYY
+
+  showConfirmDialog({
+    title: 'Tetapkan Awal Mulai Kas?',
+    message: `Grup akan mulai menagih iuran sejak bulan ${key}. Bulan sebelumnya tidak dihitung sebagai tunggakan. Simpan ke database?`,
+    icon: 'ph-fill ph-calendar-check',
+    confirmText: 'Ya, Simpan',
+    onConfirm: async () => {
+      const { delivered, result } = await deliverMutation({ action: 'setKasStart', kasStart: key });
+      const state = getState();
+      if (!delivered) {
+        state.kasStart = key;
+        showDatabaseToast('Awal Kas Disimpan (Offline)', `Awal kas ${key} akan disinkronkan saat online.`);
+        return;
+      }
+      if (result.status) {
+        state.kasStart = result.data?.kasStart ?? key;
+        showDatabaseToast('Awal Mulai Kas Diperbarui', `Grup menagih iuran sejak ${key}.`);
+      } else {
+        showToast(result.message || 'Gagal menyimpan awal mulai kas.', 'error');
+      }
+    }
+  });
+};
+
 /* ══════════════════════════════════════════════════════════════════
    MASTER DATA CRUD (ANGGOTA & KATEGORI)
    ══════════════════════════════════════════════════════════════════ */
@@ -389,6 +431,7 @@ export const openKelolaMasterModal = () => {
   renderMasterAnggotaTable();
   renderMasterKategoriTable();
   renderSkippedMonthsList();
+  populateKasStartInput();
   openModal('modal-kelola-master');
 };
 

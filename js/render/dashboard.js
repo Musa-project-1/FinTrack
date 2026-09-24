@@ -1,6 +1,6 @@
 import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, setArrearsRankChart, getArrearsRankChart } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance, expectedDuesForMember } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance, expectedDuesForMember, kasStartFirstOfMonth } from "../core/utils.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
@@ -99,7 +99,7 @@ export const renderChart = async () => {
   const ctx = chartEl.getContext('2d');
 
   const now = new Date();
-  const startDate = new Date(GROUP_START_YEAR, GROUP_START_MONTH - 1, 1);
+  const startDate = kasStartFirstOfMonth(state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
   const months = [];
   const monthLabels = [];
   let cursor = new Date(startDate);

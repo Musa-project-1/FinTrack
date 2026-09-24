@@ -829,6 +829,13 @@
       <!-- Tab 3: Bulan Libur -->
       <div id="tab-master-skipped" class="tab-content">
         <div class="master-form-card mb-16 skip-month-body">
+          <p class="text-muted mb-12 master-skip-hint">Awal mulai kas menandai bulan pertama grup menarik iuran. Bulan sebelumnya tidak dihitung sebagai tunggakan.</p>
+          <div class="skip-month-input-row">
+            <input type="month" id="input-kas-start" name="input-kas-start" class="form-control flex-1 mpick" data-placeholder="Pilih awal mulai kas..." aria-label="Pilih Awal Mulai Kas" />
+            <button class="btn btn-primary admin-only" data-action="save-kas-start"><i class="ph-bold ph-calendar-check"></i> <span>Simpan</span></button>
+          </div>
+        </div>
+        <div class="master-form-card mb-16 skip-month-body">
           <p class="text-muted mb-12 master-skip-hint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
           <div class="skip-month-input-row">
             <input type="month" id="input-skip-month" name="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." aria-label="Pilih Bulan Libur" />

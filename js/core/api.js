@@ -22,7 +22,7 @@ export {
   logoutAdminApi
 } from './api-auth.js';
 
-const EMPTY_DATA = { anggota: [], kategori: [], transaksi: [], settings: { skippedMonths: [] } };
+const EMPTY_DATA = { anggota: [], kategori: [], transaksi: [], settings: { skippedMonths: [], kasStart: '' } };
 
 /** Back-off window after the database reports a quota error. */
 let quotaCooldownUntil = 0;
@@ -62,7 +62,10 @@ export const fetchInitialData = async () => {
         anggota: data.anggota || [],
         kategori: data.kategori || [],
         transaksi: data.transaksi || [],
-        settings: { skippedMonths: data.settings?.skippedMonths || [] }
+        settings: {
+          skippedMonths: data.settings?.skippedMonths || [],
+          kasStart: data.settings?.kasStart || ''
+        }
       }
     };
   } catch (error) {

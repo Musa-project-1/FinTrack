@@ -12,7 +12,10 @@ import {
   calculateMemberContribution,
   calculateCompliance,
   isMonthOwedByMember,
-  expectedDuesForMember
+  expectedDuesForMember,
+  parseKasStart,
+  kasStartFirstOfMonth,
+  isMonthOwedByGroup
 } from '../js/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
@@ -231,4 +234,54 @@ test('expectedDuesForMember prorates to join month and skips holiday months', ()
 
   // Joined in March, but April is a holiday → owes Mar only.
   assert.equal(expectedDuesForMember(months, new Set(['04-2026']), fee, joinedMar), 10000);
+});
+
+/* ── Kas start (configurable group billing origin) ────────────────── */
+
+test('parseKasStart parses MM-YYYY and rejects blanks/garbage', () => {
+  assert.deepEqual(parseKasStart('03-2026'), { monthIndex: 2, year: 2026 });
+  assert.deepEqual(parseKasStart('11-2025'), { monthIndex: 10, year: 2025 });
+  assert.equal(parseKasStart(''), null);
+  assert.equal(parseKasStart(undefined), null);
+  assert.equal(parseKasStart('2026-03'), null); // wrong order
+  assert.equal(parseKasStart('13-2026'), null); // invalid month
+  assert.equal(parseKasStart('not-a-month'), null);
+});
+
+test('kasStartFirstOfMonth uses the override, else falls back to the legacy constant', () => {
+  // Override present → uses it (March 2026).
+  assert.equal(kasStartFirstOfMonth('03-2026', 2025, 11).getTime(), new Date(2026, 2, 1).getTime());
+  // Empty/invalid → legacy fallback (Nov 2025).
+  assert.equal(kasStartFirstOfMonth('', 2025, 11).getTime(), new Date(2025, 10, 1).getTime());
+  assert.equal(kasStartFirstOfMonth('garbage', 2025, 11).getTime(), new Date(2025, 10, 1).getTime());
+});
+
+test('isMonthOwedByGroup bills only months on or after the kas start', () => {
+  // Kas start March 2026 → Jan/Feb not owed, Mar onward owed.
+  assert.equal(isMonthOwedByGroup(0, 2026, '03-2026', 2025, 11), false); // Jan
+  assert.equal(isMonthOwedByGroup(1, 2026, '03-2026', 2025, 11), false); // Feb
+  assert.equal(isMonthOwedByGroup(2, 2026, '03-2026', 2025, 11), true);  // Mar
+  assert.equal(isMonthOwedByGroup(3, 2026, '03-2026', 2025, 11), true);  // Apr
+  // A month in a later year is always owed once past the start.
+  assert.equal(isMonthOwedByGroup(0, 2027, '03-2026', 2025, 11), true);
+  // No override → legacy fallback (Nov 2025): Oct 2025 not owed, Nov 2025 owed.
+  assert.equal(isMonthOwedByGroup(9, 2025, '', 2025, 11), false);  // Oct 2025
+  assert.equal(isMonthOwedByGroup(10, 2025, '', 2025, 11), true);  // Nov 2025
+});
+
+test('calculateMemberRekapProgress honors the group kas start in the denominator', () => {
+  const MONTHS_12 = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  // Kas start March 2026 → only Mar..Dec (10 months) owed by the group.
+  const mapFromMar = {};
+  MONTHS_12.slice(2).forEach((b) => { mapFromMar[`ANG-1_${b}`] = true; });
+  const res = calculateMemberRekapProgress('ANG-1', mapFromMar, [], '2026', MONTHS_12, undefined, '03-2026', 2025, 11);
+  assert.equal(res.totalOwedMonths, 10);
+  assert.equal(res.lunasBulan, 10);
+  assert.equal(res.isFullPaid, true);
+
+  // Without a fallback pair, the group filter is a no-op (legacy caller) → all 12.
+  const mapAll = {};
+  MONTHS_12.forEach((b) => { mapAll[`ANG-1_${b}`] = true; });
+  const legacy = calculateMemberRekapProgress('ANG-1', mapAll, [], '2026', MONTHS_12);
+  assert.equal(legacy.totalOwedMonths, 12);
 });

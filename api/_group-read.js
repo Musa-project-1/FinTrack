@@ -39,7 +39,10 @@ export async function readGroupData(gid, headers) {
     anggota: fieldsOf(memberDocs),
     kategori: fieldsOf(categoryDocs),
     transaksi: fieldsOf(transactionDocs).sort(byTimestampDesc),
-    settings: { skippedMonths: settings?.skippedMonths || [] }
+    settings: {
+      skippedMonths: settings?.skippedMonths || [],
+      kasStart: settings?.kasStart || ''
+    }
   };
 }
 

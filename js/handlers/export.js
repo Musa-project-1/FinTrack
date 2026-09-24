@@ -1,6 +1,6 @@
 import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
-import { formatRp, showToast, escapeHtml, isMonthOwedByMember } from "../core/utils.js";
+import { formatRp, showToast, escapeHtml, isMonthOwedByMember, parseKasStart, isMonthOwedByGroup } from "../core/utils.js";
 import { closeModal } from "../ui/modal.js";
 import { trackEvent } from "../core/analytics.js";
 
@@ -45,14 +45,17 @@ export const cetakLaporanTahunan = () => {
       let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${escapeHtml(ang.Nama_Anggota)}</td>`;
       NAMA_BULAN.forEach((bulan, idx) => {
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
-        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
+        // Months before the group's kas start OR before this member joined are
+        // not a debt — render "-" so they don't read as unpaid.
+        const notOwed = !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH) ||
+          !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
         if (skipSet.has(monthKey)) {
           tr += '<td style="text-align:center;color:#999;">-</td>';
         } else if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) {
           monthTotals[idx]++;
           tr += '<td style="text-align:center;color:#059669;font-weight:700;">&#10003;</td>';
         } else if (notOwed) {
-          // Member had not joined yet — not a debt, shown like a holiday month.
+          // Before kas start / member join — not a debt, shown like a holiday month.
           tr += '<td style="text-align:center;color:#999;">-</td>';
         } else {
           tr += '<td style="text-align:center;"></td>';
@@ -202,8 +205,11 @@ export const createGroupReminderMessage = async () => {
 };
 
 const doCreateGroupReminderMessage = async () => {
-  const startYear = GROUP_START_YEAR;
-  const startMonth = GROUP_START_MONTH;
+  // Window origin respects the group's configured kas start when set, else the
+  // legacy GROUP_START constant (unchanged for existing groups).
+  const kasStartParts = parseKasStart(getState().kasStart);
+  const startYear = kasStartParts ? kasStartParts.year : GROUP_START_YEAR;
+  const startMonth = kasStartParts ? kasStartParts.monthIndex + 1 : GROUP_START_MONTH;
   const now = new Date();
   const endYear = now.getFullYear();
   const endMonth = now.getMonth() + 1;

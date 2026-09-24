@@ -17,14 +17,15 @@ import {
   DEFAULT_GROUP_ID
 } from './config.js';
 
-/** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[] }} AppState */
+/** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[], kasStart: string }} AppState */
 
 /** @type {AppState} */
 const state = {
   anggota: [],
   kategori: [],
   transaksi: [],
-  skippedMonths: []
+  skippedMonths: [],
+  kasStart: ''
 };
 
 /** Read-only reference to the application state. */
@@ -39,6 +40,9 @@ export const setState = (newState) => {
   if (newState.kategori) state.kategori = newState.kategori;
   if (newState.transaksi) state.transaksi = newState.transaksi;
   if (newState.skippedMonths) state.skippedMonths = newState.skippedMonths;
+  // kasStart is a settable override: '' is a valid value (revert to fallback),
+  // so guard on presence, not truthiness.
+  if (newState.kasStart !== undefined) state.kasStart = newState.kasStart;
 };
 
 /**

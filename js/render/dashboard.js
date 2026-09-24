@@ -1,5 +1,5 @@
 import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
-import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart } from "../core/state.js";
+import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, setArrearsRankChart, getArrearsRankChart } from "../core/state.js";
 import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance } from "../core/utils.js";
 import { filterKategori } from "../ui/modal.js";
 
@@ -188,7 +188,7 @@ export const renderChart = async () => {
           label: 'Pemasukan',
           data: dataMasuk,
           borderColor: isDark ? '#2dd4bf' : '#0d9488',
-          backgroundColor: isDark ? 'rgba(45, 212, 191, 0.14)' : 'rgba(13, 148, 136, 0.12)',
+          backgroundColor: isDark ? 'rgba(45, 212, 191, 0.20)' : 'rgba(13, 148, 136, 0.20)',
           tension: 0.35,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -201,7 +201,7 @@ export const renderChart = async () => {
           label: 'Pengeluaran',
           data: dataKeluar,
           borderColor: isDark ? '#fb7185' : '#e11d48',
-          backgroundColor: isDark ? 'rgba(251, 113, 133, 0.14)' : 'rgba(225, 29, 72, 0.12)',
+          backgroundColor: isDark ? 'rgba(251, 113, 133, 0.20)' : 'rgba(225, 29, 72, 0.20)',
           tension: 0.35,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -257,6 +257,7 @@ export const renderChart = async () => {
   if (updateEl) updateEl.innerText = new Date().toLocaleTimeString('id-ID');
 
   renderExpenseChart(isDark, textColor);
+  renderArrearsRankChart(memberStatus, isDark, textColor, gridColor);
 };
 
 const renderExpenseChart = (isDark, textColor) => {
@@ -357,5 +358,79 @@ const renderExpenseChart = (isDark, textColor) => {
     }
   });
   setExpenseChart(expenseChart);
+};
+
+/**
+ * Horizontal bar chart ranking members by outstanding arrears (largest first).
+ * Skill rule (chart domain, "Compare Categories"): Bar Chart is the correct type
+ * for ranking members; horizontal keeps long names readable.
+ * @param {Array<{ang: object, arrears: number}>} memberStatus
+ */
+const renderArrearsRankChart = (memberStatus, isDark, textColor, gridColor) => {
+  const chartEl = document.getElementById('arrearsRankChart');
+  if (!chartEl) return;
+  const emptyEl = document.getElementById('arrears-rank-empty');
+
+  if (getArrearsRankChart()) getArrearsRankChart().destroy();
+
+  const ranked = memberStatus
+    .filter((item) => item.arrears > 0)
+    .sort((a, b) => b.arrears - a.arrears)
+    .slice(0, 8);
+
+  // No arrears → hide the canvas, show the reassuring empty note.
+  if (ranked.length === 0) {
+    chartEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'flex';
+    return;
+  }
+  chartEl.style.display = '';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const ctx = chartEl.getContext('2d');
+  const labels = ranked.map((item) => item.ang.Nama_Anggota || item.ang.ID_Anggota);
+  const data = ranked.map((item) => item.arrears);
+  const barColor = isDark ? '#fb7185' : '#e11d48';
+
+  const arrearsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Tunggakan',
+        data,
+        backgroundColor: isDark ? 'rgba(251, 113, 133, 0.72)' : 'rgba(225, 29, 72, 0.78)',
+        borderColor: barColor,
+        borderWidth: 1,
+        borderRadius: 6,
+        maxBarThickness: 26
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${formatRp(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            font: { size: 10 },
+            callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : val
+          }
+        },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 11, weight: 500 } } }
+      }
+    }
+  });
+  setArrearsRankChart(arrearsChart);
 };
 

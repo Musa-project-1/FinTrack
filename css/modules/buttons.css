@@ -244,3 +244,108 @@ body:not(.superadmin-mode) .superadmin-only { display: none !important; }
   flex-wrap: nowrap;
   flex-shrink: 0;
 }
+
+/* === LIQUID SAVE BUTTON (keel) ===
+   Teal liquid rises during the save, tops off + draws a check on success,
+   recedes on failure. Progress lives in the registered custom property --p
+   (0..1) so a single JS write animates via CSS transition — no rAF loop. */
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.btn-liquid {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  --p: 0;
+  --keel-dur: 600ms;
+}
+
+.btn-liquid .keel-label {
+  position: relative;
+  z-index: 2;
+}
+
+/* One box with a percentage top-radius domes across both walls like a meniscus. */
+.btn-liquid .keel-fill {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  bottom: 0;
+  height: 100%;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+  border-radius: 44% 44% 0 0 / 20px 20px 0 0;
+  transform: translateY(calc((1 - var(--p)) * 100%));
+  transition: transform var(--keel-dur) cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+
+/* Bright surface line riding the meniscus. */
+.btn-liquid .keel-fill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  filter: blur(1px);
+}
+
+/* Label + spinner glyph flip to ink-on-teal once the liquid is rising. */
+.btn-liquid.is-saving .keel-label,
+.btn-liquid.is-filled .keel-label {
+  color: var(--accent-ink);
+}
+
+/* Drawn checkmark on success. */
+.btn-liquid .keel-check {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  z-index: 3;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s cubic-bezier(0.34, 1.4, 0.5, 1);
+  pointer-events: none;
+}
+.btn-liquid .keel-check svg {
+  width: 100%;
+  height: 100%;
+}
+.btn-liquid .keel-check path {
+  fill: none;
+  stroke: var(--accent-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+}
+.btn-liquid.is-done .keel-label {
+  opacity: 0;
+}
+.btn-liquid.is-done .keel-check {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.btn-liquid.is-done .keel-check path {
+  animation: keel-draw 0.4s 0.08s ease forwards;
+}
+@keyframes keel-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Reduced motion: no rise, no draw — jump straight to final states. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-liquid .keel-fill { transition: none; }
+  .btn-liquid .keel-check,
+  .btn-liquid .keel-check path { transition: none; animation: none; }
+  .btn-liquid.is-done .keel-check path { stroke-dashoffset: 0; }
+}

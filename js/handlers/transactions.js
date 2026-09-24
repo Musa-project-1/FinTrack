@@ -81,6 +81,73 @@ const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
   }
 };
 
+/**
+ * Run a save with the liquid-fill ("keel") button animation.
+ *
+ * The teal liquid crawls to ~90% while the request is in flight (honest
+ * indeterminate wait — we cannot know the real byte progress of a JSON POST),
+ * then on success it tops off to 100% and draws the checkmark before the
+ * caller's side effects run; on failure it recedes. Progress is written to the
+ * registered custom property `--p`, so CSS transitions do the animating — no
+ * requestAnimationFrame loop. Honours `prefers-reduced-motion`.
+ *
+ * @param {string} buttonId
+ * @param {() => Promise<{outcome?: 'success'|'error'|'neutral', done?: Function}>} task
+ *   Resolves the network call and returns the visual outcome plus a `done`
+ *   callback holding the modal-close / optimistic-update side effects.
+ */
+const withLiquidSave = async (buttonId, task) => {
+  const btn = document.getElementById(buttonId);
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const setP = (v, dur) => {
+    if (!btn) return;
+    btn.style.setProperty("--keel-dur", (reduce ? 0 : dur) + "ms");
+    btn.style.setProperty("--p", String(v));
+  };
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+  const reset = () => {
+    if (!btn) return;
+    btn.classList.remove("is-saving", "is-done", "is-error");
+    btn.disabled = false;
+    setP(0, 0);
+  };
+
+  if (btn) {
+    btn.classList.remove("is-done", "is-error");
+    btn.classList.add("is-saving");
+    btn.disabled = true;
+    setP(0.9, 1100);
+  }
+
+  let res;
+  try {
+    res = await task();
+  } catch (err) {
+    console.error("[liquid-save]", err);
+    res = { outcome: "error", done: () => showToast("Terjadi kesalahan saat menyimpan.", "error") };
+  }
+  const outcome = res?.outcome || "success";
+
+  if (outcome === "success") {
+    setP(1, 340);
+    if (btn) { btn.classList.remove("is-saving"); btn.classList.add("is-done"); }
+    await wait(560);
+    await res?.done?.();
+    reset();
+    return;
+  }
+
+  // error / neutral — recede without the check
+  setP(0, 420);
+  if (btn) {
+    btn.classList.remove("is-saving");
+    if (outcome === "error") btn.classList.add("is-error");
+  }
+  await wait(outcome === "error" ? 700 : 180);
+  await res?.done?.();
+  reset();
+};
+
 /* ══════════════════════════════════════════════════════════════════
    QUICK PAY (single member, single month)
    ══════════════════════════════════════════════════════════════════ */
@@ -242,10 +309,8 @@ export const submitIuran = async (e) => {
     message: `Catat iuran ${formBulan} ${formTahun} untuk ${arrIdAnggota.length} anggota terpilih (Total: ${formatRp(totalNominal)}) ke database?`,
     icon: "ph-fill ph-hand-coins",
     confirmText: "Ya, Simpan Iuran",
-    onConfirm: () => withBusyButton(
+    onConfirm: () => withLiquidSave(
       "btn-submit-iuran",
-      '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...',
-      "SIMPAN IURAN",
       async () => {
         const payload = {
           action: "tambahTransaksiMassal",
@@ -264,33 +329,36 @@ export const submitIuran = async (e) => {
         const { delivered, result } = await deliverMutation(payload);
 
         if (!delivered) {
-          showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
-          closeModal("modal-transaksi");
-          applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso);
-          return;
+          return { outcome: "success", done: () => {
+            showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
+            closeModal("modal-transaksi");
+            applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso);
+          }};
         }
 
         if (!result.status) {
-          showToast(result.message, "error");
-          return;
+          return { outcome: "error", done: () => showToast(result.message, "error") };
         }
 
         const inserted = Number(result.data?.inserted ?? arrIdAnggota.length);
         const skipped = Array.isArray(result.data?.skipped) ? result.data.skipped : [];
 
         if (inserted === 0) {
-          showToast(result.message || "Semua anggota yang dipilih sudah lunas.", "warning");
-          closeModal("modal-transaksi");
-          await refreshAppData();
-          return;
+          return { outcome: "neutral", done: async () => {
+            showToast(result.message || "Semua anggota yang dipilih sudah lunas.", "warning");
+            closeModal("modal-transaksi");
+            await refreshAppData();
+          }};
         }
 
-        showDatabaseToast("Iuran Kas Disimpan", `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
-        closeModal("modal-transaksi");
-        applyIuranOptimistically(
-          arrIdAnggota.filter((id) => !skipped.includes(id)),
-          formKategori, formBulan, formTahun, formNominal, formTanggalIso
-        );
+        return { outcome: "success", done: () => {
+          showDatabaseToast("Iuran Kas Disimpan", `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
+          closeModal("modal-transaksi");
+          applyIuranOptimistically(
+            arrIdAnggota.filter((id) => !skipped.includes(id)),
+            formKategori, formBulan, formTahun, formNominal, formTanggalIso
+          );
+        }};
       }
     )
   });
@@ -350,10 +418,8 @@ export const submitOperasional = async (e) => {
     icon: formTipe === "Masuk" ? "ph-fill ph-trend-up" : "ph-fill ph-trend-down",
     badgeClass: formTipe === "Masuk" ? "" : "warning",
     confirmText: "Ya, Simpan Transaksi",
-    onConfirm: () => withBusyButton(
+    onConfirm: () => withLiquidSave(
       "btn-submit-ops",
-      '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...',
-      "SIMPAN OPERASIONAL",
       async () => {
         const payload = {
           action: "tambahTransaksi",
@@ -371,40 +437,43 @@ export const submitOperasional = async (e) => {
 
         const { delivered, result } = await deliverMutation(payload);
 
-        if (!delivered) {
-          showDatabaseToast("Operasional Disimpan (Offline)", `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
-        } else if (!result.status) {
-          showToast(result.message, "error");
-          return;
-        } else {
-          showDatabaseToast("Transaksi Kas Dicatat", `${formTipe}: ${formatRp(formNominal)} berhasil disimpan.`);
+        if (delivered && !result.status) {
+          return { outcome: "error", done: () => showToast(result.message, "error") };
         }
 
-        closeModal("modal-transaksi");
-        addTransaction({
-          ID_Transaksi: tempTransactionId(),
-          Timestamp: formTanggalIso || new Date().toISOString(),
-          Tipe_Arus: formTipe,
-          ID_Kategori: formKategori,
-          ID_Anggota: formAnggota,
-          Bulan_Iuran: "-",
-          Tahun_Iuran: "-",
-          Nominal: formNominal,
-          Keterangan: formKeterangan
-        });
-        populateTahunRekap();
-        renderDashboard();
-        renderTableTransaksi();
-        renderTableRekap();
-        renderChart();
+        return { outcome: "success", done: () => {
+          if (!delivered) {
+            showDatabaseToast("Operasional Disimpan (Offline)", `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
+          } else {
+            showDatabaseToast("Transaksi Kas Dicatat", `${formTipe}: ${formatRp(formNominal)} berhasil disimpan.`);
+          }
 
-        document.getElementById("tab-operasional").querySelector("form").reset();
-        document.getElementById("ops-anggota").value = "-";
-        document.getElementById("ops-tipe").value = "Keluar";
-        filterKategori("ops-tipe", "ops-kategori");
-        syncCdrop("ops-anggota");
-        syncCdrop("ops-tipe");
-        syncCdrop("ops-kategori");
+          closeModal("modal-transaksi");
+          addTransaction({
+            ID_Transaksi: tempTransactionId(),
+            Timestamp: formTanggalIso || new Date().toISOString(),
+            Tipe_Arus: formTipe,
+            ID_Kategori: formKategori,
+            ID_Anggota: formAnggota,
+            Bulan_Iuran: "-",
+            Tahun_Iuran: "-",
+            Nominal: formNominal,
+            Keterangan: formKeterangan
+          });
+          populateTahunRekap();
+          renderDashboard();
+          renderTableTransaksi();
+          renderTableRekap();
+          renderChart();
+
+          document.getElementById("tab-operasional").querySelector("form").reset();
+          document.getElementById("ops-anggota").value = "-";
+          document.getElementById("ops-tipe").value = "Keluar";
+          filterKategori("ops-tipe", "ops-kategori");
+          syncCdrop("ops-anggota");
+          syncCdrop("ops-tipe");
+          syncCdrop("ops-kategori");
+        }};
       }
     )
   });

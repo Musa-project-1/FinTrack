@@ -290,7 +290,10 @@ export const incrementItemsToShow = (n) => { itemsToShow += n; };
 
 export let cashFlowChart = null;
 export let expenseChart = null;
+export let arrearsRankChart = null;
 export const setCashFlowChart = (c) => { cashFlowChart = c; };
 export const setExpenseChart = (c) => { expenseChart = c; };
+export const setArrearsRankChart = (c) => { arrearsRankChart = c; };
 export const getCashFlowChart = () => cashFlowChart;
 export const getExpenseChart = () => expenseChart;
+export const getArrearsRankChart = () => arrearsRankChart;

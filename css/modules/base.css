@@ -257,3 +257,18 @@ body.progress-format-ratio .iuran-progress-subtext {
   font-weight: 600;
   color: var(--accent-strong);
 }
+
+/* === REDUCED MOTION (HORMATI PREFERENSI SISTEM) ===
+   Aktif hanya bila user menyalakan "Kurangi Gerakan" di OS/HP.
+   Menetralkan animasi berulang (pulse status, sync spinner, toast) &
+   transisi masuk agar tidak memicu mabuk gerak/vertigo. User biasa tak terpengaruh. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

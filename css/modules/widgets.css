@@ -304,6 +304,18 @@ body.dark-mode .btn-wa:hover {
   margin-top: 0;
 }
 
+.chart-empty-note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 var(--sp-4);
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
 /* === STATISTICS HERO ===
    The cash-health percentage is the one hero figure of the statistics dialog. */
 .health-card .stat-card-value,

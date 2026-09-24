@@ -15,6 +15,12 @@ export const renderTableTransaksi = () => {
   const filterTahun = document.getElementById('filter-tahun')?.value || 'all';
   const loadMoreBtn = document.getElementById('btn-load-more') || document.getElementById('load-more-container');
 
+  // Build id→name lookups once. The filter below runs over every transaction on
+  // each keystroke; a per-row Array.find() over members/categories made it
+  // O(rows × members), so index them into Maps first (O(rows + members)).
+  const anggotaById = new Map(state.anggota.map((a) => [a.ID_Anggota, a]));
+  const kategoriById = new Map(state.kategori.map((k) => [k.ID_Kategori, k]));
+
   const filteredTrx = [...state.transaksi].reverse().filter((trx) => {
     const tglObj = new Date(trx.Timestamp);
     const rowTipe = (trx.Tipe_Arus || '').toLowerCase();
@@ -27,9 +33,9 @@ export const renderTableTransaksi = () => {
       (currentHistoryFilter === 'iuran' && rowIsIuran) ||
       (currentHistoryFilter === 'operasional' && !rowIsIuran);
 
-    const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
+    const objKat = kategoriById.get(trx.ID_Kategori);
     const namaKat = objKat ? objKat.Nama_Kategori.toLowerCase() : '';
-    const angObj = trx.ID_Anggota && trx.ID_Anggota !== '-' ? state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota) : null;
+    const angObj = trx.ID_Anggota && trx.ID_Anggota !== '-' ? anggotaById.get(trx.ID_Anggota) : null;
     const namaAnggota = angObj ? angObj.Nama_Anggota.toLowerCase() : '';
     const ket = (trx.Keterangan || '').toLowerCase();
     const bulanIuran = (trx.Bulan_Iuran || '').toLowerCase();
@@ -75,7 +81,9 @@ export const renderTableTransaksi = () => {
   }
 
   if (filteredTrx.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="td-muted-center">Tidak ada transaksi ditemukan.</td></tr>';
+    // 5 columns for admins (Aksi shown), 4 otherwise.
+    const emptyCols = getIsAdminSession() ? 5 : 4;
+    tbody.innerHTML = `<tr><td colspan="${emptyCols}" class="td-muted-center">Tidak ada transaksi ditemukan.</td></tr>`;
     if (loadMoreBtn) loadMoreBtn.style.display = 'none';
     return;
   }
@@ -122,7 +130,7 @@ export const renderTableTransaksi = () => {
 
     let ketExtra = '';
     if (trx.ID_Anggota && trx.ID_Anggota !== '-') {
-      const angObj = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
+      const angObj = anggotaById.get(trx.ID_Anggota);
       const namaAnggota = angObj ? angObj.Nama_Anggota : trx.ID_Anggota;
       const bulanShort = (trx.Bulan_Iuran || '').slice(0, 3);
       const periodShort = trx.Bulan_Iuran ? `${bulanShort} ${trx.Tahun_Iuran || ''}`.trim() : '';
@@ -130,7 +138,7 @@ export const renderTableTransaksi = () => {
 
       ketExtra = `<div class="trx-title-row"><strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong><span class="trx-period desktop-only-inline">Iuran • ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}</span></div><div class="trx-meta-row mono"><span class="trx-meta-pill">${escapeHtml(periodShort)}</span><span class="trx-meta-sep">·</span><span class="trx-meta-time">${tglTimeMobile}</span>${hasCustomNote ? `<span class="trx-meta-note">· ${escapeHtml(trx.Keterangan)}</span>` : ''}</div>${hasCustomNote ? `<span class="trx-subnote desktop-only-block">${escapeHtml(trx.Keterangan)}</span>` : ''}`;
     } else {
-      const objKat = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
+      const objKat = kategoriById.get(trx.ID_Kategori);
       const namaKat = objKat ? objKat.Nama_Kategori : 'Operasional';
       const hasKet = trx.Keterangan && trx.Keterangan.trim() !== '-' && trx.Keterangan.trim() !== '';
       const opTitle = hasKet ? trx.Keterangan : namaKat;

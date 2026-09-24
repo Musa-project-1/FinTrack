@@ -108,10 +108,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Local origin assets: Network-first, fallback to cache with ignoreSearch: true
+  // 1. Local origin assets: network-first with a 3s timeout, fallback to cache.
+  //    A hard network-first (no timeout) made every load on a slow-but-connected
+  //    link wait for the network to fail before serving the cache; racing a
+  //    timeout keeps the app responsive while the background fetch still
+  //    refreshes the cache when it eventually resolves.
   if (url.origin === location.origin && event.request.method === 'GET') {
-    event.respondWith(
-      fetch(event.request)
+    event.respondWith((async () => {
+      const cachedPromise = caches.match(event.request, { ignoreSearch: true });
+
+      const networkPromise = fetch(event.request)
         .then((response) => {
           if (response && response.ok) {
             const copy = response.clone();
@@ -119,11 +125,21 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(async () => {
-          const cached = await caches.match(event.request, { ignoreSearch: true });
-          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
-        })
-    );
+        .catch(() => null);
+
+      const timeout = new Promise((resolve) => setTimeout(() => resolve('TIMEOUT'), 3000));
+      const winner = await Promise.race([networkPromise, timeout]);
+      if (winner && winner !== 'TIMEOUT') return winner;
+
+      // Network slow or failed — serve cache if we have it (the fetch above
+      // keeps running and refreshes the cache for next time).
+      const cached = await cachedPromise;
+      if (cached) return cached;
+
+      // Nothing cached: wait out the network rather than failing early.
+      const net = await networkPromise;
+      return net || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+    })());
     return;
   }
 

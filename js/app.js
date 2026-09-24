@@ -532,7 +532,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
 
   const searchTrx = document.getElementById('search-trx');
-  if (searchTrx) searchTrx.addEventListener('input', renderTableTransaksi);
+  if (searchTrx) {
+    // Debounce like the rekap search (navigation.js): each keystroke otherwise
+    // re-filters and re-renders the whole ledger, doing a per-row member/kategori
+    // lookup on every character.
+    let trxSearchTimer = null;
+    searchTrx.addEventListener('input', () => {
+      clearTimeout(trxSearchTimer);
+      trxSearchTimer = setTimeout(renderTableTransaksi, 150);
+    });
+  }
 
   const filterBulan = document.getElementById('filter-bulan');
   if (filterBulan) filterBulan.addEventListener('change', renderTableTransaksi);

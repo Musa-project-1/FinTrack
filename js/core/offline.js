@@ -109,6 +109,16 @@ export const classifySyncResponse = (resJSON) => {
 };
 
 /**
+ * True when a transaction id is safe to sync/queue as a duplicate-free key.
+ * Ids beginning with the temp prefix are optimistic rows that have not yet been
+ * assigned a server id, so they must never be edited or deleted through the
+ * offline queue (the server has no such document to act on).
+ * @param {string} id
+ * @returns {boolean}
+ */
+export const isUnsyncedTempId = (id) => typeof id === 'string' && id.startsWith('TRX-TEMP-');
+
+/**
  * Sync all pending offline transactions to the backend.
  * @param {Function} [onSuccess] - Called after successful full sync.
  * @returns {Promise<void>}

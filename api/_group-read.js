@@ -63,7 +63,9 @@ export async function readGroupData(gid, headers) {
  * @returns {Promise<Array>}
  */
 export async function readAuditLog(gid, headers) {
-  const docs = await fsListAll(col(gid, 'audit_log'), headers, 3);
+  // Bounded read: the audit view only shows the newest ~100 entries, so a
+  // partial list past the 3-page cap is expected, not an error.
+  const docs = await fsListAll(col(gid, 'audit_log'), headers, 3, true);
   return docs
     .map((doc) => doc.fields || {})
     .sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime())

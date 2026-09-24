@@ -11,7 +11,7 @@ import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
 import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
-import { queueOfflinePayload } from "../core/offline.js";
+import { queueOfflinePayload, isUnsyncedTempId } from "../core/offline.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
@@ -545,6 +545,14 @@ export const submitEditTransaksi = async (e) => {
   if (!idKategori || idKategori === "-") return showToast("Pilih kategori transaksi.", "error");
   if (isNaN(nominal) || nominal <= 0) return showToast("Nominal transaksi harus lebih dari 0.", "error");
 
+  // A temp id belongs to an optimistic row whose create has not been confirmed
+  // by the server yet (its create may still be queued). The server has no such
+  // document, so editing it would fail to sync or create a duplicate. Block it
+  // until the create has synced and the row carries a real id.
+  if (isUnsyncedTempId(idTransaksi)) {
+    return showToast("Transaksi ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengeditnya.", "warning");
+  }
+
   showConfirmDialog({
     title: "Perbarui Data Transaksi?",
     message: `Simpan pembaruan transaksi ${idTransaksi} (${formatRp(nominal)}) ke database?`,
@@ -555,26 +563,33 @@ export const submitEditTransaksi = async (e) => {
       '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
       "UPDATE DATA",
       async () => {
-        const res = await postToBackend({
-          action: "editTransaksi",
+        const dataForm = {
           idTransaksi,
-          dataForm: {
-            idTransaksi,
-            tipeArus,
-            idKategori,
-            idAnggota: document.getElementById("edit-anggota")?.value || "-",
-            bulanIuran: document.getElementById("edit-bulan")?.value || "-",
-            tahunIuran: document.getElementById("edit-tahun")?.value || "-",
-            nominal,
-            keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
-            timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
-          }
-        });
+          tipeArus,
+          idKategori,
+          idAnggota: document.getElementById("edit-anggota")?.value || "-",
+          bulanIuran: document.getElementById("edit-bulan")?.value || "-",
+          tahunIuran: document.getElementById("edit-tahun")?.value || "-",
+          nominal,
+          keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
+          timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
+        };
 
-        if (!res) return showToast("Tidak dapat terhubung ke server.", "error");
-        if (!res.status) return showToast(res.message, "error");
+        const { delivered, result } = await deliverMutation({ action: "editTransaksi", idTransaksi, dataForm });
 
-        const finalId = res.data?.idTransaksi || idTransaksi;
+        if (!delivered) {
+          // Offline (or unreachable) — the payload is queued. Reflect the edit
+          // locally so the UI stays consistent until the sync replays it.
+          applyEditOptimistically(idTransaksi, dataForm);
+          rerenderAfterLedgerChange();
+          closeModal("modal-edit-transaksi");
+          showDatabaseToast("Perubahan Disimpan (Offline)", `Transaksi ${idTransaksi} akan disinkronkan saat online.`);
+          return;
+        }
+
+        if (!result.status) return showToast(result.message, "error");
+
+        const finalId = result.data?.idTransaksi || idTransaksi;
         showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
         closeModal("modal-edit-transaksi");
         await refreshAppData();
@@ -598,11 +613,27 @@ export const eksekusiHapus = async () => {
   const idTarget = (document.getElementById("hapus-id-target")?.value || "").trim();
   if (!idTarget) return showToast("ID transaksi tidak ditemukan.", "error");
 
-  await withBusyButton("btn-hapus", "...", "Ya, Hapus", async () => {
-    const res = await postToBackend({ action: "hapusTransaksi", idTransaksi: idTarget });
+  // A temp id is an optimistic row whose create has not been confirmed yet;
+  // there is nothing on the server to delete and its create may still be
+  // queued. Block until it has synced and carries a real id.
+  if (isUnsyncedTempId(idTarget)) {
+    return showToast("Transaksi ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.", "warning");
+  }
 
-    if (!res) return showToast("Tidak dapat terhubung ke server.", "error");
-    if (!res.status) return showToast(res.message, "error");
+  await withBusyButton("btn-hapus", "...", "Ya, Hapus", async () => {
+    const { delivered, result } = await deliverMutation({ action: "hapusTransaksi", idTransaksi: idTarget });
+
+    if (!delivered) {
+      // Offline — the delete is queued. Drop it from the local ledger now so the
+      // UI matches; the queued mutation replays against the server later.
+      removeTransactionOptimistically(idTarget);
+      rerenderAfterLedgerChange();
+      closeModal("modal-hapus");
+      showDatabaseToast("Penghapusan Disimpan (Offline)", `Transaksi ${idTarget} akan dihapus saat online.`);
+      return;
+    }
+
+    if (!result.status) return showToast(result.message, "error");
 
     showDatabaseToast("Transaksi Dihapus", `Data transaksi ${idTarget} telah dihapus dari database.`);
     closeModal("modal-hapus");

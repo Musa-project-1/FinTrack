@@ -110,10 +110,14 @@ async function loginWithGoogle(body, headers, ip) {
     DEFAULT_GOOGLE_CLIENT_ID
   ).trim();
 
-  if (!isAccessToken) {
-    if (!gData.aud || gData.aud !== expectedClientId) {
-      return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
-    }
+  // Verify the audience for BOTH token types. An id_token carries the client_id
+  // in `aud`; an access token minted by our initTokenClient carries it in
+  // `aud`/`azp` on tokeninfo. Skipping this for access tokens let a `ya29.`
+  // token issued to ANY other Google app (with the email scope) mint a Super
+  // Admin session for a whitelisted email — a full auth bypass.
+  const tokenAudience = gData.aud || gData.azp || '';
+  if (tokenAudience !== expectedClientId) {
+    return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
   }
 
   const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
@@ -218,16 +222,18 @@ export default async function handler(req, res) {
   try {
     const body = parseBody(req);
     const action = String(body?.action || 'login').trim();
-    const headers = await requireFirestoreHeaders();
-    const ip = clientIp(req);
 
     // Login does not require an existing session.
     if (action === 'login') {
+      const headers = await requireFirestoreHeaders();
+      const ip = clientIp(req);
       const result = await loginWithGoogle(body, headers, ip);
       return sendJson(res, result.code, result.payload);
     }
 
-    // Every other action requires a valid Super Admin session.
+    // Every non-login action needs a valid Super Admin session. Check the
+    // session (no Firestore needed) BEFORE fetching credentials, so an
+    // unauthorized call returns 403 rather than a 500 when creds are absent.
     const guardedHandler = GUARDED_ACTIONS[action];
     if (!guardedHandler) {
       return sendJson(res, 400, { status: false, message: 'Aksi tidak dikenal.' });
@@ -237,6 +243,7 @@ export default async function handler(req, res) {
       return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
     }
 
+    const headers = await requireFirestoreHeaders();
     const result = await guardedHandler(body, headers);
     return sendJson(res, result.code, result.payload);
   } catch (error) {

@@ -76,7 +76,7 @@ async function createGroup(body, headers) {
     return { status: false, message: `Password admin minimal ${MIN_ADMIN_PASSWORD} karakter.` };
   }
 
-  const id = newId('GRP', 4);
+  const id = newId('GRP');
   await fsPatch(groupDoc(id), { nama, dibuat: nowIso(), groupId: id }, headers);
   await setPrivateConfig(id, { pin_hash: hashSecret(pin, `finkas-pin:${id}`) }, headers);
   await fsPatch(settingsDoc(id), { skippedMonths: [] }, headers, ['skippedMonths']);

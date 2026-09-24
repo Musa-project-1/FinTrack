@@ -66,7 +66,10 @@ const ensureChartJs = () => {
   if (!chartJsPromise) {
     chartJsPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      // Pin the major version: the legend uses Chart.overrides.* (a v4 internal),
+      // so letting the unversioned URL float to the next major would break the
+      // expense-chart legend silently the day jsDelivr serves it.
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4';
       script.onload = () => resolve(window.Chart);
       script.onerror = (err) => {
         script.remove();

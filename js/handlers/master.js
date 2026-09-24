@@ -1,9 +1,39 @@
 import { getState, getIsAdminSession } from "../core/state.js";
 import { postToBackend, fetchAuditLogApi } from "../core/api.js";
-import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
+import { queueOfflinePayload } from "../core/offline.js";
+import { showToast, showDatabaseToast, escapeHtml, isOnline } from "../core/utils.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { renderSkippedMonthsList } from "../render.js";
 const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
+
+/** Temporary id for an optimistic master row until the server confirms it. */
+const tempMasterId = (prefix) => {
+  const rand = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(16).slice(2, 10);
+  return `${prefix}-TEMP-${rand.toUpperCase()}`;
+};
+
+/**
+ * Deliver a master-data mutation, queueing it when the device is offline or the
+ * request never reaches the server. Mirrors the transaction handler's
+ * `deliverMutation` so master edits are as offline-resilient as iuran entry.
+ *
+ * @param {object} payload Must carry a server write `action`.
+ * @returns {Promise<{delivered: boolean, result: object|null}>}
+ */
+const deliverMutation = async (payload) => {
+  if (!isOnline()) {
+    await queueOfflinePayload(payload);
+    return { delivered: false, result: null };
+  }
+  const result = await postToBackend(payload);
+  if (!result) {
+    await queueOfflinePayload(payload);
+    return { delivered: false, result: null };
+  }
+  return { delivered: true, result };
+};
 
 export const openSkippedMonthsModal = () => {
   openKelolaMasterModal();
@@ -108,15 +138,21 @@ export const addSkippedMonth = async () => {
     badgeClass: 'warning',
     confirmText: 'Ya, Tetapkan Libur',
     onConfirm: async () => {
-      const res = await postToBackend({ action: 'addSkippedMonth', month: key });
-      if (!res) return showToast('Gagal terhubung ke server.', 'error');
-      if (res.status) {
-        const state = getState();
-        state.skippedMonths = res.data?.skippedMonths || state.skippedMonths.concat([key]);
+      const { delivered, result } = await deliverMutation({ action: 'addSkippedMonth', month: key });
+      const state = getState();
+      if (!delivered) {
+        // Offline — queued. Reflect locally (server op is idempotent on replay).
+        if (!state.skippedMonths.includes(key)) state.skippedMonths = state.skippedMonths.concat([key]);
+        renderSkippedMonthsList();
+        showDatabaseToast('Bulan Libur Ditetapkan (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
+        return;
+      }
+      if (result.status) {
+        state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.concat([key]);
         renderSkippedMonthsList();
         showDatabaseToast('Bulan Libur Ditetapkan', `Bulan ${key} dibebaskan dari iuran.`);
       } else {
-        showToast(res.message || 'Gagal menambahkan bulan libur.', 'error');
+        showToast(result.message || 'Gagal menambahkan bulan libur.', 'error');
       }
     }
   });
@@ -133,15 +169,20 @@ export const removeSkippedMonth = async (key) => {
     icon: 'ph-fill ph-calendar-check',
     confirmText: 'Ya, Aktifkan Kembali',
     onConfirm: async () => {
-      const res = await postToBackend({ action: 'removeSkippedMonth', month: key });
-      if (!res) return showToast('Gagal terhubung ke server.', 'error');
-      if (res.status) {
-        const state = getState();
-        state.skippedMonths = res.data?.skippedMonths || state.skippedMonths.filter((s) => s !== key);
+      const { delivered, result } = await deliverMutation({ action: 'removeSkippedMonth', month: key });
+      const state = getState();
+      if (!delivered) {
+        state.skippedMonths = state.skippedMonths.filter((s) => s !== key);
+        renderSkippedMonthsList();
+        showDatabaseToast('Bulan Libur Dicabut (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
+        return;
+      }
+      if (result.status) {
+        state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.filter((s) => s !== key);
         renderSkippedMonthsList();
         showDatabaseToast('Bulan Libur Dicabut', `Bulan ${key} kembali aktif untuk penagihan.`);
       } else {
-        showToast(res.message || 'Gagal menghapus bulan libur.', 'error');
+        showToast(result.message || 'Gagal menghapus bulan libur.', 'error');
       }
     }
   });
@@ -164,9 +205,6 @@ export const renderMasterAnggotaTable = () => {
     const statusBadge = isAktif
       ? '<span class="badge badge-masuk"><i class="ph-bold ph-check"></i> Aktif</span>'
       : '<span class="badge badge-keluar"><i class="ph-bold ph-x"></i> Nonaktif</span>';
-    const toggleBtnLabel = isAktif ? 'Nonaktifkan' : 'Aktifkan';
-    const toggleIcon = isAktif ? 'ph-user-minus' : 'ph-user-check';
-    const nextStatus = isAktif ? 'Nonaktif' : 'Aktif';
     const rawWa = (ang.Nomor_WA || '').trim();
     const cleanWa = rawWa.replace(/\D/g, '');
     const waDisplay = cleanWa
@@ -283,7 +321,7 @@ export const submitEditMasterAnggota = async (e) => {
   const btn = document.getElementById('btn-submit-edit-anggota');
   if (btn) btn.disabled = true;
 
-  const res = await postToBackend({
+  const { delivered, result } = await deliverMutation({
     action: 'updateStatusAnggota',
     idAnggota,
     statusAktif,
@@ -293,13 +331,23 @@ export const submitEditMasterAnggota = async (e) => {
 
   if (btn) btn.disabled = false;
 
-  if (res && res.status) {
+  if (!delivered) {
+    // Offline — queued. Reflect locally so the table matches until sync.
+    const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
+    if (ang) { ang.Nama_Anggota = nama; ang.Status_Aktif = statusAktif; ang.Nomor_WA = noWa; }
+    showDatabaseToast('Perubahan Disimpan (Offline)', `Data ${nama} akan disinkronkan saat online.`);
+    closeModal('modal-edit-master-anggota');
+    renderMasterAnggotaTable();
+    return;
+  }
+
+  if (result.status) {
     showDatabaseToast('Data Anggota Diperbarui', `Perubahan untuk ${nama} berhasil disimpan.`);
     closeModal('modal-edit-master-anggota');
     await refreshAppData();
     renderMasterAnggotaTable();
   } else {
-    showToast(res?.message || 'Gagal menyimpan perubahan anggota.', 'error');
+    showToast(result.message || 'Gagal menyimpan perubahan anggota.', 'error');
   }
 };
 
@@ -353,17 +401,28 @@ export const submitTambahAnggota = async (e) => {
     onConfirm: async () => {
       const btn = e.target.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
-      const res = await postToBackend({ action: 'tambahAnggota', nama, noWa });
+      const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', nama, noWa });
       if (btn) btn.disabled = false;
 
-      if (res && res.status) {
+      if (!delivered) {
+        // Offline — queued. Show an optimistic row with a temp id; the next
+        // online refetch replaces it with the server record.
+        getState().anggota.push({ ID_Anggota: tempMasterId('ANG'), Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' });
+        document.getElementById('input-nama-anggota').value = '';
+        document.getElementById('input-wa-anggota').value = '';
+        showDatabaseToast('Anggota Disimpan (Offline)', `${nama} akan disinkronkan saat online.`);
+        renderMasterAnggotaTable();
+        return;
+      }
+
+      if (result.status) {
         showDatabaseToast('Anggota Baru Ditambahkan', `Anggota ${nama} berhasil didaftarkan ke database.`);
         document.getElementById('input-nama-anggota').value = '';
         document.getElementById('input-wa-anggota').value = '';
         await refreshAppData();
         renderMasterAnggotaTable();
       } else {
-        showToast(res?.message || 'Gagal menambah anggota.', 'error');
+        showToast(result.message || 'Gagal menambah anggota.', 'error');
       }
     }
   });
@@ -383,13 +442,20 @@ export const toggleStatusAnggotaAction = async (idAnggota, nextStatus) => {
     badgeClass: nextStatus === 'Aktif' ? '' : 'warning',
     confirmText: 'Ya, Ubah Status',
     onConfirm: async () => {
-      const res = await postToBackend({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
-      if (res && res.status) {
+      const { delivered, result } = await deliverMutation({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
+      if (!delivered) {
+        const target = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
+        if (target) target.Status_Aktif = nextStatus;
+        showDatabaseToast('Status Disimpan (Offline)', `Status ${angName} akan disinkronkan saat online.`);
+        renderMasterAnggotaTable();
+        return;
+      }
+      if (result.status) {
         showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
         await refreshAppData();
         renderMasterAnggotaTable();
       } else {
-        showToast(res?.message || 'Gagal mengubah status anggota.', 'error');
+        showToast(result.message || 'Gagal mengubah status anggota.', 'error');
       }
     }
   });
@@ -408,13 +474,24 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
     confirmText: 'Ya, Hapus Anggota',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const res = await postToBackend({ action: 'hapusAnggota', idAnggota });
-      if (res && res.status) {
+      const { delivered, result } = await deliverMutation({ action: 'hapusAnggota', idAnggota });
+      if (!delivered) {
+        // Offline — queued. Remove locally; if the server later rejects it
+        // (e.g. transactions still reference this member), the offline-sync
+        // reconciliation surfaces that and the next refetch restores the row.
+        const arr = getState().anggota;
+        const idx = arr.findIndex((a) => a.ID_Anggota === idAnggota);
+        if (idx !== -1) arr.splice(idx, 1);
+        showDatabaseToast('Penghapusan Disimpan (Offline)', `${angName} akan dihapus saat online.`);
+        renderMasterAnggotaTable();
+        return;
+      }
+      if (result.status) {
         showDatabaseToast('Anggota Dihapus', `${angName} berhasil dihapus dari database.`);
         await refreshAppData();
         renderMasterAnggotaTable();
       } else {
-        showToast(res?.message || 'Gagal menghapus anggota.', 'error');
+        showToast(result.message || 'Gagal menghapus anggota.', 'error');
       }
     }
   });
@@ -435,16 +512,25 @@ export const submitTambahKategori = async (e) => {
     onConfirm: async () => {
       const btn = e.target.querySelector('button[type="submit"]');
       if (btn) btn.disabled = true;
-      const res = await postToBackend({ action: 'tambahKategori', nama, tipe });
+      const { delivered, result } = await deliverMutation({ action: 'tambahKategori', nama, tipe });
       if (btn) btn.disabled = false;
 
-      if (res && res.status) {
+      if (!delivered) {
+        // Offline — queued. Optimistic row with a temp id; reconciled on refetch.
+        getState().kategori.push({ ID_Kategori: tempMasterId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K'), Nama_Kategori: nama, Tipe: tipe });
+        document.getElementById('input-nama-kategori').value = '';
+        showDatabaseToast('Kategori Disimpan (Offline)', `Kategori "${nama}" akan disinkronkan saat online.`);
+        renderMasterKategoriTable();
+        return;
+      }
+
+      if (result.status) {
         showDatabaseToast('Kategori Kas Ditambahkan', `Kategori "${nama}" (${tipe}) berhasil disimpan.`);
         document.getElementById('input-nama-kategori').value = '';
         await refreshAppData();
         renderMasterKategoriTable();
       } else {
-        showToast(res?.message || 'Gagal menambah kategori.', 'error');
+        showToast(result.message || 'Gagal menambah kategori.', 'error');
       }
     }
   });
@@ -463,13 +549,21 @@ export const hapusMasterKategoriAction = async (idKategori) => {
     confirmText: 'Ya, Hapus Kategori',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const res = await postToBackend({ action: 'hapusKategori', idKategori });
-      if (res && res.status) {
+      const { delivered, result } = await deliverMutation({ action: 'hapusKategori', idKategori });
+      if (!delivered) {
+        const arr = getState().kategori;
+        const idx = arr.findIndex((k) => k.ID_Kategori === idKategori);
+        if (idx !== -1) arr.splice(idx, 1);
+        showDatabaseToast('Penghapusan Disimpan (Offline)', `Kategori "${katName}" akan dihapus saat online.`);
+        renderMasterKategoriTable();
+        return;
+      }
+      if (result.status) {
         showDatabaseToast('Kategori Dihapus', `Kategori "${katName}" berhasil dihapus.`);
         await refreshAppData();
         renderMasterKategoriTable();
       } else {
-        showToast(res?.message || 'Gagal menghapus kategori.', 'error');
+        showToast(result.message || 'Gagal menghapus kategori.', 'error');
       }
     }
   });

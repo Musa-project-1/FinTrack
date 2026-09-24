@@ -361,7 +361,7 @@ export async function addMember(gid, payload, headers) {
   if (!nama) return fail('Nama anggota wajib diisi.');
   if (nama.length < 2) return fail('Nama anggota minimal 2 karakter.');
 
-  const idAnggota = newId('ANG', 4);
+  const idAnggota = newId('ANG');
   const doc = {
     ID_Anggota: idAnggota,
     Nama_Anggota: nama,
@@ -411,7 +411,7 @@ export async function addCategory(gid, payload, headers) {
   if (!nama) return fail('Nama kategori wajib diisi.');
   if (!ARUS.includes(tipe)) return fail('Tipe kategori harus Masuk atau Keluar.');
 
-  const idKategori = newId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K', 3);
+  const idKategori = newId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K');
   const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe, groupId: gid };
 
   await fsPatch(`${col(gid, CATEGORIES_COLLECTION)}/${idKategori}`, doc, headers);
@@ -529,10 +529,12 @@ export function validateSnapshot(data) {
 /**
  * Restore a full database snapshot into a group.
  *
- * Deletes all existing documents in members, categories, and transactions,
- * then write the backup records in batches of 400 (Firestore commit limit).
- * Each record is validated before any writes begin so a malformed backup is
- * rejected cleanly rather than leaving the group in a partial state.
+ * Ordering matters for safety: every record is validated first, then the new
+ * records are written (upserted) BEFORE any deletion happens, and only stale
+ * documents — those whose id is absent from the snapshot — are removed at the
+ * end. A failure partway through therefore leaves the group with its old data
+ * plus whatever was written, never an empty or half-wiped group (the previous
+ * delete-then-write order could wipe everything and then fail before writing).
  *
  * @param {string} gid
  * @param {object} payload  { data: { anggota, kategori, transaksi, skippedMonths } }
@@ -545,55 +547,75 @@ export async function restoreSnapshot(gid, payload, headers) {
   }
 
   const { anggota, kategori, transaksi, skippedMonths } = validated.data;
-
-  // Delete all existing records in the three data collections.
-  for (const collName of [MEMBERS_COLLECTION, CATEGORIES_COLLECTION, TRANSACTIONS_COLLECTION]) {
-    const existing = await fsListAll(col(gid, collName), headers);
-    for (let i = 0; i < existing.length; i += 400) {
-      const batch = existing.slice(i, i + 400).map((doc) => ({ delete: doc.name }));
-      await fsCommit(batch, headers);
-    }
-  }
-
-  // Write anggota.
   const timestamp = nowIso();
 
-  for (let i = 0; i < anggota.length; i += 400) {
-    const batch = anggota.slice(i, i + 400).map((a) => ({
-      update: {
-        name: memberName(gid, MEMBERS_COLLECTION, cleanText(a.ID_Anggota ?? a.idAnggota, 40)),
-        fields: encodeFields({
-          ID_Anggota: cleanText(a.ID_Anggota ?? a.idAnggota, 40),
-          Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
-          Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
-          Status_Aktif: STATUSES.includes(a.Status_Aktif ?? a.statusAktif) ? (a.Status_Aktif ?? a.statusAktif) : 'Aktif',
-          groupId: gid
-        })
-      }
-    }));
-    await fsCommit(batch, headers);
-  }
+  // Last path segment of a Firestore resource name is the document id.
+  const idOf = (doc) => String(doc.name || '').split('/').pop();
 
-  // Write kategori.
-  for (let i = 0; i < kategori.length; i += 400) {
-    const batch = kategori.slice(i, i + 400).map((k) => ({
-      update: {
-        name: memberName(gid, CATEGORIES_COLLECTION, cleanText(k.ID_Kategori ?? k.idKategori, 40)),
-        fields: encodeFields({
-          ID_Kategori: cleanText(k.ID_Kategori ?? k.idKategori, 40),
-          Nama_Kategori: cleanText(k.Nama_Kategori ?? k.namaKategori, 60),
-          Tipe: k.Tipe ?? k.tipe,
-          groupId: gid
-        })
-      }
-    }));
-    await fsCommit(batch, headers);
-  }
+  /**
+   * Upsert every record, then delete only the documents that the snapshot does
+   * not contain. Writes happen before deletes so a mid-restore failure never
+   * empties the collection.
+   */
+  const upsertThenPrune = async (collName, keptIds, buildWrites) => {
+    const writes = buildWrites();
+    for (let i = 0; i < writes.length; i += 400) {
+      await fsCommit(writes.slice(i, i + 400), headers);
+    }
+    const existing = await fsListAll(col(gid, collName), headers);
+    const stale = existing.filter((doc) => !keptIds.has(idOf(doc)));
+    for (let i = 0; i < stale.length; i += 400) {
+      await fsCommit(stale.slice(i, i + 400).map((doc) => ({ delete: doc.name })), headers);
+    }
+  };
 
-  // Write transaksi.
-  for (let i = 0; i < transaksi.length; i += 400) {
-    const batch = transaksi.slice(i, i + 400).map((t) => {
+  // Anggota.
+  const anggotaIds = new Set();
+  await upsertThenPrune(MEMBERS_COLLECTION, anggotaIds, () =>
+    anggota.map((a) => {
+      const id = cleanText(a.ID_Anggota ?? a.idAnggota, 40);
+      anggotaIds.add(id);
+      return {
+        update: {
+          name: memberName(gid, MEMBERS_COLLECTION, id),
+          fields: encodeFields({
+            ID_Anggota: id,
+            Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
+            Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
+            Status_Aktif: STATUSES.includes(a.Status_Aktif ?? a.statusAktif) ? (a.Status_Aktif ?? a.statusAktif) : 'Aktif',
+            groupId: gid
+          })
+        }
+      };
+    })
+  );
+
+  // Kategori.
+  const kategoriIds = new Set();
+  await upsertThenPrune(CATEGORIES_COLLECTION, kategoriIds, () =>
+    kategori.map((k) => {
+      const id = cleanText(k.ID_Kategori ?? k.idKategori, 40);
+      kategoriIds.add(id);
+      return {
+        update: {
+          name: memberName(gid, CATEGORIES_COLLECTION, id),
+          fields: encodeFields({
+            ID_Kategori: id,
+            Nama_Kategori: cleanText(k.Nama_Kategori ?? k.namaKategori, 60),
+            Tipe: k.Tipe ?? k.tipe,
+            groupId: gid
+          })
+        }
+      };
+    })
+  );
+
+  // Transaksi.
+  const transaksiIds = new Set();
+  await upsertThenPrune(TRANSACTIONS_COLLECTION, transaksiIds, () =>
+    transaksi.map((t) => {
       const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40) || newId('TRX');
+      transaksiIds.add(idTrx);
       return {
         update: {
           name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
@@ -611,9 +633,8 @@ export async function restoreSnapshot(gid, payload, headers) {
           })
         }
       };
-    });
-    await fsCommit(batch, headers);
-  }
+    })
+  );
 
   // Update skippedMonths in settings.
   await fsPatch(settingsDoc(gid), { skippedMonths }, headers, ['skippedMonths']);

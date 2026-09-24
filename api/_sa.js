@@ -338,7 +338,7 @@ export async function fsCreateIfAbsent(docPath, data, headers) {
  * List every document name in a collection, following pagination.
  * @returns {Promise<Array<{name: string, fields: object}>>}
  */
-export async function fsListAll(colPath, headers, maxPages = 40) {
+export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = false) {
   const docs = [];
   let pageToken = '';
   for (let page = 0; page < maxPages; page += 1) {
@@ -352,6 +352,13 @@ export async function fsListAll(colPath, headers, maxPages = 40) {
     (json.documents || []).forEach((doc) => docs.push({ name: doc.name, fields: decodeFields(doc.fields) }));
     pageToken = json.nextPageToken || '';
     if (!pageToken) break;
+  }
+  // A leftover pageToken means the cap was hit with more documents waiting.
+  // Silently returning a partial list corrupts dedup checks (readTransactions)
+  // and leaves orphaned docs on delete (deleteGroupTree/restore), so fail loudly
+  // unless the caller explicitly wants a bounded read (e.g. the audit view).
+  if (pageToken && !allowPartial) {
+    throw new Error(`Koleksi melebihi batas ${maxPages} halaman: ${colPath}`);
   }
   return docs;
 }

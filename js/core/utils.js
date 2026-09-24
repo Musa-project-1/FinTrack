@@ -72,6 +72,46 @@ export const getRawNominal = (id) => {
   return parseInt(val.replace(/[^0-9]/g, '')) || 0;
 };
 
+/* ── Transaction date helpers ─────────────────────────────────────── */
+
+/**
+ * Convert a `<input type="date">` value ("YYYY-MM-DD") into an ISO timestamp
+ * pinned to local noon.
+ *
+ * Noon keeps the calendar day stable when the timestamp is read back in any
+ * Indonesian timezone (WIB/WITA/WIT), so a payment dated "22 Sep" never slips
+ * to the 21st or 23rd on display.
+ *
+ * @param {string} dateStr Value from a date input, e.g. "2026-01-22".
+ * @returns {string} ISO timestamp, or '' when the input is empty/invalid.
+ */
+export const dateInputToIso = (dateStr) => {
+  if (!dateStr) return '';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr).trim());
+  if (!match) return '';
+  const [, y, m, d] = match;
+  const date = new Date(Number(y), Number(m) - 1, Number(d), 12, 0, 0, 0);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString();
+};
+
+/**
+ * Convert an ISO timestamp into a `<input type="date">` value ("YYYY-MM-DD")
+ * using local time, the inverse of {@link dateInputToIso}.
+ *
+ * @param {string} iso ISO timestamp.
+ * @returns {string} "YYYY-MM-DD", or '' when the timestamp is missing/invalid.
+ */
+export const isoToDateInput = (iso) => {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 let lastToastKey = '';
 let lastToastTime = 0;
 

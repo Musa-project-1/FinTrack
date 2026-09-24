@@ -78,6 +78,45 @@ test('editTransaction requires an id and a valid body', async () => {
   await expectRejected(editTransaction(GID, { idTransaksi: 'TRX-1', dataForm: { nominal: 0, tipeArus: 'Masuk', idKategori: 'K' } }, NO_HEADERS), 'zero nominal');
 });
 
+test('addTransaction honours a client-supplied Timestamp and ignores an invalid one', async () => {
+  const originalFetch = globalThis.fetch;
+  const patched = [];
+  try {
+    globalThis.fetch = async (url, options) => {
+      const urlStr = String(url);
+      if (options?.method === 'PATCH') {
+        patched.push({ url: urlStr, body: JSON.parse(options.body) });
+        return { ok: true, status: 200, json: async () => ({}) };
+      }
+      // audit log commit + anything else
+      return { ok: true, status: 200, json: async () => ({ writeResults: [{}] }) };
+    };
+
+    // Operasional (non-iuran) so the write goes through fsPatch and we can read it back.
+    const valid = await addTransaction(GID, {
+      dataForm: {
+        tipeArus: 'Keluar', idKategori: 'KAT-1', idAnggota: '-',
+        nominal: 5000, keterangan: 'Beli spidol', timestamp: '2026-01-22T05:00:00.000Z'
+      }
+    }, { Authorization: 'Bearer test' });
+    assert.equal(valid.status, true);
+    assert.equal(valid.data.Timestamp, '2026-01-22T05:00:00.000Z', 'supplied timestamp must be stored verbatim');
+
+    // A garbage timestamp is dropped, and the doc still gets a valid ISO (now).
+    const bad = await addTransaction(GID, {
+      dataForm: {
+        tipeArus: 'Keluar', idKategori: 'KAT-1', idAnggota: '-',
+        nominal: 5000, keterangan: 'Beli map', timestamp: 'bukan-tanggal'
+      }
+    }, { Authorization: 'Bearer test' });
+    assert.equal(bad.status, true);
+    assert.notEqual(bad.data.Timestamp, 'bukan-tanggal');
+    assert.ok(!Number.isNaN(new Date(bad.data.Timestamp).getTime()), 'fallback timestamp must be a valid date');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('editTransaction moves document to target iuranId when period changes and deletes old document', async () => {
   const originalFetch = globalThis.fetch;
   const deletedDocs = [];

@@ -150,6 +150,15 @@ body.dark-mode .modal-overlay {
   color: var(--text-faint);
 }
 
+/* Small helper text under an input (e.g. optional-date hint). */
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 .form-control {
   width: 100%;
   padding: 12px 14px;

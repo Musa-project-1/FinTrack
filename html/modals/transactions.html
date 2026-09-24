@@ -53,6 +53,12 @@
                 </div>
               </div>
 
+              <div class="form-group">
+                <label for="iuran-tanggal">Tanggal Bayar</label>
+                <input type="date" id="iuran-tanggal" name="iuran-tanggal" class="form-control" aria-label="Tanggal Bayar Iuran">
+                <small class="form-hint">Kosongkan untuk memakai tanggal hari ini.</small>
+              </div>
+
               <div class="summary-card" aria-live="polite" aria-atomic="true">
                 <div class="summary-item"><span>Terpilih:</span> <span id="summary-count">0 Orang</span></div>
                 <div class="summary-item"><span>Nominal:</span> <span id="summary-nominal">Rp 0</span></div>
@@ -108,6 +114,12 @@
                   <span>Rp</span>
                   <input type="text" id="ops-nominal" name="ops-nominal" class="form-control" required inputmode="numeric" placeholder="0">
                 </div>
+              </div>
+
+              <div class="form-group">
+                <label for="ops-tanggal">Tanggal Transaksi</label>
+                <input type="date" id="ops-tanggal" name="ops-tanggal" class="form-control" aria-label="Tanggal Transaksi">
+                <small class="form-hint">Kosongkan untuk memakai tanggal hari ini.</small>
               </div>
               
               <div class="summary-card" aria-live="polite" aria-atomic="true">
@@ -192,6 +204,11 @@
             <label for="edit-tahun">Tahun</label>
             <input type="number" id="edit-tahun" name="edit-tahun" class="form-control">
           </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-tanggal">Tanggal Transaksi</label>
+          <input type="date" id="edit-tanggal" name="edit-tanggal" class="form-control" aria-label="Tanggal Transaksi">
+          <small class="form-hint">Tanggal pembayaran sebenarnya (tampil di riwayat).</small>
         </div>
         <div class="form-group">
           <label for="edit-keterangan">Keterangan</label>

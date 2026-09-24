@@ -40,6 +40,25 @@ const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
 const cleanDigits = (value, max) => String(value ?? '').replace(/\D/g, '').slice(0, max);
 
 /**
+ * Normalise a client-supplied transaction date into an ISO timestamp.
+ *
+ * The client sends the date the payment actually happened (local noon, so the
+ * calendar day is stable across Indonesian timezones). Anything unparseable or
+ * outside a sane year range is ignored, and the caller falls back to `nowIso()`.
+ *
+ * @param {*} value ISO string or date-like value.
+ * @returns {string|null} ISO timestamp, or null when absent/invalid.
+ */
+const parseTimestamp = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const year = date.getUTCFullYear();
+  if (year < 2000 || year > 2100) return null;
+  return date.toISOString();
+};
+
+/**
  * Validate the shared transaction payload shape.
  * @returns {{nominal: number, tipeArus: string, idKategori: string, idAnggota: string,
  *            bulanIuran: string, tahunIuran: string, keterangan: string}|{error: string}}
@@ -62,7 +81,8 @@ function parseTransactionInput(dataForm) {
     idAnggota: cleanText(dataForm?.idAnggota ?? dataForm?.ID_Anggota, 40) || '-',
     bulanIuran: cleanText(dataForm?.bulanIuran ?? dataForm?.Bulan_Iuran, 20) || '-',
     tahunIuran: cleanText(dataForm?.tahunIuran ?? dataForm?.Tahun_Iuran, 4) || '-',
-    keterangan: cleanText(dataForm?.keterangan ?? dataForm?.Keterangan, 200)
+    keterangan: cleanText(dataForm?.keterangan ?? dataForm?.Keterangan, 200),
+    timestamp: parseTimestamp(dataForm?.timestamp ?? dataForm?.Timestamp)
   };
 }
 
@@ -102,7 +122,7 @@ export async function addTransaction(gid, payload, headers) {
   const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
   const doc = {
     ID_Transaksi: idTrx,
-    Timestamp: nowIso(),
+    Timestamp: input.timestamp || nowIso(),
     Tipe_Arus: input.tipeArus,
     ID_Kategori: input.idKategori,
     ID_Anggota: input.idAnggota,
@@ -129,8 +149,8 @@ export async function addTransaction(gid, payload, headers) {
 export async function addBulkTransactions(gid, payload, headers) {
   let listTrx = Array.isArray(payload?.listTrx) ? payload.listTrx : [];
   if (!listTrx.length && Array.isArray(payload?.dataForm?.arrIdAnggota)) {
-    const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan } = payload.dataForm;
-    listTrx = arrIdAnggota.map((idAnggota) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan }));
+    const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan, timestamp } = payload.dataForm;
+    listTrx = arrIdAnggota.map((idAnggota) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
   }
   if (!listTrx.length) return fail('Daftar transaksi massal tidak boleh kosong.');
   if (listTrx.length > 300) return fail('Maksimal 300 transaksi per permintaan.');
@@ -172,7 +192,7 @@ export async function addBulkTransactions(gid, payload, headers) {
       const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
       const doc = {
         ID_Transaksi: idTrx,
-        Timestamp: timestamp,
+        Timestamp: input.timestamp || timestamp,
         Tipe_Arus: input.tipeArus,
         ID_Kategori: input.idKategori,
         ID_Anggota: input.idAnggota,
@@ -240,7 +260,7 @@ export async function editTransaction(gid, payload, headers) {
   if (targetId !== idTarget) {
     const doc = {
       ID_Transaksi: targetId,
-      Timestamp: existing.Timestamp || nowIso(),
+      Timestamp: input.timestamp || existing.Timestamp || nowIso(),
       Tipe_Arus: input.tipeArus,
       ID_Kategori: input.idKategori,
       ID_Anggota: input.idAnggota,
@@ -270,6 +290,9 @@ export async function editTransaction(gid, payload, headers) {
       Nominal: input.nominal,
       Keterangan: input.keterangan
     };
+    // Only rewrite the timestamp when the admin supplied a new date; otherwise
+    // leave the original recording time untouched.
+    if (input.timestamp) updated.Timestamp = input.timestamp;
     await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, updated, headers, Object.keys(updated));
   }
 

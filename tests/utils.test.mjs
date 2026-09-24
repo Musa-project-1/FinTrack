@@ -6,6 +6,8 @@ import {
   formatDisplayRp,
   getInitials,
   escapeHtml,
+  dateInputToIso,
+  isoToDateInput,
   calculateMemberRekapProgress,
   calculateMemberContribution,
   calculateCompliance
@@ -75,6 +77,45 @@ test('formatCompactRp converts values to K, Jt, and M notation correctly', () =>
 test('formatDisplayRp falls back to formatRp when no compact preference is stored', () => {
   const display = formatDisplayRp(75000);
   assert.ok(display.includes('75.000'), `Expected 75.000, got ${display}`);
+});
+
+/* ── Transaction date helpers ─────────────────────────────────────── */
+
+test('dateInputToIso pins a date-only value to local noon and round-trips', () => {
+  const iso = dateInputToIso('2026-01-22');
+  const back = new Date(iso);
+  // Local calendar day must be preserved regardless of the runner's timezone.
+  assert.equal(back.getFullYear(), 2026);
+  assert.equal(back.getMonth(), 0);   // January
+  assert.equal(back.getDate(), 22);
+  assert.equal(back.getHours(), 12);  // local noon
+});
+
+test('dateInputToIso returns empty string for blank or malformed input', () => {
+  assert.equal(dateInputToIso(''), '');
+  assert.equal(dateInputToIso(null), '');
+  assert.equal(dateInputToIso(undefined), '');
+  assert.equal(dateInputToIso('22-01-2026'), '');
+  assert.equal(dateInputToIso('2026/01/22'), '');
+  assert.equal(dateInputToIso('not a date'), '');
+});
+
+test('isoToDateInput extracts the local YYYY-MM-DD from a timestamp', () => {
+  // Feed it the noon ISO that dateInputToIso produced, expect the same day back.
+  const iso = dateInputToIso('2026-09-22');
+  assert.equal(isoToDateInput(iso), '2026-09-22');
+});
+
+test('isoToDateInput returns empty string for missing or invalid timestamps', () => {
+  assert.equal(isoToDateInput(''), '');
+  assert.equal(isoToDateInput(null), '');
+  assert.equal(isoToDateInput('garbage'), '');
+});
+
+test('dateInputToIso and isoToDateInput are inverse across a full year', () => {
+  for (const day of ['2026-01-01', '2026-02-28', '2026-06-15', '2026-12-31']) {
+    assert.equal(isoToDateInput(dateInputToIso(day)), day, `round-trip failed for ${day}`);
+  }
 });
 
 /* ── Financial & progress calculations ────────────────────────────── */

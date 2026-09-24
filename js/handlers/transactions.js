@@ -10,7 +10,7 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
-import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials } from "../core/utils.js";
+import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
 import { queueOfflinePayload } from "../core/offline.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
@@ -208,6 +208,11 @@ export const bukaModalTransaksi = () => {
   syncCdrop("ops-kategori");
 
   document.getElementById("iuran-nominal").value = DEFAULT_FEE_DISPLAY;
+  // Date fields default to empty → backend stamps "today".
+  const iuranTgl = document.getElementById("iuran-tanggal");
+  if (iuranTgl) iuranTgl.value = "";
+  const opsTgl = document.getElementById("ops-tanggal");
+  if (opsTgl) opsTgl.value = "";
   openModal("modal-transaksi");
 };
 
@@ -223,6 +228,7 @@ export const submitIuran = async (e) => {
   const formKategori = document.getElementById("iuran-kategori").value;
   const formBulan = document.getElementById("iuran-bulan").value;
   const formTahun = document.getElementById("iuran-tahun").value;
+  const formTanggalIso = dateInputToIso(document.getElementById("iuran-tanggal")?.value);
 
   if (isNaN(formNominal) || formNominal <= 0) return showToast("Nominal iuran harus lebih dari 0.", "error");
   if (!formKategori || formKategori === "-") return showToast("Pilih kategori iuran terlebih dahulu.", "error");
@@ -250,7 +256,8 @@ export const submitIuran = async (e) => {
             bulanIuran: formBulan,
             tahunIuran: formTahun,
             nominal: formNominal,
-            keterangan: "Iuran Anggota"
+            keterangan: "Iuran Anggota",
+            timestamp: formTanggalIso || undefined
           }
         };
 
@@ -259,7 +266,7 @@ export const submitIuran = async (e) => {
         if (!delivered) {
           showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
           closeModal("modal-transaksi");
-          applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal);
+          applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso);
           return;
         }
 
@@ -282,7 +289,7 @@ export const submitIuran = async (e) => {
         closeModal("modal-transaksi");
         applyIuranOptimistically(
           arrIdAnggota.filter((id) => !skipped.includes(id)),
-          formKategori, formBulan, formTahun, formNominal
+          formKategori, formBulan, formTahun, formNominal, formTanggalIso
         );
       }
     )
@@ -290,8 +297,8 @@ export const submitIuran = async (e) => {
 };
 
 /** Add optimistic rows for freshly recorded contributions. */
-const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal) => {
-  const timestamp = new Date().toISOString();
+const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timestampIso) => {
+  const timestamp = timestampIso || new Date().toISOString();
   ids.forEach((idAnggota) => {
     addTransaction({
       ID_Transaksi: tempTransactionId(),
@@ -325,6 +332,7 @@ export const submitOperasional = async (e) => {
   const formNominal = getRawNominal("ops-nominal");
   const formAnggota = document.getElementById("ops-anggota")?.value || "-";
   const formKeterangan = (document.getElementById("ops-keterangan")?.value || "").trim();
+  const formTanggalIso = dateInputToIso(document.getElementById("ops-tanggal")?.value);
 
   if (!formTipe || !["Masuk", "Keluar"].includes(formTipe)) {
     return showToast("Pilih tipe transaksi yang valid (Masuk/Keluar).", "error");
@@ -356,7 +364,8 @@ export const submitOperasional = async (e) => {
             bulanIuran: "-",
             tahunIuran: "-",
             nominal: formNominal,
-            keterangan: formKeterangan
+            keterangan: formKeterangan,
+            timestamp: formTanggalIso || undefined
           }
         };
 
@@ -374,7 +383,7 @@ export const submitOperasional = async (e) => {
         closeModal("modal-transaksi");
         addTransaction({
           ID_Transaksi: tempTransactionId(),
-          Timestamp: new Date().toISOString(),
+          Timestamp: formTanggalIso || new Date().toISOString(),
           Tipe_Arus: formTipe,
           ID_Kategori: formKategori,
           ID_Anggota: formAnggota,
@@ -431,6 +440,9 @@ export const bukaModalEdit = (idTrx) => {
   document.getElementById("edit-tahun").value = trx.Tahun_Iuran || "";
   document.getElementById("edit-keterangan").value = trx.Keterangan || "";
 
+  const editTanggal = document.getElementById("edit-tanggal");
+  if (editTanggal) editTanggal.value = isoToDateInput(trx.Timestamp);
+
   // Populate delta preview with original values and bind live update
   const _originalNominal = trx.Nominal || 0;
   const _originalTipe = trx.Tipe_Arus;
@@ -485,7 +497,8 @@ export const submitEditTransaksi = async (e) => {
             bulanIuran: document.getElementById("edit-bulan")?.value || "-",
             tahunIuran: document.getElementById("edit-tahun")?.value || "-",
             nominal,
-            keterangan: (document.getElementById("edit-keterangan")?.value || "").trim()
+            keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
+            timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
           }
         });
 

@@ -6,7 +6,7 @@
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
     "verify": "node scripts/verify.mjs",
-    "test": "node --test \"tests/**/*.test.mjs\"",
+    "test": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
     "check": "npm run verify && npm test",
     "bump": "node scripts/bump.mjs",
     "build:html": "node scripts/build-html.cjs",

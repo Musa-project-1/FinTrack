@@ -21,3 +21,4 @@ HARDENING-CHECKLIST.md
 skills-lock.json
 js/list.md
 tmp/
+.test-localstorage.json

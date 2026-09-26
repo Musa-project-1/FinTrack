@@ -187,7 +187,7 @@ export async function addBulkTransactions(gid, payload, headers) {
   }
 
   const timestamp = nowIso();
-  const writeResults = await Promise.all(
+  const writeResults = await Promise.allSettled(
     accepted.map(async (input) => {
       const isIuran = isIuranPayment(input);
       const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
@@ -217,11 +217,15 @@ export async function addBulkTransactions(gid, payload, headers) {
   );
 
   let insertedCount = 0;
-  for (const r of writeResults) {
-    if (r.ok) {
+  for (let i = 0; i < writeResults.length; i += 1) {
+    const r = writeResults[i];
+    if (r.status === 'fulfilled' && r.value.ok) {
       insertedCount += 1;
     } else {
-      skipped.push(r.idAnggota);
+      if (r.status === 'rejected') {
+        console.error('[finkas] addBulkTransactions row write failed:', accepted[i].idAnggota, r.reason?.message);
+      }
+      skipped.push(accepted[i].idAnggota);
     }
   }
 

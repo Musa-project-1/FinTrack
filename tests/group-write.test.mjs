@@ -252,6 +252,43 @@ test('addBulkTransactions uses fsCreateIfAbsent precondition and handles duplica
   }
 });
 
+test('addBulkTransactions tolerates individual row network failure without crashing entire batch', async () => {
+  const originalFetch = globalThis.fetch;
+  const failId = iuranId(GID, { idAnggota: 'ANG-FAIL', bulanIuran: 'Februari', tahunIuran: '2026' });
+
+  try {
+    globalThis.fetch = async (url, options) => {
+      const urlStr = String(url);
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
+        return { ok: true, status: 200, json: async () => ({ documents: [] }) };
+      }
+      if (options?.method === 'POST' && urlStr.includes(':commit')) {
+        const body = JSON.parse(options.body);
+        const writeName = body.writes?.[0]?.update?.name || '';
+        if (writeName.includes(failId)) {
+          throw new Error('Simulated network disconnect on row commit');
+        }
+        return { ok: true, status: 200, json: async () => ({ writeResults: [{}] }) };
+      }
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+
+    const payload = {
+      listTrx: [
+        { tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-PASS', bulanIuran: 'Februari', tahunIuran: '2026', nominal: 15000 },
+        { tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-FAIL', bulanIuran: 'Februari', tahunIuran: '2026', nominal: 15000 }
+      ]
+    };
+
+    const res = await addBulkTransactions(GID, payload, { Authorization: 'Bearer test' });
+    assert.equal(res.status, true);
+    assert.equal(res.data.inserted, 1);
+    assert.deepEqual(res.data.skipped, ['ANG-FAIL']);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 /* ── Deletion ────────────────────────────────────────────────────── */
 
 test('deleteDocument only allows the three data collections', async () => {

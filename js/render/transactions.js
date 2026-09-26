@@ -169,7 +169,7 @@ export const renderTableTransaksi = () => {
         </td>
         <td data-label="Keterangan">${ketExtra}</td>
         <td data-label="Nominal" class="td-nominal-col ${isMasuk ? 'text-primary' : 'text-danger'}">${formatDisplayRp(trx.Nominal)}</td>
-        <td data-label="Tipe Arus" class="va-middle"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${trx.Tipe_Arus}</span></td>
+        <td data-label="Tipe Arus" class="va-middle"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${escapeHtml(trx.Tipe_Arus)}</span></td>
         ${aksiTd}
     `;
     fragment.appendChild(tr);

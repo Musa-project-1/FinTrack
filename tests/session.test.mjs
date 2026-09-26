@@ -15,7 +15,8 @@ const {
   signSession,
   verifySession,
   verifyHashedSecret,
-  clientIp
+  clientIp,
+  nextFailedAttempt
 } = await import('../api/_session.js');
 
 const GROUP = 'GRP-AAAA';
@@ -167,4 +168,32 @@ test('clientIp prefers x-real-ip and rightmost forwarded address', () => {
   assert.equal(clientIp({ headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } }), '5.6.7.8');
   assert.equal(clientIp({ headers: {}, socket: { remoteAddress: '9.9.9.9' } }), '9.9.9.9');
   assert.equal(clientIp({ headers: {} }), 'unknown');
+});
+
+/* ── Failed-attempt window ───────────────────────────────────────── */
+
+test('failed attempts accumulate inside the window and lock on the cap', () => {
+  const windowMs = 60_000;
+  const start = 1_000_000;
+  let state = null;
+  for (let i = 1; i <= 4; i += 1) {
+    state = nextFailedAttempt(state, start + i * 1000, 5, windowMs);
+    assert.equal(state.locked, false);
+    assert.equal(state.count, i);
+    assert.equal(state.until, 0);
+  }
+  state = nextFailedAttempt(state, start + 5000, 5, windowMs);
+  assert.equal(state.count, 5);
+  assert.equal(state.locked, true);
+  assert.equal(state.until, start + 5000 + windowMs);
+  assert.equal(state.since, start + 1000);
+});
+
+test('a failed attempt after the window elapsed starts the count over', () => {
+  const windowMs = 60_000;
+  const first = nextFailedAttempt(null, 1_000_000, 5, windowMs);
+  const later = nextFailedAttempt(first, 1_000_000 + windowMs, 5, windowMs);
+  assert.equal(later.count, 1);
+  assert.equal(later.locked, false);
+  assert.equal(later.since, 1_000_000 + windowMs);
 });

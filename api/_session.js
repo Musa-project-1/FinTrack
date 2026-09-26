@@ -237,6 +237,32 @@ const rateLimitKey = (key) =>
   `${RATE_LIMIT_COLLECTION}/${crypto.createHash('sha256').update(key).digest('hex').slice(0, 32)}`;
 
 /**
+ * Next counter state after one failed attempt.
+ *
+ * The window opens on the first failure (`since`), not on the lock. Judging
+ * the window by `until` resets the count forever, because `until` stays 0
+ * until the attempt that finally locks.
+ *
+ * @param {{count?: number, since?: number}|null} existing
+ * @param {number} now
+ * @param {number} maxAttempts
+ * @param {number} windowMs
+ * @returns {{count: number, since: number, until: number, locked: boolean}}
+ */
+export function nextFailedAttempt(existing, now, maxAttempts, windowMs) {
+  const since = Number(existing?.since) || 0;
+  const open = since > 0 && now < since + windowMs;
+  const count = (open ? Number(existing.count) || 0 : 0) + 1;
+  const locked = count >= maxAttempts;
+  return {
+    count,
+    since: open ? since : now,
+    until: locked ? now + windowMs : 0,
+    locked
+  };
+}
+
+/**
  * Record a failed attempt and report whether the caller is now locked out.
  * Counter state lives in Firestore so it survives cold starts and cannot be
  * reset from the browser.
@@ -251,14 +277,15 @@ export async function registerFailedAttempt(key, maxAttempts, windowMs) {
     const path = rateLimitKey(key);
     const now = Date.now();
     const existing = await fsGet(path, headers);
+    const next = nextFailedAttempt(existing, now, maxAttempts, windowMs);
 
-    const withinWindow = existing && Number(existing.until || 0) > now;
-    const count = (withinWindow ? Number(existing.count) || 0 : 0) + 1;
-    const locked = count >= maxAttempts;
-    const lockUntil = locked ? now + windowMs : (withinWindow ? Number(existing.until) : 0);
-
-    await fsPatch(path, { count, until: lockUntil, updatedAt: new Date().toISOString() }, headers);
-    return { locked, retryAfterSec: locked ? Math.ceil(windowMs / 1000) : 0 };
+    await fsPatch(path, {
+      count: next.count,
+      since: next.since,
+      until: next.until,
+      updatedAt: new Date(now).toISOString()
+    }, headers);
+    return { locked: next.locked, retryAfterSec: next.locked ? Math.ceil(windowMs / 1000) : 0 };
   } catch (err) {
     console.error('[finkas] Rate limit write failed:', err?.message);
     return { locked: false, retryAfterSec: 0 };

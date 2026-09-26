@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v131';
+const CACHE_NAME = 'finkas-v132';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -107,6 +107,12 @@ self.addEventListener('activate', (event) => {
 // Fetch handler
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // API responses are per-session and must never land in Cache Storage.
+  // The gateway is POST-only today; this keeps a future GET from being stored.
+  if (url.origin === location.origin && url.pathname.startsWith('/api/')) {
+    return;
+  }
 
   // 1. Local origin assets: network-first with a 3s timeout, fallback to cache.
   //    A hard network-first (no timeout) made every load on a slow-but-connected

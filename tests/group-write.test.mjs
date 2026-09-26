@@ -590,6 +590,20 @@ test('restoreSnapshot rejects snapshot exceeding collection limits', async () =>
   assert.match(resTrx.message, /batas maksimum transaksi/);
 });
 
+test('restoreSnapshot rejects non-array kategori or skippedMonths', async () => {
+  const resKat = await expectRejected(
+    restoreSnapshot(GID, { data: { anggota: [], transaksi: [], kategori: 'invalid-string' } }, NO_HEADERS),
+    'non-array kategori'
+  );
+  assert.match(resKat.message, /kategori bukan array/);
+
+  const resSkip = await expectRejected(
+    restoreSnapshot(GID, { data: { anggota: [], transaksi: [], skippedMonths: { bad: true } } }, NO_HEADERS),
+    'non-array skippedMonths'
+  );
+  assert.match(resSkip.message, /bulan dilewati bukan array/);
+});
+
 test('validateSnapshot accepts realistic snapshot shape produced by exportJSONBackup', () => {
   const realisticSnapshot = {
     anggota: [

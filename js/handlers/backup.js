@@ -85,17 +85,38 @@ export const restoreJSONBackup = (file) => {
       }
 
       const { anggota, kategori, transaksi, skippedMonths } = content.data;
+
+      if (kategori !== undefined && !Array.isArray(kategori)) {
+        return showToast('Format kategori di file backup tidak valid.', 'error');
+      }
+      if (skippedMonths !== undefined && !Array.isArray(skippedMonths)) {
+        return showToast('Format data bulan libur di file backup tidak valid.', 'error');
+      }
+
+      const safeKategori = Array.isArray(kategori) ? kategori : [];
+      const safeSkipped = Array.isArray(skippedMonths) ? skippedMonths : [];
+
       if (anggota.length > 1000) {
         return showToast('File backup melebihi batas maksimum anggota (1.000).', 'error');
       }
       if (transaksi.length > 10000) {
         return showToast('File backup melebihi batas maksimum transaksi (10.000).', 'error');
       }
-      if (Array.isArray(kategori) && kategori.length > 200) {
+      if (safeKategori.length > 200) {
         return showToast('File backup melebihi batas maksimum kategori (200).', 'error');
       }
-      if (Array.isArray(skippedMonths) && skippedMonths.length > 120) {
+      if (safeSkipped.length > 120) {
         return showToast('File backup melebihi batas maksimum bulan dilewati (120).', 'error');
+      }
+
+      const invalidAnggota = anggota.some((a) => !a || typeof a !== 'object' || (!a.ID_Anggota && !a.idAnggota));
+      if (invalidAnggota) {
+        return showToast('Terdapat data anggota tidak valid di file backup.', 'error');
+      }
+
+      const invalidTrx = transaksi.some((t) => !t || typeof t !== 'object' || (!t.Nominal && t.nominal === undefined));
+      if (invalidTrx) {
+        return showToast('Terdapat transaksi tidak valid di file backup.', 'error');
       }
 
       const countTrx = transaksi.length;
@@ -104,7 +125,7 @@ export const restoreJSONBackup = (file) => {
       const activeGid = getActiveGroupId();
       const activeName = getGroups().find((g) => g.id === activeGid)?.nama || activeGid;
 
-      const confirmMsg = `Pulihkan database dari file backup?\n• Grup asal: ${srcGroup}\n• Grup aktif: ${activeName}\n• ${countAng} Anggota\n• ${(kategori || []).length} Kategori\n• ${countTrx} Transaksi\n\nSeluruh data server akan DIGANTIKAN. Tindakan ini tidak dapat dibatalkan.`;
+      const confirmMsg = `Pulihkan database dari file backup?\n• Grup asal: ${srcGroup}\n• Grup aktif: ${activeName}\n• ${countAng} Anggota\n• ${safeKategori.length} Kategori\n• ${countTrx} Transaksi\n\nSeluruh data server akan DIGANTIKAN. Tindakan ini tidak dapat dibatalkan.`;
       if (!window.confirm(confirmMsg)) return;
       if (content.group?.id && content.group.id !== activeGid) {
         if (!window.confirm(`Backup milik grup "${srcGroup}", tujuan "${activeName}". Tetap lanjutkan ke grup aktif?`)) return;
@@ -114,7 +135,7 @@ export const restoreJSONBackup = (file) => {
 
       const res = await postToBackend({
         action: 'restoreSnapshot',
-        data: { anggota, kategori: kategori || [], transaksi, skippedMonths: skippedMonths || [] }
+        data: { anggota, kategori: safeKategori, transaksi, skippedMonths: safeSkipped }
       });
 
       if (!res) {
@@ -128,10 +149,10 @@ export const restoreJSONBackup = (file) => {
 
       // Reflect the restored data locally.
       setState({
-        anggota: anggota || [],
-        kategori: kategori || [],
-        transaksi: transaksi || [],
-        skippedMonths: skippedMonths || []
+        anggota,
+        kategori: safeKategori,
+        transaksi,
+        skippedMonths: safeSkipped
       });
       saveCache();
       renderAll();

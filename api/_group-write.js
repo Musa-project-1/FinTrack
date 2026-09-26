@@ -487,6 +487,12 @@ export function validateSnapshot(data) {
   if (!Array.isArray(data.anggota) || !Array.isArray(data.transaksi)) {
     return { valid: false, error: 'Format snapshot tidak valid.' };
   }
+  if (data.kategori !== undefined && !Array.isArray(data.kategori)) {
+    return { valid: false, error: 'Format snapshot tidak valid (kategori bukan array).' };
+  }
+  if (data.skippedMonths !== undefined && !Array.isArray(data.skippedMonths)) {
+    return { valid: false, error: 'Format snapshot tidak valid (bulan dilewati bukan array).' };
+  }
 
   const anggota = data.anggota;
   const kategori = Array.isArray(data.kategori) ? data.kategori : [];

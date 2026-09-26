@@ -53,12 +53,12 @@ export default async function handler(req, res) {
   try {
     const body = parseBody(req);
     const groupId = String(body?.groupId || '').trim();
-    const pin = String(body?.pin || '').replace(/\D/g, '').slice(0, 4);
+    const pin = String(body?.pin || '').trim();
 
     if (!isValidGroupId(groupId)) {
       return sendJson(res, 400, { status: false, message: 'ID grup tidak valid.' });
     }
-    if (pin.length !== 4) {
+    if (!/^\d{4}$/.test(pin)) {
       return sendJson(res, 400, { status: false, message: 'Ketik 4 angka PIN grup.' });
     }
 
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
         console.error('[finkas] Legacy pin_hash cleanup failed:', err?.message));
     }
 
-    await clearRateLimit(ipKey);
+    await Promise.all([clearRateLimit(ipKey), clearRateLimit(groupKey)]);
     await writeAuditLog(groupId, 'PIN_BENAR', `Masuk grup dari ${ip}`, headers);
 
     return sendJson(res, 200, {

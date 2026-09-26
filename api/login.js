@@ -160,7 +160,7 @@ export default async function handler(req, res) {
     if (groupId) {
       const groupResult = await verifyGroupAdmin(groupId, password, email, headers);
       if (groupResult.matches) {
-        await clearRateLimit(idKey);
+        await Promise.all([clearRateLimit(idKey), clearRateLimit(ipKey)]);
         await writeAuditLog(groupId, 'LOGIN_ADMIN', `Login admin grup dari ${ip}`, headers);
         return sendJson(res, 200, {
           status: true,
@@ -179,7 +179,7 @@ export default async function handler(req, res) {
 
     // ── 2. Master admin (owner) ───────────────────────────────────────
     if (await verifyMasterPassword(password, headers)) {
-      await clearRateLimit(idKey);
+      await Promise.all([clearRateLimit(idKey), clearRateLimit(ipKey)]);
       await writeAuditLog(groupId || 'utama', 'LOGIN_ADMIN', `Login master admin dari ${ip}`, headers);
       return sendJson(res, 200, {
         status: true,

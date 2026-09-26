@@ -46,21 +46,27 @@ const parseBody = (req) => {
 /**
  * Read the superadmin email list from the server-only config document.
  * The primary owner is always included.
+ *
+ * A read failure is rethrown, never swallowed. Returning an empty list here
+ * would let requireSuperAdmin treat every session as revoked — or, worse, a
+ * caller that ignores the failure would authorize against nothing.
  * @returns {Promise<string[]>}
  */
 async function getSuperadminList(headers) {
+  let config;
   try {
-    const config = await fsGet(APP_CONFIG_DOC, headers);
-    const raw = config?.superadmin_emails;
-    const list = (Array.isArray(raw) ? raw : [])
-      .map((v) => String(v || '').toLowerCase().trim())
-      .filter(Boolean);
-    if (PRIMARY_OWNER && !list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
-    return list.length ? list : [];
+    config = await fsGet(APP_CONFIG_DOC, headers);
   } catch (err) {
     console.error('[finkas] Failed to read superadmin list:', err?.message);
-    return PRIMARY_OWNER ? [PRIMARY_OWNER] : [];
+    throw err;
   }
+
+  const raw = config?.superadmin_emails;
+  const list = (Array.isArray(raw) ? raw : [])
+    .map((v) => String(v || '').toLowerCase().trim())
+    .filter(Boolean);
+  if (PRIMARY_OWNER && !list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
+  return list;
 }
 
 /**
@@ -73,13 +79,26 @@ async function saveSuperadminList(list, headers) {
 /* ── Require a valid Super Admin session ─────────────────────────── */
 
 /**
- * Verify that the request carries a valid, non-expired Super Admin session.
- * @returns {object|null} The session payload, or null.
+ * Verify a live Super Admin session whose email is STILL on the whitelist.
+ *
+ * A signature and a role are not enough: `remove` only edits the email list,
+ * so a session minted before that removal stays cryptographically valid for
+ * its whole TTL (30 days). Re-checking the email here is what makes a
+ * revocation take effect. The check runs before any Firestore call, so a
+ * removed admin is refused even when the database is unreachable.
+ * @returns {Promise<{session: object, emails: string[]}|null>}
  */
-const requireSuperAdmin = (body) => {
+const requireSuperAdmin = async (body, headers) => {
   const session = readSession(body);
   if (!session || session.role !== ROLES.SUPERADMIN) return null;
-  return session;
+
+  const email = String(session.email || '').toLowerCase().trim();
+  if (!email) return null;
+
+  const emails = await getSuperadminList(headers);
+  if (!emails.includes(email)) return null;
+
+  return { session, emails };
 };
 
 /* ── Actions ─────────────────────────────────────────────────────── */
@@ -159,8 +178,7 @@ async function loginWithGoogle(body, headers, ip) {
   };
 }
 
-async function listSuperAdmins(headers) {
-  const emails = await getSuperadminList(headers);
+async function listSuperAdmins(emails) {
   return {
     code: 200,
     payload: {
@@ -170,36 +188,34 @@ async function listSuperAdmins(headers) {
   };
 }
 
-async function addSuperAdmin(body, headers) {
+async function addSuperAdmin(body, headers, emails) {
   const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
   if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
     return { code: 400, payload: { status: false, message: 'Format email tidak valid.' } };
   }
 
-  const current = await getSuperadminList(headers);
-  if (current.includes(newEmail)) {
+  if (emails.includes(newEmail)) {
     return { code: 400, payload: { status: false, message: 'Email tersebut sudah terdaftar sebagai Super Admin.' } };
   }
 
-  const updated = [...current, newEmail];
+  const updated = [...emails, newEmail];
   await saveSuperadminList(updated, headers);
   await writeAuditLog('utama', 'TAMBAH_SUPERADMIN', newEmail, headers);
 
   return { code: 200, payload: { status: true, message: `Email ${newEmail} berhasil ditambahkan sebagai Super Admin.`, data: updated } };
 }
 
-async function removeSuperAdmin(body, headers) {
+async function removeSuperAdmin(body, headers, emails) {
   const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
   if (PRIMARY_OWNER && removeEmail === PRIMARY_OWNER) {
     return { code: 400, payload: { status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' } };
   }
 
-  const current = await getSuperadminList(headers);
-  if (!current.includes(removeEmail)) {
+  if (!emails.includes(removeEmail)) {
     return { code: 400, payload: { status: false, message: 'Email tersebut bukan Super Admin.' } };
   }
 
-  const updated = current.filter((em) => em !== removeEmail);
+  const updated = emails.filter((em) => em !== removeEmail);
   await saveSuperadminList(updated, headers);
   await writeAuditLog('utama', 'HAPUS_SUPERADMIN', removeEmail, headers);
 
@@ -231,20 +247,31 @@ export default async function handler(req, res) {
       return sendJson(res, result.code, result.payload);
     }
 
-    // Every non-login action needs a valid Super Admin session. Check the
-    // session (no Firestore needed) BEFORE fetching credentials, so an
-    // unauthorized call returns 403 rather than a 500 when creds are absent.
+    // Reject what can be rejected with no database first: a missing, expired,
+    // wrongly-signed, or email-less session is a 403, never a 500, even when
+    // Firestore is unreachable. The whitelist check below needs credentials.
+    const session = readSession(body);
+    if (!session || session.role !== ROLES.SUPERADMIN) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
+    }
+    if (!String(session.email || '').trim()) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
+    }
+
+    const headers = await requireFirestoreHeaders();
+    const auth = await requireSuperAdmin(body, headers);
+    if (!auth) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
+    }
+
     const guardedHandler = GUARDED_ACTIONS[action];
     if (!guardedHandler) {
       return sendJson(res, 400, { status: false, message: 'Aksi tidak dikenal.' });
     }
 
-    if (!requireSuperAdmin(body)) {
-      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
-    }
-
-    const headers = await requireFirestoreHeaders();
-    const result = await guardedHandler(body, headers);
+    const result = action === 'list'
+      ? await guardedHandler(auth.emails)
+      : await guardedHandler(body, headers, auth.emails);
     return sendJson(res, result.code, result.payload);
   } catch (error) {
     console.error('[finkas] login-google error:', error?.message);

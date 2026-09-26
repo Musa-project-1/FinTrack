@@ -86,7 +86,7 @@ ke scrypt saat login/PIN berhasil pertama kali.
 ├── html/                     # Fragmen HTML modal + template
 ├── css/                      # Design tokens dan modul CSS
 ├── scripts/                  # build-html.cjs, verify.mjs, utilitas migrasi
-├── tests/                    # Suite node:test (135 pengujian regresi & kontrak)
+├── tests/                    # Suite node:test (138 pengujian regresi & kontrak)
 ├── firestore.rules           # Menolak seluruh akses klien
 └── sw.js                     # Service Worker (precache + sinkronisasi offline)
 ```
@@ -131,7 +131,7 @@ Netlify, Firebase Hosting, atau hosting statis lain yang mendukung serverless.
 
 ```bash
 npm run verify     # Cek sintaks semua modul, daftar precache SW, dan kesegaran index.html
-npm test           # Jalankan 135 node:test (codec, security, state, dom contract)
+npm test           # Jalankan 138 node:test (codec, security, state, dom contract)
 npm run check      # verify + test
 npm run build      # Susun index.html dari fragmen, lalu build CSS
 npm run dev:css    # Watch CSS

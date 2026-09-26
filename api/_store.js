@@ -39,6 +39,33 @@ export const settingsDoc = (gid) => `groups/${gid}/settings/app_config`;
 export const privateDoc = (gid) => `groups/${gid}/private/config`;
 
 /**
+ * Read the superadmin email list from the server-only config document.
+ * The primary owner, when configured, is always included.
+ *
+ * A read failure is rethrown. An empty list would let every authorization
+ * check either revoke everyone or, if the caller ignored it, trust everyone.
+ * @param {object} headers
+ * @returns {Promise<string[]>}
+ */
+export async function readSuperadminEmails(headers) {
+  let config;
+  try {
+    config = await fsGet(APP_CONFIG_DOC, headers);
+  } catch (err) {
+    console.error('[finkas] Failed to read superadmin list:', err?.message);
+    throw err;
+  }
+
+  const owner = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
+  const raw = config?.superadmin_emails;
+  const list = (Array.isArray(raw) ? raw : [])
+    .map((v) => String(v || '').toLowerCase().trim())
+    .filter(Boolean);
+  if (owner && !list.includes(owner)) list.unshift(owner);
+  return list;
+}
+
+/**
  * Entropy floor for generated identifiers, in bytes.
  *
  * Identifiers are Firestore document ids and every write is an upsert, so a

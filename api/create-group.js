@@ -15,6 +15,7 @@ import {
   listGroups,
   newId,
   nowIso,
+  readSuperadminEmails,
   setPrivateConfig,
   settingsDoc,
   writeAuditLog
@@ -211,8 +212,17 @@ export default async function handler(req, res) {
     if (!session || session.role !== ROLES.SUPERADMIN) {
       return sendJson(res, 403, { status: false, message: 'Hanya Super Admin yang berwenang mengelola grup.' });
     }
+    const email = String(session.email || '').toLowerCase().trim();
+    if (!email) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
+    }
 
     const headers = await requireFirestoreHeaders();
+    const superadminEmails = await readSuperadminEmails(headers);
+    if (!superadminEmails.includes(email)) {
+      return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
+    }
+
     const action = String(body?.action || '').trim();
 
     if (action === 'list') {

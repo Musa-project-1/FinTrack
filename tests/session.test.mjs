@@ -108,6 +108,22 @@ test('a superadmin may read and write every group', () => {
   assert.equal(canReadGroup(root, 'anything'), true);
 });
 
+test('canReadGroup and canWriteGroup enforce superadmin whitelist when provided', () => {
+  const allowed = ['sa@finkas.id'];
+  const validSa = { role: ROLES.SUPERADMIN, email: 'sa@finkas.id' };
+  const revokedSa = { role: ROLES.SUPERADMIN, email: 'ex@finkas.id' };
+  const anonymousSa = { role: ROLES.SUPERADMIN, email: '' };
+
+  assert.equal(canReadGroup(validSa, GROUP, null, allowed), true);
+  assert.equal(canWriteGroup(validSa, GROUP, null, allowed), true);
+
+  assert.equal(canReadGroup(revokedSa, GROUP, null, allowed), false);
+  assert.equal(canWriteGroup(revokedSa, GROUP, null, allowed), false);
+
+  assert.equal(canReadGroup(anonymousSa, GROUP, null, allowed), false);
+  assert.equal(canWriteGroup(anonymousSa, GROUP, null, allowed), false);
+});
+
 test('canReadGroup and canWriteGroup reject sessions issued before revokedAfter', () => {
   const member = { role: ROLES.MEMBER, gid: GROUP, iat: 1000 };
   const admin = { role: ROLES.GROUP_ADMIN, gid: GROUP, iat: 1000 };

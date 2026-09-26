@@ -6,10 +6,10 @@
  * and enforces per-group read/write authorization before touching the database.
  */
 import { requireFirestoreHeaders, fsGet } from './_sa.js';
-import { isValidGroupId, listGroups, touchGroupUpdated, groupDoc } from './_store.js';
+import { isValidGroupId, listGroups, touchGroupUpdated, groupDoc, readSuperadminEmails } from './_store.js';
 import { readGroupData, readAuditLog } from './_group-read.js';
 import { WRITE_HANDLERS } from './_group-write.js';
-import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp } from './_session.js';
+import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp, ROLES } from './_session.js';
 
 const PUBLIC_ACTIONS = ['groups'];
 const READ_ACTIONS = ['read', 'audit', 'checkUpdate'];
@@ -64,13 +64,20 @@ export default async function handler(req, res) {
       return unauthorized(res, 'Sesi tidak valid atau sudah berakhir. Silakan masuk kembali.');
     }
 
+    // A superadmin's access is the whitelist, re-read per request, so removing
+    // an email takes effect before the session's 30-day TTL. Loaded once here
+    // and reused by every check below. Other roles never need it.
+    const superadminEmails = session.role === ROLES.SUPERADMIN
+      ? await readSuperadminEmails(await requireFirestoreHeaders())
+      : null;
+
     // ── Reads ──────────────────────────────────────────────────────────
     if (READ_ACTIONS.includes(action)) {
-      if (!canReadGroup(session, groupId)) {
+      if (!canReadGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Tidak memiliki akses ke grup ini.' });
       }
       // Audit is admin-only — reject non-admins cheaply, before any Firestore hit.
-      if (action === 'audit' && !canWriteGroup(session, groupId)) {
+      if (action === 'audit' && !canWriteGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Hanya admin yang dapat membaca riwayat audit.' });
       }
 
@@ -89,8 +96,8 @@ export default async function handler(req, res) {
       const groupInfo = await fsGet(groupDoc(groupId), headers);
       // Session revocation: the caller passed the cheap authz above, so a failure
       // now can only mean the token predates a PIN/credential change (revokedAfter).
-      if (!canReadGroup(session, groupId, groupInfo) ||
-          (action === 'audit' && !canWriteGroup(session, groupId, groupInfo))) {
+      if (!canReadGroup(session, groupId, groupInfo, superadminEmails) ||
+          (action === 'audit' && !canWriteGroup(session, groupId, groupInfo, superadminEmails))) {
         return unauthorized(res, 'Sesi sudah tidak berlaku setelah perubahan kredensial. Silakan masuk kembali.');
       }
 
@@ -113,14 +120,14 @@ export default async function handler(req, res) {
     // ── Writes ─────────────────────────────────────────────────────────
     const writeHandler = WRITE_HANDLERS[action];
     if (writeHandler) {
-      if (!canWriteGroup(session, groupId)) {
+      if (!canWriteGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Hanya admin grup yang dapat mengubah data ini.' });
       }
       const headers = await requireFirestoreHeaders();
       const groupInfo = await fsGet(groupDoc(groupId), headers);
       // Revocation: passed the cheap admin check but fails with the live group
       // doc ⇒ the token was issued before a credential change.
-      if (!canWriteGroup(session, groupId, groupInfo)) {
+      if (!canWriteGroup(session, groupId, groupInfo, superadminEmails)) {
         return unauthorized(res, 'Sesi sudah tidak berlaku setelah perubahan kredensial. Silakan masuk kembali.');
       }
       const result = await writeHandler(groupId, body, headers);

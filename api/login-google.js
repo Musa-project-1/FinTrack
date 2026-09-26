@@ -13,7 +13,7 @@
  * There is no `NODE_ENV` bypass and no body-supplied `isSuperAdmin` shortcut.
  */
 import { fsGet, fsPatch, requireFirestoreHeaders } from './_sa.js';
-import { APP_CONFIG_DOC, writeAuditLog } from './_store.js';
+import { APP_CONFIG_DOC, readSuperadminEmails, writeAuditLog } from './_store.js';
 import {
   ROLES,
   SUPERADMIN_SESSION_TTL,
@@ -44,32 +44,6 @@ const parseBody = (req) => {
 /* ── Superadmin whitelist helpers ─────────────────────────────────── */
 
 /**
- * Read the superadmin email list from the server-only config document.
- * The primary owner is always included.
- *
- * A read failure is rethrown, never swallowed. Returning an empty list here
- * would let requireSuperAdmin treat every session as revoked — or, worse, a
- * caller that ignores the failure would authorize against nothing.
- * @returns {Promise<string[]>}
- */
-async function getSuperadminList(headers) {
-  let config;
-  try {
-    config = await fsGet(APP_CONFIG_DOC, headers);
-  } catch (err) {
-    console.error('[finkas] Failed to read superadmin list:', err?.message);
-    throw err;
-  }
-
-  const raw = config?.superadmin_emails;
-  const list = (Array.isArray(raw) ? raw : [])
-    .map((v) => String(v || '').toLowerCase().trim())
-    .filter(Boolean);
-  if (PRIMARY_OWNER && !list.includes(PRIMARY_OWNER)) list.unshift(PRIMARY_OWNER);
-  return list;
-}
-
-/**
  * Persist the superadmin email list.
  */
 async function saveSuperadminList(list, headers) {
@@ -95,7 +69,7 @@ const requireSuperAdmin = async (body, headers) => {
   const email = String(session.email || '').toLowerCase().trim();
   if (!email) return null;
 
-  const emails = await getSuperadminList(headers);
+  const emails = await readSuperadminEmails(headers);
   if (!emails.includes(email)) return null;
 
   return { session, emails };
@@ -149,7 +123,7 @@ async function loginWithGoogle(body, headers, ip) {
     return { code: 401, payload: { status: false, message: 'Email tidak ditemukan dalam respons Google.' } };
   }
 
-  const allowedEmails = await getSuperadminList(headers);
+  const allowedEmails = await readSuperadminEmails(headers);
   if (!allowedEmails.includes(verifiedEmail)) {
     await writeAuditLog('utama', 'LOGIN_GOOGLE_DITOLAK', `${verifiedEmail} dari ${ip}`, headers);
     return {

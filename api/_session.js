@@ -120,13 +120,22 @@ export const readSession = (body) => verifySession(String(body?.sessionToken || 
 /**
  * True when the session may read the given group's data.
  * Supports server-side revocation if groupInfo.revokedAfter is present.
+ *
+ * When `superadminEmails` is given, a superadmin session is trusted only while
+ * its email is still on that list. Omitting it keeps the role-only check, for
+ * callers that have not loaded the whitelist yet.
  * @param {object|null} session
  * @param {string} groupId
  * @param {object|null} [groupInfo]
+ * @param {string[]|null} [superadminEmails]
  */
-export const canReadGroup = (session, groupId, groupInfo = null) => {
+export const canReadGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
   if (!session) return false;
-  if (session.role === ROLES.SUPERADMIN) return true;
+  if (session.role === ROLES.SUPERADMIN) {
+    if (!superadminEmails) return true;
+    const email = String(session.email || '').toLowerCase().trim();
+    return Boolean(email) && superadminEmails.includes(email);
+  }
   if (!groupId || session.gid !== groupId) return false;
   if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
     const revokedSec = typeof groupInfo.revokedAfter === 'number'
@@ -143,10 +152,15 @@ export const canReadGroup = (session, groupId, groupInfo = null) => {
  * @param {object|null} session
  * @param {string} groupId
  * @param {object|null} [groupInfo]
+ * @param {string[]|null} [superadminEmails] See canReadGroup.
  */
-export const canWriteGroup = (session, groupId, groupInfo = null) => {
+export const canWriteGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
   if (!session) return false;
-  if (session.role === ROLES.SUPERADMIN) return true;
+  if (session.role === ROLES.SUPERADMIN) {
+    if (!superadminEmails) return true;
+    const email = String(session.email || '').toLowerCase().trim();
+    return Boolean(email) && superadminEmails.includes(email);
+  }
   if (session.role !== ROLES.GROUP_ADMIN || !groupId || session.gid !== groupId) return false;
   if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
     const revokedSec = typeof groupInfo.revokedAfter === 'number'

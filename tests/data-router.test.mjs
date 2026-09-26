@@ -165,3 +165,78 @@ test('checkReadRateLimit starts a fresh window after it elapses', () => {
   assert.equal(checkReadRateLimit(key, 1, 0).limited, false);
   assert.equal(checkReadRateLimit(key, 1, 0).limited, false);
 });
+
+/* ── Superadmin revocation on the data gateway ───────────────────── */
+
+// The whitelist lives in Firestore. Stubbing that one document makes the
+// revocation decision deterministic without touching a real database.
+const SA_WHITELIST = ['owner@example.com'];
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, opts) => {
+  const target = String(url);
+  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target.includes('/documents/settings/app_config')) {
+    return new Response(JSON.stringify({
+      fields: {
+        superadmin_emails: {
+          arrayValue: { values: SA_WHITELIST.map((email) => ({ stringValue: email })) }
+        }
+      }
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  return realFetch(url, opts);
+};
+
+test('data gateway rejects a revoked superadmin writing to a group', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: 'revoked@example.com' },
+    GROUP_SESSION_TTL
+  );
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: {
+      action: 'catatAktivitas',
+      groupId: GID_A,
+      sessionToken: token,
+      aksi: 'LOGOUT_ADMIN',
+      detail: 'uji'
+    }
+  }, res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.status, false);
+});
+
+test('data gateway rejects a revoked superadmin reading a group', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: 'revoked@example.com' },
+    GROUP_SESSION_TTL
+  );
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: { action: 'checkUpdate', groupId: GID_A, sessionToken: token }
+  }, res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.status, false);
+});
+
+test('data gateway lets a whitelisted superadmin write to a group', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: SA_WHITELIST[0] },
+    GROUP_SESSION_TTL
+  );
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: {
+      action: 'catatAktivitas',
+      groupId: GID_A,
+      sessionToken: token,
+      aksi: 'LOGOUT_ADMIN',
+      detail: 'uji'
+    }
+  }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, true);
+});

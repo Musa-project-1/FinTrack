@@ -266,6 +266,36 @@ test('deleteDocument only allows the three data collections', async () => {
   await expectRejected(deleteDocument(GID, { targetCollection: 'transaksi' }, NO_HEADERS), 'missing id');
 });
 
+test('deleteDocument rejects path traversal or invalid characters in id', async () => {
+  const badIds = ['../foo', '..', 'foo/bar', 'a..b', '../../../settings/app_config', 'id with spaces', 'id!@#'];
+  for (const badId of badIds) {
+    await expectRejected(
+      deleteDocument(GID, { targetCollection: 'transaksi', id: badId }, NO_HEADERS),
+      `deleteDocument bad id: ${badId}`
+    );
+  }
+});
+
+test('editTransaction rejects path traversal or invalid characters in idTarget', async () => {
+  const badIds = ['../foo', '..', 'foo/bar', '../../../settings/app_config', 'id with spaces'];
+  for (const badId of badIds) {
+    await expectRejected(
+      editTransaction(GID, { idTransaksi: badId, dataForm: { nominal: 10000, tipeArus: 'Masuk', idKategori: 'KAT-1' } }, NO_HEADERS),
+      `editTransaction bad idTarget: ${badId}`
+    );
+  }
+});
+
+test('updateMemberStatus rejects path traversal or invalid characters in idAnggota', async () => {
+  const badIds = ['../foo', '..', 'foo/bar', '../../../settings/app_config', 'id with spaces'];
+  for (const badId of badIds) {
+    await expectRejected(
+      updateMemberStatus(GID, { idAnggota: badId, statusAktif: 'Aktif' }, NO_HEADERS),
+      `updateMemberStatus bad idAnggota: ${badId}`
+    );
+  }
+});
+
 /* ── Skipped months ──────────────────────────────────────────────── */
 
 test('changeSkippedMonth requires an MM-YYYY value', async () => {
@@ -403,6 +433,41 @@ test('restoreSnapshot rejects malformed snapshot payload before touching Firesto
   await expectRejected(restoreSnapshot(GID, {}, NO_HEADERS), 'empty payload');
   await expectRejected(restoreSnapshot(GID, { data: {} }, NO_HEADERS), 'missing collections');
   await expectRejected(restoreSnapshot(GID, { data: { anggota: 'not an array', transaksi: [] } }, NO_HEADERS), 'invalid anggota type');
+});
+
+test('restoreSnapshot rejects document IDs with path traversal or invalid characters', async () => {
+  await expectRejected(
+    restoreSnapshot(GID, {
+      data: {
+        anggota: [{ ID_Anggota: '../../../settings/app_config', Nama_Anggota: 'Bad' }],
+        kategori: [],
+        transaksi: []
+      }
+    }, NO_HEADERS),
+    'bad anggota id'
+  );
+
+  await expectRejected(
+    restoreSnapshot(GID, {
+      data: {
+        anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Ok' }],
+        kategori: [{ ID_Kategori: '../bad_cat', Tipe: 'Masuk' }],
+        transaksi: []
+      }
+    }, NO_HEADERS),
+    'bad kategori id'
+  );
+
+  await expectRejected(
+    restoreSnapshot(GID, {
+      data: {
+        anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Ok' }],
+        kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+        transaksi: [{ ID_Transaksi: '../../private/config', nominal: 1000, tipeArus: 'Masuk', idKategori: 'KAT-1' }]
+      }
+    }, NO_HEADERS),
+    'bad transaksi id'
+  );
 });
 
 test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firestore', async () => {

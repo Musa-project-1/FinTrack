@@ -30,6 +30,9 @@ export const APP_CONFIG_DOC = 'settings/app_config';
 export const GROUP_ID_RE = /^[A-Za-z0-9-]{3,40}$/;
 export const isValidGroupId = (gid) => GROUP_ID_RE.test(String(gid || '').trim());
 
+export const DOC_ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+export const isValidDocId = (id) => DOC_ID_RE.test(String(id || '').trim());
+
 export const groupDoc = (gid) => `groups/${gid}`;
 export const col = (gid, name) => `groups/${gid}/${name}`;
 export const settingsDoc = (gid) => `groups/${gid}/settings/app_config`;

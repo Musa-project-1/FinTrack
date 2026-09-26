@@ -21,6 +21,7 @@ import {
   TRANSACTIONS_COLLECTION,
   col,
   iuranId,
+  isValidDocId,
   newId,
   nowIso,
   settingsDoc,
@@ -230,7 +231,7 @@ export async function addBulkTransactions(gid, payload, headers) {
 
 export async function editTransaction(gid, payload, headers) {
   const idTarget = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
-  if (!idTarget) return fail('ID transaksi tidak valid.');
+  if (!idTarget || !isValidDocId(idTarget)) return fail('ID transaksi tidak valid.');
 
   const input = parseTransactionInput(payload?.dataForm);
   if (input.error) return fail(input.error);
@@ -314,6 +315,7 @@ export async function deleteDocument(gid, payload, headers) {
   const id = cleanText(payload?.idTransaksi || payload?.id, 40);
   if (!DELETABLE.includes(collection)) return fail('Jalur koleksi tidak diizinkan.');
   if (!id) return fail('ID dokumen wajib diisi.');
+  if (!isValidDocId(id)) return fail('ID dokumen tidak valid.');
 
   const existing = await fsGet(`${col(gid, collection)}/${id}`, headers);
   if (!existing) return fail('Dokumen tidak ditemukan.');
@@ -407,7 +409,7 @@ export async function addMember(gid, payload, headers) {
 export async function updateMemberStatus(gid, payload, headers) {
   const idAnggota = cleanText(payload?.idAnggota, 40);
   const statusAktif = payload?.statusAktif;
-  if (!idAnggota) return fail('ID anggota tidak valid.');
+  if (!idAnggota || !isValidDocId(idAnggota)) return fail('ID anggota tidak valid.');
   if (!STATUSES.includes(statusAktif)) return fail('Status anggota harus Aktif atau Nonaktif.');
 
   const existing = await fsGet(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, headers);
@@ -509,7 +511,7 @@ export function validateSnapshot(data) {
   for (const a of anggota) {
     const id = cleanText(a?.ID_Anggota ?? a?.idAnggota, 40);
     const nama = cleanText(a?.Nama_Anggota ?? a?.namaAnggota, 80);
-    if (!id || !nama) {
+    if (!id || !isValidDocId(id) || !nama) {
       return { valid: false, error: 'Data anggota di snapshot tidak valid (ID atau Nama kosong).' };
     }
     if (seenMember.has(id)) {
@@ -522,7 +524,7 @@ export function validateSnapshot(data) {
   for (const k of kategori) {
     const id = cleanText(k?.ID_Kategori ?? k?.idKategori, 40);
     const tipe = k?.Tipe ?? k?.tipe;
-    if (!id || !ARUS.includes(tipe)) {
+    if (!id || !isValidDocId(id) || !ARUS.includes(tipe)) {
       return { valid: false, error: 'Data kategori di snapshot tidak valid.' };
     }
     if (seenKat.has(id)) {
@@ -537,6 +539,9 @@ export function validateSnapshot(data) {
     if (parsed.error) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
     const id = cleanText(t?.ID_Transaksi ?? t?.idTransaksi, 40);
     if (id) {
+      if (!isValidDocId(id)) {
+        return { valid: false, error: `Snapshot mengandung ID_Transaksi tidak valid: ${id}` };
+      }
       if (seenTrx.has(id)) {
         return { valid: false, error: `Snapshot mengandung duplikat ID_Transaksi: ${id}` };
       }

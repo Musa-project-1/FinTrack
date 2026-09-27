@@ -202,8 +202,12 @@ test('editTransaction moves document to target iuranId when period changes and d
 
     assert.equal(res.status, true);
     assert.equal(res.data.idTransaksi, marId);
-    assert.ok(deletedDocs.some((u) => u.includes(janId)), 'old janId document should be deleted');
-    assert.ok(createdDocs.some((b) => JSON.stringify(b).includes(marId)), 'new marId document should be created');
+    const commitBatch = createdDocs.find((b) => JSON.stringify(b).includes(marId));
+    assert.ok(commitBatch, 'new marId document should be created in a commit batch');
+    assert.ok(
+      commitBatch.writes.some((w) => w.delete && w.delete.includes(janId)),
+      'old janId document should be atomically deleted in the same commit batch'
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -310,6 +314,74 @@ test('deleteDocument rejects path traversal or invalid characters in id', async 
       deleteDocument(GID, { targetCollection: 'transaksi', id: badId }, NO_HEADERS),
       `deleteDocument bad id: ${badId}`
     );
+  }
+});
+
+test('deleteDocument refuses deleting member or category referenced by transactions', async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async (url, options) => {
+      const urlStr = String(url);
+      // fsGet existing member
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('anggota/ANG-REF')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            name: `projects/p/databases/(default)/documents/groups/${GID}/anggota/ANG-REF`,
+            fields: { ID_Anggota: { stringValue: 'ANG-REF' }, Nama_Anggota: { stringValue: 'Anggota Aktif' } }
+          })
+        };
+      }
+      // fsGet existing category
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('kategori/KAT-REF')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            name: `projects/p/databases/(default)/documents/groups/${GID}/kategori/KAT-REF`,
+            fields: { ID_Kategori: { stringValue: 'KAT-REF' }, Nama_Kategori: { stringValue: 'Iuran' } }
+          })
+        };
+      }
+      // readTransactions (fsListAll) returning 1 transaction referencing ANG-REF and KAT-REF
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            documents: [{
+              name: `projects/p/databases/(default)/documents/groups/${GID}/transaksi/TRX-1`,
+              fields: {
+                ID_Transaksi: { stringValue: 'TRX-1' },
+                ID_Anggota: { stringValue: 'ANG-REF' },
+                ID_Kategori: { stringValue: 'KAT-REF' },
+                Tipe_Arus: { stringValue: 'Masuk' }
+              }
+            }]
+          })
+        };
+      }
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+
+    const resMember = await deleteDocument(
+      GID,
+      { targetCollection: 'anggota', id: 'ANG-REF' },
+      { Authorization: 'Bearer test' }
+    );
+    assert.equal(resMember.status, false);
+    assert.match(resMember.message, /1 transaksi masih merujuk anggota ini/);
+
+    const resCat = await deleteDocument(
+      GID,
+      { targetCollection: 'kategori', id: 'KAT-REF' },
+      { Authorization: 'Bearer test' }
+    );
+    assert.equal(resCat.status, false);
+    assert.match(resCat.message, /1 transaksi masih merujuk kategori ini/);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

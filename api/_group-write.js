@@ -7,13 +7,15 @@
  * HTTP 500).
  */
 import {
+  docName,
   encodeFields,
   fsCommit,
   fsCreateIfAbsent,
   fsDelete,
   fsGet,
   fsListAll,
-  fsPatch
+  fsPatch,
+  isPreconditionFailure
 } from './_sa.js';
 import {
   CATEGORIES_COLLECTION,
@@ -276,15 +278,26 @@ export async function editTransaction(gid, payload, headers) {
       groupId: gid
     };
 
-    if (isIuran) {
-      const created = await fsCreateIfAbsent(`${col(gid, TRANSACTIONS_COLLECTION)}/${targetId}`, doc, headers);
-      if (!created) {
+    const targetDocName = docName(col(gid, TRANSACTIONS_COLLECTION), targetId);
+    const oldDocName = docName(col(gid, TRANSACTIONS_COLLECTION), idTarget);
+    const writes = [
+      {
+        update: { name: targetDocName, fields: encodeFields(doc) },
+        ...(isIuran ? { currentDocument: { exists: false } } : {})
+      },
+      {
+        delete: oldDocName
+      }
+    ];
+
+    try {
+      await fsCommit(writes, headers);
+    } catch (err) {
+      if (isIuran && isPreconditionFailure(err)) {
         return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
       }
-    } else {
-      await fsPatch(`${col(gid, TRANSACTIONS_COLLECTION)}/${targetId}`, doc, headers);
+      throw err;
     }
-    await fsDelete(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
   } else {
     const updated = {
       Tipe_Arus: input.tipeArus,

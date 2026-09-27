@@ -8,7 +8,7 @@
  */
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
-import { getState, addTransaction, currentRekapYear } from "../core/state.js";
+import { getState, addTransaction, currentRekapYear, getIsAdminSession } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
 import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
 import { queueOfflinePayload, isUnsyncedTempId } from "../core/offline.js";
@@ -158,6 +158,7 @@ const withLiquidSave = async (buttonId, task) => {
  * @param {string} bulan
  */
 export const openQuickPaySheet = (idAnggota, bulan) => {
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
   if (!idAnggota || !bulan) return;
 
   const anggotaList = getState().anggota || [];
@@ -183,6 +184,7 @@ export const openQuickPaySheet = (idAnggota, bulan) => {
 /** Submit the quick-pay form. */
 export const submitQuickPay = async (e) => {
   e.preventDefault();
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
   const idAnggota = document.getElementById("qp-id-anggota").value;
   const bulan = document.getElementById("qp-bulan").value;
   const tahun = document.getElementById("qp-tahun").value;
@@ -258,6 +260,7 @@ export const submitQuickPay = async (e) => {
 
 /** Open the main transaction modal on the iuran tab, reset to defaults. */
 export const bukaModalTransaksi = () => {
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
   switchTab("iuran", "modal-transaksi");
   document.getElementById("search-anggota-iuran").value = "";
   document.getElementById("iuran-tahun").value = new Date().getFullYear();
@@ -288,6 +291,7 @@ export const bukaModalTransaksi = () => {
 /** Submit contributions for every checked member. */
 export const submitIuran = async (e) => {
   e?.preventDefault?.();
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
   const checkboxes = document.querySelectorAll(".chk-iuran:not(:disabled):checked");
   if (checkboxes.length === 0) return showToast("Pilih minimal 1 anggota!", "error");
 
@@ -435,6 +439,7 @@ const removeTransactionOptimistically = (idTarget) => {
 /** Submit a single operational (non-iuran) transaction. */
 export const submitOperasional = async (e) => {
   e?.preventDefault?.();
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
   const formTipe = document.getElementById("ops-tipe")?.value;
   const formKategori = document.getElementById("ops-kategori")?.value;
   const formNominal = getRawNominal("ops-nominal");
@@ -528,6 +533,7 @@ export const submitOperasional = async (e) => {
  * @param {string} idTrx
  */
 export const bukaModalEdit = (idTrx) => {
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mengedit transaksi.", "error");
   const trx = getState().transaksi.find((t) => t.ID_Transaksi === idTrx);
   if (!trx) return;
 
@@ -575,6 +581,7 @@ export const bukaModalEdit = (idTrx) => {
 /** Submit the edit form. */
 export const submitEditTransaksi = async (e) => {
   e?.preventDefault?.();
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mengedit transaksi.", "error");
   const idTransaksi = (document.getElementById("edit-id")?.value || "").trim();
   const tipeArus = document.getElementById("edit-tipe")?.value;
   const idKategori = document.getElementById("edit-kategori")?.value;
@@ -643,6 +650,7 @@ export const submitEditTransaksi = async (e) => {
  * @param {string} idTrx
  */
 export const konfirmasiHapus = (idTrx) => {
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang menghapus transaksi.", "error");
   document.getElementById("hapus-id-target").value = idTrx;
   document.getElementById("modal-hapus").style.zIndex = "110";
   openModal("modal-hapus");
@@ -650,6 +658,7 @@ export const konfirmasiHapus = (idTrx) => {
 
 /** Delete the transaction awaiting confirmation. */
 export const eksekusiHapus = async () => {
+  if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang menghapus transaksi.", "error");
   const idTarget = (document.getElementById("hapus-id-target")?.value || "").trim();
   if (!idTarget) return showToast("ID transaksi tidak ditemukan.", "error");
 

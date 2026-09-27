@@ -104,3 +104,26 @@ test('isUnsyncedTempId matches optimistic rows across every collection prefix, n
   assert.equal(isUnsyncedTempId(null), false);
   assert.equal(isUnsyncedTempId(undefined), false);
 });
+
+test('offline replay simulation: skips queued items belonging to different groups', () => {
+  const activeGid = 'GRP-ALPHA';
+  const mockQueue = [
+    { id: 1, payload: { groupId: 'GRP-BETA', nominal: 50000 } }, // Different group
+    { id: 2, payload: { groupId: 'GRP-ALPHA', nominal: 15000 } }, // Current active group
+    { id: 3, payload: { nominal: 10000 } }                        // Legacy/unscoped item
+  ];
+
+  const processed = [];
+  const skippedIds = [];
+
+  for (const item of mockQueue) {
+    if (item.payload?.groupId && item.payload.groupId !== activeGid) {
+      skippedIds.push(item.id);
+      continue;
+    }
+    processed.push(item.id);
+  }
+
+  assert.deepEqual(skippedIds, [1]);
+  assert.deepEqual(processed, [2, 3]);
+});

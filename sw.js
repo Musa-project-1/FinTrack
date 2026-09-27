@@ -121,7 +121,7 @@ self.addEventListener('fetch', (event) => {
   //    refreshes the cache when it eventually resolves.
   if (url.origin === location.origin && event.request.method === 'GET') {
     event.respondWith((async () => {
-      const cachedPromise = caches.match(event.request, { ignoreSearch: true });
+      const cachedPromise = caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
 
       const networkPromise = fetch(event.request)
         .then((response) => {
@@ -144,7 +144,16 @@ self.addEventListener('fetch', (event) => {
 
       // Nothing cached: wait out the network rather than failing early.
       const net = await networkPromise;
-      return net || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+      if (net) return net;
+
+      // Offline navigation fallback: serve cached app shell instead of plain text 503
+      if (event.request.mode === 'navigate') {
+        const appShell = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
+                         (await caches.match('/', { cacheName: CACHE_NAME }));
+        if (appShell) return appShell;
+      }
+
+      return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
     })());
     return;
   }
@@ -152,11 +161,11 @@ self.addEventListener('fetch', (event) => {
   // 2. External CDN assets (Chart.js, Phosphor Icons, Google Fonts): Cache-first
   if (CDN_HOSTS.includes(url.hostname) && event.request.method === 'GET') {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
+      caches.match(event.request, { cacheName: CACHE_NAME }).then((cached) => {
         if (cached) return cached;
         return fetch(event.request)
           .then((response) => {
-            if (response && response.ok) {
+            if (response && (response.ok || response.type === 'opaque')) {
               const copy = response.clone();
               caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
             }

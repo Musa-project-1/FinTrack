@@ -253,3 +253,21 @@ test('the tolerated-lookup allow-list has no stale rows', () => {
       stale.join('\n')
   );
 });
+
+/* ── Service Worker contracts ───────────────────────────────────── */
+
+test('sw.js enforces cache scoping, /api/ bypass, and opaque CDN caching', () => {
+  const sw = read('sw.js');
+
+  // Must scope caches.match to CACHE_NAME
+  assert.match(sw, /caches\.match\([^)]+cacheName:\s*CACHE_NAME/);
+
+  // Must explicitly bypass /api/
+  assert.match(sw, /url\.pathname\.startsWith\(['"]\/api\/['"]\)/);
+
+  // Must provide offline navigation fallback
+  assert.match(sw, /event\.request\.mode === ['"]navigate['"]/);
+
+  // Must allow opaque CDN responses
+  assert.match(sw, /response\.ok \|\| response\.type === ['"]opaque['"]/);
+});

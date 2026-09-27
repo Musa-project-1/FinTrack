@@ -4,9 +4,13 @@ import assert from 'node:assert/strict';
 // Firestore is stubbed, not contacted. The whitelist below is the only one the
 // handler can see, so a session for any other email is provably revoked.
 const WHITELIST = ['owner@example.com'];
+let googleTokeninfoMock = null;
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const target = String(url);
+  if (target.includes('/tokeninfo') && googleTokeninfoMock) {
+    return googleTokeninfoMock(target, opts);
+  }
   if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
   if (target.includes('/documents/settings/app_config')) {
     return new Response(JSON.stringify({
@@ -16,6 +20,9 @@ globalThis.fetch = async (url, opts) => {
         }
       }
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (target.includes('/documents/groups/utama/audit_log')) {
+    return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
   return realFetch(url);
 };
@@ -87,4 +94,79 @@ test('a whitelisted superadmin session can list the whitelist', async () => {
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.status, true);
   assert.deepEqual(res.body.data.map((row) => row.email), WHITELIST);
+});
+
+/* ── Google token exchange ───────────────────────────────────────── */
+
+const CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
+
+test('login-google rejects tokens with mismatched audience (401)', async () => {
+  googleTokeninfoMock = async () => new Response(JSON.stringify({
+    aud: 'unauthorized-app-client-id.apps.googleusercontent.com',
+    email: WHITELIST[0],
+    email_verified: true
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+  try {
+    const res = await call({ idToken: 'mock-token-mismatched-aud' });
+    assert.equal(res.statusCode, 401);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /Audience token Google tidak cocok/);
+  } finally {
+    googleTokeninfoMock = null;
+  }
+});
+
+test('login-google rejects tokens with unverified email (401)', async () => {
+  googleTokeninfoMock = async () => new Response(JSON.stringify({
+    aud: CLIENT_ID,
+    email: WHITELIST[0],
+    email_verified: false
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+  try {
+    const res = await call({ idToken: 'mock-token-unverified-email' });
+    assert.equal(res.statusCode, 401);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /Email Google belum diverifikasi/);
+  } finally {
+    googleTokeninfoMock = null;
+  }
+});
+
+test('login-google rejects valid verified Google accounts not on whitelist (403)', async () => {
+  googleTokeninfoMock = async () => new Response(JSON.stringify({
+    aud: CLIENT_ID,
+    email: 'stranger@example.com',
+    email_verified: true
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+  try {
+    const res = await call({ idToken: 'mock-token-stranger' });
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /bukan Super Admin pemilik Finkas/);
+  } finally {
+    googleTokeninfoMock = null;
+  }
+});
+
+test('login-google mints signed superadmin session for whitelisted Google account (200)', async () => {
+  googleTokeninfoMock = async () => new Response(JSON.stringify({
+    aud: CLIENT_ID,
+    email: WHITELIST[0],
+    name: 'Primary Owner',
+    email_verified: true
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+  try {
+    const res = await call({ idToken: 'mock-token-owner' });
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.status, true);
+    assert.equal(res.body.data.isSuperAdmin, true);
+    assert.equal(res.body.data.email, WHITELIST[0]);
+    assert.ok(res.body.data.sessionToken, 'sessionToken should be issued');
+  } finally {
+    googleTokeninfoMock = null;
+  }
 });

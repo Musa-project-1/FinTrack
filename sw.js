@@ -70,7 +70,6 @@ const LOCAL_ASSETS = [
 
 // Third-party CDN domains to cache for reliable offline usage
 const CDN_HOSTS = [
-  'unpkg.com',
   'cdn.jsdelivr.net',
   'fonts.googleapis.com',
   'fonts.gstatic.com'

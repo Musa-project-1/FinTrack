@@ -1,7 +1,25 @@
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
+
+let rateLimitLocked = false;
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, opts) => {
+  const target = String(url);
+  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target.includes('/documents/_ratelimit') && rateLimitLocked) {
+    return new Response(JSON.stringify({
+      fields: {
+        count: { integerValue: '5' },
+        until: { integerValue: String(Date.now() + 60000) }
+      }
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  return realFetch(url, opts);
+};
+
+after(() => { globalThis.fetch = realFetch; });
 
 const loginHandler = (await import('../api/login.js')).default;
 const pinHandler = (await import('../api/verify-group-pin.js')).default;
@@ -62,4 +80,34 @@ test('login rejects invalid group ID with 400', async () => {
   await loginHandler({ method: 'POST', body: { groupId: '??invalid??', password: 'secretpassword' } }, res);
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.message, 'ID grup tidak valid.');
+});
+
+/* ── Rate limit lockout (429) ────────────────────────────────────── */
+
+test('verify-group-pin returns 429 when rate limit is locked', async () => {
+  rateLimitLocked = true;
+  try {
+    const res = mockRes();
+    await pinHandler({ method: 'POST', body: { groupId: 'GRP-TEST', pin: '1234' } }, res);
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /Terlalu banyak percobaan/);
+    assert.ok(res.body.data.retryAfterSec > 0, 'should include retryAfterSec');
+  } finally {
+    rateLimitLocked = false;
+  }
+});
+
+test('login returns 429 when rate limit is locked', async () => {
+  rateLimitLocked = true;
+  try {
+    const res = mockRes();
+    await loginHandler({ method: 'POST', body: { groupId: 'GRP-TEST', password: 'secretpassword' } }, res);
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /Terlalu banyak percobaan masuk/);
+    assert.ok(res.body.data.retryAfterSec > 0, 'should include retryAfterSec');
+  } finally {
+    rateLimitLocked = false;
+  }
 });

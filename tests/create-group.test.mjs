@@ -72,3 +72,26 @@ test('create-group allows a whitelisted superadmin session', async () => {
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.status, true);
 });
+
+test('create-group rejects non-superadmin sessions with 403', async () => {
+  const memberToken = signSession({ role: ROLES.MEMBER, gid: 'GRP-1' }, 3600);
+  const adminToken = signSession({ role: ROLES.GROUP_ADMIN, gid: 'GRP-1' }, 3600);
+
+  for (const token of [memberToken, adminToken]) {
+    const res = await call({ action: 'list', sessionToken: token });
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.status, false);
+    assert.match(res.body.message, /Hanya Super Admin/);
+  }
+});
+
+test('create-group rejects removing reserved group utama (400)', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: WHITELIST[0] },
+    SUPERADMIN_SESSION_TTL
+  );
+  const res = await call({ action: 'remove', groupId: 'utama', sessionToken: token });
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.status, false);
+  assert.match(res.body.message, /Grup ini tidak boleh dihapus/);
+});

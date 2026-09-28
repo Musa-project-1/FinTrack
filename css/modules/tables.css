@@ -148,7 +148,7 @@
   align-items: center;
   gap: 6px;
   border: 1px solid var(--border);
-  transition: border-color var(--t-fast);
+  transition: border-color var(--t-fast), transform var(--t-fast);
   flex-shrink: 0;
   white-space: nowrap;
   margin: 0;
@@ -156,6 +156,10 @@
 
 .year-pill:hover {
   border-color: var(--border-strong);
+}
+
+.year-pill:active {
+  transform: scale(0.98);
 }
 
 .year-pill i {
@@ -451,11 +455,14 @@ body.dark-mode .table-matriks thead th {
   color: var(--text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform var(--t-fast);
 }
 .btn-sync-rekap:hover {
   background: var(--surface-hover);
   color: var(--text-main);
+}
+.btn-sync-rekap:active {
+  transform: scale(0.92);
 }
 .sync-rekap-icon {
   font-size: 13px;

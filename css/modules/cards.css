@@ -6,16 +6,21 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: 0;
   margin-bottom: var(--sp-8);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
 }
 
 /* --- The hero figure --- */
 .balance-hero {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: var(--sp-6) var(--sp-6) var(--sp-4);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -58,9 +63,9 @@ body.dark-mode .balance-hero__value {
 .flow-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -70,6 +75,23 @@ body.dark-mode .balance-hero__value {
   gap: var(--sp-1);
   padding: var(--sp-4) var(--sp-6);
   min-width: 0;
+  transition: background var(--t-fast);
+}
+
+.flow-in {
+  background: rgba(16, 185, 129, 0.025);
+}
+
+.flow-out {
+  background: rgba(239, 68, 68, 0.025);
+}
+
+body.dark-mode .flow-in {
+  background: rgba(16, 185, 129, 0.04);
+}
+
+body.dark-mode .flow-out {
+  background: rgba(239, 68, 68, 0.04);
 }
 
 .flow-strip__item + .flow-strip__item {

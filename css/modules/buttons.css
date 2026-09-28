@@ -183,13 +183,17 @@
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
 }
 
 .btn-wa-reminder-icon:hover {
   background: var(--accent-tint);
   border-color: var(--accent-border);
   color: var(--accent-strong);
+}
+
+.btn-wa-reminder-icon:active {
+  transform: scale(0.96);
 }
 
 .btn-wa-reminder-icon i {

@@ -148,6 +148,11 @@ button.desktop-only { display: inline-flex !important; }
 .status-text { display: inline; }
 
 /* === PRIVACY MASK (SENSOR SALDO) === */
+body.privacy-mode .balance-hero__value,
+body.privacy-mode .flow-strip__value,
+body.privacy-mode #ui-saldo,
+body.privacy-mode #ui-masuk,
+body.privacy-mode #ui-keluar,
 body.privacy-mode .nominal-val,
 body.privacy-mode .header-stat-val,
 body.privacy-mode .td-nominal-col,
@@ -162,6 +167,16 @@ body.privacy-mode #p-total-kontribusi {
   cursor: pointer;
 }
 
+body.privacy-mode .balance-hero__value:hover,
+body.privacy-mode .balance-hero__value:active,
+body.privacy-mode .flow-strip__value:hover,
+body.privacy-mode .flow-strip__value:active,
+body.privacy-mode #ui-saldo:hover,
+body.privacy-mode #ui-saldo:active,
+body.privacy-mode #ui-masuk:hover,
+body.privacy-mode #ui-masuk:active,
+body.privacy-mode #ui-keluar:hover,
+body.privacy-mode #ui-keluar:active,
 body.privacy-mode .nominal-val:hover,
 body.privacy-mode .nominal-val:active,
 body.privacy-mode .header-stat-val:hover,

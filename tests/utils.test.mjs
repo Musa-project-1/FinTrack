@@ -6,6 +6,7 @@ import {
   formatDisplayRp,
   getInitials,
   escapeHtml,
+  safeHtml,
   dateInputToIso,
   isoToDateInput,
   calculateMemberRekapProgress,
@@ -68,6 +69,31 @@ test('escapeHtml renders nullish input as an empty string', () => {
   assert.equal(escapeHtml(null), '');
   assert.equal(escapeHtml(undefined), '');
   assert.equal(escapeHtml(0), '0');
+});
+
+test('safeHtml escapes interpolated values but trusts static markup', () => {
+  const name = '<script>alert(1)</script>';
+  assert.equal(
+    safeHtml`<span>${name}</span>`,
+    '<span>\u0026lt;script\u0026gt;alert(1)\u0026lt;/script\u0026gt;</span>'
+  );
+});
+
+test('safeHtml neutralises quote-breaking values inside attributes', () => {
+  const id = 'x" data-action="evil';
+  assert.equal(
+    safeHtml`<button data-id="${id}">ok</button>`,
+    '<button data-id="x\u0026quot; data-action=\u0026quot;evil">ok</button>'
+  );
+});
+
+test('safeHtml joins and escapes array fragments', () => {
+  const items = ['<b>', '&'];
+  assert.equal(safeHtml`<ul>${items}</ul>`, '<ul>\u0026lt;b\u0026gt;\u0026amp;</ul>');
+});
+
+test('safeHtml renders nullish interpolations as empty strings', () => {
+  assert.equal(safeHtml`a${null}b${undefined}c`, 'abc');
 });
 
 test('formatCompactRp converts values to K, Jt, and M notation correctly', () => {

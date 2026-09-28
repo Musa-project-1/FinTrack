@@ -10,9 +10,9 @@
     "check": "npm run verify && npm test",
     "bump": "node scripts/bump.mjs",
     "build:html": "node scripts/build-html.cjs",
-    "build:css": "npx @tailwindcss/cli -i ./css/input.css -o ./style.css --minify",
+    "build:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --minify",
     "build": "npm run build:html && npm run build:css",
-    "dev:css": "npx @tailwindcss/cli -i ./css/input.css -o ./style.css --watch"
+    "dev:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.0.0",

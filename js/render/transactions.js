@@ -96,6 +96,8 @@ export const renderTableTransaksi = () => {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
+  const todayStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const yesterdayStr = yesterday.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
   visibleTrx.forEach((trx) => {
     const tglObj = new Date(trx.Timestamp);
@@ -104,8 +106,6 @@ export const renderTableTransaksi = () => {
 
     if (dateStr !== lastDateStr) {
       let dateHeader = '';
-      const todayStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-      const yesterdayStr = yesterday.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
       if (dateStr === todayStr) dateHeader = 'Hari Ini';
       else if (dateStr === yesterdayStr) dateHeader = 'Kemarin';

@@ -68,6 +68,8 @@ export const renderTableRekap = () => {
     }
   });
 
+  const skippedSet = new Set(state.skippedMonths || []);
+
   const searchInput = document.getElementById('search-member-rekap');
   const searchInputMobile = document.getElementById('search-member-rekap-mobile');
   const searchVal = (
@@ -92,7 +94,7 @@ export const renderTableRekap = () => {
       NAMA_BULAN.forEach((bulan, idx) => {
         const tdBulan = document.createElement('td');
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
-        const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
+        const isSkipped = skippedSet.has(monthKey);
         const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
         // Months before this member joined OR before the group's kas start are
         // not owed, so they must not look like an unpaid debt (keeps the matrix
@@ -133,7 +135,6 @@ export const renderTableRekap = () => {
   const headerRow = tbody.closest('table')?.querySelector('thead tr');
   if (headerRow) {
     const headerCells = headerRow.querySelectorAll('th');
-    const skippedSet = new Set(state.skippedMonths || []);
     NAMA_BULAN.forEach((bulan, idx) => {
       const th = headerCells[idx + 1];
       if (!th) return;
@@ -143,12 +144,12 @@ export const renderTableRekap = () => {
   }
 
   // Render mobile card view
-  renderIuranMobileCards(filteredAnggota, mapPembayaran);
+  renderIuranMobileCards(filteredAnggota, mapPembayaran, skippedSet);
 };
 
 /* ── Mobile iuran cards ────────────────────────────────────────── */
 
-export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
+export const renderIuranMobileCards = (filteredAnggota, mapPembayaran, skippedSet = new Set(getState().skippedMonths || [])) => {
   const container = document.getElementById('iuran-cards-mobile');
   if (!container) return;
 
@@ -175,7 +176,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran) => {
     const monthGridHTML = NAMA_BULAN.map((bulan, idx) => {
       const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
       const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
-      const isSkipped = (state.skippedMonths || []).indexOf(monthKey) !== -1;
+      const isSkipped = skippedSet.has(monthKey);
       // Pre-join / pre-kas-start months are not a debt — render them like
       // skipped months so the mobile grid matches the desktop matrix.
       const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) ||

@@ -285,6 +285,30 @@ export const escapeHtml = (str) => {
   return String(str).replace(_ESCAPE_RE, (ch) => _ESCAPE_MAP[ch]);
 };
 
+/**
+ * Tagged-template helper that auto-escapes every interpolated value, so dynamic
+ * data can never inject markup. Use it in place of hand-writing
+ * `` `...${escapeHtml(x)}...` `` for innerHTML strings:
+ *
+ *   el.innerHTML = safeHtml`<span>${userName}</span>`;
+ *
+ * Static parts of the template are trusted verbatim; only the `${...}` slots are
+ * escaped. Arrays are joined with '' first so `.map(...)` fragments work too.
+ *
+ * @param {TemplateStringsArray} strings
+ * @param {...*} values
+ * @returns {string}
+ */
+export const safeHtml = (strings, ...values) =>
+  strings.reduce((out, chunk, i) => {
+    if (i === 0) return chunk;
+    const v = values[i - 1];
+    const escaped = Array.isArray(v)
+      ? v.map((x) => escapeHtml(x)).join('')
+      : escapeHtml(v);
+    return out + escaped + chunk;
+  }, '');
+
 /* ── Financial & progress calculations ────────────────────────────── */
 
 /**

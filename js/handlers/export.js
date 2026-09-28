@@ -18,10 +18,16 @@ export const cetakStruk = (idTrx) => {
 
   const pw = window.open('', '_blank', 'width=400,height=600');
   if (!pw) return showToast('Izinkan pop-up untuk mencetak bukti transaksi.', 'warning');
+  pw.document.open();
   pw.document.write(html);
   pw.document.close();
   pw.focus();
-  setTimeout(() => { pw.print(); pw.close(); }, 500);
+  pw.addEventListener('afterprint', () => {
+    try { pw.close(); } catch (_) {}
+  });
+  setTimeout(() => {
+    try { pw.print(); } catch (_) {}
+  }, 250);
 };
 
 export const cetakLaporanTahunan = () => {
@@ -77,10 +83,16 @@ export const cetakLaporanTahunan = () => {
 
   const pw = window.open('', '_blank');
   if (!pw) return showToast('Izinkan pop-up untuk mencetak laporan rekap.', 'warning');
+  pw.document.open();
   pw.document.write(html);
   pw.document.close();
   pw.focus();
-  setTimeout(() => { pw.print(); pw.close(); }, 500);
+  pw.addEventListener('afterprint', () => {
+    try { pw.close(); } catch (_) {}
+  });
+  setTimeout(() => {
+    try { pw.print(); } catch (_) {}
+  }, 250);
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -148,7 +160,7 @@ export const exportToCSV = () => {
 
   const q = (s, isNumeric = false) => {
     let str = String(s ?? '');
-    if (!isNumeric && /^[=+\-@\t\r]/.test(str)) {
+    if (!isNumeric && /^\s*[=+\-@\t\r]/.test(str)) {
       str = "'" + str;
     }
     return '"' + str.replace(/"/g, '""') + '"';

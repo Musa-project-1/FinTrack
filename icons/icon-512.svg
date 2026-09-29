@@ -1,12 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Dark mode: Abyssal Deep Sea background + Seafoam Teal monogram -->
-  <rect width="512" height="512" rx="112" fill="#08131d"/>
+  <!-- Dark mode: Abyssal Deep Sea background -->
+  <circle cx="256" cy="256" r="240" fill="#08131d"/>
 
-  <!-- Minimalist Geometric Monogram: F -->
-  <g transform="translate(136, 126)">
-    <rect x="0" y="0" width="48" height="260" rx="24" fill="#2dd4bf"/>
-    <rect x="0" y="0" width="220" height="48" rx="24" fill="#2dd4bf"/>
-    <rect x="0" y="96" width="160" height="48" rx="24" fill="#5eead4"/>
-    <circle cx="196" cy="120" r="24" fill="#99f6e4"/>
+  <!-- Ring: 4 semantic financial streams in glowing dark palette -->
+  <g fill="none" stroke-width="28" stroke-linecap="round">
+    <!-- Top-Right: Pemasukan (Inflow) -->
+    <path d="M 256 46 A 210 210 0 0 1 466 256" stroke="#2dd4bf"/>
+    <!-- Bottom-Right: Pengeluaran (Outflow) -->
+    <path d="M 466 256 A 210 210 0 0 1 256 466" stroke="#fb7185"/>
+    <!-- Bottom-Left: Operasional / Cadangan -->
+    <path d="M 256 466 A 210 210 0 0 1 46 256" stroke="#38bdf8"/>
+    <!-- Top-Left: Iuran Warga -->
+    <path d="M 46 256 A 210 210 0 0 1 256 46" stroke="#fbbf24"/>
   </g>
+
+  <!-- Center: Monoline F + Saldo Coin -->
+  <g fill="none" stroke="#2dd4bf" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 296 176 L 216 176 L 216 336"/>
+    <path d="M 216 250 L 282 250"/>
+  </g>
+  <circle cx="316" cy="250" r="14" fill="#2dd4bf"/>
 </svg>

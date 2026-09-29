@@ -1,22 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Clean solid background adapting with high clarity -->
   <style>
     .bg { fill: #f7fbfd; stroke: #c8dced; stroke-width: 8; }
-    .stem, .arm { fill: #0d9488; }
-    .bar { fill: #0f766e; }
-    .dot { fill: #0d9488; }
+    .seg-in { stroke: #0d9488; }
+    .seg-out { stroke: #be123c; }
+    .seg-ops { stroke: #0284c7; }
+    .seg-iuran { stroke: #b45309; }
+    .mono-f { stroke: #0f5c56; }
+    .coin { fill: #0f5c56; }
     @media (prefers-color-scheme: dark) {
       .bg { fill: #08131d; stroke: none; }
-      .stem, .arm { fill: #2dd4bf; }
-      .bar { fill: #5eead4; }
-      .dot { fill: #99f6e4; }
+      .seg-in { stroke: #2dd4bf; }
+      .seg-out { stroke: #fb7185; }
+      .seg-ops { stroke: #38bdf8; }
+      .seg-iuran { stroke: #fbbf24; }
+      .mono-f { stroke: #2dd4bf; }
+      .coin { fill: #2dd4bf; }
     }
   </style>
-  <rect class="bg" width="512" height="512" rx="112"/>
-  <g transform="translate(136, 126)">
-    <rect class="stem" x="0" y="0" width="48" height="260" rx="24"/>
-    <rect class="arm" x="0" y="0" width="220" height="48" rx="24"/>
-    <rect class="bar" x="0" y="96" width="160" height="48" rx="24"/>
-    <circle class="dot" cx="196" cy="120" r="24"/>
+  <circle class="bg" cx="256" cy="256" r="240"/>
+  <g fill="none" stroke-width="28" stroke-linecap="round">
+    <path class="seg-in" d="M 256 46 A 210 210 0 0 1 466 256"/>
+    <path class="seg-out" d="M 466 256 A 210 210 0 0 1 256 466"/>
+    <path class="seg-ops" d="M 256 466 A 210 210 0 0 1 46 256"/>
+    <path class="seg-iuran" d="M 46 256 A 210 210 0 0 1 256 46"/>
   </g>
+  <g fill="none" class="mono-f" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 296 176 L 216 176 L 216 336"/>
+    <path d="M 216 250 L 282 250"/>
+  </g>
+  <circle class="coin" cx="316" cy="250" r="14"/>
 </svg>

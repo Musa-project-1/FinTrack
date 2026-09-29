@@ -88,10 +88,12 @@ body.dark-mode .balance-hero__value {
   color: var(--text-faint);
 }
 
-.flow-in .flow-strip__label { color: var(--accent); }
-.flow-in .flow-strip__label i { color: var(--accent); font-size: 13px; }
-.flow-in .flow-strip__value { color: var(--accent); }
-.flow-in .flow-strip__sign { color: var(--accent); }
+/* Labels and the income figure sit on --surface. --accent (#0d9488) is 3.6:1
+   there; --accent-strong (#0f5c56) is 7.5:1. Dark mode keeps the bright teal. */
+.flow-in .flow-strip__label { color: var(--accent-strong); }
+.flow-in .flow-strip__label i { color: var(--accent-strong); font-size: 13px; }
+.flow-in .flow-strip__value { color: var(--accent-strong); }
+.flow-in .flow-strip__sign { color: var(--accent-strong); }
 
 .flow-out .flow-strip__label { color: var(--danger); }
 .flow-out .flow-strip__label i { color: var(--danger); font-size: 13px; }
@@ -178,9 +180,11 @@ body.header-stats-active .dashboard {
 .header-stat-label {
   font-family: var(--font-mono);
   font-size: 9.5px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
+  /* Pill surface is --surface-2. Faint ink there is 5.95:1; weight 600 because
+     the label is under 10px, where Lighthouse asks for 4.5:1 not 3:1. */
   color: var(--text-faint);
 }
 

@@ -476,7 +476,8 @@ body.dark-mode .btn-wa:hover {
   text-align: left !important;
   min-width: 180px;
   padding-left: var(--sp-4) !important;
-  color: var(--text-muted);
+  /* --text-muted on the table header (--surface-2) is 4.90:1, just under AA. */
+  color: var(--text-faint);
 }
 
 .mobile-loading-wrap {

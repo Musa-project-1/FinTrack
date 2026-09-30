@@ -11,7 +11,7 @@ import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear, getIsAdminSession } from "../core/state.js";
 import { postToBackend } from "../core/api.js";
 import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
-import { queueOfflinePayload, isUnsyncedTempId } from "../core/offline.js";
+import { queueOfflinePayload, isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
@@ -226,6 +226,10 @@ export const submitQuickPay = async (e) => {
 
         if (!delivered) {
           showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
+        } else if (classifySyncResponse(result) === "duplicate") {
+          showToast(result.message || `Iuran ${bulan} ${tahun} sudah tercatat.`, "warning");
+          closeModal("modal-quickpay");
+          return;
         } else if (!result.status) {
           showToast(result.message, "error");
           return;

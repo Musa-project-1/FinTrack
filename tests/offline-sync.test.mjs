@@ -37,6 +37,8 @@ test('classifySyncResponse returns success when response status is true', () => 
 
 test('classifySyncResponse returns duplicate when backend flags already paid dues', () => {
   assert.equal(classifySyncResponse({ status: false, data: { duplicate: true } }), 'duplicate');
+  // Quick pay receives this exact shape: status stays true, data.duplicate flags it.
+  assert.equal(classifySyncResponse({ status: true, data: { duplicate: true } }), 'duplicate');
 });
 
 test('classifySyncResponse returns rejected when backend rejects invalid payload (W-13, T-5)', () => {

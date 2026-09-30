@@ -1,4 +1,4 @@
-import { NAMA_BULAN } from "../core/config.js";
+import { byNewestTimestamp } from "../core/config.js";
 import { getState } from "../core/state.js";
 import { formatRp, escapeHtml, calculateMemberContribution } from "../core/utils.js";
 import { openModal } from "../ui/modal.js";
@@ -16,7 +16,9 @@ export const bukaProfilAnggota = (idAnggota) => {
   statusBadge.innerText = ang.Status_Aktif;
   statusBadge.className = ang.Status_Aktif === 'Aktif' ? 'badge badge-masuk' : 'badge badge-keluar';
 
-  const userTrx = state.transaksi.filter((t) => t.ID_Anggota === idAnggota).reverse();
+  const userTrx = state.transaksi
+    .filter((t) => t.ID_Anggota === idAnggota)
+    .sort(byNewestTimestamp);
   const totalKontribusi = calculateMemberContribution(userTrx, idAnggota);
   const bulanCount = {};
   const tahunSet = new Set();

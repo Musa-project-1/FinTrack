@@ -30,6 +30,13 @@ export const OFFLINE_STORE_NAME = 'offline-transactions';
 /** Default monthly contribution amount (Rp) */
 export const DEFAULT_MONTHLY_FEE = 10000;
 
+/** Newest ledger row first. Invalid timestamps sort last, never to the top. */
+export const byNewestTimestamp = (a, b) => {
+  const tb = new Date(b?.Timestamp || 0).getTime();
+  const ta = new Date(a?.Timestamp || 0).getTime();
+  return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta);
+};
+
 /** WhatsApp group reminder date range start */
 export const GROUP_START_YEAR = 2025;
 export const GROUP_START_MONTH = 11;

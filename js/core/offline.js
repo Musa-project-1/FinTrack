@@ -103,8 +103,8 @@ export const queueOfflinePayload = async (payload) => {
  */
 export const classifySyncResponse = (resJSON) => {
   if (!resJSON) return 'unreachable';
-  if (resJSON.status) return 'success';
   if (resJSON.data?.duplicate) return 'duplicate';
+  if (resJSON.status) return 'success';
   return 'rejected';
 };
 

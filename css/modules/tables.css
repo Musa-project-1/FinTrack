@@ -32,6 +32,10 @@
   align-items: center;
   flex-wrap: nowrap;
   gap: var(--sp-4);
+  /* Above the sticky month header (z-index 11). Without this the year menu's
+     lower option sits under JUL/SEP and the click never reaches it. */
+  position: relative;
+  z-index: 20;
 }
 
 /* Desktop header: strictly one horizontal row */

@@ -1,4 +1,4 @@
-import { NAMA_BULAN } from "../core/config.js";
+import { NAMA_BULAN, byNewestTimestamp } from "../core/config.js";
 import { getState, currentHistoryFilter, itemsToShow, incrementItemsToShow, getIsAdminSession } from "../core/state.js";
 import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
 
@@ -21,7 +21,7 @@ export const renderTableTransaksi = () => {
   const anggotaById = new Map(state.anggota.map((a) => [a.ID_Anggota, a]));
   const kategoriById = new Map(state.kategori.map((k) => [k.ID_Kategori, k]));
 
-  const filteredTrx = [...state.transaksi].reverse().filter((trx) => {
+  const filteredTrx = [...state.transaksi].sort(byNewestTimestamp).filter((trx) => {
     const tglObj = new Date(trx.Timestamp);
     const rowTipe = (trx.Tipe_Arus || '').toLowerCase();
     const rowIsIuran = trx.ID_Anggota !== '-';

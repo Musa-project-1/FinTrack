@@ -144,12 +144,12 @@
 }
 
 .riwayat-footer {
-  border-top: 1px solid var(--border);
-  padding: 8px 16px;
+  border-top: none;
+  padding: 4px 16px 10px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--surface);
+  background: transparent;
 }
 
 .select-pill-wrap {

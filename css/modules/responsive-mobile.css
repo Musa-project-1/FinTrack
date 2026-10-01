@@ -164,34 +164,41 @@ body { padding: 6px 0 100px 0; }
     height: 40px;
   }
 
-  /* Prevent Status Iuran header row overflow when WA button is visible (admin) */
+  /* Status Iuran header, phone: title on its own row so "Status Iuran"
+     is never clipped, year pill keeps the word "Tahun", and the open
+     year menu sits above the pill instead of covering the search box. */
   .table-header.mobile-only .table-header-top {
-    gap: 8px;
+    flex-wrap: wrap;
+    row-gap: 8px;
     min-width: 0;
   }
   .table-header.mobile-only .table-header-left {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     min-width: 0;
   }
   .table-header.mobile-only .table-title {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
   }
   .table-header.mobile-only .table-header-actions {
-    flex: 0 0 auto;
+    flex: 1 1 100%;
+    justify-content: flex-end;
     gap: 6px;
+    min-width: 0;
   }
   .table-header.mobile-only .year-pill {
-    max-width: 128px;
-    padding: 0 10px;
-    box-sizing: border-box;
+    max-width: none;
+    padding: 0 12px;
   }
   .table-header.mobile-only .year-pill label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .table-header.mobile-only .year-pill .cdrop-list {
+    top: auto;
+    bottom: calc(100% + 6px);
+    right: 0;
+    left: auto;
   }
   
   .tab-header {

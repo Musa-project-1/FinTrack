@@ -21,7 +21,10 @@ const setOpen = (ui, open) => {
     // Open upward when there is not enough space below (inside modals)
     const rect = ui.wrap.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    ui.wrap.classList.toggle('cdrop--up', spaceBelow < 260);
+    const search = document.getElementById('search-member-rekap-mobile');
+    const searchTop = search ? search.getBoundingClientRect().top : Infinity;
+    const hitsSearch = search && rect.bottom <= searchTop && spaceBelow > searchTop - rect.bottom;
+    ui.wrap.classList.toggle('cdrop--up', spaceBelow < 260 || hitsSearch);
     // Hard-align list to the trigger button by measurement, so the popup
     // stays glued even if an ancestor creates another containing block.
     const parentRect = ui.list.offsetParent

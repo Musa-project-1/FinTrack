@@ -194,11 +194,15 @@ body { padding: 6px 0 100px 0; }
     overflow: visible;
     text-overflow: clip;
   }
-  .table-header.mobile-only .year-pill .cdrop-list {
-    top: auto;
-    bottom: calc(100% + 6px);
-    right: 0;
-    left: auto;
+  .table-header.mobile-only .table-header-controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .table-header.mobile-only .member-search-wrapper,
+  .table-header.mobile-only .search-member-input {
+    width: 124px !important;
+    max-width: none;
+    box-sizing: border-box;
   }
   
   .tab-header {

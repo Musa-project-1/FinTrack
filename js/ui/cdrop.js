@@ -17,23 +17,46 @@ const setOpen = (ui, open) => {
   ui.wrap.classList.toggle('open', open);
   ui.btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   ui.list.hidden = !open;
+  if (!open && ui.list.parentNode === document.body) ui.wrap.appendChild(ui.list);
+  if (!open) {
+    const search = document.getElementById('search-member-rekap-mobile');
+    const row = search && search.closest('.table-header-controls');
+    if (row) row.style.marginTop = '';
+  }
   if (open) {
     // Open upward when there is not enough space below (inside modals)
     const rect = ui.wrap.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    const search = document.getElementById('search-member-rekap-mobile');
-    const searchTop = search ? search.getBoundingClientRect().top : Infinity;
-    const hitsSearch = search && rect.bottom <= searchTop && spaceBelow > searchTop - rect.bottom;
-    ui.wrap.classList.toggle('cdrop--up', spaceBelow < 260 || hitsSearch);
-    // Hard-align list to the trigger button by measurement, so the popup
-    // stays glued even if an ancestor creates another containing block.
-    const parentRect = ui.list.offsetParent
-      ? ui.list.offsetParent.getBoundingClientRect()
-      : { left: 0 };
+    ui.wrap.classList.toggle('cdrop--up', spaceBelow < 260);
+    // .table-card clips overflow, so the menu is positioned against the
+    // viewport from <body>. On the phone dues header it opens downward,
+    // between the year pill and the search box, never over the title.
     const btnRect = ui.btn.getBoundingClientRect();
-    ui.list.style.left = `${Math.max(0, btnRect.left - parentRect.left)}px`;
+    const phoneYear = ui.select.id === 'ui-tahun-rekap-select-mobile';
+    document.body.appendChild(ui.list);
+    ui.list.style.position = 'fixed';
     ui.list.style.right = 'auto';
     ui.list.style.minWidth = `${btnRect.width}px`;
+    if (phoneYear) {
+      const search = document.getElementById('search-member-rekap-mobile');
+      const gap = search ? search.getBoundingClientRect().top - btnRect.bottom : 0;
+      ui.list.style.visibility = 'hidden';
+      ui.list.style.top = `${btnRect.bottom + 6}px`;
+      const menuH = ui.list.offsetHeight;
+      ui.list.style.visibility = '';
+      const shift = Math.max(0, menuH + 12 - gap);
+      if (search) search.closest('.table-header-controls').style.marginTop = shift ? `${shift}px` : '';
+      ui.list.style.bottom = 'auto';
+      ui.list.style.left = `${btnRect.left}px`;
+    } else if (ui.wrap.classList.contains('cdrop--up')) {
+      ui.list.style.top = 'auto';
+      ui.list.style.bottom = `${window.innerHeight - btnRect.top + 6}px`;
+      ui.list.style.left = `${btnRect.left}px`;
+    } else {
+      ui.list.style.top = `${btnRect.bottom + 6}px`;
+      ui.list.style.bottom = 'auto';
+      ui.list.style.left = `${btnRect.left}px`;
+    }
     if (ui.searchInput) {
       ui.searchInput.value = '';
       filterItems(ui, '');
@@ -234,7 +257,7 @@ const moveHighlight = (ui, dir) => {
 export const initCustomDropdowns = () => {
   document.querySelectorAll('select.cdrop').forEach(setup);
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.cdrop')) closeAll();
+    if (!e.target.closest('.cdrop, .cdrop-list')) closeAll();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAll();

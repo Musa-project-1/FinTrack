@@ -32,7 +32,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=145">
+  <link rel="stylesheet" href="style.css?v=147">
 </head>
 <body>
 
@@ -162,7 +162,7 @@
         </div>
       </div>
 
-      <!-- Mobile Table Header (Dedicated 2-Row Layout: Row 1 Title+Actions, Row 2 Full-Width Search) -->
+      <!-- Mobile Table Header (Dedicated 2-Row Layout: Row 1 Title, Row 2 Search beside Year Pill) -->
       <div class="table-header mobile-only">
         <div class="table-header-top">
           <div class="table-header-left">
@@ -181,23 +181,20 @@
               <span class="sync-rekap-dot"></span>
             </button>
           </div>
-          <div class="table-header-actions">
-            <div class="year-pill">
-              <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-              <label for="ui-tahun-rekap-select-mobile">Tahun: </label>
-              <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
-              </select>
-            </div>
-            <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
-              <i class="ph ph-whatsapp-logo"></i>
-            </button>
-          </div>
         </div>
         <div class="table-header-controls">
           <div class="member-search-wrapper">
             <i class="ph ph-magnifying-glass"></i>
             <input type="text" id="search-member-rekap-mobile" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
           </div>
+          <div class="year-pill">
+            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
+            <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
+            </select>
+          </div>
+          <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
+            <i class="ph ph-whatsapp-logo"></i>
+          </button>
         </div>
       </div>
 
@@ -2128,7 +2125,7 @@
     </button>
   </nav>
 
-  <script type="module" src="js/app.js?v=145"></script>
-  <script src="js/sw-register.js?v=145" defer></script>
+  <script type="module" src="js/app.js?v=147"></script>
+  <script src="js/sw-register.js?v=147" defer></script>
 </body>
 </html>

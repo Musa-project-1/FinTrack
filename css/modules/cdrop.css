@@ -219,10 +219,10 @@ body.dark-mode .cdrop-item.selected::after {
 .year-pill .cdrop-list {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: auto;
-  margin-top: 8px;
-  min-width: 120px;
+  right: 0;
+  left: auto;
+  margin-top: 6px;
+  min-width: 100px;
   width: max-content;
   max-width: 60vw;
   z-index: 80;

@@ -164,45 +164,68 @@ body { padding: 6px 0 100px 0; }
     height: 40px;
   }
 
-  /* Status Iuran header, phone: title on its own row so "Status Iuran"
-     is never clipped, year pill keeps the word "Tahun", and the open
-     year menu sits above the pill instead of covering the search box. */
+  /* Mobile Table Header: Row 1 Title, Row 2 Search beside compact Year Pill */
+  .table-header.mobile-only {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
   .table-header.mobile-only .table-header-top {
-    flex-wrap: wrap;
-    row-gap: 8px;
-    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
   }
   .table-header.mobile-only .table-header-left {
-    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
     min-width: 0;
   }
   .table-header.mobile-only .table-title {
-    overflow: visible;
-    text-overflow: clip;
-  }
-  .table-header.mobile-only .table-header-actions {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-    gap: 6px;
-    min-width: 0;
-  }
-  .table-header.mobile-only .year-pill {
-    max-width: none;
-    padding: 0 12px;
-  }
-  .table-header.mobile-only .year-pill label {
-    overflow: visible;
-    text-overflow: clip;
+    font-size: 16px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .table-header.mobile-only .table-header-controls {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
   }
-  .table-header.mobile-only .member-search-wrapper,
+  .table-header.mobile-only .member-search-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 !important;
+  }
   .table-header.mobile-only .search-member-input {
-    width: 124px !important;
+    width: 100% !important;
     max-width: none;
+    height: 40px;
+    padding-left: 34px !important;
+    padding-right: 12px !important;
+    font-size: 13px;
     box-sizing: border-box;
+  }
+  .table-header.mobile-only .year-pill {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+    height: 40px;
+    padding: 0 10px;
+    gap: 4px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .table-header.mobile-only .year-pill label {
+    display: none;
   }
   
   .tab-header {

@@ -7,6 +7,7 @@ const LOCAL_ASSETS = [
   'onboarding.html',
   '404.html',
   'privacy.html',
+  'offline.html',
   'css/onboarding.css',
   'css/onboarding-icons.css',
   'css/onboarding-motion.css',
@@ -145,11 +146,14 @@ self.addEventListener('fetch', (event) => {
       const net = await networkPromise;
       if (net) return net;
 
-      // Offline navigation fallback: serve cached app shell instead of plain text 503
+      // Offline navigation fallback: serve cached app shell so PWA functions offline
       if (event.request.mode === 'navigate') {
         const appShell = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
                          (await caches.match('/', { cacheName: CACHE_NAME }));
         if (appShell) return appShell;
+
+        const offlinePage = await caches.match('offline.html', { cacheName: CACHE_NAME });
+        if (offlinePage) return offlinePage;
       }
 
       return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });

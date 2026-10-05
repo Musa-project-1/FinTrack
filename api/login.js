@@ -16,6 +16,7 @@ import {
   getPrivateConfig,
   groupDoc,
   isValidGroupId,
+  readSuperadminEmails,
   setPrivateConfig,
   writeAuditLog
 } from './_store.js';
@@ -181,15 +182,33 @@ export default async function handler(req, res) {
     if (await verifyMasterPassword(password, headers)) {
       await Promise.all([clearRateLimit(idKey), clearRateLimit(ipKey)]);
       await writeAuditLog(groupId || 'utama', 'LOGIN_ADMIN', `Login master admin dari ${ip}`, headers);
+
+      let matchedEmail = '';
+      try {
+        const superadminEmails = await readSuperadminEmails(headers);
+        if (email && superadminEmails.includes(email)) {
+          matchedEmail = email;
+        } else {
+          matchedEmail = (process.env.FINKAS_PRIMARY_OWNER || superadminEmails[0] || '').toLowerCase().trim();
+        }
+      } catch (err) {
+        console.error('[finkas] Failed to resolve superadmin email for master login:', err?.message);
+        matchedEmail = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
+      }
+
       return sendJson(res, 200, {
         status: true,
         message: 'Login Master Admin Sukses!',
         data: {
-          sessionToken: signSession({ role: ROLES.SUPERADMIN }, SUPERADMIN_SESSION_TTL),
+          sessionToken: signSession(
+            { role: ROLES.SUPERADMIN, email: matchedEmail },
+            SUPERADMIN_SESSION_TTL
+          ),
           isAdmin: true,
           isSuperAdmin: true,
           role: ROLES.SUPERADMIN,
-          groupId
+          groupId,
+          email: matchedEmail
         }
       });
     }

@@ -31,7 +31,7 @@ after(() => { globalThis.fetch = realFetch; });
 
 const loginHandler = (await import('../api/login.js')).default;
 const pinHandler = (await import('../api/verify-group-pin.js')).default;
-const { legacyDigest } = await import('../api/_session.js');
+const { legacyDigest, verifySession } = await import('../api/_session.js');
 
 const mockRes = () => ({
   statusCode: 200,
@@ -251,6 +251,43 @@ test('login migrates legacy SHA-256 master password on app_config to scrypt', as
     const configPatch = patches.find((p) => p.url.includes('/documents/settings/app_config'));
     assert.ok(configPatch, 'should patch app_config');
     assert.ok(configPatch.body.fields?.admin_password_hash?.stringValue?.startsWith('scrypt$'), 'master password hash should be upgraded to scrypt');
+  } finally {
+    dynamicFetchMock = null;
+  }
+});
+
+test('login as master admin binds whitelisted email to superadmin session', async () => {
+  const PASSWORD = 'masterpass123';
+  const legacyHash = legacyDigest(PASSWORD, '');
+  const WHITELIST_EMAIL = 'superadmin@example.com';
+
+  dynamicFetchMock = async (url) => {
+    if (url.includes('/documents/settings/app_config')) {
+      return new Response(JSON.stringify({
+        fields: {
+          admin_password_hash: { stringValue: legacyHash },
+          superadmin_emails: {
+            arrayValue: {
+              values: [{ stringValue: WHITELIST_EMAIL }]
+            }
+          }
+        }
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+  };
+
+  try {
+    const res = mockRes();
+    await loginHandler({ method: 'POST', body: { password: PASSWORD, email: WHITELIST_EMAIL } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.status, true);
+    assert.equal(res.body.data.isSuperAdmin, true);
+    assert.equal(res.body.data.email, WHITELIST_EMAIL);
+
+    const verified = verifySession(res.body.data.sessionToken);
+    assert.ok(verified, 'session token must be valid');
+    assert.equal(verified.role, 'superadmin');
+    assert.equal(verified.email, WHITELIST_EMAIL);
   } finally {
     dynamicFetchMock = null;
   }

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline | Finkas</title>
+  <meta name="theme-color" content="#0f1011">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <style>
+    :root {
+      --lp-abyss: #090a0b;
+      --lp-canvas: #0f1011;
+      --lp-graphite: #2e2e2e;
+      --lp-steel: #3f4041;
+      --lp-void: #000000;
+      --lp-pure: #ffffff;
+      --lp-cloud: #f5f5f7;
+      --lp-ash: #9f9fa0;
+      --lp-line: rgba(255, 255, 255, 0.15);
+      --lp-line-soft: rgba(255, 255, 255, 0.10);
+      --lp-r-btn: 8px;
+      --lp-r-card: 16px;
+      --lp-r-pill: 9999px;
+      --lp-t-state: 0.2s ease;
+      --lp-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --lp-font-mono: ui-monospace, Menlo, Consolas, monospace;
+      --lp-tracking-body: -0.01em;
+      --lp-tracking-eyebrow: 0.14em;
+      --lp-sp-2: 8px;
+      --lp-sp-3: 12px;
+      --lp-sp-4: 16px;
+      --lp-sp-6: 24px;
+      --lp-sp-8: 32px;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--lp-font-sans);
+      background: var(--lp-canvas);
+      color: var(--lp-cloud);
+      letter-spacing: var(--lp-tracking-body);
+      line-height: 1.6;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--lp-sp-4);
+    }
+    .container {
+      width: 100%;
+      max-width: 460px;
+      padding: var(--lp-sp-8);
+      text-align: center;
+      background: var(--lp-graphite);
+      border: 1px solid var(--lp-line-soft);
+      border-radius: var(--lp-r-card);
+    }
+    .icon-container {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto var(--lp-sp-6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--lp-steel);
+      border-radius: 50%;
+    }
+    .icon-container svg {
+      width: 40px;
+      height: 40px;
+      stroke: var(--lp-cloud);
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      padding: 4px 12px;
+      border-radius: var(--lp-r-pill);
+      background: var(--lp-steel);
+      border: 1px solid var(--lp-line-soft);
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      color: var(--lp-cloud);
+      margin-bottom: var(--lp-sp-4);
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: var(--lp-sp-3);
+      color: var(--lp-pure);
+    }
+    p {
+      font-size: 15px;
+      color: var(--lp-ash);
+      margin-bottom: var(--lp-sp-6);
+      line-height: 1.5;
+    }
+    .btn-retry {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--lp-sp-2);
+      background: var(--lp-pure);
+      color: var(--lp-void);
+      border: none;
+      border-radius: var(--lp-r-btn);
+      padding: 14px 24px;
+      min-height: 44px;
+      font-family: var(--lp-font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity var(--lp-t-state);
+    }
+    .btn-retry:hover { opacity: 0.88; }
+    .btn-retry:active { transform: scale(0.98); }
+    :focus-visible {
+      outline: 2px solid var(--lp-pure);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+    @media (max-width: 359px) {
+      .btn-retry { padding-inline: var(--lp-sp-4); font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-container">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5l16.5-4.125M12 6.75c-2.708 0-5.363.224-7.948.652A2.25 2.25 0 00-.75 9.55v8.7a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-8.7a2.25 2.25 0 00-2.198-2.2A47.865 47.865 0 0012 6.75z" />
+      </svg>
+    </div>
+    <span class="badge-pill">Status Koneksi</span>
+    <h1>Anda Sedang Offline</h1>
+    <p>Tidak dapat terhubung ke jaringan. Periksa koneksi internet Anda dan coba lagi.</p>
+    <button class="btn-retry" onclick="location.reload()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+      </svg>
+      Coba Lagi
+    </button>
+  </div>
+</body>
+</html>

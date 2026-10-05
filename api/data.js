@@ -114,7 +114,9 @@ export default async function handler(req, res) {
         return sendJson(res, 200, { status: true, data: { hasUpdate, updatedAt } });
       }
 
-      return sendJson(res, 200, { status: true, data: await readGroupData(groupId, headers) });
+      const groupData = await readGroupData(groupId, headers);
+      if (groupInfo?.updatedAt) groupData.updatedAt = groupInfo.updatedAt;
+      return sendJson(res, 200, { status: true, data: groupData });
     }
 
     // ── Writes ─────────────────────────────────────────────────────────

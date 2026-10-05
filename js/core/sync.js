@@ -34,6 +34,9 @@ let heartbeatTimer = null;
 /** Timestamp of last visibility check (throttle guard). */
 let lastVisibilityCheck = 0;
 
+/** Timer id for the initial check delay. */
+let initialTimer = null;
+
 /** Registered callback — called when update status changes. */
 let onUpdateChange = null;
 
@@ -81,7 +84,7 @@ function markUpToDate(updatedAt) {
 /* ── Server version check (1 Firestore read) ─────────────────────── */
 
 async function checkForUpdate() {
-  if (!isOnline()) return;
+  if (!isOnline() || !lastSyncedAt) return;
   const { hasUpdate, updatedAt } = await checkGroupUpdate(lastSyncedAt);
   if (hasUpdate) markHasUpdate();
   else if (updatedAt && !hasRemoteUpdate) lastSyncedAt = updatedAt;
@@ -124,13 +127,18 @@ export const initSync = (onChange) => {
   document.addEventListener('visibilitychange', onVisibilityChange);
   startHeartbeat();
   // Initial check after a short delay to let the UI settle
-  setTimeout(checkForUpdate, 3000);
+  if (initialTimer) clearTimeout(initialTimer);
+  initialTimer = setTimeout(checkForUpdate, 3000);
 };
 
 /**
  * Stop all listeners. Call when group session ends.
  */
 export const destroySync = () => {
+  if (initialTimer) {
+    clearTimeout(initialTimer);
+    initialTimer = null;
+  }
   document.removeEventListener('visibilitychange', onVisibilityChange);
   stopHeartbeat();
   onUpdateChange = null;

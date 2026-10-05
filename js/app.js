@@ -12,7 +12,7 @@ import {
 } from "./core/state.js";
 import { fetchInitialData } from "./core/api.js";
 import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
-import { syncOfflineTransactions, deleteOfflineTransaction } from "./core/offline.js";
+import { syncOfflineTransactions, deleteOfflineTransaction, getOfflineTransactions } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
 import { initSync, destroySync, notifySynced } from "./core/sync.js";
@@ -288,12 +288,16 @@ document.addEventListener('click', (e) => {
 
     /* ── Sync rekap badge ─────────────────────────── */
     case 'sync-rekap-data': {
+      if (isLoading) return;
       setSyncBadge('is-syncing');
       const prevTrx = [...(getState().transaksi || [])];
       const prevAnggotaCount = (getState().anggota || []).length;
-      initApp(true).then((ok) => {
+      initApp(true, true).then((ok) => {
+        if (!ok) {
+          setSyncBadge('has-update');
+          return;
+        }
         setSyncBadge('is-clean');
-        if (!ok) return;
         const nextTrx = getState().transaksi || [];
         const nextAnggotaCount = (getState().anggota || []).length;
         const prevIds = new Set(prevTrx.map((t) => t.ID_Transaksi));
@@ -302,14 +306,14 @@ document.addEventListener('click', (e) => {
         const deletedTrx = prevTrx.filter((t) => !nextIds.has(t.ID_Transaksi));
         const diffAnggota = nextAnggotaCount - prevAnggotaCount;
 
-        if (newTrx.length > 0) {
-          showToast(`Sinkron berhasil: +${newTrx.length} transaksi baru.`, 'success');
-        } else if (deletedTrx.length > 0) {
-          showToast(`Sinkron berhasil: ${deletedTrx.length} transaksi dihapus.`, 'info');
-        } else if (diffAnggota > 0) {
-          showToast(`Sinkron berhasil: +${diffAnggota} anggota baru.`, 'success');
-        } else if (diffAnggota < 0) {
-          showToast(`Sinkron berhasil: ${Math.abs(diffAnggota)} anggota dihapus.`, 'info');
+        const changes = [];
+        if (newTrx.length > 0) changes.push(`+${newTrx.length} transaksi baru`);
+        if (deletedTrx.length > 0) changes.push(`${deletedTrx.length} transaksi dihapus`);
+        if (diffAnggota > 0) changes.push(`+${diffAnggota} anggota baru`);
+        if (diffAnggota < 0) changes.push(`${Math.abs(diffAnggota)} anggota dihapus`);
+
+        if (changes.length > 0) {
+          showToast(`Sinkron berhasil: ${changes.join(', ')}.`, 'success');
         } else {
           showToast('Data sudah yang paling baru.', 'info');
         }
@@ -408,10 +412,11 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
    ══════════════════════════════════════════════════════════════════ */
 
 /**
- * Load the active group's data and render it.
+ * Initialize application data.
  * @param {boolean} [forceRemote] Skip the cache and always hit the server.
+ * @param {boolean} [isUserInitiated] True if triggered directly by the user clicking sync.
  */
-export const initApp = async (forceRemote = false) => {
+export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   if (isLoading || (!forceRemote && !localStorage.getItem(GROUP_OPEN_KEY))) return false;
 
   const hasCache = loadCache();
@@ -440,7 +445,7 @@ export const initApp = async (forceRemote = false) => {
         kasStart: resJSON.data.settings?.kasStart || ''
       });
       saveCache();
-      notifySynced();
+      notifySynced(resJSON.data?.updatedAt);
       setSyncBadge('is-clean');
       renderAll();
       setConnectionStatus(true);
@@ -455,7 +460,9 @@ export const initApp = async (forceRemote = false) => {
       setConnectionStatus(false);
       if (hasCache) {
         renderAll();
-        showToast('Server sibuk: Menggunakan data tersimpan (offline).', 'warning');
+        if (isUserInitiated) {
+          showToast('Server sibuk: Menggunakan data tersimpan (offline).', 'warning');
+        }
       } else if (resJSON?.message) {
         showToast(resJSON.message, 'error');
       }
@@ -464,8 +471,14 @@ export const initApp = async (forceRemote = false) => {
   } catch (error) {
     setConnectionStatus(false);
     console.error('initApp failed:', error);
-    if (hasCache) renderAll();
-    else showToast('Mode Offline: Belum ada data tersimpan.', 'warning');
+    if (hasCache) {
+      renderAll();
+      if (isUserInitiated) {
+        showToast('Server sibuk: Menggunakan data tersimpan (offline).', 'warning');
+      }
+    } else {
+      showToast('Mode Offline: Belum ada data tersimpan.', 'warning');
+    }
     return false;
   } finally {
     isLoading = false;
@@ -490,11 +503,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   setupRekapSearchListener();
   setupMenuSearchListener();
 
-  window.addEventListener('online', () => {
-    showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
-    syncOfflineTransactions(() => { initApp(); renderChart(); });
+  let hasBeenOffline = false;
+
+  window.addEventListener('online', async () => {
+    if (!hasBeenOffline) return;
+    hasBeenOffline = false;
+    try {
+      const queued = await getOfflineTransactions();
+      if (queued && queued.length > 0) {
+        showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
+        syncOfflineTransactions(() => { initApp(); renderChart(); });
+      }
+    } catch {
+      // safe fallback without spurious toast
+      syncOfflineTransactions(() => { initApp(); renderChart(); });
+    }
   });
   window.addEventListener('offline', () => {
+    hasBeenOffline = true;
     showToast('Anda sedang offline. Transaksi akan disimpan lokal.', 'error');
   });
 
@@ -517,12 +543,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // On every group change: reset the freshness signal and re-arm the sync
     // listeners for the newly active group, then pull its data.
     destroySync();
-    initSync((hasUpdate) => {
-      setSyncBadge(hasUpdate ? 'has-update' : 'is-clean');
-      if (hasUpdate) {
-        showToast('Ada pembaruan data di server. Klik tombol refresh untuk memuat.', 'info');
-      }
-    });
+    initSync((hasUpdate) => setSyncBadge(hasUpdate ? 'has-update' : 'is-clean'));
     initApp(true);
   });
 

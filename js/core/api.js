@@ -65,7 +65,8 @@ export const fetchInitialData = async () => {
         settings: {
           skippedMonths: data.settings?.skippedMonths || [],
           kasStart: data.settings?.kasStart || ''
-        }
+        },
+        updatedAt: data.updatedAt || null
       }
     };
   } catch (error) {

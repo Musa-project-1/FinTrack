@@ -131,7 +131,7 @@ export const showToast = (message, type = 'success', options = {}) => {
   const safeType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
   const toastKey = `${safeType}:${options?.title || ''}:${text}`;
   const now = Date.now();
-  if (toastKey === lastToastKey && now - lastToastTime < 350) return;
+  if (toastKey === lastToastKey && now - lastToastTime < 1000) return;
   lastToastKey = toastKey;
   lastToastTime = now;
 

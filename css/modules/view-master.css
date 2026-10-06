@@ -193,11 +193,50 @@
   color: var(--danger);
 }
 
-/* 2. Mobile Card View (<= 768px) - Mirrors Riwayat Transaksi Card View */
+/* 2. Mobile Card View (<= 768px) - Compact & Rapih */
 @media (max-width: 768px) {
+  .modal-data-dialog .modal-header-standard {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  .modal-data-dialog .modal-badge-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .modal-data-dialog .modal-title-wrap h2 {
+    font-size: 15px;
+  }
+
+  .modal-data-dialog .modal-title-wrap p {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .modal-data-dialog .tab-buttons {
+    margin-bottom: 8px;
+    gap: 4px;
+  }
+
+  .modal-data-dialog .tab-btn {
+    height: 30px;
+    font-size: 11.5px;
+    padding: 0 12px;
+  }
+
+  .master-form-card {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: var(--r-sm);
+  }
+
   .master-table-wrapper {
-    overflow-x: visible !important;
+    overflow-x: hidden !important;
     width: 100% !important;
+    border-radius: var(--r-sm);
   }
 
   .table-master {
@@ -216,20 +255,20 @@
   }
 
   .table-master tbody {
-    padding: 2px 0 8px;
+    padding: 2px 0 6px;
   }
 
   .master-row {
     display: grid !important;
     grid-template-columns: 1fr auto;
-    column-gap: 12px;
-    row-gap: 8px;
+    column-gap: 10px;
+    row-gap: 6px;
     align-items: center;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    margin-bottom: 10px;
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
     box-shadow: var(--shadow-card-flat);
   }
 
@@ -256,15 +295,15 @@
   .master-mobile-id {
     display: inline-block;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 500;
     color: var(--text-muted);
     background: var(--surface-2);
     border: 1px solid var(--border);
-    padding: 2px 6px;
+    padding: 1px 5px;
     border-radius: var(--r-xs);
     letter-spacing: 0.02em;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
 
   /* Name block: column 1, row 1 */
@@ -273,18 +312,25 @@
     grid-row: 1;
     padding: 0 !important;
     border: none !important;
+    min-width: 0;
   }
 
   .master-name-wrap {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
+    gap: 2px;
+    min-width: 0;
   }
 
   .master-name-text {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
   }
 
   /* Status badge: column 2, row 1 */
@@ -297,72 +343,182 @@
   }
 
   .master-row .td-status-col .badge {
-    padding: 4px 10px;
-    font-size: 11px;
+    padding: 2px 8px;
+    font-size: 10.5px;
   }
 
-  /* WA row: column 1 & 2, row 2 */
+  /* WA row: column 1, row 2 */
   .master-row .td-wa-col {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
     padding: 0 !important;
     border: none !important;
-    font-size: 12px;
+    font-size: 11.5px;
+    align-self: center;
   }
 
-  /* Actions row: bottom strip with dashed divider */
+  /* Actions: column 2, row 2 (sits neatly on the right, no 3rd row or divider needed) */
   .master-row .td-action-col {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    padding: 10px 0 0 !important;
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0 !important;
     border: none !important;
-    border-top: 1px dashed var(--border) !important;
     display: flex !important;
     justify-content: flex-end;
-    width: 100%;
+    align-self: center;
   }
 
   .master-actions-wrap {
     display: flex;
-    width: 100%;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 6px;
   }
 
   .btn-master-action {
-    height: 36px;
-    padding: 6px 14px;
-    font-size: 12px;
-    border-radius: var(--r-md);
+    height: 28px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--r-sm);
   }
 
-  /* Form tambah: wrap input & button nicely on mobile */
-  .master-form-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
+  /* Kategori Row: single line (Nama | Badge | Edit) */
+  .table-master-kategori .master-row {
+    grid-template-columns: 1fr auto auto;
+    grid-template-rows: 1fr;
+    row-gap: 0;
+    column-gap: 8px;
+    padding: 8px 12px;
   }
-  .master-form-row .form-control,
-  .master-form-row input,
-  .master-form-row select,
-  .master-form-row button,
-  .master-form-row .cdrop {
+
+  .table-master-kategori .master-row .td-name-col {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .table-master-kategori .master-row .td-status-col {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .table-master-kategori .master-row .td-action-col {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  /* Form Tambah Anggota: compact 2-column layout */
+  #form-tambah-anggota {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  #form-tambah-anggota > :first-child {
+    grid-column: 1 / -1;
     width: 100% !important;
     min-width: 0 !important;
+    height: 38px !important;
   }
-}
 
-@media (max-width: 599px) {
-  .skip-month-input-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  .skip-month-input-row input,
-  .skip-month-input-row button {
+  #form-tambah-anggota > :nth-child(2) {
+    grid-column: 1 / 2;
     width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
   }
+
+  #form-tambah-anggota > :nth-child(3) {
+    grid-column: 2 / 3;
+    width: 100% !important;
+    height: 38px !important;
+    justify-content: center !important;
+  }
+
+  /* Form Tambah Kategori: compact 2-column layout */
+  #form-tambah-kategori {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  #form-tambah-kategori input#input-nama-kategori {
+    order: 1;
+    grid-column: 1 / -1;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+  }
+
+  #form-tambah-kategori select,
+  #form-tambah-kategori .cdrop {
+    order: 2;
+    grid-column: 1 / 2;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+  }
+
+  #form-tambah-kategori button[type="submit"] {
+    order: 3;
+    grid-column: 2 / 3;
+    width: 100% !important;
+    height: 38px !important;
+    justify-content: center !important;
+  }
+
+  /* Tab 3: Bulan Libur */
+  .skip-month-body {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+
+  .master-skip-hint {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .skip-month-input-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .skip-month-input-row input,
+  .skip-month-input-row .mpick {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+  }
+
+  .skip-month-input-row button {
+    height: 38px !important;
+    padding: 0 16px !important;
+    white-space: nowrap !important;
+  }
+
+  .master-skipped-card-panel {
+    padding: 10px 12px;
+  }
+
   .skipped-months-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .skip-month-card {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border-radius: var(--r-sm);
+  }
+
+  .skip-month-card button {
+    height: 28px !important;
+    padding: 2px 10px !important;
+    font-size: 11px !important;
   }
 }
 

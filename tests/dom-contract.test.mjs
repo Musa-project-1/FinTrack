@@ -271,3 +271,9 @@ test('sw.js enforces cache scoping, /api/ bypass, and opaque CDN caching', () =>
   // Must allow opaque CDN responses
   assert.match(sw, /response\.ok \|\| response\.type === ['"]opaque['"]/);
 });
+
+test('modal-menu avoids auto-focusing search input on mobile viewports', () => {
+  const modalJs = read('js/ui/modal.js');
+  assert.match(modalJs, /isMobile && id === 'modal-menu'/);
+  assert.match(modalJs, /pointer:\s*coarse/);
+});

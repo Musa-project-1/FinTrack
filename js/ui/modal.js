@@ -58,7 +58,20 @@ export const openModal = (id) => {
   el.addEventListener('keydown', el._focusHandler);
 
   setTimeout(() => {
-    const first = el.querySelector('input:not([disabled]), select:not([disabled]), button:not([disabled])');
+    const isMobile = typeof window !== 'undefined' && (
+      window.innerWidth < 768 ||
+      (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches)
+    );
+
+    // Di mobile, cegah auto-focus ke search input pada modal navigasi agar keyboard virtual tidak langsung terbuka
+    if (isMobile && id === 'modal-menu') {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+      return;
+    }
+
+    const first = el.querySelector('input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled])');
     if (first) first.focus();
   }, 50);
 };

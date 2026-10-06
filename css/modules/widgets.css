@@ -284,10 +284,11 @@ body.dark-mode .btn-wa:hover {
 }
 
 .chart-card-title {
-  font-family: var(--font-display);
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: var(--tracking-tight);
+  color: var(--text-main);
   background: none;
   -webkit-text-fill-color: initial;
   margin: 0;

@@ -43,30 +43,62 @@
     width: calc(100vw - 16px);
   }
 
-  .riwayat-header {
-    margin-bottom: 14px;
+  .riwayat-modal-content .modal-header-standard {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    gap: 8px;
   }
 
-  .riwayat-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+  .riwayat-modal-content .modal-badge-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .riwayat-modal-content .modal-title-wrap h2 {
+    font-size: 15px;
+  }
+
+  .riwayat-modal-content .modal-title-wrap p {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  /* Compact Filter Rail on Mobile */
+  .riwayat-filter-rail {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    margin-bottom: 8px !important;
+    border-radius: var(--r-sm) !important;
+  }
+
+  .riwayat-search input {
+    height: 34px !important;
+    font-size: 12px !important;
+    padding-left: 32px !important;
+    border-radius: var(--r-sm) !important;
+  }
+
+  .riwayat-search i {
+    left: 10px !important;
+    font-size: 14px !important;
   }
 
   .riwayat-selectors {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
   }
 
   .select-pill-wrap {
+    height: 32px !important;
     justify-content: space-between;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0 8px !important;
+    border-radius: var(--r-sm) !important;
   }
 
   .select-pill-wrap select {
@@ -76,35 +108,93 @@
   }
 
   .riwayat-select {
-    padding-left: 28px !important;
-    padding-right: 8px !important;
-    font-size: 12px !important;
+    padding-left: 22px !important;
+    padding-right: 6px !important;
+    font-size: 11.5px !important;
+    height: 32px !important;
   }
 
-  /* Chips wrap cleanly on mobile so no chip is clipped off the card edge */
+  .riwayat-rail-section-label {
+    display: none !important;
+  }
+
+  /* Chips scroll horizontally on mobile */
   .riwayat-chips-group {
     display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 5px !important;
+    padding: 1px 0 !important;
+  }
+
+  .riwayat-chips-group::-webkit-scrollbar {
+    display: none;
   }
 
   .riwayat-chips-group .chip-btn {
     flex: 0 0 auto !important;
     white-space: nowrap !important;
+    height: 26px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    border-radius: var(--r-pill) !important;
+  }
+
+  /* Summary Bar: compact single row */
+  .riwayat-summary-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding-top: 6px !important;
+    margin-top: 2px !important;
+    border-top: 1px dashed var(--border) !important;
+  }
+
+  .riwayat-summary-item {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .riwayat-summary-label {
+    display: none !important;
+  }
+
+  .riwayat-summary-value {
+    font-size: 11px !important;
+    font-family: var(--font-mono) !important;
+    color: var(--text-muted) !important;
+  }
+
+  .riwayat-summary-metrics {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+  }
+
+  .metric-pill {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    font-family: var(--font-mono) !important;
+    border-radius: var(--r-xs) !important;
   }
 
   /* === DATE SECTION HEADER (Slim Uppercase with Dot Bullet) === */
   #table-riwayat-data tr.date-group-header {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    padding: 12px 4px 6px !important;
-    margin-top: 8px !important;
-    margin-bottom: 4px !important;
+    gap: 6px !important;
+    padding: 8px 4px 4px !important;
+    margin-top: 6px !important;
+    margin-bottom: 2px !important;
     background: transparent !important;
     border: none !important;
     font-family: var(--font-mono) !important;
-    font-size: 11px !important;
+    font-size: 10.5px !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;

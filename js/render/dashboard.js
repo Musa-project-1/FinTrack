@@ -190,11 +190,11 @@ export const renderChart = async () => {
           data: dataMasuk,
           borderColor: isDark ? '#2dd4bf' : '#0d9488',
           backgroundColor: isDark ? 'rgba(45, 212, 191, 0.20)' : 'rgba(13, 148, 136, 0.20)',
-          tension: 0.35,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          tension: 0.25,
+          pointRadius: 2.5,
+          pointHoverRadius: 5,
           fill: true,
-          borderWidth: 2.5,
+          borderWidth: 2,
           pointBackgroundColor: isDark ? '#2dd4bf' : '#0d9488',
           pointBorderColor: isDark ? '#112334' : '#fff',
         },
@@ -203,11 +203,11 @@ export const renderChart = async () => {
           data: dataKeluar,
           borderColor: isDark ? '#fb7185' : '#e11d48',
           backgroundColor: isDark ? 'rgba(251, 113, 133, 0.20)' : 'rgba(225, 29, 72, 0.20)',
-          tension: 0.35,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          tension: 0.25,
+          pointRadius: 2.5,
+          pointHoverRadius: 5,
           fill: true,
-          borderWidth: 2.5,
+          borderWidth: 2,
           pointBackgroundColor: isDark ? '#fb7185' : '#e11d48',
           pointBorderColor: isDark ? '#112334' : '#fff',
         }
@@ -226,11 +226,11 @@ export const renderChart = async () => {
           position: 'top',
           align: 'end',
           labels: {
-            boxWidth: 10,
-            boxHeight: 10,
+            boxWidth: 8,
+            boxHeight: 8,
             usePointStyle: true,
             color: textColor,
-            font: { family: 'Inter', size: 11, weight: 600 }
+            font: { family: 'Inter', size: 10.5, weight: 600 }
           }
         },
         tooltip: {
@@ -240,13 +240,22 @@ export const renderChart = async () => {
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: textColor,
+            font: { size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 12
+          }
+        },
         y: {
           grid: { color: gridColor },
           ticks: {
             color: textColor,
             font: { size: 10 },
-            callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : val
+            callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + ' jt' : val >= 1000 ? (val / 1000).toFixed(0) + ' rb' : val
           }
         }
       }

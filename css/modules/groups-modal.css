@@ -22,10 +22,7 @@ button.group-item {
   cursor: pointer;
   transition: border-color var(--t-fast), background var(--t-fast);
 }
-button.group-item:hover {
-  border-color: var(--accent);
-  background: var(--surface-2);
-}
+button.group-item:hover { border-color: var(--accent); background: var(--surface-2); }
 .group-item.is-active {
   border-color: var(--accent);
   background: var(--accent-tint);
@@ -99,7 +96,6 @@ button.group-item:hover {
   display: flex;
   align-items: center;
 }
-
 .group-input-icon {
   position: absolute;
   left: 14px;
@@ -107,14 +103,12 @@ button.group-item:hover {
   font-size: 16px;
   pointer-events: none;
 }
-
 .group-form-input {
   padding-left: 38px !important;
   height: 42px;
   font-size: 13px !important;
   border-radius: var(--r-md) !important;
 }
-
 .btn-create-submit {
   height: 42px;
   padding: 0 18px;
@@ -166,17 +160,14 @@ button.group-item:hover {
   border-radius: var(--r-md);
   transition: border-color var(--t-fast), background var(--t-fast);
 }
-
 .group-card-item:hover {
   border-color: var(--border-strong);
   background: var(--surface-2);
 }
-
 .group-card-item.is-active {
   border-color: var(--accent);
   box-shadow: inset 2px 0 0 0 var(--accent);
 }
-
 .group-card-main {
   display: flex;
   align-items: center;
@@ -239,7 +230,6 @@ button.group-item:hover {
   font-weight: 500;
   letter-spacing: 0.04em;
 }
-
 .group-card-id-pill {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -248,7 +238,6 @@ button.group-item:hover {
   align-items: center;
   gap: 3px;
 }
-
 .group-card-actions {
   display: flex;
   align-items: center;
@@ -467,11 +456,7 @@ button.group-item:hover {
   font-weight: 600;
 }
 .cred-email { word-break: break-all; }
-.cred-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.cred-actions { display: flex; flex-direction: column; gap: 8px; }
 .cred-wa-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .cred-wa-icon { font-size: 18px; }
 .cred-close-btn { width: 100%; }
@@ -491,13 +476,8 @@ button.group-item:hover {
   font-family: inherit;
   line-height: inherit;
 }
-.group-name:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.group-name:empty {
-  display: none;
-}
+.group-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.group-name:empty { display: none; }
 
 /* === MOBILE OPTIMIZATION (<= 599px): COMPACT & RAPIH === */
 @media (max-width: 599px) {
@@ -695,8 +675,8 @@ button.group-item:hover {
   }
 
   .btn-group-chip {
-    padding: 0 4px;
     height: 32px;
+    padding: 0 6px;
     font-size: 11px;
     justify-content: center;
     gap: 4px;
@@ -704,11 +684,7 @@ button.group-item:hover {
     width: 100%;
     border-radius: var(--r-sm);
   }
-
-  .btn-group-chip i {
-    font-size: 13px;
-  }
-
+  .btn-group-chip i { font-size: 13px; }
   .btn-group-chip.danger {
     width: 34px;
     height: 32px;
@@ -726,42 +702,30 @@ button.group-item:hover {
     max-width: 100%;
     overflow: hidden;
   }
-
-  .group-superadmin-title {
-    font-size: 11.5px;
-  }
-
+  .group-superadmin-title { font-size: 11.5px; }
   .group-superadmin-note {
     font-size: 10.5px;
     margin-bottom: 8px;
     line-height: 1.35;
   }
-
-  .superadmin-emails-list {
-    gap: 4px;
-    margin-bottom: 8px;
-  }
-
+  .superadmin-emails-list { gap: 4px; margin-bottom: 8px; }
   .superadmin-email-item {
     padding: 5px 8px;
     font-size: 10.5px;
     box-sizing: border-box;
     width: 100%;
   }
-
   .superadmin-email-text {
     min-width: 0;
     word-break: break-all;
     font-size: 10.5px;
   }
-
   .superadmin-add-form {
     display: flex;
     gap: 6px;
     width: 100%;
     box-sizing: border-box;
   }
-
   .superadmin-email-input {
     flex: 1;
     min-width: 0 !important;
@@ -769,7 +733,6 @@ button.group-item:hover {
     height: 36px;
     padding: 0 10px;
   }
-
   .superadmin-add-form button {
     height: 36px;
     padding: 0 12px;
@@ -777,7 +740,6 @@ button.group-item:hover {
     flex-shrink: 0;
     white-space: nowrap;
   }
-
   .group-admin-footer-notice {
     margin-top: 10px;
     padding-top: 8px;

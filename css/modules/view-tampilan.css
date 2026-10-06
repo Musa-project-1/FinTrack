@@ -1,0 +1,353 @@
+/* === TAMPILAN SEGMENTED MODAL (VERCEL / LINEAR BENCHMARK) === */
+.tampilan-segmented-modal {
+  width: min(580px, calc(100vw - 28px)) !important;
+  max-width: 100%;
+  padding: 20px !important;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden !important;
+}
+
+.tampilan-top-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 4px;
+  margin-bottom: 18px;
+}
+
+.tampilan-top-tabs .tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--r-sm);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+
+.tampilan-top-tabs .tab-btn:hover:not(.active) {
+  color: var(--text-main);
+  background: var(--surface-3);
+}
+
+.tampilan-top-tabs .tab-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tampilan-tab-body {
+  min-height: 280px;
+}
+
+.tampilan-tab-body .tab-content {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tampilan-tab-body .tab-content.active {
+  display: flex;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.tampilan-section {
+  padding: 0;
+}
+
+.tampilan-section-label {
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+.tampilan-section-label span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.tampilan-section-label small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Grids inside sections */
+.tampilan-grid {
+  display: grid;
+  gap: 8px;
+}
+.tampilan-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.tampilan-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.tampilan-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.tampilan-card-tile {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  background: var(--surface) !important;
+  padding: 9px 12px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--t-fast);
+  width: 100%;
+}
+
+.tampilan-card-tile:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-strong) !important;
+}
+
+.tampilan-card-tile.active {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent) !important;
+}
+
+.indicator-style-grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.style-option-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+  min-width: 0;
+}
+.style-option-card:last-child { border-bottom: none; }
+.style-option-card:hover { background: var(--surface-2); }
+.style-option-card.active { background: var(--accent-tint); box-shadow: inset 1px 0 0 0 var(--accent); }
+
+.style-option-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 0%;
+}
+
+.style-preview-wrap {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.color-emerald { color: #10b981; }
+.color-cyan { color: #0284c7; }
+.color-indigo { color: #6366f1; }
+.color-amber { color: #d97706; }
+.color-danger { color: #e11d48; }
+.color-warning { color: #b45309; }
+
+.style-option-info {
+  min-width: 0;
+  flex: 1 1 0%;
+}
+.style-option-info strong { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-main); }
+.style-option-info span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.style-check-indicator {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.style-option-card.active .style-check-indicator { opacity: 1; transform: scale(1); }
+
+/* === TAMPILAN RESPONSIVE MOBILE (<= 768px) === */
+@media (max-width: 768px) {
+  #modal-tampilan .modal-header-standard {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  #modal-tampilan .modal-badge-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  #modal-tampilan .modal-title-wrap h2 {
+    font-size: 15px;
+  }
+
+  #modal-tampilan .modal-title-wrap p {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .tampilan-segmented-modal {
+    padding: 14px 12px !important;
+  }
+
+  .tampilan-top-tabs {
+    gap: 3px;
+    padding: 3px;
+    margin-bottom: 10px;
+  }
+
+  .tampilan-top-tabs .tab-btn {
+    padding: 6px 4px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .tampilan-top-tabs .tab-btn i {
+    font-size: 13px;
+  }
+
+  .tampilan-top-tabs .tab-btn span {
+    display: inline !important;
+    font-size: 10.5px;
+  }
+
+  .tampilan-tab-body {
+    min-height: auto;
+  }
+
+  .tampilan-tab-body .tab-content {
+    gap: 10px;
+  }
+
+  .tampilan-section-label {
+    margin-bottom: 4px;
+    padding: 0;
+  }
+
+  .tampilan-section-label span {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+  }
+
+  .tampilan-section-label small {
+    display: none !important;
+  }
+
+  /* Grid 3 (Tema & Tekstur): 3 kolom sebaris, tanpa kartu orphan */
+  .tampilan-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* Grid 4 (Palet Aksen Warna): 4 kolom sebaris ramping */
+  .tampilan-grid-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .tampilan-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* Kartu Opsi Tema & Tekstur */
+  .tampilan-card-tile {
+    padding: 6px 8px !important;
+    min-height: 40px !important;
+    gap: 6px !important;
+    justify-content: center !important;
+    border-radius: var(--r-sm) !important;
+  }
+
+  .tampilan-card-tile .flex-row {
+    gap: 6px !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .tampilan-card-tile .style-option-info {
+    text-align: center;
+  }
+
+  .tampilan-card-tile .style-option-info strong {
+    font-size: 11px !important;
+    line-height: 1.2;
+    display: block;
+  }
+
+  .tampilan-card-tile .style-option-info span {
+    display: none !important;
+  }
+
+  .tampilan-card-tile .style-check-indicator {
+    display: none !important;
+  }
+
+  /* Palet Aksen: Tampilan vertikal swatch + nama */
+  #accent-picker .tampilan-card-tile {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 4px !important;
+    min-height: 48px !important;
+    gap: 4px !important;
+  }
+
+  #accent-picker .accent-swatch-circle {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  #accent-picker .tampilan-card-tile .flex-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 3px !important;
+  }
+}

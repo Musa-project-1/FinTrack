@@ -25,5 +25,5 @@ export const renderAll = () => {
   renderTableTransaksi();
   renderTableRekap();
   syncCdrop();
-  window.__renderChart && window.__renderChart();
+  renderChart();
 };

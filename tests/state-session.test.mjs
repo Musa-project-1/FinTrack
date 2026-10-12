@@ -188,3 +188,22 @@ test('loading a cache for a group that has none returns false', () => {
   state.setActiveGroupId('GRP-NO-CACHE');
   assert.equal(state.loadCache(), false);
 });
+
+/* ── Reactive State Events ───────────────────────────────────────── */
+
+test('setState and addTransaction dispatch finkas:state-changed event when document exists', () => {
+  let eventDispatched = 0;
+  globalThis.document = {
+    dispatchEvent: (e) => {
+      if (e?.type === 'finkas:state-changed') eventDispatched++;
+    }
+  };
+
+  state.setState({ anggota: [{ ID_Anggota: 'ANG-TEST', Nama_Anggota: 'Tester' }] });
+  assert.equal(eventDispatched, 1);
+
+  state.addTransaction({ ID_Transaksi: 'TRX-TEST', Nominal: 10000 });
+  assert.equal(eventDispatched, 2);
+
+  delete globalThis.document;
+});

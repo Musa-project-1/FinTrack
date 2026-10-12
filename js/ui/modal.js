@@ -44,8 +44,7 @@ export const openModal = (id) => {
   }
   if (id === 'modal-riwayat') {
     // Reset items-to-show when opening history
-    window.__resetItemsToShow && window.__resetItemsToShow();
-    window.__renderTableTransaksi && window.__renderTableTransaksi();
+    document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id } }));
   }
   if (document.activeElement) {
     activeElementStack.push(document.activeElement);
@@ -314,7 +313,7 @@ export const renderCheckboxIuran = () => {
   }
 
   updateCounterIuran();
-  window.__filterAnggotaIuran && window.__filterAnggotaIuran();
+  filterAnggotaIuran();
 };
 
 /* ── Search member filter in iuran checkbox grid ───────────────── */

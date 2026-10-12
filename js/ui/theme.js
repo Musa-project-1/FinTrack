@@ -115,12 +115,13 @@ export const applyTheme = () => {
     if (metaTheme) metaTheme.setAttribute('content', '#e8f1f6');
   }
 
-  // Re-render charts only if the statistics modal is currently open
+  // Notify listeners to re-render charts if needed (e.g. statistik modal open)
   // This prevents main thread freeze / lag when switching themes on dashboard
   const statModal = document.getElementById('modal-statistik');
   if (statModal && statModal.classList.contains('active')) {
-    const renderChartFn = window.__renderChart;
-    if (renderChartFn) renderChartFn();
+    if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+      document.dispatchEvent(new CustomEvent('finkas:theme-changed'));
+    }
   }
 };
 

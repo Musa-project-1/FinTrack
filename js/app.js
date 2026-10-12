@@ -88,16 +88,31 @@ const setSyncBadge = (state) => {
 };
 
 /* ══════════════════════════════════════════════════════════════════
-   Cross-module hooks
-   These break the render ↔ modal import cycle. They are plain JavaScript
-   globals, not inline markup handlers, so they are CSP-safe.
+   Cross-module event mediator
+   Decoupled cross-module coordination via standard CustomEvents.
    ══════════════════════════════════════════════════════════════════ */
 
-window.__renderChart = renderChart;
-window.__initApp = () => initApp();
-window.__filterAnggotaIuran = filterAnggotaIuran;
-window.__resetItemsToShow = () => setItemsToShow(20);
-window.__renderTableTransaksi = renderTableTransaksi;
+if (typeof window !== 'undefined') {
+  window.addEventListener('finkas:request-refresh', () => {
+    initApp();
+  });
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('finkas:modal-opened', (e) => {
+    if (e.detail?.id === 'modal-riwayat') {
+      setItemsToShow(20);
+      renderTableTransaksi();
+    }
+  });
+
+  document.addEventListener('finkas:theme-changed', () => {
+    const statModal = document.getElementById('modal-statistik');
+    if (statModal && statModal.classList.contains('active')) {
+      renderChart();
+    }
+  });
+}
 
 /* ══════════════════════════════════════════════════════════════════
    EVENT DELEGATION

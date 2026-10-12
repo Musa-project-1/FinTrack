@@ -3,75 +3,23 @@
  * IndexedDB offline queue and synchronization logic.
  */
 
-import { OFFLINE_DB_NAME, OFFLINE_DB_VERSION, OFFLINE_STORE_NAME } from './config.js';
+import {
+  openOfflineDB,
+  addOfflineItem as addOfflineTransaction,
+  getOfflineItems as getOfflineTransactions,
+  deleteOfflineItem as deleteOfflineTransaction
+} from './offline-store.js';
+
+export {
+  openOfflineDB,
+  addOfflineTransaction,
+  getOfflineTransactions,
+  deleteOfflineTransaction
+};
+
 import { postToBackend, logAuditEvent } from './api.js';
 import { showToast } from './utils.js';
 import { getActiveGroupId } from './state.js';
-
-/**
- * Open (or create) the IndexedDB for offline transactions.
- * @returns {Promise<IDBDatabase>}
- */
-export const openOfflineDB = () => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(OFFLINE_STORE_NAME)) {
-        db.createObjectStore(OFFLINE_STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-};
-
-/**
- * Add a single transaction to the offline queue.
- * @param {object} transaction
- * @returns {Promise<number>} The auto-generated key.
- */
-export const addOfflineTransaction = async (transaction) => {
-  const db = await openOfflineDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(OFFLINE_STORE_NAME, 'readwrite');
-    const store = tx.objectStore(OFFLINE_STORE_NAME);
-    const request = store.add(transaction);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-};
-
-/**
- * Get all pending offline transactions.
- * @returns {Promise<Array>}
- */
-export const getOfflineTransactions = async () => {
-  const db = await openOfflineDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(OFFLINE_STORE_NAME, 'readonly');
-    const store = tx.objectStore(OFFLINE_STORE_NAME);
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result || []);
-    request.onerror = () => reject(request.error);
-  });
-};
-
-/**
- * Delete a single offline transaction by its key.
- * @param {number} id
- * @returns {Promise<void>}
- */
-export const deleteOfflineTransaction = async (id) => {
-  const db = await openOfflineDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(OFFLINE_STORE_NAME, 'readwrite');
-    const store = tx.objectStore(OFFLINE_STORE_NAME);
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-};
 
 /**
  * Queue a payload for later sync. Stempel groupId agar replay tidak

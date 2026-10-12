@@ -9,9 +9,10 @@
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { postToBackend } from "../core/api.js";
-import { formatRp, showToast, showDatabaseToast, isOnline, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
-import { queueOfflinePayload, isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
+import { formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
+import { isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
+import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
+import { withBusyButton, withLiquidSave } from "../ui/keel.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
@@ -24,129 +25,10 @@ import {
 
 const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHLY_FEE);
 
-const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
+const refreshAppData = async () => { requestAppRefresh(); };
 
 /** Optimistic rows get a clearly temporary id until the server confirms. */
-const tempTransactionId = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return `TRX-TEMP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-  }
-  const bytes = new Uint8Array(4);
-  crypto.getRandomValues(bytes);
-  return `TRX-TEMP-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
-};
-
-/**
- * Deliver a mutation, queueing it when the device is offline or unreachable.
- *
- * @param {object} payload
- * @returns {Promise<{delivered: boolean, result: object|null}>}
- */
-const deliverMutation = async (payload) => {
-  if (!isOnline()) {
-    await queueOfflinePayload(payload);
-    return { delivered: false, result: null };
-  }
-
-  const result = await postToBackend(payload);
-  if (!result) {
-    await queueOfflinePayload(payload);
-    return { delivered: false, result: null };
-  }
-
-  return { delivered: true, result };
-};
-
-/**
- * Run a task with a button in its busy state, restoring it afterwards.
- *
- * @param {string} buttonId
- * @param {string} busyHtml
- * @param {string} idleHtml
- * @param {Function} task
- */
-const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
-  const btn = document.getElementById(buttonId);
-  if (btn) {
-    btn.innerHTML = busyHtml;
-    btn.disabled = true;
-  }
-  try {
-    await task();
-  } finally {
-    if (btn) {
-      btn.innerHTML = idleHtml;
-      btn.disabled = false;
-    }
-  }
-};
-
-/**
- * Run a save with the liquid-fill ("keel") button animation.
- *
- * The teal liquid crawls to ~90% while the request is in flight (honest
- * indeterminate wait — we cannot know the real byte progress of a JSON POST),
- * then on success it tops off to 100% and draws the checkmark before the
- * caller's side effects run; on failure it recedes. Progress is written to the
- * registered custom property `--p`, so CSS transitions do the animating — no
- * requestAnimationFrame loop. Honours `prefers-reduced-motion`.
- *
- * @param {string} buttonId
- * @param {() => Promise<{outcome?: 'success'|'error'|'neutral', done?: Function}>} task
- *   Resolves the network call and returns the visual outcome plus a `done`
- *   callback holding the modal-close / optimistic-update side effects.
- */
-const withLiquidSave = async (buttonId, task) => {
-  const btn = document.getElementById(buttonId);
-  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const setP = (v, dur) => {
-    if (!btn) return;
-    btn.style.setProperty("--keel-dur", (reduce ? 0 : dur) + "ms");
-    btn.style.setProperty("--p", String(v));
-  };
-  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
-  const reset = () => {
-    if (!btn) return;
-    btn.classList.remove("is-saving", "is-done", "is-error");
-    btn.disabled = false;
-    setP(0, 0);
-  };
-
-  if (btn) {
-    btn.classList.remove("is-done", "is-error");
-    btn.classList.add("is-saving");
-    btn.disabled = true;
-    setP(0.9, 1100);
-  }
-
-  let res;
-  try {
-    res = await task();
-  } catch (err) {
-    console.error("[liquid-save]", err);
-    res = { outcome: "error", done: () => showToast("Terjadi kesalahan saat menyimpan.", "error") };
-  }
-  const outcome = res?.outcome || "success";
-
-  if (outcome === "success") {
-    setP(1, 340);
-    if (btn) { btn.classList.remove("is-saving"); btn.classList.add("is-done"); }
-    await wait(560);
-    await res?.done?.();
-    reset();
-    return;
-  }
-
-  // error / neutral — recede without the check
-  setP(0, 420);
-  if (btn) {
-    btn.classList.remove("is-saving");
-    if (outcome === "error") btn.classList.add("is-error");
-  }
-  await wait(outcome === "error" ? 700 : 180);
-  await res?.done?.();
-  reset();
-};
+const tempTransactionId = () => generateTempId('TRX');
 
 /* ══════════════════════════════════════════════════════════════════
    QUICK PAY (single member, single month)

@@ -1,39 +1,15 @@
 import { getState, getIsAdminSession } from "../core/state.js";
-import { postToBackend, fetchAuditLogApi } from "../core/api.js";
-import { queueOfflinePayload, isUnsyncedTempId } from "../core/offline.js";
-import { showToast, showDatabaseToast, escapeHtml, isOnline } from "../core/utils.js";
+import { fetchAuditLogApi } from "../core/api.js";
+import { isUnsyncedTempId } from "../core/offline.js";
+import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
+import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { renderSkippedMonthsList } from "../render.js";
-const refreshAppData = async () => { if (window.__initApp) await window.__initApp(); };
+
+const refreshAppData = async () => { requestAppRefresh(); };
 
 /** Temporary id for an optimistic master row until the server confirms it. */
-const tempMasterId = (prefix) => {
-  const rand = (typeof crypto !== 'undefined' && crypto.randomUUID)
-    ? crypto.randomUUID().slice(0, 8)
-    : Math.random().toString(16).slice(2, 10);
-  return `${prefix}-TEMP-${rand.toUpperCase()}`;
-};
-
-/**
- * Deliver a master-data mutation, queueing it when the device is offline or the
- * request never reaches the server. Mirrors the transaction handler's
- * `deliverMutation` so master edits are as offline-resilient as iuran entry.
- *
- * @param {object} payload Must carry a server write `action`.
- * @returns {Promise<{delivered: boolean, result: object|null}>}
- */
-const deliverMutation = async (payload) => {
-  if (!isOnline()) {
-    await queueOfflinePayload(payload);
-    return { delivered: false, result: null };
-  }
-  const result = await postToBackend(payload);
-  if (!result) {
-    await queueOfflinePayload(payload);
-    return { delivered: false, result: null };
-  }
-  return { delivered: true, result };
-};
+const tempMasterId = (prefix) => generateTempId(prefix);
 
 export const openSkippedMonthsModal = () => {
   openKelolaMasterModal();

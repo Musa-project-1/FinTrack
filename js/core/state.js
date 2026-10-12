@@ -32,6 +32,15 @@ const state = {
 export const getState = () => state;
 
 /**
+ * Dispatch an application state change event across modules.
+ */
+export const notifyStateChange = () => {
+  if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+    document.dispatchEvent(new CustomEvent('finkas:state-changed', { detail: { state } }));
+  }
+};
+
+/**
  * Replace the full application state (e.g. from cache or a fetch).
  * @param {Partial<AppState>} newState
  */
@@ -43,6 +52,7 @@ export const setState = (newState) => {
   // kasStart is a settable override: '' is a valid value (revert to fallback),
   // so guard on presence, not truthiness.
   if (newState.kasStart !== undefined) state.kasStart = newState.kasStart;
+  notifyStateChange();
 };
 
 /**
@@ -51,6 +61,7 @@ export const setState = (newState) => {
  */
 export const addTransaction = (trx) => {
   state.transaksi.push(trx);
+  notifyStateChange();
 };
 
 /** Safe access to localStorage across browser and test environments. */

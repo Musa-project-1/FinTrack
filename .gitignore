@@ -22,3 +22,6 @@ skills-lock.json
 js/list.md
 tmp/
 .test-localstorage.json
+.scratch/
+AGENTS.md
+GLOSSARY.md

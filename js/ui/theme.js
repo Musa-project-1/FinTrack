@@ -257,9 +257,12 @@ export const toggleTheme = () => {
   const isDark = document.body.classList.contains('dark-mode');
   safeSetItem(THEME_KEY, isDark ? 'light' : 'dark');
 
-  // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+),
-  // let the GPU take a screenshot and cross-fade the entire viewport seamlessly.
-  if (typeof document.startViewTransition === 'function') {
+  const prefersReduced = typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  // If the browser supports View Transitions API (Chrome/Edge/Android/iOS 18+)
+  // and reduced motion is not requested, let the GPU cross-fade seamlessly.
+  if (!prefersReduced && typeof document.startViewTransition === 'function') {
     try {
       isTransitioning = true;
       const transition = document.startViewTransition(() => {

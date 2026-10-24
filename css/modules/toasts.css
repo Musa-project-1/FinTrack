@@ -219,6 +219,7 @@
   background: var(--accent-tint);
   color: var(--accent-strong);
   border: 1.5px solid var(--accent);
+  animation: popInPaid 0.2s ease-out;
 }
 
 .status-lunas-dot span,
@@ -289,6 +290,17 @@
 }
 
 @keyframes popIn {
-  from { transform: scale(0); opacity: 0; }
+  from { transform: scale(0.85); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes popInPaid {
+  from { transform: rotate(-4deg) scale(0.85); opacity: 0; }
+  to { transform: rotate(-4deg) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-lunas-dot {
+    animation: none !important;
+  }
 }

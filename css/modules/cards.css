@@ -402,3 +402,26 @@ body.header-stats-active .dashboard {
   font-size: 12.5px;
   line-height: 1.5;
 }
+
+/* === HERO METRIC UPDATE ANIMATION === */
+@keyframes valFlash {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.val-flash {
+  display: inline-block;
+  animation: valFlash 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .val-flash {
+    animation: none !important;
+  }
+}

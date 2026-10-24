@@ -191,6 +191,14 @@ body {
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+  }
+}
+
 /* === FINTECH ACCENT PALETTE VARIANTS === */
 body[data-accent="emerald"] {
   --accent: #10b981;

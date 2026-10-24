@@ -224,9 +224,21 @@ document.addEventListener('click', (e) => {
     case 'buka-transaksi':    bukaModalTransaksi(); break;
 
     /* ── Bottom navigation (mobile) ───────────────── */
-    case 'nav-home':          closeActiveModal(); window.scrollTo({ top: 0, behavior: 'smooth' }); setBottomNavActive('nav-home'); break;
+    case 'nav-home': {
+      closeActiveModal();
+      const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+      window.scrollTo({ top: 0, behavior });
+      setBottomNavActive('nav-home');
+      break;
+    }
     case 'nav-riwayat':       closeActiveModal(); setBottomNavActive('nav-riwayat'); openModal('modal-riwayat'); break;
-    case 'nav-rekap':         closeActiveModal(); setBottomNavActive('nav-rekap'); document.getElementById('section-rekap')?.scrollIntoView({ behavior: 'smooth' }); break;
+    case 'nav-rekap': {
+      closeActiveModal();
+      setBottomNavActive('nav-rekap');
+      const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+      document.getElementById('section-rekap')?.scrollIntoView({ behavior });
+      break;
+    }
     case 'nav-catat':
       setBottomNavActive('nav-catat');
       if (getIsAdminSession()) bukaModalTransaksi();

@@ -307,7 +307,9 @@ body.dark-mode #btn-theme-toggle {
   }
 
   .quickpay-sheet,
-  .menu-sheet {
+  .menu-sheet,
+  .modal-overlay .modal-content.quickpay-sheet,
+  .modal-overlay .modal-content.menu-sheet {
     max-width: 100%;
     border-radius: var(--r-lg) var(--r-lg) 0 0;
     border-bottom: none;
@@ -319,8 +321,11 @@ body.dark-mode #btn-theme-toggle {
   }
 
   .modal-overlay.active .quickpay-sheet,
-  .modal-overlay.active .menu-sheet {
-    transform: translateY(0);
+  .modal-overlay.active .menu-sheet,
+  .modal-overlay.active .modal-content.quickpay-sheet,
+  .modal-overlay.active .modal-content.menu-sheet {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
   }
 
   .quickpay-handle {

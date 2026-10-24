@@ -157,12 +157,12 @@
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, margin-top 0.25s ease;
+  transition: max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
   margin-top: 0;
 }
 
 .iuran-member-card.expanded .iuran-card-details {
-  max-height: 400px;
+  max-height: 240px;
   opacity: 1;
   margin-top: 10px;
   padding-top: 10px;

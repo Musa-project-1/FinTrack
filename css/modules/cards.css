@@ -360,7 +360,7 @@ body.header-stats-active .dashboard {
   width: 0;
   border-radius: var(--r-pill);
   background: var(--accent);
-  transition: width 0.5s ease;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Stat card interactive (menunggak — clickable WA copy) */

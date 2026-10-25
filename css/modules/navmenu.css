@@ -429,10 +429,12 @@ body:not(.dark-mode) .nav-ico.is-red {
   flex-shrink: 0;
   font-size: 13px;
   color: var(--text-faint);
+  transition: color var(--t-fast), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .nav-item:hover .nav-chev {
   color: var(--accent-strong);
+  transform: translateX(2px);
 }
 
 .nav-item.nav-danger .nav-txt {

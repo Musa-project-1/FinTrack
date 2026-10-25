@@ -12,6 +12,7 @@ body {
   padding: 40px 20px;
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 /* === FOCUS — one sharp accent ring, visible in both themes === */

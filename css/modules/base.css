@@ -298,8 +298,9 @@ body.progress-format-ratio .iuran-progress-subtext {
     transform: none !important;
   }
 
-  /* Modal overlay: kill the visibility delay so close is instant */
-  .modal-overlay {
+  /* Modal overlay & dropdown: kill the visibility delay so close is instant */
+  .modal-overlay,
+  .cdrop-list {
     transition-delay: 0s !important;
   }
 }

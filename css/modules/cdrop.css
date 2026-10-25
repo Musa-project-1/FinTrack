@@ -88,7 +88,22 @@ body.dark-mode .cdrop-chevron {
   border-radius: var(--r-md);
   box-shadow: var(--shadow-pop);
   padding: 6px;
-  animation: dropdownFadeIn var(--t-fast);
+  /* Closed state: hidden but transitionable */
+  opacity: 0;
+  transform: translateY(-4px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0s linear 0.15s;
+}
+
+.cdrop.open .cdrop-list {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0s linear 0s;
 }
 
 .cdrop--up .cdrop-list {

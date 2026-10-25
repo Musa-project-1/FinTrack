@@ -16,7 +16,7 @@ const closeAll = (except = null) => {
 const setOpen = (ui, open) => {
   ui.wrap.classList.toggle('open', open);
   ui.btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  ui.list.hidden = !open;
+  ui.list.setAttribute('aria-hidden', open ? 'false' : 'true');
   if (open) {
     // Open upward when there is not enough space below (inside modals)
     const rect = ui.wrap.getBoundingClientRect();
@@ -151,7 +151,7 @@ const setup = (select) => {
   const list = document.createElement('div');
   list.className = 'cdrop-list';
   list.setAttribute('role', 'listbox');
-  list.hidden = true;
+  list.setAttribute('aria-hidden', 'true');
 
   const itemsBox = document.createElement('div');
   itemsBox.className = 'cdrop-items';

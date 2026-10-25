@@ -297,4 +297,9 @@ body.progress-format-ratio .iuran-progress-subtext {
   .bottom-nav-item:active i {
     transform: none !important;
   }
+
+  /* Modal overlay: kill the visibility delay so close is instant */
+  .modal-overlay {
+    transition-delay: 0s !important;
+  }
 }

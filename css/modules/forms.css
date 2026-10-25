@@ -47,9 +47,11 @@
   z-index: 999999 !important;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  /* Close: fade out 180ms, then snap visibility hidden after fade completes */
+  transition: opacity 0.18s ease, visibility 0s linear 0.18s;
   padding: 24px;
   overscroll-behavior: contain;
+  pointer-events: none;
 }
 
 @supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
@@ -68,6 +70,9 @@ body.dark-mode .modal-overlay {
   opacity: 1 !important;
   visibility: visible !important;
   display: flex !important;
+  pointer-events: auto;
+  /* Open: visibility instant, fade in 200ms */
+  transition: opacity 0.2s ease, visibility 0s linear 0s;
 }
 
 .modal-content {
@@ -285,10 +290,10 @@ body.dark-mode select.form-control:focus {
 .tab-btn:hover:not(.active) { color: var(--text-main); background: var(--surface-3); }
 
 .tab-content { display: none; }
-.tab-content.active { display: block; animation: slideIn 0.3s ease; height: 100%; }
+.tab-content.active { display: block; animation: slideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1); height: 100%; }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 

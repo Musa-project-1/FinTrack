@@ -478,19 +478,19 @@ body.dark-mode .btn-wa:hover {
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1), background var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
 }
 
-.btn-load-more:hover {
+.btn-load-more:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--surface-2);
   border-color: var(--accent);
   color: var(--accent-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(14, 36, 55, 0.18);
+  box-shadow: 0 4px 12px rgba(14, 36, 55, 0.12);
 }
 
-.btn-load-more:active {
-  transform: translateY(0);
+.btn-load-more:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
   box-shadow: 0 2px 6px rgba(14, 36, 55, 0.12);
 }
 
@@ -500,11 +500,11 @@ body.dark-mode .btn-load-more {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-body.dark-mode .btn-load-more:hover {
+body.dark-mode .btn-load-more:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--surface-3);
   border-color: var(--accent);
   color: var(--accent-strong);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 .table-header-left {

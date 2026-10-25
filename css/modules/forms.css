@@ -85,6 +85,7 @@ body.dark-mode .modal-overlay {
   padding: var(--modal-pad);
   max-height: 95vh;
   overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid var(--border);
 }
 

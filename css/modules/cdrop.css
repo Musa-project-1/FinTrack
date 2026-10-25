@@ -199,6 +199,12 @@ body.dark-mode .cdrop-item.selected::after {
   font-weight: 600;
 }
 
+.select-pill-wrap .cdrop-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
 .year-pill .cdrop {
   position: relative;
   width: auto;
@@ -214,6 +220,12 @@ body.dark-mode .cdrop-item.selected::after {
   font-size: 13px;
   font-weight: 600;
   width: auto;
+}
+
+.year-pill .cdrop-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
 }
 
 .year-pill .cdrop-list {

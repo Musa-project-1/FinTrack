@@ -16,13 +16,28 @@
   cursor: pointer;
   text-align: center;
   min-height: 40px;
-  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.btn:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
 }
 
 .btn:disabled,
-.btn[aria-disabled="true"] {
+.btn[aria-disabled="true"],
+.btn[aria-busy="true"] {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn:disabled:hover,
+.btn[aria-disabled="true"]:hover,
+.btn[aria-busy="true"]:hover,
+.btn:disabled:active,
+.btn[aria-disabled="true"]:active,
+.btn[aria-busy="true"]:active {
+  transform: none !important;
 }
 
 /* --- Primary: the single accent, solid --- */
@@ -32,7 +47,7 @@
   color: var(--accent-ink);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
 }
@@ -44,7 +59,7 @@
   color: var(--text-main);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--surface-3);
   border-color: var(--border-strong);
 }
@@ -56,7 +71,7 @@
   color: var(--text-main);
 }
 
-.btn-outline:hover {
+.btn-outline:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--surface-2);
   border-color: var(--text-muted);
 }
@@ -70,7 +85,7 @@
   font-size: 13px;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--danger-bg);
   border-color: var(--danger);
 }
@@ -81,7 +96,7 @@
   color: var(--danger);
 }
 
-.btn-danger-outline:hover {
+.btn-danger-outline:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--danger-bg);
   border-color: var(--danger);
 }
@@ -93,7 +108,7 @@
   color: var(--danger-ink);
 }
 
-.btn-danger-solid:hover {
+.btn-danger-solid:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--danger-strong);
   border-color: var(--danger-strong);
 }
@@ -104,7 +119,7 @@
   color: var(--text-main);
 }
 
-.btn-slate-solid:hover {
+.btn-slate-solid:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--surface-2);
 }
 
@@ -147,7 +162,7 @@
   border-radius: var(--r-md);
   cursor: pointer;
   font-weight: 600;
-  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .btn-wa-reminder i {
@@ -157,14 +172,19 @@
   color: var(--text-muted);
 }
 
-.btn-wa-reminder:hover {
+.btn-wa-reminder:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--accent-tint);
   border-color: var(--accent-border);
   color: var(--accent-strong);
 }
 
-.btn-wa-reminder:hover i {
+.btn-wa-reminder:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) i {
   color: var(--accent-strong);
+}
+
+.btn-wa-reminder:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
 }
 
 /* Compact icon-only variant (card header) */
@@ -183,17 +203,18 @@
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.btn-wa-reminder-icon:hover {
+.btn-wa-reminder-icon:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
   background: var(--accent-tint);
   border-color: var(--accent-border);
   color: var(--accent-strong);
 }
 
-.btn-wa-reminder-icon:active {
-  transform: scale(0.96);
+.btn-wa-reminder-icon:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
 }
 
 .btn-wa-reminder-icon i {

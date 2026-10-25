@@ -455,18 +455,19 @@ body.dark-mode .table-matriks thead th {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 50%;
-  background: var(--surface-card);
+  background: var(--surface-2);
   color: var(--text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.2s, border-color 0.2s, background 0.2s, transform var(--t-fast);
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast), transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.btn-sync-rekap:hover {
-  background: var(--surface-hover);
+.btn-sync-rekap:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--surface-3);
   color: var(--text-main);
 }
-.btn-sync-rekap:active {
-  transform: scale(0.92);
+.btn-sync-rekap:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]):not(.is-syncing) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
 }
 .sync-rekap-icon {
   font-size: 13px;
@@ -480,7 +481,7 @@ body.dark-mode .table-matriks thead th {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  border: 1.5px solid var(--surface-card);
+  border: 1.5px solid var(--surface-2);
   background: #10b981;
   transition: background 0.3s;
 }

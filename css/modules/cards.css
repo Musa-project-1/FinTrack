@@ -274,7 +274,18 @@ body.header-stats-active .dashboard {
 /* === CHART SECTION === */
 .chart-section { margin-bottom: var(--sp-8); }
 .chart-container-card { padding: var(--sp-6); }
-.chart-wrapper { height: 320px; position: relative; width: 100%; margin-top: var(--sp-4); }
+.chart-wrapper {
+  height: 320px;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: var(--sp-4);
+}
+.chart-wrapper canvas {
+  max-width: 100% !important;
+}
 
 .stats-overview {
   display: grid;

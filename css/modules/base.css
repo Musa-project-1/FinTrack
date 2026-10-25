@@ -286,4 +286,15 @@ body.progress-format-ratio .iuran-progress-subtext {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  .btn:active,
+  .btn-icon:active,
+  .btn-wa-reminder:active,
+  .btn-wa-reminder-icon:active,
+  .btn-sync-rekap:active,
+  .btn-load-more:hover,
+  .btn-load-more:active,
+  .bottom-nav-item:active i {
+    transform: none !important;
+  }
 }

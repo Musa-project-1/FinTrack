@@ -503,7 +503,7 @@ body { padding: 6px 0 100px 0; }
   /* Grid 2 kolom seimbang */
   #modal-statistik .stats-overview {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
     margin-bottom: 10px !important;
   }

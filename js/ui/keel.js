@@ -16,8 +16,10 @@ import { showToast } from '../core/utils.js';
 export const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
   const btn = document.getElementById(buttonId);
   if (btn) {
+    if (btn.disabled || btn.getAttribute("aria-busy") === "true") return;
     btn.innerHTML = busyHtml;
     btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
   }
   try {
     await task();
@@ -25,6 +27,7 @@ export const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
     if (btn) {
       btn.innerHTML = idleHtml;
       btn.disabled = false;
+      btn.removeAttribute("aria-busy");
     }
   }
 };
@@ -46,6 +49,9 @@ export const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
  */
 export const withLiquidSave = async (buttonId, task) => {
   const btn = document.getElementById(buttonId);
+  if (btn && (btn.disabled || btn.classList.contains("is-saving"))) return;
+  const labelEl = btn?.querySelector?.(".keel-label");
+  const originalLabelHtml = labelEl ? labelEl.innerHTML : "";
   const reduce = typeof window !== 'undefined' && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const setP = (v, dur) => {
     if (!btn) return;
@@ -57,6 +63,8 @@ export const withLiquidSave = async (buttonId, task) => {
     if (!btn) return;
     btn.classList.remove("is-saving", "is-done", "is-error");
     btn.disabled = false;
+    btn.removeAttribute("aria-busy");
+    if (labelEl) labelEl.innerHTML = originalLabelHtml;
     setP(0, 0);
   };
 
@@ -64,6 +72,8 @@ export const withLiquidSave = async (buttonId, task) => {
     btn.classList.remove("is-done", "is-error");
     btn.classList.add("is-saving");
     btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    if (labelEl) labelEl.textContent = "Menyimpan…";
     setP(0.9, 1100);
   }
 
@@ -76,22 +86,29 @@ export const withLiquidSave = async (buttonId, task) => {
   }
   const outcome = res?.outcome || "success";
 
-  if (outcome === "success") {
-    setP(1, 340);
-    if (btn) { btn.classList.remove("is-saving"); btn.classList.add("is-done"); }
-    await wait(560);
+  try {
+    if (outcome === "success") {
+      setP(1, 340);
+      if (btn) {
+        btn.classList.remove("is-saving");
+        btn.classList.add("is-done");
+        btn.setAttribute("aria-busy", "false");
+      }
+      if (labelEl) labelEl.textContent = "Tersimpan";
+      await wait(560);
+    } else {
+      // error / neutral — recede without the check
+      setP(0, 420);
+      if (btn) {
+        btn.classList.remove("is-saving");
+        if (outcome === "error") btn.classList.add("is-error");
+        btn.setAttribute("aria-busy", "false");
+      }
+      if (labelEl && outcome === "error") labelEl.textContent = "Gagal";
+      await wait(outcome === "error" ? 700 : 180);
+    }
     await res?.done?.();
+  } finally {
     reset();
-    return;
   }
-
-  // error / neutral — recede without the check
-  setP(0, 420);
-  if (btn) {
-    btn.classList.remove("is-saving");
-    if (outcome === "error") btn.classList.add("is-error");
-  }
-  await wait(outcome === "error" ? 700 : 180);
-  await res?.done?.();
-  reset();
 };

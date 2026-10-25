@@ -89,13 +89,20 @@ export const verifyGroupPin = async (id, pin) => {
   return res;
 };
 
-/** Buka layar PIN untuk grup yang dipilih. */
+/** Buka layar PIN untuk grup yang dipilih. Super Admin bypasses PIN. */
 export const requestGroupPin = (id) => {
   const found = getGroups().find((g) => g.id === id);
   if (!found) {
     showToast("Grup tidak ditemukan.", "error");
     return;
   }
+
+  // Super Admin masuk langsung tanpa PIN
+  if (getIsSuperAdmin()) {
+    enterGroup(id);
+    return;
+  }
+
   pendingGroupId = id;
   const nameEl = document.getElementById("group-pin-name");
   if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
@@ -158,10 +165,11 @@ export const renderGroupPicker = () => {
     const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
     const initial = escapeHtml(rawName.charAt(0).toUpperCase());
+    const isSA = getIsSuperAdmin();
     return `
     <button class="group-item${g.id === active ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}">
       <span class="avatar">${initial}</span>
-      <span><h3>${safeName}</h3><small>${g.id === active ? "Grup aktif" : "Ketuk untuk masuk"}</small></span>
+      <span><h3>${safeName}</h3><small>${g.id === active ? "Grup aktif" : isSA ? "Langsung masuk" : "Ketuk untuk masuk"}</small></span>
       <span class="chev">›</span>
     </button>`;
   }).join("");

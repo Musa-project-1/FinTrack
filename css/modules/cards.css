@@ -6,7 +6,7 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-6);
   margin-bottom: var(--sp-8);
 }
 
@@ -46,12 +46,9 @@ body.dark-mode .balance-hero__value {
 }
 
 /* The single accent moment: a clean cyan rule beneath the balance. */
+/* Decorative rule removed — one fewer unmotivated accent moment. */
 .balance-hero__rule {
-  display: block;
-  height: 2.5px;
-  width: 72px;
-  border-radius: var(--r-pill);
-  background: var(--secondary);
+  display: none;
 }
 
 /* --- Secondary flow strip --- */
@@ -81,7 +78,7 @@ body.dark-mode .balance-hero__value {
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
@@ -179,7 +176,7 @@ body.header-stats-active .dashboard {
 
 .header-stat-label {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);

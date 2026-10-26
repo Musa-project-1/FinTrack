@@ -35,16 +35,13 @@ body { padding: 6px 0 100px 0; }
   }
   .header-actions .btn-primary span { display: inline; }
   
-  /* Dashboard: hero + strip, tightened for very small screens */
+  /* Dashboard: unified cash-summary panel, tightened for small screens */
   .dashboard { 
     gap: 8px;
     margin: 0 8px 12px;
   }
   .balance-hero__value {
     font-size: clamp(1.75rem, 11vw, 2.5rem);
-  }
-  .balance-hero__rule {
-    width: 56px;
   }
   .flow-strip__item { padding: 10px 12px; }
   .flow-strip__value { font-size: 13px; }

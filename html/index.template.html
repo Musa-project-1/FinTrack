@@ -96,29 +96,29 @@
     </header>
 
     <section class="dashboard">
-      <!-- The one number that matters: balance is the hero, everything else is secondary. -->
-      <div class="balance-hero">
-        <span class="eyebrow">Saldo</span>
-        <div id="ui-saldo" class="balance-hero__value"><div class="skeleton skeleton-title"></div></div>
-        <span class="balance-hero__rule" aria-hidden="true"></span>
-      </div>
-
-      <div class="flow-strip">
-        <div class="flow-strip__item flow-in">
-          <span class="flow-strip__label">
-            <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk
-          </span>
-          <span class="flow-strip__value">
-            <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
-          </span>
+      <!-- Unified cash summary: balance + inflow/outflow in one panel. -->
+      <div class="cash-summary">
+        <div class="balance-hero">
+          <span class="eyebrow">Saldo</span>
+          <div id="ui-saldo" class="balance-hero__value"><div class="skeleton skeleton-title"></div></div>
         </div>
-        <div class="flow-strip__item flow-out">
-          <span class="flow-strip__label">
-            <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar
-          </span>
-          <span class="flow-strip__value">
-            <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
-          </span>
+        <div class="flow-strip">
+          <div class="flow-strip__item flow-in">
+            <span class="flow-strip__label">
+              <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk
+            </span>
+            <span class="flow-strip__value">
+              <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
+            </span>
+          </div>
+          <div class="flow-strip__item flow-out">
+            <span class="flow-strip__label">
+              <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar
+            </span>
+            <span class="flow-strip__value">
+              <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
+            </span>
+          </div>
         </div>
       </div>
     </section>

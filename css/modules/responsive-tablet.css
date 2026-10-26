@@ -75,9 +75,9 @@
 
   .btn-export { display: none; }
 
-  /* Dashboard: hero + strip (tetap kolom, bukan grid) */
+  /* Dashboard: unified cash-summary panel */
   .dashboard { margin: 0 12px 16px; gap: 10px; }
-  .balance-hero { padding: 18px 20px 20px; }
+  .balance-hero { padding: 18px 20px 14px; }
   .flow-strip__item { padding: 12px 14px; }
   .flow-strip__value { font-size: 14px; }
 

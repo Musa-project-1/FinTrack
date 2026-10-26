@@ -1,6 +1,6 @@
-/* === CARDS — dashboard hero, flow strip, header pills, chart cards ===
-   One number leads: the balance is set in Fraunces and carries the only accent
-   moment on the screen. Inflows and outflows drop to a compact mono strip. */
+/* === CARDS — dashboard cash summary, header pills, chart cards ===
+   One number leads: the balance is set in mono and carries the only accent
+   moment on the screen. Inflows and outflows sit in a compact strip beneath. */
 
 /* === DASHBOARD === */
 .dashboard {
@@ -10,11 +10,15 @@
   margin-bottom: var(--sp-8);
 }
 
-/* --- The hero figure --- */
-.balance-hero {
+/* --- Unified cash summary panel --- */
+.cash-summary {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.balance-hero {
   padding: var(--sp-6) var(--sp-6) var(--sp-4);
   display: flex;
   flex-direction: column;
@@ -36,8 +40,6 @@
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
-  /* Stretch so the loading placeholder resolves against a definite width —
-     a content-sized flex item collapses the skeleton to zero. */
   align-self: stretch;
 }
 
@@ -45,19 +47,11 @@ body.dark-mode .balance-hero__value {
   color: #ffffff;
 }
 
-/* The single accent moment: a clean cyan rule beneath the balance. */
-/* Decorative rule removed — one fewer unmotivated accent moment. */
-.balance-hero__rule {
-  display: none;
-}
-
-/* --- Secondary flow strip --- */
+/* --- Flow strip (inflow/outflow) — part of cash-summary, no own border --- */
 .flow-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-top: 1px solid var(--border);
   overflow: hidden;
 }
 

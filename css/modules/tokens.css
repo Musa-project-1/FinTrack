@@ -46,6 +46,10 @@
   --accent-ink: #ffffff;
 
   /* ---------- Functional hues ---------- */
+  --income: #059669;
+  --income-strong: #047857;
+  --income-bg: rgba(16, 185, 129, 0.12);
+  --income-border: rgba(16, 185, 129, 0.30);
   --secondary: #0284c7;
   --danger: #be123c;
   --danger-strong: #be123c;
@@ -57,7 +61,6 @@
   --warning-border: rgba(180, 83, 9, 0.28);
 
   /* ---------- Ledger semantics ---------- */
-  --income: var(--accent);
   --expense: var(--text-main);
   --overdue: var(--warning);
 
@@ -140,6 +143,10 @@ body.dark-mode {
   --accent-ink: #04231f;
 
   /* ---------- Functional hues ---------- */
+  --income: #34d399;
+  --income-strong: #6ee7b7;
+  --income-bg: rgba(52, 211, 153, 0.14);
+  --income-border: rgba(52, 211, 153, 0.34);
   --secondary: #38bdf8;
   --danger: #fb7185;
   --danger-strong: #fda4af;

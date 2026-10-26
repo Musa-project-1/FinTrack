@@ -79,12 +79,18 @@ body.dark-mode .balance-hero__value {
   color: var(--text-faint);
 }
 
-/* Labels and the income figure sit on --surface. --accent (#0d9488) is 3.6:1
-   there; --accent-strong (#0f5c56) is 7.5:1. Dark mode keeps the bright teal. */
-.flow-in .flow-strip__label { color: var(--accent-strong); }
-.flow-in .flow-strip__label i { color: var(--accent-strong); font-size: 13px; }
-.flow-in .flow-strip__value { color: var(--accent-strong); }
-.flow-in .flow-strip__sign { color: var(--accent-strong); }
+/* Inflow (Masuk) is strictly semantic financial green — independent of UI accent themes. */
+.flow-in .flow-strip__label { color: var(--income-strong); }
+.flow-in .flow-strip__label i { color: var(--income-strong); font-size: 13px; }
+.flow-in .flow-strip__value { color: var(--income-strong); }
+.flow-in .flow-strip__sign { color: var(--income-strong); }
+
+body.dark-mode .flow-in .flow-strip__label,
+body.dark-mode .flow-in .flow-strip__label i,
+body.dark-mode .flow-in .flow-strip__value,
+body.dark-mode .flow-in .flow-strip__sign {
+  color: var(--income);
+}
 
 .flow-out .flow-strip__label { color: var(--danger); }
 .flow-out .flow-strip__label i { color: var(--danger); font-size: 13px; }

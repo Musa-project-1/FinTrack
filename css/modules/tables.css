@@ -278,9 +278,15 @@ tr:hover td {
 }
 
 .badge-masuk {
-  background: var(--accent-tint);
-  border-color: var(--accent-border);
-  color: var(--accent-strong);
+  background: var(--income-bg);
+  border: 1px solid var(--income-border);
+  color: var(--income-strong);
+}
+
+body.dark-mode .badge-masuk {
+  background: var(--income-bg);
+  border-color: var(--income-border);
+  color: var(--income);
 }
 
 /* Outflow is neutral by design — the glyph and the minus carry the meaning. */

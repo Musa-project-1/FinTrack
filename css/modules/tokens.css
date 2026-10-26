@@ -18,25 +18,25 @@
    6. Never hard-code a colour outside this file — always read a token. */
 
 :root {
-  /* ---------- Surfaces · Paper Ocean ---------- */
-  --bg-color: #e8f1f6;
-  --surface: #f7fbfd;
-  --surface-2: #e4eff5;
-  --surface-3: #d6e6ef;
+  /* ---------- Surfaces · Muted Slate (Eye-Comfort Light Mode) ---------- */
+  --bg-color: #e9edf2;
+  --surface: #ffffff;
+  --surface-2: #dee5ec;
+  --surface-3: #ced9e3;
   --surface-subtle: var(--surface-2);
   --bg-card: var(--surface);
   --bg-card-subtle: var(--surface-2);
   --table-header-bg: var(--surface-2);
 
   /* ---------- Hairlines ---------- */
-  --border: #c8dced;
-  --border-strong: #a9c6dc;
+  --border: #c4d1de;
+  --border-strong: #a6b9cb;
   --border-color: var(--border);
 
   /* ---------- Ink ---------- */
-  --text-main: #0e2437;
-  --text-muted: #4a6a80;
-  --text-faint: #3f5d72;
+  --text-main: #0f2333;
+  --text-muted: #4a6375;
+  --text-faint: #395264;
 
   /* ---------- Accent · Ocean Teal ---------- */
   --accent: #0d9488;

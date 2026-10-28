@@ -56,6 +56,12 @@
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-2);
+  position: relative;
+  overflow: visible !important;
+}
+
+.master-form-card:has(.mpick.open) {
+  z-index: 80 !important;
 }
 
 .master-form-row {
@@ -472,6 +478,12 @@
   .skip-month-body {
     padding: 10px 12px;
     margin-bottom: 8px;
+    position: relative;
+    overflow: visible !important;
+  }
+
+  .skip-month-body:has(.mpick.open) {
+    z-index: 80 !important;
   }
 
   .master-skip-hint {
@@ -481,20 +493,22 @@
   }
 
   .skip-month-input-row {
-    display: grid !important;
-    grid-template-columns: 1fr auto !important;
+    display: flex !important;
     gap: 8px !important;
     align-items: center !important;
+    position: relative;
   }
 
   .skip-month-input-row input,
   .skip-month-input-row .mpick {
+    flex: 1 !important;
     width: 100% !important;
     min-width: 0 !important;
-    height: 38px !important;
+    position: relative;
   }
 
   .skip-month-input-row button {
+    flex-shrink: 0 !important;
     height: 38px !important;
     padding: 0 16px !important;
     white-space: nowrap !important;

@@ -116,14 +116,14 @@ const setup = (input) => {
   prev.type = 'button';
   prev.className = 'mpick-nav';
   prev.setAttribute('aria-label', 'Tahun sebelumnya');
-  prev.innerHTML = '<i class="ph-bold ph-caret-left"></i>';
+  prev.innerHTML = '<i class="ph-bold ph-caret-left" style="font-size: 14px;"></i>';
   const yearEl = document.createElement('strong');
   yearEl.className = 'mpick-year';
   const next = document.createElement('button');
   next.type = 'button';
   next.className = 'mpick-nav';
   next.setAttribute('aria-label', 'Tahun berikutnya');
-  next.innerHTML = '<i class="ph-bold ph-caret-right"></i>';
+  next.innerHTML = '<i class="ph-bold ph-caret-right" style="font-size: 14px;"></i>';
   head.appendChild(prev);
   head.appendChild(yearEl);
   head.appendChild(next);
@@ -136,11 +136,11 @@ const setup = (input) => {
   const clearBtn = document.createElement('button');
   clearBtn.type = 'button';
   clearBtn.className = 'mpick-link';
-  clearBtn.textContent = 'Clear';
+  clearBtn.textContent = 'Kosongkan';
   const thisBtn = document.createElement('button');
   thisBtn.type = 'button';
   thisBtn.className = 'mpick-link';
-  thisBtn.textContent = 'This month';
+  thisBtn.textContent = 'Bulan ini';
   foot.appendChild(clearBtn);
   foot.appendChild(thisBtn);
 
@@ -193,6 +193,17 @@ const setup = (input) => {
   });
 
   pop.addEventListener('click', (e) => e.stopPropagation());
+
+  // Auto-close popover on selecting a month
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mpick-m');
+    if (btn) {
+      setTimeout(() => {
+        setOpen(ui, false);
+        field.focus();
+      }, 50);
+    }
+  });
 };
 
 /** Wrap every input.mpick on the page. Safe to call once. */

@@ -31,32 +31,75 @@ const QUOTA_COOLDOWN_MS = 10 * 60 * 1000;
 const isQuotaError = (message) => /kuota|quota|429/i.test(String(message || ''));
 
 /**
- * Fetch all data for the active group.
- * @returns {Promise<{status: boolean, data?: object, message: string}>}
+ * Fetch all data for a specific group or active group.
+ * Group-scoped and captures conservative marker before the request.
+ *
+ * @param {string} [targetGroupId] Optional explicit group ID
+ * @returns {Promise<{status: boolean, httpStatus: number, groupId: string|null, readMarker: string|null, data?: object, message: string, unauthorized?: boolean}>}
  */
-export const fetchInitialData = async () => {
+export const fetchInitialData = async (targetGroupId) => {
   try {
     if (Date.now() < quotaCooldownUntil) {
-      return { status: false, message: 'Batas kuota Firestore tercapai. Menggunakan data cache offline.' };
+      return {
+        status: false,
+        httpStatus: 429,
+        groupId: targetGroupId || getActiveGroupId() || null,
+        message: 'Batas kuota Firestore tercapai. Menggunakan data cache offline.',
+        data: null,
+        readMarker: null
+      };
     }
 
-    const groupId = getActiveGroupId();
+    const groupId = targetGroupId || getActiveGroupId();
     if (!groupId) {
-      return { status: true, message: 'Belum ada grup aktif.', data: EMPTY_DATA };
+      return {
+        status: true,
+        httpStatus: 200,
+        groupId: null,
+        message: 'Belum ada grup aktif.',
+        data: EMPTY_DATA,
+        readMarker: null
+      };
     }
+
+    // Capture the read start timestamp BEFORE initiating the server read request.
+    // If the server response lacks an updatedAt marker (e.g. empty or legacy group),
+    // this conservative marker ensures unread remote changes that occur during or after
+    // the read are never cleared by a later completion timestamp.
+    const readStartedAt = new Date().toISOString();
 
     const res = await dataRequest({ action: 'read', payload: { groupId } });
     if (!res) {
-      return { status: false, message: 'Tidak dapat terhubung ke server.', data: null };
+      return {
+        status: false,
+        httpStatus: 0,
+        groupId,
+        message: 'Tidak dapat terhubung ke server.',
+        data: null,
+        readMarker: null
+      };
     }
     if (!res.status) {
       if (isQuotaError(res.message)) quotaCooldownUntil = Date.now() + QUOTA_COOLDOWN_MS;
-      return { status: false, message: res.message || 'Gagal memuat data.', unauthorized: res.unauthorized };
+      return {
+        status: false,
+        httpStatus: res.httpStatus || 400,
+        groupId,
+        message: res.message || 'Gagal memuat data.',
+        unauthorized: Boolean(res.unauthorized),
+        data: null,
+        readMarker: null
+      };
     }
 
     const data = res.data || {};
+    const readMarker = data.updatedAt || readStartedAt;
+
     return {
       status: true,
+      httpStatus: res.httpStatus || 200,
+      groupId,
+      readMarker,
       message: 'Data berhasil ditarik dari server.',
       data: {
         anggota: data.anggota || [],
@@ -66,12 +109,20 @@ export const fetchInitialData = async () => {
           skippedMonths: data.settings?.skippedMonths || [],
           kasStart: data.settings?.kasStart || ''
         },
-        updatedAt: data.updatedAt || null
+        updatedAt: data.updatedAt || null,
+        readMarker
       }
     };
   } catch (error) {
     console.error('Fetch initial data error:', error);
-    return { status: false, message: error?.message || 'Gagal memuat data.', data: null };
+    return {
+      status: false,
+      httpStatus: 500,
+      groupId: targetGroupId || getActiveGroupId() || null,
+      message: error?.message || 'Gagal memuat data.',
+      data: null,
+      readMarker: null
+    };
   }
 };
 
@@ -82,21 +133,27 @@ export const fetchInitialData = async () => {
  * callers treat as "queue this payload and retry".
  *
  * @param {object} payload Must carry an `action` matching a server write action.
- * @returns {Promise<{status: boolean, message: string, data: object|null}|null>}
+ * @returns {Promise<{status: boolean, message: string, data: object|null, httpStatus?: number}|null>}
  */
 export const postToBackend = async (payload) => {
   if (!payload || typeof payload !== 'object' || !payload.action) {
-    return { status: false, message: 'Payload tidak valid.', data: null };
+    return { status: false, httpStatus: 400, message: 'Payload tidak valid.', data: null };
   }
 
   const res = await dataRequest({ action: payload.action, payload, needsWrite: true });
   if (!res) return null;
   if (res.status && typeof window !== 'undefined') {
-    // Announce a successful mutation so the sync module can advance this tab's
-    // freshness marker and signal sibling tabs — decoupled via a window event
-    // to avoid a circular import between api.js and sync.js.
+    const groupId = resolveGroupId(payload);
+    // Announce a successful mutation so the sync module and status listeners
+    // can handle the write without falsely treating it as a full data pull.
     window.dispatchEvent(new CustomEvent('finkas:mutation-success', {
-      detail: { updatedAt: res.updatedAt || null }
+      detail: {
+        updatedAt: res.updatedAt || null,
+        groupId,
+        action: payload.action,
+        source: 'local-write',
+        isFullRead: false
+      }
     }));
   }
   return res;
@@ -127,16 +184,17 @@ export const fetchGroupsApi = async () => {
  * Lightweight update check — costs exactly 1 Firestore read.
  * Returns whether the server has newer data than the client's last sync.
  * @param {string} since ISO timestamp of the client's last successful sync
- * @returns {Promise<{hasUpdate: boolean, updatedAt: string|null}>}
+ * @param {string} [targetGroupId] Optional target group ID
+ * @returns {Promise<{hasUpdate: boolean, updatedAt: string|null, httpStatus?: number}>}
  */
-export const checkGroupUpdate = async (since) => {
+export const checkGroupUpdate = async (since, targetGroupId) => {
   try {
-    const groupId = getActiveGroupId();
-    if (!groupId) return { hasUpdate: false, updatedAt: null };
+    const groupId = targetGroupId || getActiveGroupId();
+    if (!groupId) return { hasUpdate: false, updatedAt: null, httpStatus: 200 };
     const res = await dataRequest({ action: 'checkUpdate', payload: { groupId, since } });
-    if (!res || !res.status) return { hasUpdate: false, updatedAt: null };
-    return { hasUpdate: Boolean(res.data?.hasUpdate), updatedAt: res.data?.updatedAt || null };
+    if (!res || !res.status) return { hasUpdate: false, updatedAt: null, httpStatus: res?.httpStatus || 0 };
+    return { hasUpdate: Boolean(res.data?.hasUpdate), updatedAt: res.data?.updatedAt || null, httpStatus: res.httpStatus || 200 };
   } catch {
-    return { hasUpdate: false, updatedAt: null };
+    return { hasUpdate: false, updatedAt: null, httpStatus: 0 };
   }
 };

@@ -3,9 +3,10 @@
  * Modal open/close, tab switching, and form interactions.
  */
 
-import { NAMA_BULAN } from '../core/config.js';
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from '../core/config.js';
 import { getState } from '../core/state.js';
-import { showToast, handleNominalInput, getRawNominal, formatRp, escapeHtml } from '../core/utils.js';
+import { showToast, handleNominalInput, getRawNominal, formatRp, formatCompactRp, escapeHtml } from '../core/utils.js';
+import { createDuesLedger, duesStatusLabel } from '../core/dues.js';
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
@@ -46,6 +47,7 @@ export const openModal = (id) => {
     // Reset items-to-show when opening history
     document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id } }));
   }
+  document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id } }));
   if (document.activeElement) {
     activeElementStack.push(document.activeElement);
   }
@@ -272,20 +274,19 @@ export const pilihSemuaIuran = () => {
  * Render the checkbox list of members for iuran, marking paid members.
  */
 export const renderCheckboxIuran = () => {
-  const bln = document.getElementById('iuran-bulan').value;
-  const thn = document.getElementById('iuran-tahun').value;
-
-  const mapLunas = {};
-  getState().transaksi.forEach((t) => {
-    if (t.Bulan_Iuran === bln && String(t.Tahun_Iuran) === String(thn) && t.Tipe_Arus === 'Masuk' && t.ID_Anggota !== '-') {
-      mapLunas[t.ID_Anggota] = true;
-    }
-  });
+  const bln = document.getElementById('iuran-bulan')?.value || '';
+  const thn = Number(document.getElementById('iuran-tahun')?.value || new Date().getFullYear());
+  const monthIndex = NAMA_BULAN.indexOf(bln);
+  const state = getState();
+  const ledger = createDuesLedger(state, { year: Number.isFinite(thn) ? thn : undefined });
 
   const htmlParts = [];
-  getState().anggota.forEach((ang) => {
+  (state.anggota || []).forEach((ang) => {
     if (ang.Status_Aktif === 'Aktif') {
-      const isLunas = mapLunas[ang.ID_Anggota];
+      const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: 'unpaid', paid: 0, remaining: ledger.monthlyFee, owed: true };
+      const isLunas = month.status === 'paid';
+      const notOwed = !month.owed;
+
       if (isLunas) {
         htmlParts.push(`
           <label class="checkbox-item item-disabled-lunas" for="chk-iuran-${escapeHtml(ang.ID_Anggota)}">
@@ -293,6 +294,24 @@ export const renderCheckboxIuran = () => {
             <div class="chk-info-col">
               <span class="chk-name-lunas">${escapeHtml(ang.Nama_Anggota)}</span>
               <div class="chk-badge-lunas"><i class="ph-fill ph-check-circle"></i> LUNAS</div>
+            </div>
+          </label>`);
+      } else if (notOwed) {
+        htmlParts.push(`
+          <label class="checkbox-item item-disabled-lunas" for="chk-iuran-${escapeHtml(ang.ID_Anggota)}">
+            <input type="checkbox" id="chk-iuran-${escapeHtml(ang.ID_Anggota)}" name="iuran-anggota" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}" disabled>
+            <div class="chk-info-col">
+              <span class="chk-name-lunas">${escapeHtml(ang.Nama_Anggota)}</span>
+              <div class="chk-badge-pending">${escapeHtml(duesStatusLabel(month))}</div>
+            </div>
+          </label>`);
+      } else if (month.status === 'partial') {
+        htmlParts.push(`
+          <label class="checkbox-item item-partial" for="chk-iuran-${escapeHtml(ang.ID_Anggota)}">
+            <input type="checkbox" id="chk-iuran-${escapeHtml(ang.ID_Anggota)}" name="iuran-anggota" class="chk-iuran" value="${escapeHtml(ang.ID_Anggota)}">
+            <div class="chk-info-col">
+              <span class="chk-name-pending">${escapeHtml(ang.Nama_Anggota)}</span>
+              <div class="chk-badge-pending">SEBAGIAN (Sisa ${escapeHtml(formatRp(month.remaining))})</div>
             </div>
           </label>`);
       } else {

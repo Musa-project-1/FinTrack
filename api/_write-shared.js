@@ -16,6 +16,9 @@ export const ok = (message, data = null) => ({ status: true, message, data });
 export const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
 export const cleanDigits = (value, max) => String(value ?? '').replace(/\D/g, '').slice(0, max);
 
+export const MAX_BULK_TRANSACTIONS = 300;
+export const MAX_COMMIT_WRITES = 500;
+
 /**
  * Normalise a client-supplied transaction date into an ISO timestamp.
  *

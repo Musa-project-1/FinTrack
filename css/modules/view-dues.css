@@ -1,0 +1,47 @@
+/* Dues Action Bar & Save Status Indicator */
+.dues-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.dues-action-summary {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.save-status-indicator {
+  padding: 4px 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+.status-partial {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #d97706;
+}
+
+.status-partial small {
+  font-size: 9.5px;
+  font-family: monospace;
+  opacity: 0.85;
+}
+
+.item-partial {
+  border-color: rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.06);
+}

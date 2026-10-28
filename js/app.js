@@ -28,7 +28,7 @@ import {
   closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
-  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
+  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory, toggleUnpaidFilter
 } from "./render.js";
 
 import {
@@ -56,6 +56,9 @@ import {
 import {
   cetakStruk, cetakLaporanTahunan, copyMonthlyRecap, exportToCSV, createGroupReminderMessage
 } from "./handlers/export.js";
+import { printMonthlyCashReport, exportMonthlyCashCSV, initMonthlyCashReport } from "./handlers/cash-report.js";
+import { initAttachmentControls } from "./handlers/attachments.js";
+import { initSaveStatus } from "./ui/save-status.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
@@ -94,7 +97,7 @@ const setSyncBadge = (state) => {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('finkas:request-refresh', () => {
-    initApp();
+    initApp(true, false);
   });
 }
 
@@ -284,11 +287,19 @@ document.addEventListener('click', (e) => {
 
     /* ── Mobile card accordion ────────────────────── */
     case 'toggle-card':       toggleIuranCard(target.closest('.iuran-member-card')); break;
+    case 'toggle-unpaid-filter': toggleUnpaidFilter(); break;
 
     /* ── Skipped months ───────────────────────────── */
     case 'add-skip':          addSkippedMonth(); break;
     case 'remove-skip':       removeSkippedMonth(month); break;
     case 'save-kas-start':    saveKasStart(); break;
+
+    /* ── Transaction attachments ───────────────────── */
+    case 'upload-attachment':
+    case 'download-attachment':
+    case 'delete-attachment':
+      /* Handled by dedicated event listeners in initAttachmentControls */
+      break;
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
@@ -301,6 +312,8 @@ document.addEventListener('click', (e) => {
     case 'print-annual':      cetakLaporanTahunan(); break;
     case 'print-reminder':
     case 'action-salin-tagihan-wa': createGroupReminderMessage(); break;
+    case 'print-monthly-report': printMonthlyCashReport(); break;
+    case 'export-monthly-csv': exportMonthlyCashCSV(); break;
 
     /* ── Login/Logout ─────────────────────────────── */
     case 'logout':            closeHeaderDropdown(); closeModal('modal-menu'); openModal('modal-logout'); break;
@@ -472,7 +485,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
         kasStart: resJSON.data.settings?.kasStart || ''
       });
       saveCache();
-      notifySynced(resJSON.data?.updatedAt);
+      notifySynced(resJSON.data?.updatedAt, resJSON.data?.groupId || localStorage.getItem(GROUP_OPEN_KEY));
       setSyncBadge('is-clean');
       renderAll();
       setConnectionStatus(true);
@@ -527,6 +540,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Data loads only after a group is unlocked; nothing renders before that.
   initCustomDropdowns();
   initMonthPickers();
+  initAttachmentControls();
+  initMonthlyCashReport();
+  initSaveStatus();
   setupRekapSearchListener();
   setupMenuSearchListener();
 

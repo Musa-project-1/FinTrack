@@ -28,42 +28,6 @@ const state = {
   kasStart: ''
 };
 
-/** Read-only reference to the application state. */
-export const getState = () => state;
-
-/**
- * Dispatch an application state change event across modules.
- */
-export const notifyStateChange = () => {
-  if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
-    document.dispatchEvent(new CustomEvent('finkas:state-changed', { detail: { state } }));
-  }
-};
-
-/**
- * Replace the full application state (e.g. from cache or a fetch).
- * @param {Partial<AppState>} newState
- */
-export const setState = (newState) => {
-  if (newState.anggota) state.anggota = newState.anggota;
-  if (newState.kategori) state.kategori = newState.kategori;
-  if (newState.transaksi) state.transaksi = newState.transaksi;
-  if (newState.skippedMonths) state.skippedMonths = newState.skippedMonths;
-  // kasStart is a settable override: '' is a valid value (revert to fallback),
-  // so guard on presence, not truthiness.
-  if (newState.kasStart !== undefined) state.kasStart = newState.kasStart;
-  notifyStateChange();
-};
-
-/**
- * Push a single transaction into state (optimistic UI).
- * @param {object} trx
- */
-export const addTransaction = (trx) => {
-  state.transaksi.push(trx);
-  notifyStateChange();
-};
-
 /** Safe access to localStorage across browser and test environments. */
 const getLocalStorage = () => {
   try {
@@ -94,11 +58,64 @@ let groups = [];
 /** Get ID grup aktif dari sesi/localStorage. */
 export const getActiveGroupId = () => activeGroupId;
 
+/* ── Storage Status Tracking ─────────────────────────────────────── */
+
+let storageStatus = { groupId: activeGroupId, state: 'unknown', operation: null, error: null };
+
+/** Snapshot of the last actual cache operation, never a tiny capacity probe. */
+export const getStorageStatus = () => ({ ...storageStatus });
+
+export function publishStorageStatus(status, operation, error = null) {
+  storageStatus = { groupId: activeGroupId, state: status, operation, error: error?.message || null };
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('finkas:storage-status', { detail: getStorageStatus() }));
+  }
+}
+
+/**
+ * Dispatch an application state change event across modules.
+ */
+export const notifyStateChange = () => {
+  // A previous cache write no longer proves that the current ledger is durable.
+  publishStorageStatus('unknown', 'state-change');
+  if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+    document.dispatchEvent(new CustomEvent('finkas:state-changed', { detail: { state } }));
+  }
+};
+
+/**
+ * Replace the full application state (e.g. from cache or a fetch).
+ * @param {Partial<AppState>} newState
+ */
+export const setState = (newState) => {
+  if (newState.anggota) state.anggota = newState.anggota;
+  if (newState.kategori) state.kategori = newState.kategori;
+  if (newState.transaksi) state.transaksi = newState.transaksi;
+  if (newState.skippedMonths) state.skippedMonths = newState.skippedMonths;
+  // kasStart is a settable override: '' is a valid value (revert to fallback),
+  // so guard on presence, not truthiness.
+  if (newState.kasStart !== undefined) state.kasStart = newState.kasStart;
+  notifyStateChange();
+};
+
+/** Read-only reference to the application state. */
+export const getState = () => state;
+
+/**
+ * Push a single transaction into state (optimistic UI).
+ * @param {object} trx
+ */
+export const addTransaction = (trx) => {
+  state.transaksi.push(trx);
+  notifyStateChange();
+};
+
 /**
  * Set grup aktif dan ingat di localStorage.
  * @param {string} id
  */
 export const setActiveGroupId = (id) => {
+  const previousGroupId = activeGroupId;
   activeGroupId = id || '';
   try {
     const storage = getLocalStorage();
@@ -106,6 +123,15 @@ export const setActiveGroupId = (id) => {
     else storage?.removeItem(ACTIVE_GROUP_KEY);
   } catch (err) {
     console.warn('[finkas] Cannot persist active group:', err?.message);
+  }
+  if (previousGroupId !== activeGroupId) {
+    // The in-memory ledger still needs to be loaded for the newly selected group.
+    publishStorageStatus('unknown', 'group-change');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('finkas:group-changed', {
+        detail: { groupId: activeGroupId, previousGroupId }
+      }));
+    }
   }
 };
 
@@ -123,36 +149,42 @@ export const getGroupName = (id) => groups.find((g) => g.id === id)?.nama || id;
 
 /* ── Cache ───────────────────────────────────────────────────────── */
 
-/** Save current state to localStorage, scoped to the active group. */
+/** Save the current ledger; false means this snapshot was not persisted. */
 export const saveCache = () => {
   try {
-    getLocalStorage()?.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
+    const storage = getLocalStorage();
+    if (!storage) throw new Error('Penyimpanan perangkat tidak tersedia.');
+    storage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
+    publishStorageStatus('saved', 'save');
+    return true;
   } catch (err) {
+    publishStorageStatus('failed', 'save', err);
     console.warn('[finkas] Cache write failed:', err?.message);
+    return false;
   }
 };
 
-/**
- * Load state from localStorage for the active group.
- * @returns {boolean} True when a cache was found and applied.
- */
+/** Load an actual ledger snapshot; missing or invalid data is never "saved". */
 export const loadCache = () => {
-  let cached = null;
   try {
     const storage = getLocalStorage();
-    cached = storage?.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
-      // One-time migration: pre-scoping caches belong to the default group.
-      || (getActiveGroupId() === DEFAULT_GROUP_ID ? storage?.getItem(CACHE_KEY) : null);
-  } catch (err) {
-    return false;
-  }
-  if (!cached) return false;
-
-  try {
-    setState(JSON.parse(cached));
+    if (!storage) throw new Error('Penyimpanan perangkat tidak tersedia.');
+    const cached = storage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
+      || (getActiveGroupId() === DEFAULT_GROUP_ID ? storage.getItem(CACHE_KEY) : null);
+    if (!cached) {
+      publishStorageStatus('unknown', 'load');
+      return false;
+    }
+    const data = JSON.parse(cached);
+    if (!data || !['anggota', 'kategori', 'transaksi'].every((key) => Array.isArray(data[key]))) {
+      throw new Error('Cache pembukuan tidak valid.');
+    }
+    setState({ ...data, skippedMonths: data.skippedMonths || [], kasStart: data.kasStart || '' });
+    publishStorageStatus('saved', 'load');
     return true;
   } catch (err) {
-    console.warn('[finkas] Cache parse failed:', err?.message);
+    publishStorageStatus('failed', 'load', err);
+    console.warn('[finkas] Cache load failed:', err?.message);
     return false;
   }
 };

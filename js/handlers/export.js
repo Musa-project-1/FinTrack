@@ -1,6 +1,7 @@
 import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
-import { formatRp, showToast, escapeHtml, isMonthOwedByMember, parseKasStart, isMonthOwedByGroup } from "../core/utils.js";
+import { formatRp, showToast, escapeHtml } from "../core/utils.js";
+import { createDuesLedger, duesStatusLabel, billingPeriod } from "../core/dues.js";
 import { closeModal } from "../ui/modal.js";
 import { trackEvent } from "../core/analytics.js";
 
@@ -35,13 +36,8 @@ export const cetakLaporanTahunan = () => {
   if (state.anggota.length === 0) return showToast('Tidak ada data anggota untuk dicetak.', 'error');
   closeModal('modal-export');
 
+  const ledger = createDuesLedger(state, { year: currentRekapYear });
   const skipSet = new Set(state.skippedMonths || []);
-  const mapPembayaran = {};
-  state.transaksi.forEach((t) => {
-    if (t.Tipe_Arus === 'Masuk' && t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
-      mapPembayaran[`${t.ID_Anggota}_${t.Bulan_Iuran}`] = true;
-    }
-  });
 
   const monthTotals = Array(NAMA_BULAN.length).fill(0);
   let tbodyHTML = '';
@@ -50,19 +46,14 @@ export const cetakLaporanTahunan = () => {
     if (ang.Status_Aktif === 'Aktif') {
       let tr = `<tr><td style="text-align:center;">${index++}</td><td style="text-align:left;padding-left:8px;">${escapeHtml(ang.Nama_Anggota)}</td>`;
       NAMA_BULAN.forEach((bulan, idx) => {
-        const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
-        // Months before the group's kas start OR before this member joined are
-        // not a debt — render "-" so they don't read as unpaid.
-        const notOwed = !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH) ||
-          !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung);
-        if (skipSet.has(monthKey)) {
+        const month = ledger.getMonth(ang, idx, currentRekapYear);
+        if (!month.owed) {
           tr += '<td style="text-align:center;color:#999;">-</td>';
-        } else if (mapPembayaran[`${ang.ID_Anggota}_${bulan}`]) {
+        } else if (month.status === 'paid') {
           monthTotals[idx]++;
           tr += '<td style="text-align:center;color:#059669;font-weight:700;">&#10003;</td>';
-        } else if (notOwed) {
-          // Before kas start / member join — not a debt, shown like a holiday month.
-          tr += '<td style="text-align:center;color:#999;">-</td>';
+        } else if (month.status === 'partial') {
+          tr += '<td style="text-align:center;color:#b45309;font-weight:600;">Sebagian</td>';
         } else {
           tr += '<td style="text-align:center;"></td>';
         }
@@ -117,24 +108,22 @@ export const copyMonthlyRecap = async () => {
   const totalMasuk = state.transaksi.filter((t) => t.Tipe_Arus === 'Masuk').reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
   const totalKeluar = state.transaksi.filter((t) => t.Tipe_Arus === 'Keluar').reduce((s, t) => s + (Number(t.Nominal) || 0), 0);
 
-  const paidSet = new Set(
-    state.transaksi
-      .filter((t) => t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran === bulan && String(t.Tahun_Iuran) === String(tahun) && t.ID_Anggota !== '-')
-      .map((t) => t.ID_Anggota)
-  );
-  const active = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
-  const belum = active.filter((a) => !paidSet.has(a.ID_Anggota)).map((a) => a.Nama_Anggota);
+  const monthIdx = NAMA_BULAN.indexOf(bulan);
+  const ledger = createDuesLedger(state, { now });
+  const active = (state.anggota || []).filter((a) => a.Status_Aktif === 'Aktif');
+  const paidMembers = active.filter((a) => ledger.getMonth(a, monthIdx, tahun).status === 'paid');
+  const belum = active.filter((a) => ledger.getMonth(a, monthIdx, tahun).remaining > 0).map((a) => a.Nama_Anggota);
 
   const lines = [
     `*Rekap Kas ${bulan} ${tahun}*`,
-    `Masuk: ${formatRp(masuk)} (${paidSet.size}/${active.length} anggota)`,
+    `Masuk: ${formatRp(masuk)} (${paidMembers.length}/${active.length} anggota)`,
     `Keluar: ${formatRp(keluar)}`,
     `Saldo kas: ${formatRp(totalMasuk - totalKeluar)}`
   ];
   if (isSkipped) {
     lines.push('(Bulan libur: tidak ada iuran)');
   } else if (belum.length > 0) {
-    lines.push(`Belum bayar: ${belum.join(', ')}`);
+    lines.push(`Belum lunas: ${belum.join(', ')}`);
   } else {
     lines.push('Semua anggota sudah lunas. Terima kasih!');
   }
@@ -218,70 +207,25 @@ export const createGroupReminderMessage = async () => {
 };
 
 const doCreateGroupReminderMessage = async () => {
-  // Window origin respects the group's configured kas start when set, else the
-  // legacy GROUP_START constant (unchanged for existing groups).
-  const kasStartParts = parseKasStart(getState().kasStart);
-  const startYear = kasStartParts ? kasStartParts.year : GROUP_START_YEAR;
-  const startMonth = kasStartParts ? kasStartParts.monthIndex + 1 : GROUP_START_MONTH;
   const now = new Date();
-  const endYear = now.getFullYear();
-  const endMonth = now.getMonth() + 1;
-  const monthlyFee = DEFAULT_MONTHLY_FEE;
-
-  const monthsRange = [];
-  let y = startYear, m = startMonth;
-  while (y < endYear || (y === endYear && m <= endMonth)) {
-    monthsRange.push(`${m.toString().padStart(2, '0')}-${y}`);
-    m++;
-    if (m > 12) { m = 1; y++; }
-  }
-
-  const monthsSet = new Set(monthsRange);
-  const skippedSet = new Set(getState().skippedMonths || []);
-  const skippedNames = monthsRange.filter((k) => skippedSet.has(k)).map((k) => NAMA_BULAN[parseInt(k.split('-')[0], 10) - 1]);
-
-  const trxByMember = {};
-  getState().transaksi.forEach((t) => {
-    if (!t.ID_Anggota) return;
-    trxByMember[t.ID_Anggota] = trxByMember[t.ID_Anggota] || [];
-    trxByMember[t.ID_Anggota].push(t);
-  });
-
-  const results = [];
-  getState().anggota
-    .filter((a) => a.Status_Aktif === 'Aktif')
-    .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota))
-    .forEach((ang) => {
-      // Expected dues are prorated to the member's join month: a member who
-      // joined mid-window is not billed for months before they joined. Legacy
-      // members without Tanggal_Gabung owe every non-holiday month.
-      let expectedTotal = 0;
-      monthsRange.forEach((k) => {
-        if (skippedSet.has(k)) return;
-        const [mm, yyyy] = k.split('-');
-        if (!isMonthOwedByMember(Number(mm) - 1, yyyy, ang.Tanggal_Gabung)) return;
-        expectedTotal += monthlyFee;
-      });
-
-      let paidTotal = 0;
-      (trxByMember[ang.ID_Anggota] || []).forEach((t) => {
-        if (t.Tipe_Arus !== 'Masuk' || !t.Tahun_Iuran || !t.Bulan_Iuran) return;
-        const idx = NAMA_BULAN.indexOf(t.Bulan_Iuran);
-        if (idx === -1) return;
-        const key = `${(idx + 1).toString().padStart(2, '0')}-${t.Tahun_Iuran}`;
-        if (monthsSet.has(key)) paidTotal += Number(t.Nominal) || 0;
-      });
-      const arrears = expectedTotal - paidTotal;
-      if (arrears > 0) {
-        results.push({ name: ang.Nama_Anggota, unpaidMonths: Math.ceil(arrears / monthlyFee), amountRp: formatRp(arrears) });
-      }
-    });
+  const ledger = createDuesLedger(getState(), { now });
+  const results = ledger.members
+    .filter((m) => m.arrears > 0)
+    .sort((a, b) => a.ang.Nama_Anggota.localeCompare(b.ang.Nama_Anggota))
+    .map((m) => ({
+      name: m.ang.Nama_Anggota,
+      unpaidMonths: m.unpaidMonths,
+      amountRp: formatRp(m.arrears)
+    }));
 
   if (results.length === 0) return showToast('Semua iuran sudah lunas untuk periode ini.', 'success');
 
-  const endMonthName = NAMA_BULAN[endMonth - 1];
+  const current = billingPeriod(now);
+  const endMonthName = NAMA_BULAN[current.monthIndex];
+  const endYear = current.year;
   const header = `Halo teman-teman, pengingat uang kas kelas sampai bulan ${endMonthName} ${endYear} ya! \u{1F4B8}`;
   let skippedNote = '';
+  const skippedNames = (getState().skippedMonths || []).map((k) => NAMA_BULAN[parseInt(k.split('-')[0], 10) - 1]).filter(Boolean);
   if (skippedNames.length > 0) {
     const uniq = Array.from(new Set(skippedNames));
     const last = uniq.pop();

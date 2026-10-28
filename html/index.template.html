@@ -105,7 +105,7 @@
         <div class="flow-strip">
           <div class="flow-strip__item flow-in">
             <span class="flow-strip__label">
-              <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk
+              <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk (Semua)
             </span>
             <span class="flow-strip__value">
               <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
@@ -113,7 +113,7 @@
           </div>
           <div class="flow-strip__item flow-out">
             <span class="flow-strip__label">
-              <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar
+              <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar (Semua)
             </span>
             <span class="flow-strip__value">
               <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
@@ -197,6 +197,12 @@
           </button>
         </div>
       </div>
+
+      <div class="dues-action-bar">
+        <span id="dues-action-summary" class="dues-action-summary">Memuat status iuran...</span>
+        <button id="dues-filter-toggle" class="btn btn-secondary btn-sm" data-action="toggle-unpaid-filter" type="button" aria-pressed="false">Lihat belum lunas</button>
+      </div>
+      <div id="ui-save-status" class="save-status-indicator" aria-live="polite"></div>
 
       <div class="table-responsive">
         <table class="table-matriks">

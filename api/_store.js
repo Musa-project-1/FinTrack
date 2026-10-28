@@ -19,6 +19,8 @@ export const GROUP_SUBCOLLECTIONS = [
   MEMBERS_COLLECTION,
   CATEGORIES_COLLECTION,
   TRANSACTIONS_COLLECTION,
+  'transaction_proofs',
+  'operations',
   AUDIT_COLLECTION,
   'private',
   'settings'

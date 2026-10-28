@@ -1,6 +1,7 @@
 import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, setArrearsRankChart, getArrearsRankChart } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml, calculateCompliance, expectedDuesForMember, kasStartFirstOfMonth } from "../core/utils.js";
+import { formatRp, formatDisplayRp, escapeHtml, kasStartFirstOfMonth } from "../core/utils.js";
+import { createDuesLedger } from "../core/dues.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
@@ -124,32 +125,11 @@ export const renderChart = async () => {
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
-  const skipSet = new Set(state.skippedMonths || []);
-  const activeMembers = state.anggota.filter((a) => a.Status_Aktif === 'Aktif');
-  const monthlyFee = DEFAULT_MONTHLY_FEE;
-
-  const windowPeriodSet = new Set(
-    months.map((m) => `${NAMA_BULAN[m.monthIndex]}_${m.year}`)
-  );
-
-  const memberStatus = activeMembers.map((ang) => {
-    // Expected dues are prorated to each member's join month: a member who
-    // joined in March is not billed for Jan/Feb. Legacy members with no
-    // Tanggal_Gabung owe the full window (join date treated as group start).
-    const expectedTotal = expectedDuesForMember(months, skipSet, monthlyFee, ang.Tanggal_Gabung);
-    const paidTotal = state.transaksi
-      .filter((t) =>
-        t.ID_Anggota === ang.ID_Anggota &&
-        t.Tipe_Arus === 'Masuk' &&
-        t.Bulan_Iuran &&
-        t.Bulan_Iuran !== '-' &&
-        windowPeriodSet.has(`${t.Bulan_Iuran}_${t.Tahun_Iuran}`)
-      )
-      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0);
-    return { ang, paidTotal, expectedTotal, arrears: Math.max(0, expectedTotal - paidTotal) };
-  });
-
-  const { totalExpected, totalCollected, healthPct } = calculateCompliance(memberStatus);
+  const ledger = createDuesLedger(state, { now });
+  const memberStatus = ledger.members;
+  const totalExpected = memberStatus.reduce((sum, m) => sum + m.expectedTotal, 0);
+  const totalCollected = memberStatus.reduce((sum, m) => sum + m.paidTotal, 0);
+  const healthPct = totalExpected ? Math.round((totalCollected / totalExpected) * 100) : 100;
 
   document.getElementById('stat-health-pct').innerText = `${healthPct}%`;
   document.getElementById('stat-health-fill').style.width = `${healthPct}%`;

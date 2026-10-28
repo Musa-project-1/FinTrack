@@ -1,6 +1,7 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession } from "../core/state.js";
-import { formatCompactRp, escapeHtml, calculateMemberRekapProgress, isMonthOwedByMember, isMonthOwedByGroup } from "../core/utils.js";
+import { formatCompactRp, formatRp, escapeHtml } from "../core/utils.js";
+import { createDuesLedger, duesStatusLabel } from "../core/dues.js";
 
 export const populateTahunRekap = () => {
   const selects = [
@@ -53,6 +54,21 @@ export const renderLunasHtml = () => {
   }
 };
 
+let unpaidOnly = false;
+export const toggleUnpaidFilter = () => {
+  unpaidOnly = !unpaidOnly;
+  renderTableRekap();
+};
+const renderDuesAction = (ledger) => {
+  const summary = document.getElementById('dues-action-summary');
+  if (summary) summary.textContent = `${ledger.unpaidCount} anggota belum lunas · Kekurangan ${formatRp(ledger.arrears)} · Tahun ${currentRekapYear}, s.d. bulan berjalan`;
+  const button = document.getElementById('dues-filter-toggle');
+  if (button) {
+    button.textContent = unpaidOnly ? 'Tampilkan semua' : 'Lihat belum lunas';
+    button.setAttribute('aria-pressed', String(unpaidOnly));
+  }
+};
+
 /* ── Matrix dues table (rekap) ─────────────────────────────────── */
 
 export const renderTableRekap = () => {
@@ -61,12 +77,8 @@ export const renderTableRekap = () => {
   const state = getState();
   const fragment = document.createDocumentFragment();
 
-  const mapPembayaran = {};
-  state.transaksi.forEach((t) => {
-    if (t.Tipe_Arus === 'Masuk' && t.Tahun_Iuran && t.Tahun_Iuran.toString() === currentRekapYear) {
-      mapPembayaran[`${t.ID_Anggota}_${t.Bulan_Iuran}`] = true;
-    }
-  });
+  const ledger = createDuesLedger(state, { year: currentRekapYear });
+  renderDuesAction(ledger);
 
   const skippedSet = new Set(state.skippedMonths || []);
 
@@ -79,6 +91,7 @@ export const renderTableRekap = () => {
   ).trim().toLowerCase();
   const filteredAnggota = state.anggota
     .filter((ang) => ang.Status_Aktif === 'Aktif')
+    .filter((ang) => !unpaidOnly || ledger.summarize(ang).arrears > 0)
     .filter((ang) => !searchVal || ang.Nama_Anggota.toLowerCase().includes(searchVal))
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota));
 
@@ -95,12 +108,9 @@ export const renderTableRekap = () => {
         const tdBulan = document.createElement('td');
         const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
         const isSkipped = skippedSet.has(monthKey);
-        const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
-        // Months before this member joined OR before the group's kas start are
-        // not owed, so they must not look like an unpaid debt (keeps the matrix
-        // consistent with dashboard/WA arrears).
-        const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) ||
-          !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
+        const month = ledger.getMonth(ang, idx, currentRekapYear);
+        const isLunas = month.status === 'paid';
+        const notOwed = !month.owed;
 
         if (isSkipped) {
           tdBulan.className = 'text-center td-skipped';
@@ -112,10 +122,11 @@ export const renderTableRekap = () => {
           tdBulan.title = 'Belum bergabung (tidak dihitung sebagai tunggakan)';
         } else {
           tdBulan.className = 'text-center td-clickable';
+          tdBulan.title = `${duesStatusLabel(month)} · ${formatRp(month.paid)}; sisa ${formatRp(month.remaining)}`;
           if (isLunas) {
             tdBulan.innerHTML = renderLunasHtml();
           } else {
-            tdBulan.title = `Klik untuk bayar ${bulan}`;
+            tdBulan.innerHTML = month.status === 'partial' ? `<span class="status-partial">Sebagian<small>${escapeHtml(formatCompactRp(month.paid))}</small></span>` : '';
             if (getIsAdminSession()) {
               tdBulan.setAttribute('data-action', 'quickpay');
               tdBulan.setAttribute('data-anggota', escapeHtml(ang.ID_Anggota));
@@ -144,12 +155,12 @@ export const renderTableRekap = () => {
   }
 
   // Render mobile card view
-  renderIuranMobileCards(filteredAnggota, mapPembayaran, skippedSet);
+  renderIuranMobileCards(filteredAnggota, ledger, skippedSet);
 };
 
 /* ── Mobile iuran cards ────────────────────────────────────────── */
 
-export const renderIuranMobileCards = (filteredAnggota, mapPembayaran, skippedSet = new Set(getState().skippedMonths || [])) => {
+export const renderIuranMobileCards = (filteredAnggota, ledger = createDuesLedger(getState()), skippedSet = new Set(getState().skippedMonths || [])) => {
   const container = document.getElementById('iuran-cards-mobile');
   if (!container) return;
 
@@ -160,29 +171,22 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran, skippedSe
 
   const state = getState();
   const cardsHTML = filteredAnggota.map((ang, index) => {
-    const { lunasBulan, totalOwedMonths, progressPercent, isFullPaid } = calculateMemberRekapProgress(
-      ang.ID_Anggota,
-      mapPembayaran,
-      state.skippedMonths,
-      currentRekapYear,
-      NAMA_BULAN,
-      ang.Tanggal_Gabung,
-      state.kasStart,
-      GROUP_START_YEAR,
-      GROUP_START_MONTH
-    );
+    const yearMonths = NAMA_BULAN.map((_, i) => ledger.getMonth(ang, i, currentRekapYear));
+    const owedMonths = yearMonths.filter(m => m.owed);
+    const totalOwedMonths = owedMonths.length;
+    const lunasBulan = owedMonths.filter(m => m.status === 'paid').length;
+    const isFullPaid = lunasBulan === totalOwedMonths;
+    const progressPercent = totalOwedMonths ? 100 * owedMonths.reduce((n, m) => n + m.credited, 0) / (totalOwedMonths * ledger.monthlyFee) : 100;
     const nomorUrut = String(index + 1).padStart(2, '0');
 
     const monthGridHTML = NAMA_BULAN.map((bulan, idx) => {
-      const isLunas = mapPembayaran[`${ang.ID_Anggota}_${bulan}`];
+      const month = yearMonths[idx];
+      const isLunas = month.status === 'paid';
       const monthKey = `${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`;
       const isSkipped = skippedSet.has(monthKey);
-      // Pre-join / pre-kas-start months are not a debt — render them like
-      // skipped months so the mobile grid matches the desktop matrix.
-      const notOwed = !isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) ||
-        !isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
-      const classes = isSkipped ? 'skipped' : isLunas ? 'lunas' : notOwed ? 'skipped' : 'belum';
-      const title = isSkipped ? 'Bulan Libur (tidak dihitung)' : isLunas ? 'Lunas' : notOwed ? 'Belum mulai kas' : 'Klik untuk bayar';
+      const notOwed = !month.owed;
+      const classes = notOwed ? 'skipped' : isLunas ? 'lunas' : month.status === 'partial' ? 'partial' : 'belum';
+      const title = `${duesStatusLabel(month)} · ${formatRp(month.paid)}; sisa ${formatRp(month.remaining)}`;
       const allowAction = getIsAdminSession() && !isSkipped && !isLunas && !notOwed;
       const onclick = allowAction
         ? `data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(bulan)}"`
@@ -190,17 +194,12 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran, skippedSe
       return `
         <div class="iuran-month-item ${classes}" ${onclick} title="${title} ${bulan}">
           <div class="iuran-month-name">${bulan.substring(0, 3)}</div>
-          <div class="iuran-month-icon"></div>
+          <div class="iuran-month-icon">${month.status === 'partial' ? 'Sebagian' : ''}</div>
         </div>
       `;
     }).join('');
 
-    const firstUnpaidMonth = NAMA_BULAN.find((b, idx) =>
-      !mapPembayaran[`${ang.ID_Anggota}_${b}`] &&
-      !(state.skippedMonths || []).includes(`${(idx + 1).toString().padStart(2, '0')}-${currentRekapYear}`) &&
-      isMonthOwedByMember(idx, currentRekapYear, ang.Tanggal_Gabung) &&
-      isMonthOwedByGroup(idx, currentRekapYear, state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH)
-    ) || NAMA_BULAN[0];
+    const firstUnpaidMonth = NAMA_BULAN.find((_, idx) => yearMonths[idx].owed && yearMonths[idx].remaining > 0);
 
     return `
       <div class="iuran-member-card" data-action="toggle-card" tabindex="0" role="button" aria-expanded="false">
@@ -221,7 +220,7 @@ export const renderIuranMobileCards = (filteredAnggota, mapPembayaran, skippedSe
         <div class="iuran-card-details">
           <div class="iuran-month-grid">${monthGridHTML}</div>
           <div class="iuran-action-buttons">
-            <button class="iuran-btn-pay admin-only" data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(firstUnpaidMonth)}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
+            <button class="iuran-btn-pay admin-only" ${firstUnpaidMonth ? '' : 'disabled'} data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}" data-bulan="${escapeHtml(firstUnpaidMonth)}"><i class="ph-bold ph-check-circle"></i> Bayar</button>
             <button class="iuran-btn-detail" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}"><i class="ph-bold ph-info"></i> Detail</button>
           </div>
         </div>

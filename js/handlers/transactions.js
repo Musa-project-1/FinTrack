@@ -8,10 +8,11 @@
  */
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
-import { getState, addTransaction, currentRekapYear, getIsAdminSession } from "../core/state.js";
+import { getState, addTransaction, currentRekapYear, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "../core/state.js";
+import { createDuesLedger, billingPeriod } from "../core/dues.js";
 import { formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso, isoToDateInput } from "../core/utils.js";
 import { isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
-import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
+import { deliverMutation, generateTempId, generateOperationId, requestAppRefresh } from "../core/mutation.js";
 import { withBusyButton, withLiquidSave } from "../ui/keel.js";
 import { openModal, closeModal, switchTab, renderCheckboxIuran, filterKategori, showConfirmDialog, updateEditDelta } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
@@ -24,11 +25,26 @@ import {
 } from "../render.js";
 
 const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHLY_FEE);
-
 const refreshAppData = async () => { requestAppRefresh(); };
-
-/** Optimistic rows get a clearly temporary id until the server confirms. */
 const tempTransactionId = () => generateTempId('TRX');
+
+/**
+ * Add confirmed server transaction row to state and persist cache, or trigger
+ * full refresh if row already exists or was not returned.
+ */
+const integrateServerTransaction = (serverRow) => {
+  if (!serverRow) {
+    refreshAppData();
+    return;
+  }
+  const alreadyExists = (getState().transaksi || []).some((t) => t.ID_Transaksi === serverRow.ID_Transaksi);
+  if (!alreadyExists) {
+    addTransaction(serverRow);
+    saveCache();
+  } else {
+    refreshAppData();
+  }
+};
 
 /* ══════════════════════════════════════════════════════════════════
    QUICK PAY (single member, single month)
@@ -43,10 +59,29 @@ export const openQuickPaySheet = (idAnggota, bulan) => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
   if (!idAnggota || !bulan) return;
 
-  const anggotaList = getState().anggota || [];
+  const state = getState();
+  const anggotaList = state.anggota || [];
   const ang = anggotaList.find((a) => a.ID_Anggota === idAnggota);
   if (!ang) {
     showToast("Anggota tidak ditemukan.", "error");
+    return;
+  }
+
+  const monthIndex = NAMA_BULAN.indexOf(bulan);
+  if (monthIndex < 0) {
+    showToast("Bulan iuran tidak valid.", "error");
+    return;
+  }
+
+  const ledger = createDuesLedger(state, { year: Number(currentRekapYear) });
+  const monthInfo = ledger.getMonth(ang, monthIndex, currentRekapYear);
+
+  if (monthInfo.status === "paid") {
+    showToast("Iuran periode ini sudah lunas.", "info");
+    return;
+  }
+  if (monthInfo.status === "exempt") {
+    showToast("Bulan ini tidak ditagih untuk anggota ini.", "info");
     return;
   }
 
@@ -59,7 +94,8 @@ export const openQuickPaySheet = (idAnggota, bulan) => {
   const avatar = document.getElementById("qp-avatar");
   avatar.innerText = getInitials(ang.Nama_Anggota);
 
-  document.getElementById("qp-nominal").value = DEFAULT_FEE_DISPLAY;
+  const defaultNominal = monthInfo.remaining > 0 ? monthInfo.remaining : DEFAULT_MONTHLY_FEE;
+  document.getElementById("qp-nominal").value = new Intl.NumberFormat("id-ID").format(defaultNominal);
   openModal("modal-quickpay");
 };
 
@@ -80,63 +116,86 @@ export const submitQuickPay = async (e) => {
   if (!kategoriMasuk) return showToast("Buat kategori Masuk terlebih dahulu.", "error");
 
   const angName = state.anggota.find((a) => a.ID_Anggota === idAnggota)?.Nama_Anggota || "Anggota";
+  const targetGroupId = getActiveGroupId();
 
   showConfirmDialog({
     title: "Catat Iuran Kas?",
     message: `Simpan iuran ${bulan} ${tahun} untuk ${angName} sebesar ${formatRp(nominal)} ke database?`,
     icon: "ph-fill ph-hand-coins",
     confirmText: "Ya, Simpan Iuran",
-    onConfirm: () => withBusyButton(
-      "btn-submit-quickpay",
-      '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...',
-      '<i class="ph-bold ph-check-circle"></i> SIMPAN PEMBAYARAN',
-      async () => {
-        const payload = {
-          action: "tambahTransaksi",
-          dataForm: {
-            tipeArus: "Masuk",
-            idKategori: kategoriMasuk.ID_Kategori,
-            idAnggota,
-            bulanIuran: bulan,
-            tahunIuran: tahun,
-            nominal,
-            keterangan: "Iuran Anggota"
-          }
-        };
-
-        const { delivered, result } = await deliverMutation(payload);
-
-        if (!delivered) {
-          showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
-        } else if (classifySyncResponse(result) === "duplicate") {
-          showToast(result.message || `Iuran ${bulan} ${tahun} sudah tercatat.`, "warning");
-          closeModal("modal-quickpay");
-          return;
-        } else if (!result.status) {
-          showToast(result.message, "error");
-          return;
-        } else {
-          showDatabaseToast("Iuran Kas Disimpan", `Iuran ${bulan} ${tahun} untuk ${angName} (${formatRp(nominal)}) berhasil dicatat.`);
-        }
-
-        closeModal("modal-quickpay");
-        addTransaction({
-          ID_Transaksi: tempTransactionId(),
-          Timestamp: new Date().toISOString(),
-          Tipe_Arus: "Masuk",
-          ID_Kategori: kategoriMasuk.ID_Kategori,
-          ID_Anggota: idAnggota,
-          Bulan_Iuran: bulan,
-          Tahun_Iuran: tahun,
-          Nominal: nominal,
-          Keterangan: "Iuran Anggota"
-        });
-        renderDashboard();
-        renderTableTransaksi();
-        renderTableRekap();
-        renderChart();
+    onConfirm: () => {
+      if (getActiveGroupId() !== targetGroupId) {
+        showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
+        return;
       }
-    )
+      return withBusyButton(
+        "btn-submit-quickpay",
+        '<i class="ph ph-spinner-gap ph-spin"></i> Menyimpan...',
+        '<i class="ph-bold ph-check-circle"></i> SIMPAN PEMBAYARAN',
+        async () => {
+          const operationId = generateOperationId();
+          const payload = {
+            action: "tambahTransaksi",
+            operationId,
+            dataForm: {
+              tipeArus: "Masuk",
+              idKategori: kategoriMasuk.ID_Kategori,
+              idAnggota,
+              bulanIuran: bulan,
+              tahunIuran: tahun,
+              nominal,
+              keterangan: "Iuran Anggota",
+              operationId
+            }
+          };
+
+          const { delivered, result } = await deliverMutation(payload);
+
+          if (getActiveGroupId() !== targetGroupId) return;
+
+          if (!delivered) {
+            showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
+            closeModal("modal-quickpay");
+            const offlineRow = {
+              ID_Transaksi: tempTransactionId(),
+              Timestamp: new Date().toISOString(),
+              Tipe_Arus: "Masuk",
+              ID_Kategori: kategoriMasuk.ID_Kategori,
+              ID_Anggota: idAnggota,
+              Bulan_Iuran: bulan,
+              Tahun_Iuran: tahun,
+              Nominal: nominal,
+              Keterangan: "Iuran Anggota",
+              groupId: targetGroupId,
+              operationId: payload.operationId || payload.dataForm?.operationId
+            };
+            addTransaction(offlineRow);
+            saveCache();
+            rerenderAfterLedgerChange();
+            return;
+          }
+
+          if (classifySyncResponse(result) === "duplicate" || result?.data?.duplicate || result?.data?.isReplay) {
+            showToast(result?.message || `Iuran ${bulan} ${tahun} sudah tercatat.`, "warning");
+            closeModal("modal-quickpay");
+            await refreshAppData();
+            return;
+          }
+
+          if (!result.status) {
+            showToast(result.message, "error");
+            return;
+          }
+
+          showDatabaseToast("Iuran Kas Disimpan", `Iuran ${bulan} ${tahun} untuk ${angName} (${formatRp(nominal)}) berhasil dicatat.`);
+          closeModal("modal-quickpay");
+
+          const serverRow = result.data?.transaction || (result.data?.ID_Transaksi ? result.data : null);
+          integrateServerTransaction(serverRow);
+          rerenderAfterLedgerChange();
+        }
+      );
+    }
   });
 };
 
@@ -149,13 +208,14 @@ export const bukaModalTransaksi = () => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
   switchTab("iuran", "modal-transaksi");
   document.getElementById("search-anggota-iuran").value = "";
-  document.getElementById("iuran-tahun").value = new Date().getFullYear();
-  document.getElementById("iuran-bulan").value = NAMA_BULAN[new Date().getMonth()];
+  const defaultPeriod = billingPeriod(new Date());
+  document.getElementById("iuran-tahun").value = defaultPeriod.year;
+  document.getElementById("iuran-bulan").value = NAMA_BULAN[defaultPeriod.monthIndex];
   syncCdrop("iuran-bulan");
   syncCdrop("iuran-kategori");
   renderCheckboxIuran();
 
-  document.getElementById("tab-operasional").querySelector("form").reset();
+  document.getElementById("tab-operasional")?.querySelector("form")?.reset?.();
   document.getElementById("ops-anggota").value = "-";
   document.getElementById("ops-tipe").value = "Keluar";
   filterKategori("ops-tipe", "ops-kategori");
@@ -164,7 +224,6 @@ export const bukaModalTransaksi = () => {
   syncCdrop("ops-kategori");
 
   document.getElementById("iuran-nominal").value = DEFAULT_FEE_DISPLAY;
-  // Date fields default to empty → backend stamps "today".
   const iuranTgl = document.getElementById("iuran-tanggal");
   if (iuranTgl) iuranTgl.value = "";
   const opsTgl = document.getElementById("ops-tanggal");
@@ -193,17 +252,23 @@ export const submitIuran = async (e) => {
 
   const arrIdAnggota = Array.from(checkboxes).map((chk) => chk.value);
   const totalNominal = formNominal * arrIdAnggota.length;
+  const targetGroupId = getActiveGroupId();
 
   showConfirmDialog({
     title: "Simpan Iuran Kas?",
     message: `Catat iuran ${formBulan} ${formTahun} untuk ${arrIdAnggota.length} anggota terpilih (Total: ${formatRp(totalNominal)}) ke database?`,
     icon: "ph-fill ph-hand-coins",
     confirmText: "Ya, Simpan Iuran",
-    onConfirm: () => withLiquidSave(
-      "btn-submit-iuran",
-      async () => {
+    onConfirm: () => {
+      if (getActiveGroupId() !== targetGroupId) {
+        showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
+        return;
+      }
+      return withLiquidSave("btn-submit-iuran", async () => {
+        const operationId = generateOperationId();
         const payload = {
           action: "tambahTransaksiMassal",
+          operationId,
           dataForm: {
             tipeArus: "Masuk",
             idKategori: formKategori,
@@ -212,52 +277,93 @@ export const submitIuran = async (e) => {
             tahunIuran: formTahun,
             nominal: formNominal,
             keterangan: "Iuran Anggota",
-            timestamp: formTanggalIso || undefined
+            timestamp: formTanggalIso || undefined,
+            operationId
           }
         };
 
         const { delivered, result } = await deliverMutation(payload);
+        if (getActiveGroupId() !== targetGroupId) return { outcome: "neutral", done: () => {} };
 
         if (!delivered) {
-          return { outcome: "success", done: () => {
-            showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
-            closeModal("modal-transaksi");
-            applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso);
-          }};
+          return {
+            outcome: "success",
+            done: () => {
+              if (getActiveGroupId() !== targetGroupId) return;
+              showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
+              closeModal("modal-transaksi");
+              applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso, targetGroupId, payload.operationId);
+            }
+          };
         }
 
-        if (!result.status) {
-          return { outcome: "error", done: () => showToast(result.message, "error") };
+        if (!result.status) return { outcome: "error", done: () => showToast(result.message, "error") };
+
+        if (classifySyncResponse(result) === "duplicate" || result.data?.duplicate || result.data?.isReplay) {
+          return {
+            outcome: "neutral",
+            done: async () => {
+              showToast(result.message || "Transaksi iuran sudah tercatat.", "warning");
+              closeModal("modal-transaksi");
+              await refreshAppData();
+            }
+          };
         }
 
         const inserted = Number(result.data?.inserted ?? arrIdAnggota.length);
         const skipped = Array.isArray(result.data?.skipped) ? result.data.skipped : [];
 
-        if (inserted === 0) {
-          return { outcome: "neutral", done: async () => {
-            showToast(result.message || "Semua anggota yang dipilih sudah lunas.", "warning");
-            closeModal("modal-transaksi");
-            await refreshAppData();
-          }};
+        if (inserted === 0 && skipped.length > 0) {
+          return {
+            outcome: "neutral",
+            done: async () => {
+              showToast(result.message || "Semua anggota yang dipilih sudah lunas.", "warning");
+              closeModal("modal-transaksi");
+              await refreshAppData();
+            }
+          };
         }
 
-        return { outcome: "success", done: () => {
-          showDatabaseToast("Iuran Kas Disimpan", `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
-          closeModal("modal-transaksi");
-          applyIuranOptimistically(
-            arrIdAnggota.filter((id) => !skipped.includes(id)),
-            formKategori, formBulan, formTahun, formNominal, formTanggalIso
-          );
-        }};
-      }
-    )
+        const serverRows = result.data?.transactions || result.data?.rows;
+        return {
+          outcome: "success",
+          done: () => {
+            if (getActiveGroupId() !== targetGroupId) return;
+            showDatabaseToast("Iuran Kas Disimpan", `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
+            closeModal("modal-transaksi");
+            if (Array.isArray(serverRows) && serverRows.length > 0) {
+              const existingIds = new Set((getState().transaksi || []).map((t) => t.ID_Transaksi));
+              let added = 0;
+              for (const row of serverRows) {
+                if (row && row.ID_Transaksi && !existingIds.has(row.ID_Transaksi)) {
+                  addTransaction(row);
+                  existingIds.add(row.ID_Transaksi);
+                  added++;
+                }
+              }
+              if (added > 0) saveCache();
+              else refreshAppData();
+              rerenderAfterLedgerChange();
+              renderCheckboxIuran();
+              const nomInput = document.getElementById("iuran-nominal");
+              if (nomInput) nomInput.value = DEFAULT_FEE_DISPLAY;
+            } else {
+              applyIuranOptimistically(
+                arrIdAnggota.filter((id) => !skipped.includes(id)),
+                formKategori, formBulan, formTahun, formNominal, formTanggalIso, targetGroupId, payload.operationId
+              );
+            }
+          }
+        };
+      });
+    }
   });
 };
 
 /** Add optimistic rows for freshly recorded contributions. */
-const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timestampIso) => {
+const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timestampIso, groupId, operationId) => {
   const timestamp = timestampIso || new Date().toISOString();
-  ids.forEach((idAnggota) => {
+  ids.forEach((idAnggota, idx) => {
     addTransaction({
       ID_Transaksi: tempTransactionId(),
       Timestamp: timestamp,
@@ -267,17 +373,16 @@ const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timest
       Bulan_Iuran: bulan,
       Tahun_Iuran: tahun,
       Nominal: nominal,
-      Keterangan: "Iuran Anggota"
+      Keterangan: "Iuran Anggota",
+      ...(groupId ? { groupId } : {}),
+      ...(operationId ? { operationId: `${operationId}-${idx}` } : {})
     });
   });
-
-  populateTahunRekap();
-  renderDashboard();
-  renderTableTransaksi();
-  renderTableRekap();
-  renderChart();
+  saveCache();
+  rerenderAfterLedgerChange();
   renderCheckboxIuran();
-  document.getElementById("iuran-nominal").value = DEFAULT_FEE_DISPLAY;
+  const nomInput = document.getElementById("iuran-nominal");
+  if (nomInput) nomInput.value = DEFAULT_FEE_DISPLAY;
 };
 
 /** Re-render every ledger-derived view after a local (offline) mutation. */
@@ -307,6 +412,8 @@ const applyEditOptimistically = (idTransaksi, dataForm) => {
   trx.Nominal = dataForm.nominal;
   trx.Keterangan = dataForm.keterangan;
   if (dataForm.timestamp) trx.Timestamp = dataForm.timestamp;
+  notifyStateChange();
+  saveCache();
 };
 
 /**
@@ -317,7 +424,11 @@ const applyEditOptimistically = (idTransaksi, dataForm) => {
 const removeTransactionOptimistically = (idTarget) => {
   const arr = getState().transaksi;
   const idx = arr.findIndex((t) => t.ID_Transaksi === idTarget);
-  if (idx !== -1) arr.splice(idx, 1);
+  if (idx !== -1) {
+    arr.splice(idx, 1);
+    notifyStateChange();
+    saveCache();
+  }
 };
 
 /* ── Operasional ─────────────────────────────────────────────────── */
@@ -343,17 +454,24 @@ export const submitOperasional = async (e) => {
     return showToast("Nominal operasional harus lebih dari 0.", "error");
   }
 
+  const targetGroupId = getActiveGroupId();
+
   showConfirmDialog({
     title: `Catat ${formTipe === "Masuk" ? "Pemasukan" : "Pengeluaran"}?`,
     message: `Simpan transaksi ${formTipe} sebesar ${formatRp(formNominal)} ke database kas?`,
     icon: formTipe === "Masuk" ? "ph-fill ph-trend-up" : "ph-fill ph-trend-down",
     badgeClass: formTipe === "Masuk" ? "" : "warning",
     confirmText: "Ya, Simpan Transaksi",
-    onConfirm: () => withLiquidSave(
-      "btn-submit-ops",
-      async () => {
+    onConfirm: () => {
+      if (getActiveGroupId() !== targetGroupId) {
+        showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
+        return;
+      }
+      return withLiquidSave("btn-submit-ops", async () => {
+        const operationId = generateOperationId();
         const payload = {
           action: "tambahTransaksi",
+          operationId,
           dataForm: {
             tipeArus: formTipe,
             idKategori: formKategori,
@@ -362,51 +480,72 @@ export const submitOperasional = async (e) => {
             tahunIuran: "-",
             nominal: formNominal,
             keterangan: formKeterangan,
-            timestamp: formTanggalIso || undefined
+            timestamp: formTanggalIso || undefined,
+            operationId
           }
         };
 
         const { delivered, result } = await deliverMutation(payload);
+        if (getActiveGroupId() !== targetGroupId) return { outcome: "neutral", done: () => {} };
 
         if (delivered && !result.status) {
           return { outcome: "error", done: () => showToast(result.message, "error") };
         }
 
-        return { outcome: "success", done: () => {
-          if (!delivered) {
-            showDatabaseToast("Operasional Disimpan (Offline)", `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
-          } else {
-            showDatabaseToast("Transaksi Kas Dicatat", `${formTipe}: ${formatRp(formNominal)} berhasil disimpan.`);
+        if (delivered && (classifySyncResponse(result) === "duplicate" || result?.data?.duplicate || result?.data?.isReplay)) {
+          return {
+            outcome: "neutral",
+            done: async () => {
+              showToast(result.message || "Transaksi sudah tercatat.", "warning");
+              closeModal("modal-transaksi");
+              await refreshAppData();
+            }
+          };
+        }
+
+        return {
+          outcome: "success",
+          done: () => {
+            if (getActiveGroupId() !== targetGroupId) return;
+            if (!delivered) {
+              showDatabaseToast("Operasional Disimpan (Offline)", `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
+              const offlineRow = {
+                ID_Transaksi: tempTransactionId(),
+                Timestamp: formTanggalIso || new Date().toISOString(),
+                Tipe_Arus: formTipe,
+                ID_Kategori: formKategori,
+                ID_Anggota: formAnggota,
+                Bulan_Iuran: "-",
+                Tahun_Iuran: "-",
+                Nominal: formNominal,
+                Keterangan: formKeterangan,
+                groupId: targetGroupId,
+                operationId: payload.operationId || payload.dataForm?.operationId
+              };
+              addTransaction(offlineRow);
+              saveCache();
+            } else {
+              showDatabaseToast("Transaksi Kas Dicatat", `${formTipe}: ${formatRp(formNominal)} berhasil disimpan.`);
+              const serverRow = result?.data?.transaction || (result?.data?.ID_Transaksi ? result.data : null);
+              integrateServerTransaction(serverRow);
+            }
+
+            closeModal("modal-transaksi");
+            rerenderAfterLedgerChange();
+
+            document.getElementById("tab-operasional")?.querySelector("form")?.reset?.();
+            const opsAnggota = document.getElementById("ops-anggota");
+            if (opsAnggota) opsAnggota.value = "-";
+            const opsTipe = document.getElementById("ops-tipe");
+            if (opsTipe) opsTipe.value = "Keluar";
+            filterKategori("ops-tipe", "ops-kategori");
+            syncCdrop("ops-anggota");
+            syncCdrop("ops-tipe");
+            syncCdrop("ops-kategori");
           }
-
-          closeModal("modal-transaksi");
-          addTransaction({
-            ID_Transaksi: tempTransactionId(),
-            Timestamp: formTanggalIso || new Date().toISOString(),
-            Tipe_Arus: formTipe,
-            ID_Kategori: formKategori,
-            ID_Anggota: formAnggota,
-            Bulan_Iuran: "-",
-            Tahun_Iuran: "-",
-            Nominal: formNominal,
-            Keterangan: formKeterangan
-          });
-          populateTahunRekap();
-          renderDashboard();
-          renderTableTransaksi();
-          renderTableRekap();
-          renderChart();
-
-          document.getElementById("tab-operasional").querySelector("form").reset();
-          document.getElementById("ops-anggota").value = "-";
-          document.getElementById("ops-tipe").value = "Keluar";
-          filterKategori("ops-tipe", "ops-kategori");
-          syncCdrop("ops-anggota");
-          syncCdrop("ops-tipe");
-          syncCdrop("ops-kategori");
-        }};
-      }
-    )
+        };
+      });
+    }
   });
 };
 
@@ -486,48 +625,62 @@ export const submitEditTransaksi = async (e) => {
     return showToast("Transaksi ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengeditnya.", "warning");
   }
 
+  const targetGroupId = getActiveGroupId();
+
   showConfirmDialog({
     title: "Perbarui Data Transaksi?",
     message: `Simpan pembaruan transaksi ${idTransaksi} (${formatRp(nominal)}) ke database?`,
     icon: "ph-fill ph-pencil-simple",
     confirmText: "Ya, Perbarui",
-    onConfirm: () => withBusyButton(
-      "btn-submit-edit",
-      '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
-      "UPDATE DATA",
-      async () => {
-        const dataForm = {
-          idTransaksi,
-          tipeArus,
-          idKategori,
-          idAnggota: document.getElementById("edit-anggota")?.value || "-",
-          bulanIuran: document.getElementById("edit-bulan")?.value || "-",
-          tahunIuran: document.getElementById("edit-tahun")?.value || "-",
-          nominal,
-          keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
-          timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
-        };
-
-        const { delivered, result } = await deliverMutation({ action: "editTransaksi", idTransaksi, dataForm });
-
-        if (!delivered) {
-          // Offline (or unreachable) — the payload is queued. Reflect the edit
-          // locally so the UI stays consistent until the sync replays it.
-          applyEditOptimistically(idTransaksi, dataForm);
-          rerenderAfterLedgerChange();
-          closeModal("modal-edit-transaksi");
-          showDatabaseToast("Perubahan Disimpan (Offline)", `Transaksi ${idTransaksi} akan disinkronkan saat online.`);
-          return;
-        }
-
-        if (!result.status) return showToast(result.message, "error");
-
-        const finalId = result.data?.idTransaksi || idTransaksi;
-        showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
-        closeModal("modal-edit-transaksi");
-        await refreshAppData();
+    onConfirm: () => {
+      if (getActiveGroupId() !== targetGroupId) {
+        showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
+        return;
       }
-    )
+      return withBusyButton(
+        "btn-submit-edit",
+        '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
+        "UPDATE DATA",
+        async () => {
+          const dataForm = {
+            idTransaksi,
+            tipeArus,
+            idKategori,
+            idAnggota: document.getElementById("edit-anggota")?.value || "-",
+            bulanIuran: document.getElementById("edit-bulan")?.value || "-",
+            tahunIuran: document.getElementById("edit-tahun")?.value || "-",
+            nominal,
+            keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
+            timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
+          };
+
+          const { delivered, result } = await deliverMutation({ action: "editTransaksi", idTransaksi, dataForm });
+
+          if (getActiveGroupId() !== targetGroupId) return;
+
+          if (!delivered) {
+            applyEditOptimistically(idTransaksi, dataForm);
+            rerenderAfterLedgerChange();
+            closeModal("modal-edit-transaksi");
+            showDatabaseToast("Perubahan Disimpan (Offline)", `Transaksi ${idTransaksi} akan disinkronkan saat online.`);
+            return;
+          }
+
+          if (!result.status) return showToast(result.message, "error");
+
+          const finalId = result.data?.idTransaksi || idTransaksi;
+          if (finalId !== idTransaksi) {
+            removeTransactionOptimistically(idTransaksi);
+          }
+          applyEditOptimistically(finalId, dataForm);
+          rerenderAfterLedgerChange();
+
+          showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
+          closeModal("modal-edit-transaksi");
+          await refreshAppData();
+        }
+      );
+    }
   });
 };
 
@@ -555,12 +708,18 @@ export const eksekusiHapus = async () => {
     return showToast("Transaksi ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.", "warning");
   }
 
+  const targetGroupId = getActiveGroupId();
+
   await withBusyButton("btn-hapus", "...", "Ya, Hapus", async () => {
+    if (getActiveGroupId() !== targetGroupId) {
+      showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
+      return;
+    }
     const { delivered, result } = await deliverMutation({ action: "hapusTransaksi", idTransaksi: idTarget });
 
+    if (getActiveGroupId() !== targetGroupId) return;
+
     if (!delivered) {
-      // Offline — the delete is queued. Drop it from the local ledger now so the
-      // UI matches; the queued mutation replays against the server later.
       removeTransactionOptimistically(idTarget);
       rerenderAfterLedgerChange();
       closeModal("modal-hapus");
@@ -570,9 +729,10 @@ export const eksekusiHapus = async () => {
 
     if (!result.status) return showToast(result.message, "error");
 
+    removeTransactionOptimistically(idTarget);
+    rerenderAfterLedgerChange();
     showDatabaseToast("Transaksi Dihapus", `Data transaksi ${idTarget} telah dihapus dari database.`);
     closeModal("modal-hapus");
     await refreshAppData();
-    renderChart();
   });
 };

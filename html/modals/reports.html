@@ -1,47 +1,137 @@
   <!-- 9. Modal Export Data & Cetak -->
   <div class="modal-overlay" id="modal-export">
-    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-export-title">
+    <div class="modal-content modal-md" role="dialog" aria-modal="true" aria-labelledby="modal-export-title">
       <div class="modal-header-standard">
         <div class="modal-header-left">
           <div class="modal-badge-icon">
-            <i class="ph-fill ph-export"></i>
+            <i class="ph-fill ph-file-text"></i>
           </div>
           <div class="modal-title-wrap">
-            <h2 id="modal-export-title">Export &amp; Cetak</h2>
-            <p>Unduh laporan atau bagikan rekap kas</p>
+            <h2 id="modal-export-title">Laporan &amp; Ekspor Kas</h2>
+            <p>Buku kas bulanan, rekapitulasi, cetak dokumen, dan cadangan data</p>
           </div>
         </div>
         <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
       </div>
-      <div class="export-actions-list">
-        <button class="btn btn-outline export-card-btn admin-only" data-action="copy-monthly-recap">
-          <div class="export-icon-box bg-wa-15">
-            <i class="ph-bold ph-whatsapp-logo fs-24"></i>
-          </div>
-          <div class="text-left">
-            <div class="export-btn-title text-main">Salin Rekap Bulan Ini (WA)</div>
-            <div class="export-btn-desc text-muted">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
-          </div>
+
+      <div class="tabs-header mb-16">
+        <button type="button" class="tab-btn active" data-action="switch-tab" data-tab="laporan-kas" id="btn-tab-laporan-kas">
+          <i class="ph ph-calendar-check"></i> Laporan Bulanan
         </button>
-        <button class="btn btn-outline export-card-btn" data-action="print-annual">
-          <div class="export-icon-box bg-secondary-10 text-secondary">
-            <i class="ph-bold ph-printer fs-24"></i>
-          </div>
-          <div class="text-left">
-            <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
-            <div class="export-btn-desc text-muted">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
-          </div>
+        <button type="button" class="tab-btn" data-action="switch-tab" data-tab="ekspor-lain" id="btn-tab-ekspor-lain">
+          <i class="ph ph-export"></i> Ekspor &amp; Backup
         </button>
-        <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
-        <div class="admin-only export-backup-row">
-          <div class="export-backup-actions">
-            <button class="btn btn-outline export-backup-btn" data-action="export-json-backup" title="Download snapshot JSON database">
-              <i class="ph ph-floppy-disk"></i> Backup JSON
-            </button>
-            <label class="btn btn-outline export-backup-btn export-restore-label" for="input-restore-json" title="Restore snapshot JSON database">
-              <i class="ph ph-upload-simple"></i> Restore JSON
-              <input type="file" id="input-restore-json" name="restore-json" accept=".json" class="sr-only">
-            </label>
+      </div>
+
+      <!-- Tab 1: Laporan Kas Bulanan (Buku Kas) -->
+      <div class="tab-content active" id="tab-laporan-kas">
+        <div class="card p-16 mb-16" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md);">
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px;">
+            <div style="flex: 1 1 200px; min-width: 180px;">
+              <label for="cash-report-month" class="form-label" style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Periode Bulan (WIB)</label>
+              <input type="month" id="cash-report-month" name="cash-report-month" class="form-control" style="height: 40px; font-weight: 500;" aria-label="Pilih Periode Bulan">
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" id="btn-print-monthly-report" data-action="print-monthly-report" style="height: 40px; min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ph-bold ph-printer fs-16"></i> Cetak Laporan
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-export-monthly-csv" data-action="export-monthly-csv" style="height: 40px; min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ph-bold ph-file-csv fs-16"></i> Unduh CSV
+              </button>
+            </div>
+          </div>
+          <div class="form-hint" style="margin-top: 8px; font-size: 11.5px; color: var(--text-muted);">
+            Dihitung berdasarkan tanggal kalender transaksi (Asia/Jakarta, UTC+7), bukan periode iuran.
+          </div>
+        </div>
+
+        <!-- Alert banner for invalid transactions (prevent silent dropped money) -->
+        <div id="cash-report-alert" class="mb-16" style="display: none;" role="alert" aria-live="polite"></div>
+
+        <!-- Metric cards: Saldo Awal, Pemasukan, Pengeluaran, Saldo Akhir -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;" aria-live="polite">
+          <div class="stat-card" style="padding: 12px; min-height: auto;">
+            <div class="stat-card-title" style="font-size: 11px; margin-bottom: 4px;">Saldo Awal</div>
+            <div id="cash-report-saldo-awal" class="stat-card-value font-mono" style="font-size: 18px; font-weight: 600;">Rp 0</div>
+          </div>
+          <div class="stat-card" style="padding: 12px; min-height: auto;">
+            <div class="stat-card-title" style="font-size: 11px; margin-bottom: 4px;">Pemasukan (+)</div>
+            <div id="cash-report-pemasukan" class="stat-card-value font-mono" style="font-size: 18px; font-weight: 600; color: var(--income-strong);">Rp 0</div>
+          </div>
+          <div class="stat-card" style="padding: 12px; min-height: auto;">
+            <div class="stat-card-title" style="font-size: 11px; margin-bottom: 4px;">Pengeluaran (-)</div>
+            <div id="cash-report-pengeluaran" class="stat-card-value font-mono stat-danger-val" style="font-size: 18px; font-weight: 600;">Rp 0</div>
+          </div>
+          <div class="stat-card" style="padding: 12px; min-height: auto;">
+            <div class="stat-card-title" style="font-size: 11px; margin-bottom: 4px;">Saldo Akhir</div>
+            <div id="cash-report-saldo-akhir" class="stat-card-value font-mono" style="font-size: 18px; font-weight: 600;">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- Deterministic details table -->
+        <div class="table-card mb-16">
+          <div class="table-header" style="padding: 10px 14px;">
+            <div class="table-title" style="font-size: 14px !important;">
+              <i class="ph ph-receipt" style="padding: 4px; font-size: 14px;"></i> Rincian Arus Kas
+            </div>
+            <span class="text-muted fs-11" style="font-variant-numeric: tabular-nums;">Urutan Kronologis (WIB)</span>
+          </div>
+          <div class="table-responsive table-scrollable" style="max-height: 240px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr style="background: var(--surface-2); border-bottom: 1px solid var(--border);">
+                  <th style="width: 32px; text-align: center; padding: 8px 6px;">No</th>
+                  <th style="width: 115px; padding: 8px 6px;">Waktu</th>
+                  <th style="padding: 8px 6px;">Keterangan / Transaksi</th>
+                  <th style="text-align: right; width: 95px; padding: 8px 6px;">Masuk</th>
+                  <th style="text-align: right; width: 95px; padding: 8px 6px;">Keluar</th>
+                  <th style="text-align: right; width: 100px; padding: 8px 6px;">Saldo</th>
+                </tr>
+              </thead>
+              <tbody id="cash-report-details">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                    Memuat data laporan kas...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Ekspor Lain & Backup (Preserved Exactly) -->
+      <div class="tab-content" id="tab-ekspor-lain">
+        <div class="export-actions-list">
+          <button class="btn btn-outline export-card-btn admin-only" data-action="copy-monthly-recap">
+            <div class="export-icon-box bg-wa-15">
+              <i class="ph-bold ph-whatsapp-logo fs-24"></i>
+            </div>
+            <div class="text-left">
+              <div class="export-btn-title text-main">Salin Rekap Bulan Ini (WA)</div>
+              <div class="export-btn-desc text-muted">Ringkasan masuk/keluar + daftar yang belum bayar siap tempel ke grup WA.</div>
+            </div>
+          </button>
+          <button class="btn btn-outline export-card-btn" data-action="print-annual">
+            <div class="export-icon-box bg-secondary-10 text-secondary">
+              <i class="ph-bold ph-printer fs-24"></i>
+            </div>
+            <div class="text-left">
+              <div class="export-btn-title text-main">Cetak Rekap Tahunan</div>
+              <div class="export-btn-desc text-muted">Cetak matriks status iuran anggota ke format PDF (A4 Landscape).</div>
+            </div>
+          </button>
+          <button class="btn btn-link-subtle" data-action="export-csv"><i class="ph ph-file-csv"></i> Unduh CSV spreadsheet lengkap</button>
+          <div class="admin-only export-backup-row">
+            <div class="export-backup-actions">
+              <button class="btn btn-outline export-backup-btn" data-action="export-json-backup" title="Download snapshot JSON database">
+                <i class="ph ph-floppy-disk"></i> Backup JSON
+              </button>
+              <label class="btn btn-outline export-backup-btn export-restore-label" for="input-restore-json" title="Restore snapshot JSON database">
+                <i class="ph ph-upload-simple"></i> Restore JSON
+                <input type="file" id="input-restore-json" name="restore-json" accept=".json" class="sr-only">
+              </label>
+            </div>
           </div>
         </div>
       </div>

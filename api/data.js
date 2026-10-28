@@ -9,10 +9,13 @@ import { requireFirestoreHeaders, fsGet } from './_sa.js';
 import { isValidGroupId, listGroups, touchGroupUpdated, groupDoc, readSuperadminEmails } from './_store.js';
 import { readGroupData, readAuditLog } from './_group-read.js';
 import { WRITE_HANDLERS } from './_group-write.js';
+import { exportSnapshot } from './_write-snapshot.js';
+import { readAttachment, exportAttachments, ATTACHMENT_WRITE_HANDLERS } from './_attachments.js';
 import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp, ROLES } from './_session.js';
 
 const PUBLIC_ACTIONS = ['groups'];
-const READ_ACTIONS = ['read', 'audit', 'checkUpdate'];
+const READ_ACTIONS = ['read', 'audit', 'checkUpdate', 'readAttachment', 'exportAttachments', 'exportSnapshot'];
+const ADMIN_READ_ACTIONS = ['audit', 'exportAttachments', 'exportSnapshot'];
 
 /** Send a JSON response with caching disabled. */
 const sendJson = (res, status, payload) => {
@@ -76,15 +79,21 @@ export default async function handler(req, res) {
       if (!canReadGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Tidak memiliki akses ke grup ini.' });
       }
-      // Audit is admin-only — reject non-admins cheaply, before any Firestore hit.
-      if (action === 'audit' && !canWriteGroup(session, groupId, null, superadminEmails)) {
-        return sendJson(res, 403, { status: false, message: 'Hanya admin yang dapat membaca riwayat audit.' });
+      // Audit and attachment export are admin-only — reject non-admins cheaply, before any Firestore hit.
+      if (ADMIN_READ_ACTIONS.includes(action) && !canWriteGroup(session, groupId, null, superadminEmails)) {
+        return sendJson(res, 403, {
+          status: false,
+          message: action !== 'audit'
+                      ? 'Hanya admin yang dapat mengekspor backup atau berkas bukti.'
+            : 'Hanya admin yang dapat membaca riwayat audit.'
+        });
       }
 
       // Cost guard: full pulls list four collections each, so cap them per
       // caller. checkUpdate is a cheap 1-read poll (the 35s heartbeat) and is
       // intentionally exempt so normal freshness checks are never throttled.
-      if (action !== 'checkUpdate') {
+      // readAttachment is a direct single-doc read for proof fetching.
+      if (action !== 'checkUpdate' && action !== 'readAttachment') {
         const { limited, retryAfterSec } = checkReadRateLimit(`read:${groupId}:${clientIp(req)}`);
         if (limited) {
           res.setHeader('Retry-After', String(retryAfterSec));
@@ -97,12 +106,27 @@ export default async function handler(req, res) {
       // Session revocation: the caller passed the cheap authz above, so a failure
       // now can only mean the token predates a PIN/credential change (revokedAfter).
       if (!canReadGroup(session, groupId, groupInfo, superadminEmails) ||
-          (action === 'audit' && !canWriteGroup(session, groupId, groupInfo, superadminEmails))) {
+          (ADMIN_READ_ACTIONS.includes(action) && !canWriteGroup(session, groupId, groupInfo, superadminEmails))) {
         return unauthorized(res, 'Sesi sudah tidak berlaku setelah perubahan kredensial. Silakan masuk kembali.');
       }
 
       if (action === 'audit') {
         return sendJson(res, 200, { status: true, data: { log: await readAuditLog(groupId, headers) } });
+      }
+
+      if (action === 'readAttachment') {
+        const result = await readAttachment(groupId, body, headers);
+        return sendJson(res, result.status ? 200 : (result.notFound ? 404 : 400), result);
+      }
+
+      if (action === 'exportSnapshot') {
+        const result = await exportSnapshot(groupId, headers);
+        return sendJson(res, result.status ? 200 : 400, result);
+      }
+
+      if (action === 'exportAttachments') {
+        const result = await exportAttachments(groupId, headers);
+        return sendJson(res, 200, result);
       }
 
       if (action === 'checkUpdate') {
@@ -120,7 +144,7 @@ export default async function handler(req, res) {
     }
 
     // ── Writes ─────────────────────────────────────────────────────────
-    const writeHandler = WRITE_HANDLERS[action];
+    const writeHandler = WRITE_HANDLERS[action] || ATTACHMENT_WRITE_HANDLERS[action];
     if (writeHandler) {
       if (!canWriteGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Hanya admin grup yang dapat mengubah data ini.' });

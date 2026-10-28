@@ -220,6 +220,24 @@
           <label for="edit-keterangan">Keterangan</label>
           <input type="text" id="edit-keterangan" name="edit-keterangan" class="form-control">
         </div>
+        <div class="form-group attachment-control-group" id="transaction-attachment-container">
+          <label for="trx-attachment-file">Bukti Transaksi (maks 512 KiB)</label>
+          <div class="attachment-input-row">
+            <input type="file" id="trx-attachment-file" class="form-control" accept="image/jpeg,image/png,image/webp,application/pdf" aria-label="Pilih berkas bukti transaksi">
+            <div class="attachment-btn-group">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-upload-attachment" data-action="upload-attachment" title="Unggah bukti">
+                <i class="ph ph-upload-simple"></i> Unggah
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-download-attachment" data-action="download-attachment" title="Unduh bukti" style="display:none;">
+                <i class="ph ph-download-simple"></i> Unduh
+              </button>
+              <button type="button" class="btn btn-danger-outline btn-sm" id="btn-delete-attachment" data-action="delete-attachment" title="Hapus bukti" style="display:none;">
+                <i class="ph ph-trash"></i> Hapus
+              </button>
+            </div>
+          </div>
+          <div class="attachment-status-text" id="trx-attachment-status" data-attachment-status>Belum ada bukti terlampir.</div>
+        </div>
         </div>
         <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi" aria-live="polite" aria-atomic="true">
           <div class="edit-impact-icon"><i class="ph ph-arrows-left-right"></i></div>

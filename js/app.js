@@ -28,7 +28,7 @@ import {
   closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
-  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory, toggleUnpaidFilter
+  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
 } from "./render.js";
 
 import {
@@ -287,7 +287,6 @@ document.addEventListener('click', (e) => {
 
     /* ── Mobile card accordion ────────────────────── */
     case 'toggle-card':       toggleIuranCard(target.closest('.iuran-member-card')); break;
-    case 'toggle-unpaid-filter': toggleUnpaidFilter(); break;
 
     /* ── Skipped months ───────────────────────────── */
     case 'add-skip':          addSkippedMonth(); break;

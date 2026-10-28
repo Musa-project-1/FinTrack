@@ -54,21 +54,6 @@ export const renderLunasHtml = () => {
   }
 };
 
-let unpaidOnly = false;
-export const toggleUnpaidFilter = () => {
-  unpaidOnly = !unpaidOnly;
-  renderTableRekap();
-};
-const renderDuesAction = (ledger) => {
-  const summary = document.getElementById('dues-action-summary');
-  if (summary) summary.textContent = `${ledger.unpaidCount} anggota belum lunas · Kekurangan ${formatRp(ledger.arrears)} · Tahun ${currentRekapYear}, s.d. bulan berjalan`;
-  const button = document.getElementById('dues-filter-toggle');
-  if (button) {
-    button.textContent = unpaidOnly ? 'Tampilkan semua' : 'Lihat belum lunas';
-    button.setAttribute('aria-pressed', String(unpaidOnly));
-  }
-};
-
 /* ── Matrix dues table (rekap) ─────────────────────────────────── */
 
 export const renderTableRekap = () => {
@@ -78,7 +63,6 @@ export const renderTableRekap = () => {
   const fragment = document.createDocumentFragment();
 
   const ledger = createDuesLedger(state, { year: currentRekapYear });
-  renderDuesAction(ledger);
 
   const skippedSet = new Set(state.skippedMonths || []);
 
@@ -91,7 +75,6 @@ export const renderTableRekap = () => {
   ).trim().toLowerCase();
   const filteredAnggota = state.anggota
     .filter((ang) => ang.Status_Aktif === 'Aktif')
-    .filter((ang) => !unpaidOnly || ledger.summarize(ang).arrears > 0)
     .filter((ang) => !searchVal || ang.Nama_Anggota.toLowerCase().includes(searchVal))
     .sort((a, b) => a.Nama_Anggota.localeCompare(b.Nama_Anggota));
 

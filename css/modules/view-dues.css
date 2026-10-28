@@ -1,20 +1,4 @@
-/* Dues Action Bar & Save Status Indicator */
-.dues-action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 14px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
-}
-
-.dues-action-summary {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
+/* Dues Save Status Indicator */
 .save-status-indicator {
   padding: 4px 14px;
   font-size: 11px;

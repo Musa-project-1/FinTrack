@@ -127,11 +127,18 @@ export const submitGroupPin = async () => {
   if (msg) msg.replaceChildren(document.createTextNode(res.message));
   if (!res.status) {
     showToast(res.message, "error");
+    const firstPin = document.getElementById("pin0");
+    const pinRow = firstPin?.closest?.(".pin-row");
+    if (pinRow) {
+      pinRow.classList.remove("is-error");
+      void pinRow.offsetWidth;
+      pinRow.classList.add("is-error");
+    }
     ["pin0", "pin1", "pin2", "pin3"].forEach((p) => {
       const el = document.getElementById(p);
       if (el) el.value = "";
     });
-    document.getElementById("pin0")?.focus();
+    firstPin?.focus();
     return;
   }
   enterGroup(pendingGroupId);

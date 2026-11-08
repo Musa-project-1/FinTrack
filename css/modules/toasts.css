@@ -206,7 +206,10 @@
   justify-content: center;
   user-select: none;
   transition: transform var(--t-fast);
-  animation: popIn 0.2s ease-out;
+}
+
+.status-lunas-dot.is-newly-paid {
+  animation: popIn 0.18s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* 1. PAID stamp (default) */
@@ -219,7 +222,10 @@
   background: var(--accent-tint);
   color: var(--accent-strong);
   border: 1.5px solid var(--accent);
-  animation: popInPaid 0.2s ease-out;
+}
+
+.status-lunas-dot.style-paid.is-newly-paid {
+  animation: popInPaid 0.18s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .status-lunas-dot span,
@@ -231,8 +237,10 @@
   line-height: 1;
 }
 
-.status-lunas-dot:hover {
-  transform: rotate(0deg) scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .status-lunas-dot:hover {
+    transform: rotate(0deg) scale(1.04);
+  }
 }
 
 /* 2. Check squircle */
@@ -290,12 +298,12 @@
 }
 
 @keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
+  from { transform: scale(0.92); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
 @keyframes popInPaid {
-  from { transform: rotate(-4deg) scale(0.85); opacity: 0; }
+  from { transform: rotate(-4deg) scale(0.92); opacity: 0; }
   to { transform: rotate(-4deg) scale(1); opacity: 1; }
 }
 

@@ -27,6 +27,19 @@
   outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
+.pin-row.is-error {
+  animation: pinShake 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.pin-row.is-error .pin-box {
+  border-color: var(--danger);
+}
+@keyframes pinShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  88% { transform: translateX(3px); }
+}
 .pin-msg {
   min-height: 20px;
   text-align: center;
@@ -56,14 +69,14 @@
 
 @supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
   .modal-overlay {
-    background: rgba(6, 17, 26, 0.72);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(6, 20, 42, 0.58);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
   }
 }
 
 body.dark-mode .modal-overlay {
-  background: rgba(3, 6, 12, 0.74);
+  background: rgba(3, 8, 20, 0.68);
 }
 
 .modal-overlay.active {
@@ -290,12 +303,7 @@ body.dark-mode select.form-control:focus {
 .tab-btn:hover:not(.active) { color: var(--text-main); background: var(--surface-3); }
 
 .tab-content { display: none; }
-.tab-content.active { display: block; animation: slideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1); height: 100%; }
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.tab-content.active { display: block; height: 100%; }
 
 select option { background-color: var(--surface); color: var(--text-main); }
 
@@ -356,10 +364,14 @@ select option { background-color: var(--surface); color: var(--text-main); }
   font-family: inherit;
   color: var(--text-muted);
   cursor: pointer;
-  transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast), transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
   user-select: none;
 }
 .chip-btn:hover { border-color: var(--border-strong); color: var(--text-main); }
+.chip-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+}
 .chip-btn.active {
   background: var(--accent);
   border-color: var(--accent);

@@ -127,7 +127,6 @@
 .iuran-progress-fill {
   height: 100%;
   background: var(--accent);
-  transition: width 0.4s ease;
   border-radius: var(--r-pill);
 }
 
@@ -146,7 +145,7 @@
 }
 
 .iuran-card-toggle i {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .iuran-member-card.expanded .iuran-card-toggle i {
@@ -154,19 +153,24 @@
 }
 
 .iuran-card-details {
-  max-height: 0;
+  display: none;
   opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
+  transform: translateY(-4px);
+  transition: opacity 0.18s ease-out, transform 0.18s cubic-bezier(0.23, 1, 0.32, 1);
   margin-top: 0;
 }
 
 .iuran-member-card.expanded .iuran-card-details {
-  max-height: 480px;
+  display: block;
   opacity: 1;
+  transform: translateY(0);
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 .iuran-month-grid {
@@ -183,7 +187,7 @@
   text-align: center;
   font-size: 12px;
   cursor: pointer;
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -194,6 +198,11 @@
 
 .iuran-month-item:hover {
   border-color: var(--border-strong);
+}
+
+.iuran-month-item[data-action="quickpay-card"]:active {
+  transform: scale(0.96);
+  transition-duration: 0.1s;
 }
 
 .iuran-month-item.lunas {

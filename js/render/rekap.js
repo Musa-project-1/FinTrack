@@ -37,20 +37,30 @@ export const getActiveIndicatorStyle = () => {
   }
 };
 
-export const renderLunasHtml = () => {
+const newlyPaidCells = new Set();
+
+export const markNewlyPaidCells = (idAnggotaList, bulan, tahun) => {
+  const ids = Array.isArray(idAnggotaList) ? idAnggotaList : [idAnggotaList];
+  ids.forEach((id) => {
+    if (id && bulan && tahun) newlyPaidCells.add(`${id}:${bulan}:${tahun}`);
+  });
+};
+
+export const renderLunasHtml = (isNewlyPaid = false) => {
   const style = getActiveIndicatorStyle();
+  const extra = isNewlyPaid ? ' is-newly-paid' : '';
   switch (style) {
     case 'check':
-      return '<div class="status-lunas-dot style-check" title="Lunas"><i class="ph-bold ph-check"></i></div>';
+      return `<div class="status-lunas-dot style-check${extra}" title="Lunas"><i class="ph-bold ph-check"></i></div>`;
     case 'star':
-      return '<div class="status-lunas-dot style-star" title="Lunas"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></div>';
+      return `<div class="status-lunas-dot style-star${extra}" title="Lunas"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></div>`;
     case 'round-star':
-      return '<div class="status-lunas-dot style-round-star" title="Lunas"><i class="ph-fill ph-star"></i></div>';
+      return `<div class="status-lunas-dot style-round-star${extra}" title="Lunas"><i class="ph-fill ph-star"></i></div>`;
     case 'nominal':
-      return `<div class="status-lunas-dot style-nominal" title="Lunas">${escapeHtml(formatCompactRp(DEFAULT_MONTHLY_FEE))}</div>`;
+      return `<div class="status-lunas-dot style-nominal${extra}" title="Lunas">${escapeHtml(formatCompactRp(DEFAULT_MONTHLY_FEE))}</div>`;
     case 'paid':
     default:
-      return '<div class="status-lunas-dot style-paid" title="Lunas (PAID)"><span>PAID</span></div>';
+      return `<div class="status-lunas-dot style-paid${extra}" title="Lunas (PAID)"><span>PAID</span></div>`;
   }
 };
 
@@ -107,7 +117,8 @@ export const renderTableRekap = () => {
           tdBulan.className = 'text-center td-clickable';
           tdBulan.title = `${duesStatusLabel(month)} · ${formatRp(month.paid)}; sisa ${formatRp(month.remaining)}`;
           if (isLunas) {
-            tdBulan.innerHTML = renderLunasHtml();
+            const isNewlyPaid = newlyPaidCells.has(`${ang.ID_Anggota}:${bulan}:${currentRekapYear}`);
+            tdBulan.innerHTML = renderLunasHtml(isNewlyPaid);
           } else {
             tdBulan.innerHTML = month.status === 'partial' ? `<span class="status-partial">Sebagian<small>${escapeHtml(formatCompactRp(month.paid))}</small></span>` : '';
             if (getIsAdminSession()) {
@@ -124,6 +135,7 @@ export const renderTableRekap = () => {
     tbody.innerHTML = '';
     tbody.appendChild(fragment);
   }
+  newlyPaidCells.clear();
 
   // Highlight skipped-month headers
   const headerRow = tbody.closest('table')?.querySelector('thead tr');

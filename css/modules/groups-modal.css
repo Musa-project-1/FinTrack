@@ -44,11 +44,13 @@ button.group-item:hover { border-color: var(--accent); background: var(--surface
 .group-item .chev {
   margin-left: auto;
   color: var(--text-faint);
-  transition: color var(--t-fast), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color var(--t-fast), transform 0.18s cubic-bezier(0.23, 1, 0.32, 1);
 }
-button.group-item:hover .chev {
-  transform: translateX(2px);
-  color: var(--accent-strong);
+@media (hover: hover) and (pointer: fine) {
+  button.group-item:hover .chev {
+    transform: translateX(2px);
+    color: var(--accent-strong);
+  }
 }
 .group-admin-row .avatar,
 .group-item .avatar {

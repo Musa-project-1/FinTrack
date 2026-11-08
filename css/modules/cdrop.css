@@ -30,11 +30,16 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .cdrop-btn:hover {
   border-color: var(--border-strong);
+}
+
+.cdrop-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
 }
 
 .cdrop.open .cdrop-btn,
@@ -88,27 +93,34 @@ body.dark-mode .cdrop-chevron {
   border-radius: var(--r-md);
   box-shadow: var(--shadow-pop);
   padding: 6px;
+  transform-origin: top left;
   /* Closed state: hidden but transitionable */
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(0.98);
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: opacity 0.15s ease-out, transform 0.15s cubic-bezier(0.23, 1, 0.32, 1),
               visibility 0s linear 0.15s;
 }
 
 .cdrop.open .cdrop-list {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: opacity 0.15s ease-out, transform 0.15s cubic-bezier(0.23, 1, 0.32, 1),
               visibility 0s linear 0s;
 }
 
 .cdrop--up .cdrop-list {
   top: auto;
   bottom: calc(100% + 6px);
+  transform-origin: bottom left;
+  transform: translateY(4px) scale(0.98);
+}
+
+.cdrop.open.cdrop--up .cdrop-list {
+  transform: translateY(0) scale(1);
 }
 
 .cdrop-search {
@@ -209,7 +221,9 @@ body.dark-mode .cdrop-item.selected::after {
   border: none;
   box-shadow: none;
   background: transparent;
-  padding: 0 18px 0 0;
+  padding: 2px 18px 2px 0;
+  height: auto;
+  min-height: 24px;
   font-size: 13px;
   font-weight: 600;
 }
@@ -231,7 +245,9 @@ body.dark-mode .cdrop-item.selected::after {
   border: none;
   box-shadow: none;
   background: transparent;
-  padding: 0 16px 0 0;
+  padding: 2px 16px 2px 0;
+  height: auto;
+  min-height: 24px;
   font-size: 13px;
   font-weight: 600;
   width: auto;
@@ -253,4 +269,5 @@ body.dark-mode .cdrop-item.selected::after {
   width: max-content;
   max-width: 60vw;
   z-index: 80;
+  transform-origin: top right;
 }

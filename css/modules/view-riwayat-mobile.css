@@ -92,12 +92,12 @@
   }
 
   .select-pill-wrap {
-    height: 32px !important;
+    min-height: 36px !important;
     justify-content: space-between;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    padding: 0 8px !important;
+    padding: 6px 10px !important;
     border-radius: var(--r-sm) !important;
   }
 
@@ -111,7 +111,7 @@
     padding-left: 22px !important;
     padding-right: 6px !important;
     font-size: 11.5px !important;
-    height: 32px !important;
+    height: auto !important;
   }
 
   .riwayat-rail-section-label {

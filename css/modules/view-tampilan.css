@@ -32,7 +32,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: background-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
   white-space: nowrap;
 }
 
@@ -59,18 +59,6 @@
 
 .tampilan-tab-body .tab-content.active {
   display: flex;
-  animation: fadeIn 0.18s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .tampilan-section {
@@ -117,7 +105,7 @@
   gap: 8px;
   cursor: pointer;
   text-align: left;
-  transition: all var(--t-fast);
+  transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
   width: 100%;
 }
 
@@ -172,6 +160,8 @@
 .style-preview-wrap {
   width: 32px;
   height: 32px;
+  padding: 6px;
+  box-sizing: border-box;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -214,8 +204,8 @@
   justify-content: center;
   font-size: 10px;
   opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform: scale(0.92);
+  transition: opacity 0.16s ease-out, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
   background: var(--accent);
   color: var(--accent-ink);
 }

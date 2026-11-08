@@ -18,38 +18,38 @@
    6. Never hard-code a colour outside this file — always read a token. */
 
 :root {
-  /* ---------- Surfaces · Muted Slate (Eye-Comfort Light Mode) ---------- */
-  --bg-color: #e9edf2;
+  /* ---------- Surfaces · Cool Alabaster + Ice Blue Wash (Coinbase × Stripe) ---------- */
+  --bg-color: #f3f6fb;
   --surface: #ffffff;
-  --surface-2: #dee5ec;
-  --surface-3: #ced9e3;
+  --surface-2: #eaf0f8;
+  --surface-3: #dbe5f3;
   --surface-subtle: var(--surface-2);
   --bg-card: var(--surface);
   --bg-card-subtle: var(--surface-2);
   --table-header-bg: var(--surface-2);
 
   /* ---------- Hairlines ---------- */
-  --border: #c4d1de;
-  --border-strong: #a6b9cb;
+  --border: #cbd8ea;
+  --border-strong: #9fb6d4;
   --border-color: var(--border);
 
   /* ---------- Ink ---------- */
-  --text-main: #0f2333;
-  --text-muted: #4a6375;
-  --text-faint: #395264;
+  --text-main: #061b31;
+  --text-muted: #425466;
+  --text-faint: #334659;
 
-  /* ---------- Accent · Ocean Teal ---------- */
-  --accent: #0d9488;
-  --accent-strong: #0f5c56;
-  --accent-tint: rgba(13, 148, 136, 0.10);
-  --accent-border: rgba(13, 148, 136, 0.30);
+  /* ---------- Accent · Coinbase / Oura Action Blue ---------- */
+  --accent: #0052ff;
+  --accent-strong: #0040c9;
+  --accent-tint: rgba(0, 82, 255, 0.09);
+  --accent-border: rgba(0, 82, 255, 0.30);
   --accent-ink: #ffffff;
 
-  /* ---------- Functional hues ---------- */
-  --income: #059669;
-  --income-strong: #047857;
-  --income-bg: rgba(16, 185, 129, 0.12);
-  --income-border: rgba(16, 185, 129, 0.30);
+  /* ---------- Functional hues (Blue Edition — Zero Green) ---------- */
+  --income: #0052ff;
+  --income-strong: #0040c9;
+  --income-bg: rgba(0, 82, 255, 0.10);
+  --income-border: rgba(0, 82, 255, 0.28);
   --secondary: #0284c7;
   --danger: #be123c;
   --danger-strong: #be123c;
@@ -91,12 +91,12 @@
   --t-base: 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 
   /* ---------- Elevation ---------- */
-  --shadow-pop: 0 12px 32px -8px rgba(14, 36, 55, 0.22), 0 2px 8px -2px rgba(14, 36, 55, 0.10);
-  --shadow-sm: none;
-  --shadow-md: none;
+  --shadow-pop: 0 16px 36px -8px rgba(0, 0, 0, 0.16), 0 4px 10px -2px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-card);
   --shadow-lg: var(--shadow-pop);
-  --shadow-card: none;
-  --shadow-card-hover: none;
+  --shadow-card-hover: var(--shadow-pop);
   --shadow-card-flat: none;
   --shadow-dropdown: var(--shadow-pop);
   --shadow-menu-mobile: var(--shadow-pop);
@@ -116,37 +116,37 @@
 }
 
 body.dark-mode {
-  /* ---------- Surfaces · Navy Ocean ---------- */
-  --bg-color: #08131d;
-  --surface: #112334;
-  --surface-2: #193147;
-  --surface-3: #223f5b;
+  /* ---------- Surfaces · Twilight Midnight Blue ---------- */
+  --bg-color: #070d19;
+  --surface: #0e172a;
+  --surface-2: #16223b;
+  --surface-3: #1e2f50;
   --surface-subtle: var(--surface-2);
   --bg-card: var(--surface);
   --bg-card-subtle: var(--surface-2);
   --table-header-bg: var(--surface-2);
 
-  /* ---------- Hairlines · cyan-tinted ---------- */
-  --border: rgba(56, 189, 248, 0.16);
-  --border-strong: rgba(56, 189, 248, 0.28);
+  /* ---------- Hairlines · cobalt-tinted ---------- */
+  --border: rgba(96, 165, 250, 0.16);
+  --border-strong: rgba(96, 165, 250, 0.30);
 
   /* ---------- Ink ---------- */
-  --text-main: #e9f4f8;
-  --text-muted: #93b4c7;
-  --text-faint: #6b8fa6;
+  --text-main: #f0f6fc;
+  --text-muted: #94a9c9;
+  --text-faint: #6c84a6;
 
   /* ---------- Accent ---------- */
-  --accent: #2dd4bf;
-  --accent-strong: #5eead4;
-  --accent-tint: rgba(45, 212, 191, 0.12);
-  --accent-border: rgba(45, 212, 191, 0.34);
-  --accent-ink: #04231f;
+  --accent: #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-tint: rgba(59, 130, 246, 0.14);
+  --accent-border: rgba(59, 130, 246, 0.36);
+  --accent-ink: #041026;
 
-  /* ---------- Functional hues ---------- */
-  --income: #34d399;
-  --income-strong: #6ee7b7;
-  --income-bg: rgba(52, 211, 153, 0.14);
-  --income-border: rgba(52, 211, 153, 0.34);
+  /* ---------- Functional hues (Blue Edition — Zero Green) ---------- */
+  --income: #60a5fa;
+  --income-strong: #93c5fd;
+  --income-bg: rgba(59, 130, 246, 0.16);
+  --income-border: rgba(96, 165, 250, 0.36);
   --secondary: #38bdf8;
   --danger: #fb7185;
   --danger-strong: #fda4af;
@@ -159,6 +159,11 @@ body.dark-mode {
 
   /* ---------- Elevation ---------- */
   --shadow-pop: 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 2px 8px -2px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-pop);
+  --shadow-card-hover: var(--shadow-pop);
 
   /* Legacy inline-style aliases — redeclared here so they re-resolve against
      this element's dark values instead of the light ones from :root. */
@@ -208,33 +213,33 @@ body {
 
 /* === FINTECH ACCENT PALETTE VARIANTS === */
 body[data-accent="emerald"] {
-  --accent: #10b981;
-  --accent-strong: #059669;
-  --accent-tint: rgba(16, 185, 129, 0.12);
-  --accent-border: rgba(16, 185, 129, 0.32);
+  --accent: #0052ff;
+  --accent-strong: #0040c9;
+  --accent-tint: rgba(0, 82, 255, 0.10);
+  --accent-border: rgba(0, 82, 255, 0.32);
   --accent-ink: #ffffff;
 }
 body.dark-mode[data-accent="emerald"] {
-  --accent: #34d399;
-  --accent-strong: #6ee7b7;
-  --accent-tint: rgba(52, 211, 153, 0.16);
-  --accent-border: rgba(52, 211, 153, 0.38);
-  --accent-ink: #022c22;
+  --accent: #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-tint: rgba(59, 130, 246, 0.16);
+  --accent-border: rgba(59, 130, 246, 0.38);
+  --accent-ink: #041026;
 }
 
 body[data-accent="cyan"] {
-  --accent: #0284c7;
-  --accent-strong: #0369a1;
-  --accent-tint: rgba(2, 132, 199, 0.12);
-  --accent-border: rgba(2, 132, 199, 0.32);
+  --accent: #0052ff;
+  --accent-strong: #0040c9;
+  --accent-tint: rgba(0, 82, 255, 0.10);
+  --accent-border: rgba(0, 82, 255, 0.32);
   --accent-ink: #ffffff;
 }
 body.dark-mode[data-accent="cyan"] {
-  --accent: #38bdf8;
-  --accent-strong: #7dd3fc;
-  --accent-tint: rgba(56, 189, 248, 0.16);
-  --accent-border: rgba(56, 189, 248, 0.38);
-  --accent-ink: #082f49;
+  --accent: #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-tint: rgba(59, 130, 246, 0.16);
+  --accent-border: rgba(59, 130, 246, 0.38);
+  --accent-ink: #041026;
 }
 
 body[data-accent="indigo"] {

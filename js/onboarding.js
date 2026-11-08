@@ -129,13 +129,20 @@ const submitPin = async () => {
 
     const message = (res && res.message) || 'PIN salah.';
     setMsg(message, true);
+    const firstPin = el('pin0');
+    const pinRow = firstPin?.closest?.('.pin-input-row');
+    if (pinRow) {
+      pinRow.classList.remove('is-error');
+      void pinRow.offsetWidth;
+      pinRow.classList.add('is-error');
+    }
 
     // Clear PIN boxes and refocus
     ['pin0', 'pin1', 'pin2', 'pin3'].forEach((p) => {
       const inp = el(p);
       if (inp) inp.value = '';
     });
-    el('pin0')?.focus();
+    firstPin?.focus();
   } catch (err) {
     setMsg('Gagal memeriksa PIN. Periksa koneksi internet.', true);
   } finally {

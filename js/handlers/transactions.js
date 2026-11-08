@@ -21,7 +21,8 @@ import {
   renderTableTransaksi,
   renderTableRekap,
   renderChart,
-  populateTahunRekap
+  populateTahunRekap,
+  markNewlyPaidCells
 } from "../render.js";
 
 const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHLY_FEE);
@@ -171,6 +172,7 @@ export const submitQuickPay = async (e) => {
             };
             addTransaction(offlineRow);
             saveCache();
+            markNewlyPaidCells(idAnggota, bulan, tahun);
             rerenderAfterLedgerChange();
             return;
           }
@@ -192,6 +194,7 @@ export const submitQuickPay = async (e) => {
 
           const serverRow = result.data?.transaction || (result.data?.ID_Transaksi ? result.data : null);
           integrateServerTransaction(serverRow);
+          markNewlyPaidCells(idAnggota, bulan, tahun);
           rerenderAfterLedgerChange();
         }
       );
@@ -343,6 +346,7 @@ export const submitIuran = async (e) => {
               }
               if (added > 0) saveCache();
               else refreshAppData();
+              markNewlyPaidCells(arrIdAnggota, formBulan, formTahun);
               rerenderAfterLedgerChange();
               renderCheckboxIuran();
               const nomInput = document.getElementById("iuran-nominal");
@@ -379,6 +383,7 @@ const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timest
     });
   });
   saveCache();
+  markNewlyPaidCells(ids, bulan, tahun);
   rerenderAfterLedgerChange();
   renderCheckboxIuran();
   const nomInput = document.getElementById("iuran-nominal");

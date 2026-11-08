@@ -242,7 +242,7 @@ body {
 .nav-progress::after { content: ''; display: block; height: 100%; width: 100%; background: var(--lp-pure); transform: scaleX(var(--lp-scroll-ratio, 0)); transform-origin: left center; }
 
 /* ── Sticky Glass Navbar ──────────────────────────────────────────────── */
-.landing-nav { position: sticky; top: 0; z-index: 40; width: 100%; background: rgba(15,16,17,0.72); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transition: background-color var(--lp-t-state), padding var(--lp-t-state), border-color var(--lp-t-state); }
+.landing-nav { position: sticky; top: 0; z-index: 40; width: 100%; background: rgba(15,16,17,0.72); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid var(--lp-line-soft); transition: background-color var(--lp-t-state), border-color var(--lp-t-state); }
 /* 3.5 .is-scrolled state */
 .landing-nav.is-scrolled { background: rgba(15,16,17,0.92); border-bottom-color: var(--lp-line); padding-top: 0; padding-bottom: 0; }
 .landing-nav.is-scrolled .nav-inner { padding-top: 8px; padding-bottom: 8px; }

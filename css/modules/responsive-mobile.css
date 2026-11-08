@@ -41,11 +41,11 @@ body { padding: 6px 0 100px 0; }
     margin: 0 8px 12px;
   }
   .balance-hero__value {
-    font-size: clamp(1.75rem, 11vw, 2.5rem);
+    font-size: 1.75rem;
   }
   .flow-strip__item { padding: 10px 12px; }
   .flow-strip__value { font-size: 13px; }
-  .flow-strip__label { font-size: 9.5px; }
+  .flow-strip__label { font-size: 11px; }
   .card { 
     padding: 8px 10px;
     gap: 8px;

@@ -8,11 +8,23 @@ html {
 
 body {
   background-color: var(--bg-color);
+  background-image:
+    radial-gradient(circle at 10% 8%, rgba(0, 82, 255, 0.14), transparent 40%),
+    radial-gradient(circle at 90% 12%, rgba(14, 165, 233, 0.12), transparent 38%),
+    radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.08), transparent 45%);
+  background-attachment: fixed;
   color: var(--text-main);
-  padding: 40px 20px;
+  padding: 20px 24px 40px;
   min-height: 100vh;
   overflow-x: hidden;
   overscroll-behavior-y: none;
+}
+
+body.dark-mode {
+  background-image:
+    radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.22), transparent 42%),
+    radial-gradient(circle at 90% 12%, rgba(14, 165, 233, 0.15), transparent 38%),
+    radial-gradient(circle at 50% 85%, rgba(29, 78, 216, 0.14), transparent 45%);
 }
 
 /* === FOCUS — one sharp accent ring, visible in both themes === */
@@ -31,15 +43,22 @@ a:focus:not(:focus-visible) {
   color: var(--text-main);
 }
 
-/* === CARDS & MODALS — hairline frame, flat elevation === */
+/* === CARDS & MODALS — frosted glass frame, soft atmospheric elevation === */
 .table-card,
 .modal-content {
-  background: var(--surface) !important;
+  background: rgba(255, 255, 255, 0.80) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
   border: 1px solid var(--border) !important;
 }
 
+body.dark-mode .table-card,
+body.dark-mode .modal-content {
+  background: rgba(14, 23, 42, 0.80) !important;
+}
+
 .table-card {
-  box-shadow: none !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 /* A modal genuinely floats, so it is the one surface allowed a shadow.
@@ -295,8 +314,16 @@ body.progress-format-ratio .iuran-progress-subtext {
   .btn-sync-rekap:active,
   .btn-load-more:hover,
   .btn-load-more:active,
+  .chip-btn:active,
+  .cdrop-btn:active,
+  .mpick-field:active,
+  .iuran-month-item:active,
   .bottom-nav-item:active i {
     transform: none !important;
+  }
+
+  .pin-row.is-error {
+    animation: none !important;
   }
 
   /* Modal overlay & dropdown: kill the visibility delay so close is instant */

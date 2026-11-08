@@ -27,11 +27,16 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .mpick-field:hover {
   border-color: var(--border-strong);
+}
+
+.mpick-field:active:not(:disabled) {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
 }
 
 .mpick.open .mpick-field,
@@ -75,7 +80,8 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-pop);
   padding: 12px;
-  animation: dropdownFadeIn var(--t-fast);
+  transform-origin: top left;
+  animation: dropdownFadeIn 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .mpick-head {

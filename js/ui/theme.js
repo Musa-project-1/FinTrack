@@ -141,7 +141,7 @@ export const setTheme = (themeKey) => {
  * Accent color palette preference ('emerald' | 'cyan' | 'indigo' | 'amber').
  */
 export const applyAccentPreference = () => {
-  const accent = safeGetItem('finkas_accent_color', 'emerald');
+  const accent = safeGetItem('finkas_accent_color', 'cyan');
   document.body.setAttribute('data-accent', accent);
 };
 

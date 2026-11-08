@@ -214,10 +214,38 @@
   will-change: opacity;
 }
 
-/* 6. PIN Spinner */
+/* 6. PIN Spinner & Portal Transitions */
 .lp-spin {
   animation: lp-spin 0.8s linear infinite;
   display: inline-block;
+}
+
+#state-welcome:not(.hidden),
+#state-list:not(.hidden),
+#state-pin:not(.hidden) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.2s ease-out, transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+.pin-input-row.is-error {
+  animation: lp-pin-shake 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.pin-input-row.is-error .pin-digit-box {
+  border-color: var(--lp-danger);
+}
+
+@keyframes lp-pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  88% { transform: translateX(3px); }
 }
 
 /* 7. Prefers-Reduced-Motion */
@@ -251,7 +279,15 @@
 
   .js-motion .sky-layer { transform: none; }
 
-  .lp-spin { animation: none; }
+  .lp-spin,
+  .pin-input-row.is-error { animation: none !important; }
+
+  #state-welcome:not(.hidden),
+  #state-list:not(.hidden),
+  #state-pin:not(.hidden) {
+    transform: none !important;
+    transition: opacity 0.12s ease !important;
+  }
 
   .js-motion *,
   .js-motion *::before,

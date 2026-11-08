@@ -6,37 +6,63 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
-  margin-bottom: var(--sp-8);
+  gap: var(--sp-4);
+  margin-bottom: 20px;
 }
 
-/* --- Unified cash summary panel --- */
+/* --- Bento 3-Card Financial Strip (Polarity-Flipped Cobalt Vault + Dual Frosted Flow Cards) --- */
 .cash-summary {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
 }
 
 .balance-hero {
-  padding: var(--sp-6) var(--sp-6) var(--sp-4);
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #0045d8 0%, #061b31 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
-  gap: var(--sp-3);
+  gap: 10px;
   min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+body.dark-mode .balance-hero {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0b162c 100%);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.balance-hero .eyebrow {
+  color: #dbeafe;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 .balance-hero__value {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: clamp(2.25rem, 8vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   -webkit-font-feature-settings: "tnum" 1;
   font-feature-settings: "tnum" 1;
-  color: var(--text-main);
+  color: #ffffff;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -47,24 +73,64 @@ body.dark-mode .balance-hero__value {
   color: #ffffff;
 }
 
-/* --- Flow strip (inflow/outflow) — part of cash-summary, no own border --- */
+/* --- Flow strip (inflow/outflow) — 2 detached frosted glass cards --- */
 .flow-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--border);
-  overflow: hidden;
+  gap: 14px;
+  background: transparent;
+  border-top: none;
+  overflow: visible;
+}
+
+@media (min-width: 768px) {
+  .cash-summary {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr);
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .flow-strip {
+    border-top: none;
+    border-left: none;
+    gap: 16px;
+  }
+
+  .flow-strip__item {
+    justify-content: center;
+  }
 }
 
 .flow-strip__item {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
-  padding: var(--sp-4) var(--sp-6);
+  justify-content: space-between;
+  gap: 10px;
+  padding: 20px 24px;
   min-width: 0;
+  background: rgba(255, 255, 255, 0.84);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+body.dark-mode .flow-strip__item {
+  background: rgba(14, 23, 42, 0.82);
 }
 
 .flow-strip__item + .flow-strip__item {
   border-left: 1px solid var(--border);
+}
+
+.flow-strip__value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .flow-strip__label {
@@ -231,23 +297,11 @@ body.header-stats-active .dashboard {
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--surface);
-  animation: pulse-online 2.4s ease-in-out infinite;
   pointer-events: none;
 }
 
 .connection-status.offline .status-dot {
   background: var(--danger);
-  animation: pulse-offline 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse-online {
-  0%, 100% { box-shadow: 0 0 0 0 var(--accent-tint); }
-  50%       { box-shadow: 0 0 0 4px transparent; }
-}
-
-@keyframes pulse-offline {
-  0%, 100% { box-shadow: 0 0 0 0 var(--danger-bg); }
-  50%       { box-shadow: 0 0 0 4px transparent; }
 }
 
 .status-badge .queue-count {
@@ -357,7 +411,7 @@ body.header-stats-active .dashboard {
   width: 0;
   border-radius: var(--r-pill);
   background: var(--accent);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left center;
 }
 
 /* Stat card interactive (menunggak — clickable WA copy) */

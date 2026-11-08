@@ -19,7 +19,9 @@
   position: sticky;
   top: calc(-1 * var(--modal-pad));
   z-index: 3;
-  background: var(--surface);
+  background: inherit;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 }
 
 .modal-header-left { display: flex; align-items: center; gap: 12px; }
@@ -103,7 +105,9 @@
   gap: 10px;
   margin: 20px calc(-1 * var(--modal-pad)) calc(-1 * var(--modal-pad));
   padding: 14px var(--modal-pad) var(--modal-pad);
-  background: var(--surface);
+  background: inherit;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
 }
 
@@ -421,6 +425,16 @@ details.faq-item[open] .faq-item-title {
   line-height: 1.6;
   margin: 0;
   padding: 12px 16px 14px;
+}
+
+details.faq-item[open] .faq-item-desc {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.16s ease-out, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 /* === TOUCH TARGETS ===

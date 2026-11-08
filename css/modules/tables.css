@@ -7,20 +7,8 @@
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: none;
+  box-shadow: var(--shadow-card);
   position: relative;
-}
-
-/* A single accent hairline along the top edge — the one deliberate accent. */
-.table-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--accent-border);
-  z-index: 1;
 }
 
 .table-header {
@@ -144,8 +132,8 @@
   color: var(--text-muted);
   font-weight: 500;
   background: var(--surface-2);
-  padding: 0 var(--sp-3);
-  height: 40px;
+  padding: 8px var(--sp-3);
+  min-height: 40px;
   box-sizing: border-box;
   border-radius: var(--r-md);
   display: inline-flex;
@@ -178,7 +166,7 @@
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  font-size: 10.5px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
   color: var(--text-faint);
@@ -347,6 +335,22 @@ body.dark-mode .table-matriks thead th {
   z-index: 10;
 }
 
+.table-matriks tbody tr:nth-child(even) td {
+  background: rgba(234, 240, 248, 0.45);
+}
+
+.table-matriks tbody tr:nth-child(even) td:first-child {
+  background: #f6f9fd;
+}
+
+body.dark-mode .table-matriks tbody tr:nth-child(even) td {
+  background: rgba(22, 34, 59, 0.45);
+}
+
+body.dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
+  background: #111c33;
+}
+
 .table-matriks thead th:first-child {
   background: var(--surface-2);
   z-index: 11;
@@ -427,15 +431,8 @@ body.dark-mode .table-matriks thead th {
   font-family: inherit;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  width: 220px;
-  transition: width var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
-}
-
-/* Widening on focus is a desktop affordance only — it overflows on phones. */
-@media (min-width: 769px) {
-  .member-search-wrapper .search-member-input:focus {
-    width: 260px;
-  }
+  width: 240px;
+  transition: border-color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .member-search-wrapper .search-member-input:focus {
@@ -488,13 +485,13 @@ body.dark-mode .table-matriks thead th {
   height: 7px;
   border-radius: 50%;
   border: 1.5px solid var(--surface-2);
-  background: #10b981;
+  background: var(--accent);
   transition: background 0.3s;
 }
 
-/* Hijau: data sinkron */
+/* Biru: data sinkron */
 .btn-sync-rekap.is-clean .sync-rekap-dot {
-  background: #10b981;
+  background: var(--accent);
   animation: none;
 }
 .btn-sync-rekap.is-clean {

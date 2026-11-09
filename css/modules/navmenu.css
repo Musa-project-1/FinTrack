@@ -43,6 +43,10 @@ body.dark-mode .command-hub-header {
   box-shadow: 0 0 0 2px var(--accent-tint);
 }
 
+.command-search-bar:focus-within .command-search-icon {
+  color: var(--accent-strong);
+}
+
 .command-search-icon {
   font-size: 17px;
   color: var(--text-faint);
@@ -172,17 +176,23 @@ body.dark-mode .command-hub-header {
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--surface-3);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  border: 1px solid var(--accent-border);
   letter-spacing: 0.05em;
   flex-shrink: 0;
 }
 
 .nav-badge-tag.is-super {
-  background: var(--accent-tint);
-  color: var(--accent-strong);
-  border-color: var(--accent-border);
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.32);
+}
+
+body.dark-mode .nav-badge-tag.is-super {
+  background: rgba(168, 85, 247, 0.16);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.38);
 }
 
 .command-hub-footer {
@@ -335,21 +345,56 @@ body.dark-mode .command-hub-header {
   transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
 
-/* Nav icon tiles: neutral baseline. Only destructive (is-red) keeps colour.
-   Previous rainbow (green/blue/amber/purple) replaced with a single neutral. */
-.nav-ico.is-green,
-.nav-ico.is-blue,
-.nav-ico.is-amber,
-.nav-ico.is-purple,
+/* Nav icon tiles: vibrant chromatic badges with tactile hover states */
+.nav-ico.is-blue {
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.32);
+  color: #60a5fa;
+}
+.nav-item:hover .nav-ico.is-blue {
+  background: #3b82f6;
+  color: #041026;
+  border-color: #60a5fa;
+}
+
+.nav-ico.is-green {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  color: #34d399;
+}
+.nav-item:hover .nav-ico.is-green {
+  background: #10b981;
+  color: #022c22;
+  border-color: #34d399;
+}
+
+.nav-ico.is-amber {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  color: #fbbf24;
+}
+.nav-item:hover .nav-ico.is-amber {
+  background: #f59e0b;
+  color: #451a03;
+  border-color: #fbbf24;
+}
+
+.nav-ico.is-purple {
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(192, 132, 252, 0.32);
+  color: #c084fc;
+}
+.nav-item:hover .nav-ico.is-purple {
+  background: #a855f7;
+  color: #2e1065;
+  border-color: #c084fc;
+}
+
 .nav-ico.is-slate {
   background: rgba(148, 163, 184, 0.14);
   border: 1px solid rgba(148, 163, 184, 0.30);
   color: var(--text-muted);
 }
-.nav-item:hover .nav-ico.is-green,
-.nav-item:hover .nav-ico.is-blue,
-.nav-item:hover .nav-ico.is-amber,
-.nav-item:hover .nav-ico.is-purple,
 .nav-item:hover .nav-ico.is-slate {
   background: var(--surface-3);
   color: var(--text-main);
@@ -367,18 +412,59 @@ body.dark-mode .command-hub-header {
   border-color: #fb7185;
 }
 
-body:not(.dark-mode) .nav-ico.is-green,
-body:not(.dark-mode) .nav-ico.is-blue,
-body:not(.dark-mode) .nav-ico.is-amber,
-body:not(.dark-mode) .nav-ico.is-purple {
-  background: rgba(148, 163, 184, 0.14);
-  border-color: rgba(148, 163, 184, 0.30);
-  color: var(--text-muted);
+body:not(.dark-mode) .nav-ico.is-blue {
+  background: rgba(0, 82, 255, 0.10);
+  border-color: rgba(0, 82, 255, 0.28);
+  color: #0052ff;
 }
+body:not(.dark-mode) .nav-item:hover .nav-ico.is-blue {
+  background: #0052ff;
+  color: #ffffff;
+  border-color: #0052ff;
+}
+
+body:not(.dark-mode) .nav-ico.is-green {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.30);
+  color: #059669;
+}
+body:not(.dark-mode) .nav-item:hover .nav-ico.is-green {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+body:not(.dark-mode) .nav-ico.is-amber {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.30);
+  color: #d97706;
+}
+body:not(.dark-mode) .nav-item:hover .nav-ico.is-amber {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+body:not(.dark-mode) .nav-ico.is-purple {
+  background: rgba(124, 58, 237, 0.10);
+  border-color: rgba(124, 58, 237, 0.28);
+  color: #7c3aed;
+}
+body:not(.dark-mode) .nav-item:hover .nav-ico.is-purple {
+  background: #7c3aed;
+  color: #ffffff;
+  border-color: #7c3aed;
+}
+
 body:not(.dark-mode) .nav-ico.is-red {
-  background: rgba(225, 29, 72, 0.14);
-  border-color: rgba(225, 29, 72, 0.35);
+  background: rgba(225, 29, 72, 0.12);
+  border-color: rgba(225, 29, 72, 0.30);
   color: #e11d48;
+}
+body:not(.dark-mode) .nav-item:hover .nav-ico.is-red {
+  background: #e11d48;
+  color: #ffffff;
+  border-color: #e11d48;
 }
 
 .nav-txt {

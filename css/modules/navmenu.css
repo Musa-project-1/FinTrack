@@ -7,24 +7,16 @@
   overflow: hidden !important;
   border-radius: var(--r-lg) !important;
   border: 1px solid var(--border) !important;
-  background: rgba(255, 255, 255, 0.88) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  backdrop-filter: blur(24px) saturate(190%);
+  /* Solid like every other modal: translucent layers over the dim overlay
+     band into grey body vs. white header. */
+  background: var(--surface) !important;
   box-shadow: var(--shadow-pop) !important;
-}
-
-body.dark-mode .command-hub-modal {
-  background: rgba(14, 23, 42, 0.88) !important;
 }
 
 .command-hub-header {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.60);
-}
-
-body.dark-mode .command-hub-header {
-  background: rgba(14, 23, 42, 0.60);
+  background: var(--surface);
 }
 
 .command-search-bar {

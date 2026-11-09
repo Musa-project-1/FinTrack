@@ -2,7 +2,7 @@
  * Pre-flight verification for Finkas.
  *
  * Four checks that have all silently broken in the past:
- *   1. Every .js/.mjs file under js/ and api/ parses.
+ *   1. Every .js/.mjs file under src/ and api/ parses.
  *   2. The service worker's precache list matches the modules that actually
  *      exist (a missing entry works online and 404s offline).
  *   3. index.html is not older than the html/ fragments it is assembled from.
@@ -16,7 +16,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const MODULE_DIRS = ['js', 'api'];
+const MODULE_DIRS = ['src', 'api'];
 const SW_PATH = path.join(ROOT, 'sw.js');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 const HTML_DIR = path.join(ROOT, 'html');
@@ -80,7 +80,7 @@ function readPrecacheList() {
 const precache = readPrecacheList();
 const precacheSet = new Set(precache);
 
-const clientModules = collectFiles(path.join(ROOT, 'js'), /\.js$/).map(rel);
+const clientModules = collectFiles(path.join(ROOT, 'src'), /\.js$/).map(rel);
 for (const modulePath of clientModules) {
   if (!precacheSet.has(modulePath)) {
     failures.push(`sw.js: '${modulePath}' is not in LOCAL_ASSETS (works online, 404s offline).`);
@@ -96,17 +96,17 @@ for (const entry of precache) {
   }
 }
 
-// Ensure sw.js cache name and js/sw-register.js query version match.
+// Ensure sw.js cache name and src/sw-register.js query version match.
 const swSource = fs.readFileSync(SW_PATH, 'utf8');
-const swRegisterPath = path.join(ROOT, 'js', 'sw-register.js');
+const swRegisterPath = path.join(ROOT, 'src', 'sw-register.js');
 if (fs.existsSync(swRegisterPath)) {
   const regSource = fs.readFileSync(swRegisterPath, 'utf8');
   const swVer = (/const CACHE_NAME = 'finkas-v([^']+)';/.exec(swSource) || [])[1];
   const regVer = (/sw\.js\?v=([^'&]+)/.exec(regSource) || [])[1];
   if (!swVer || !regVer) {
-    failures.push('verify: could not read the service-worker version from sw.js and/or js/sw-register.js.');
+    failures.push('verify: could not read the service-worker version from sw.js and/or src/sw-register.js.');
   } else if (swVer !== regVer) {
-    failures.push(`sw.js CACHE_NAME version ('${swVer}') does not match js/sw-register.js ('${regVer}').`);
+    failures.push(`sw.js CACHE_NAME version ('${swVer}') does not match src/sw-register.js ('${regVer}').`);
   }
 }
 

@@ -97,14 +97,14 @@ const {
   generateOperationId,
   stampMutation,
   deliverMutation
-} = await import('../js/core/mutation.js');
+} = await import('../src/core/mutation.js');
 
 const {
   classifySyncResponse,
   isRetryableServerError
-} = await import('../js/core/offline.js');
+} = await import('../src/core/offline.js');
 
-const { setAdminSession, setActiveGroupId } = await import('../js/core/state.js');
+const { setAdminSession, setActiveGroupId } = await import('../src/core/state.js');
 setAdminSession('mock-admin-token-12345');
 setActiveGroupId('GRP-TEST-1');
 
@@ -236,7 +236,7 @@ test('deliverMutation queues safely when server returns 500 or 429', async () =>
 });
 
 test('syncOfflineTransactions processes legacy queued items without operationId without error', async () => {
-  const { queueOfflinePayload, syncOfflineTransactions } = await import('../js/core/offline.js');
+  const { queueOfflinePayload, syncOfflineTransactions } = await import('../src/core/offline.js');
   const realFetch = globalThis.fetch;
   const sentPayloads = [];
 

@@ -174,10 +174,6 @@
   font-weight: 600;
   color: var(--text-muted);
 }
-.color-emerald { color: #10b981; }
-.color-cyan { color: #0284c7; }
-.color-indigo { color: #6366f1; }
-.color-amber { color: #d97706; }
 .color-danger { color: #e11d48; }
 .color-warning { color: #b45309; }
 
@@ -329,26 +325,5 @@
 
   .tampilan-card-tile .style-check-indicator {
     display: none !important;
-  }
-
-  /* Palet Aksen: Tampilan vertikal swatch + nama */
-  #accent-picker .tampilan-card-tile {
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 6px 4px !important;
-    min-height: 48px !important;
-    gap: 4px !important;
-  }
-
-  #accent-picker .accent-swatch-circle {
-    width: 16px !important;
-    height: 16px !important;
-  }
-
-  #accent-picker .tampilan-card-tile .flex-row {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 3px !important;
   }
 }

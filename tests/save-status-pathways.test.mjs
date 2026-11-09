@@ -98,11 +98,11 @@ globalThis.indexedDB = {
   }
 };
 
-const state = await import('../js/core/state.js');
-const ui = await import('../js/ui/save-status.js');
-const sync = await import('../js/core/sync.js');
-const offline = await import('../js/core/offline.js');
-const api = await import('../js/core/api.js');
+const state = await import('../src/core/state.js');
+const ui = await import('../src/ui/save-status.js');
+const sync = await import('../src/core/sync.js');
+const offline = await import('../src/core/offline.js');
+const api = await import('../src/core/api.js');
 
 const makeLedger = () => ({
   anggota: [{ id: 'ANG-1', nama: 'Budi' }],

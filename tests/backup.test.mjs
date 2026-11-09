@@ -1,13 +1,13 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { exportJSONBackup, restoreJSONBackup } from '../js/handlers/backup.js';
+import { exportJSONBackup, restoreJSONBackup } from '../src/handlers/backup.js';
 import {
   getState,
   setState,
   setAdminSession,
   setActiveGroupId,
   setGroups
-} from '../js/core/state.js';
+} from '../src/core/state.js';
 
 let oldDoc;
 let oldWindow;

@@ -138,19 +138,10 @@ export const setTheme = (themeKey) => {
 };
 
 /**
- * Accent color palette preference ('emerald' | 'cyan' | 'indigo' | 'amber').
+ * Accent color palette preference — locked to Action Blue (Coinbase Blue).
  */
 export const applyAccentPreference = () => {
-  const accent = safeGetItem('finkas_accent_color', 'cyan');
-  document.body.setAttribute('data-accent', accent);
-};
-
-export const setAccentColor = (accentKey) => {
-  safeSetItem('finkas_accent_color', accentKey);
-  document.querySelectorAll('#accent-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-accent') === accentKey);
-  });
-  applyAccentPreference();
+  document.body.setAttribute('data-accent', 'cyan');
 };
 
 /**

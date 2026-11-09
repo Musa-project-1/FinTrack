@@ -18,7 +18,7 @@ import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
 import { initSync, destroySync, notifySynced } from "./core/sync.js";
 import {
   applyTheme, toggleTheme, setTheme, applyHeaderStatsPreference, toggleHeaderStats, setHeaderStatsPosition,
-  applyDensityPreference, setDensity, applyAccentPreference, setAccentColor, applyNumberFontPreference, setNumberFont,
+  applyDensityPreference, setDensity, applyAccentPreference, applyNumberFontPreference, setNumberFont,
   applyBgTexturePreference, setBgTexture, applyArrearsTonePreference, setArrearsTone, applyProgressFormatPreference, setProgressFormat
 } from "./ui/theme.js";
 import {
@@ -163,7 +163,6 @@ document.addEventListener('click', (e) => {
     case 'select-theme-mode': setTheme(target.getAttribute('data-theme')); break;
     case 'select-density': setDensity(target.getAttribute('data-density')); break;
     case 'select-stats-pos': setHeaderStatsPosition(target.getAttribute('data-pos')); break;
-    case 'select-accent': setAccentColor(target.getAttribute('data-accent')); break;
     case 'select-font': setNumberFont(target.getAttribute('data-font')); break;
     case 'select-texture': setBgTexture(target.getAttribute('data-texture')); break;
     case 'select-arrears': setArrearsTone(target.getAttribute('data-tone')); break;

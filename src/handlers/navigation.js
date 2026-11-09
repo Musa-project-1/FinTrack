@@ -90,11 +90,6 @@ export const openTampilanModal = () => {
     card.classList.toggle('active', card.getAttribute('data-pos') === currentPos);
   });
 
-  const currentAccent = localStorage.getItem('finkas_accent_color') || 'cyan';
-  document.querySelectorAll('#accent-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-accent') === currentAccent);
-  });
-
   const currentFont = localStorage.getItem('finkas_number_font') === 'mono' ? 'mono' : 'sans';
   document.querySelectorAll('#font-picker .style-option-card').forEach((card) => {
     card.classList.toggle('active', card.getAttribute('data-font') === currentFont);

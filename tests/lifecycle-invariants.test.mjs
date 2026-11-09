@@ -16,7 +16,7 @@ import {
   calculateMemberContribution,
   calculateMemberRekapProgress,
   calculateCompliance
-} from '../js/core/utils.js';
+} from '../src/core/utils.js';
 import { decodeFields, encodeFields } from '../api/_sa.js';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';

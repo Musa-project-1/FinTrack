@@ -169,8 +169,8 @@ afterEach(() => {
 });
 
 test('quickpay defaults to remaining amount from createDuesLedger and blocks paid/exempt', async () => {
-  const { setState, setCurrentRekapYear, setAdminSession } = await import('../js/core/state.js');
-  const { openQuickPaySheet } = await import('../js/handlers/transactions.js');
+  const { setState, setCurrentRekapYear, setAdminSession } = await import('../src/core/state.js');
+  const { openQuickPaySheet } = await import('../src/handlers/transactions.js');
 
   setAdminSession('mock-admin-token');
   setCurrentRekapYear('2026');
@@ -226,8 +226,8 @@ test('quickpay defaults to remaining amount from createDuesLedger and blocks pai
 });
 
 test('bukaModalTransaksi defaults month and year to WIB billingPeriod regardless of local machine timezone', async () => {
-  const { setAdminSession } = await import('../js/core/state.js');
-  const { bukaModalTransaksi } = await import('../js/handlers/transactions.js');
+  const { setAdminSession } = await import('../src/core/state.js');
+  const { bukaModalTransaksi } = await import('../src/handlers/transactions.js');
 
   setAdminSession('mock-admin-token');
 
@@ -272,9 +272,9 @@ test('bukaModalTransaksi defaults month and year to WIB billingPeriod regardless
 });
 
 test('group isolation: aborts confirm if group switched while dialog open', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitQuickPay } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitQuickPay } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -316,9 +316,9 @@ test('group isolation: aborts confirm if group switched while dialog open', asyn
 });
 
 test('group isolation: after async in-flight response, does not mutate different active group', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitQuickPay } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitQuickPay } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -375,10 +375,10 @@ test('group isolation: after async in-flight response, does not mutate different
 });
 
 test('online confirmed create adds real server row not TEMP ID', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitOperasional } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
-  const { isUnsyncedTempId } = await import('../js/core/offline.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitOperasional } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
+  const { isUnsyncedTempId } = await import('../src/core/offline.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -434,10 +434,10 @@ test('online confirmed create adds real server row not TEMP ID', async () => {
 });
 
 test('online confirmed bulk iuran adds real server rows not TEMP IDs', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitIuran } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
-  const { isUnsyncedTempId } = await import('../js/core/offline.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitIuran } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
+  const { isUnsyncedTempId } = await import('../src/core/offline.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -523,9 +523,9 @@ test('online confirmed bulk iuran adds real server rows not TEMP IDs', async () 
 });
 
 test('replay or duplicate does not append duplicate rows locally', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitOperasional } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitOperasional } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -595,10 +595,10 @@ test('replay or duplicate does not append duplicate rows locally', async () => {
 });
 
 test('offline creates add temporary row tied to group and operationId and persist cache', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitOperasional } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
-  const { isUnsyncedTempId } = await import('../js/core/offline.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitOperasional } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
+  const { isUnsyncedTempId } = await import('../src/core/offline.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');
@@ -643,9 +643,9 @@ test('offline creates add temporary row tied to group and operationId and persis
 });
 
 test('edit and delete synced confirmed updates state and cache cleanly', async () => {
-  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../js/core/state.js');
-  const { submitEditTransaksi, eksekusiHapus } = await import('../js/handlers/transactions.js');
-  const { executeConfirmAction } = await import('../js/ui/modal.js');
+  const { setState, setActiveGroupId, setAdminSession, getState } = await import('../src/core/state.js');
+  const { submitEditTransaksi, eksekusiHapus } = await import('../src/handlers/transactions.js');
+  const { executeConfirmAction } = await import('../src/ui/modal.js');
 
   setActiveGroupId('GRP-A');
   setAdminSession('mock-token');

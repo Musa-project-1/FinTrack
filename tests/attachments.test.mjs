@@ -456,7 +456,7 @@ const {
   uploadAttachmentApi,
   deleteAttachmentApi,
   initAttachmentControls
-} = await import('../js/handlers/attachments.js');
+} = await import('../src/handlers/attachments.js');
 
 test('client formatFileSize formats bytes accurately', () => {
   assert.equal(formatFileSize(0), '0 B');

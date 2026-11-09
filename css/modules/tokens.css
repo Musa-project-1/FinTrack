@@ -10,7 +10,7 @@
    1. Elevation comes from surface contrast + 1px hairlines — never from blur shadows.
       The single exception is `--shadow-pop` for genuinely floating surfaces
       (modal, dropdown, bottom sheet, toast).
-   2. Exactly ONE accent: Ocean Teal. It is rare — primary actions, active state,
+   2. Exactly ONE accent: Action Blue (Coinbase Blue #0052ff / #3b82f6). It is rare — primary actions, active state,
       focus ring, and a single hero figure per screen.
    3. Ocean Coral is reserved for destructive actions only (delete / logout).
    4. Ocean Cyan carries informational states, Ocean Amber carries overdue only.
@@ -211,63 +211,20 @@ body {
   }
 }
 
-/* === FINTECH ACCENT PALETTE VARIANTS === */
-body[data-accent="emerald"] {
+/* === ACTION BLUE (COINBASE BLUE — ZERO GREEN PALETTE GUARDRAIL) === */
+body,
+body[data-accent] {
   --accent: #0052ff;
   --accent-strong: #0040c9;
   --accent-tint: rgba(0, 82, 255, 0.10);
   --accent-border: rgba(0, 82, 255, 0.32);
   --accent-ink: #ffffff;
 }
-body.dark-mode[data-accent="emerald"] {
+body.dark-mode,
+body.dark-mode[data-accent] {
   --accent: #3b82f6;
   --accent-strong: #60a5fa;
   --accent-tint: rgba(59, 130, 246, 0.16);
   --accent-border: rgba(59, 130, 246, 0.38);
   --accent-ink: #041026;
-}
-
-body[data-accent="cyan"] {
-  --accent: #0052ff;
-  --accent-strong: #0040c9;
-  --accent-tint: rgba(0, 82, 255, 0.10);
-  --accent-border: rgba(0, 82, 255, 0.32);
-  --accent-ink: #ffffff;
-}
-body.dark-mode[data-accent="cyan"] {
-  --accent: #3b82f6;
-  --accent-strong: #60a5fa;
-  --accent-tint: rgba(59, 130, 246, 0.16);
-  --accent-border: rgba(59, 130, 246, 0.38);
-  --accent-ink: #041026;
-}
-
-body[data-accent="indigo"] {
-  --accent: #6366f1;
-  --accent-strong: #4f46e5;
-  --accent-tint: rgba(99, 102, 241, 0.12);
-  --accent-border: rgba(99, 102, 241, 0.32);
-  --accent-ink: #ffffff;
-}
-body.dark-mode[data-accent="indigo"] {
-  --accent: #818cf8;
-  --accent-strong: #a5b4fc;
-  --accent-tint: rgba(129, 140, 248, 0.16);
-  --accent-border: rgba(129, 140, 248, 0.38);
-  --accent-ink: #1e1b4b;
-}
-
-body[data-accent="amber"] {
-  --accent: #d97706;
-  --accent-strong: #b45309;
-  --accent-tint: rgba(217, 119, 6, 0.12);
-  --accent-border: rgba(217, 119, 6, 0.32);
-  --accent-ink: #ffffff;
-}
-body.dark-mode[data-accent="amber"] {
-  --accent: #fbbf24;
-  --accent-strong: #fcd34d;
-  --accent-tint: rgba(251, 191, 36, 0.16);
-  --accent-border: rgba(251, 191, 36, 0.38);
-  --accent-ink: #451a03;
 }

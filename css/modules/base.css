@@ -43,18 +43,25 @@ a:focus:not(:focus-visible) {
   color: var(--text-main);
 }
 
-/* === CARDS & MODALS — frosted glass frame, soft atmospheric elevation === */
-.table-card,
-.modal-content {
+/* === CARDS — frosted glass frame, soft atmospheric elevation === */
+.table-card {
   background: rgba(255, 255, 255, 0.80) !important;
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   backdrop-filter: blur(22px) saturate(180%);
   border: 1px solid var(--border) !important;
 }
 
-body.dark-mode .table-card,
-body.dark-mode .modal-content {
+body.dark-mode .table-card {
   background: rgba(14, 23, 42, 0.80) !important;
+}
+
+/* === MODALS — solid surface. A translucent panel over the dimmed overlay
+   reads grey, while its sticky header/footer stack a second translucent
+   layer and read white: a false "shadow" band. One opaque surface keeps
+   header, body and footer the same tone. === */
+.modal-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .table-card {

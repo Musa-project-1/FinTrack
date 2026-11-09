@@ -17,7 +17,7 @@ import {
   parseKasStart,
   kasStartFirstOfMonth,
   isMonthOwedByGroup
-} from '../js/core/utils.js';
+} from '../src/core/utils.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
   const formatted = formatRp(50000);

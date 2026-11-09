@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { withLiquidSave, withBusyButton } from '../js/ui/keel.js';
+import { withLiquidSave, withBusyButton } from '../src/ui/keel.js';
 
 // Minimal DOM boundary double; actual markup/CSS is exercised by browser probes.
 function makeButton() {

@@ -20,8 +20,8 @@ const makeStorage = () => {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-const { ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, GROUP_SESSIONS_KEY } = await import('../js/core/config.js');
-const state = await import('../js/core/state.js');
+const { ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
+const state = await import('../src/core/state.js');
 
 /* ── Group sessions ──────────────────────────────────────────────── */
 

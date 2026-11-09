@@ -23,7 +23,7 @@ if (typeof globalThis.sessionStorage === 'undefined' || !globalThis.sessionStora
   globalThis.sessionStorage = makeStorage();
 }
 
-const { classifySyncResponse, isUnsyncedTempId } = await import('../js/core/offline.js');
+const { classifySyncResponse, isUnsyncedTempId } = await import('../src/core/offline.js');
 
 test('classifySyncResponse returns unreachable when network or backend gives no response', () => {
   assert.equal(classifySyncResponse(null), 'unreachable');

@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const SW_PATH = path.join(ROOT, 'sw.js');
-const SW_REGISTER_PATH = path.join(ROOT, 'js', 'sw-register.js');
+const SW_REGISTER_PATH = path.join(ROOT, 'src', 'sw-register.js');
 const TEMPLATE_PATH = path.join(ROOT, 'html', 'index.template.html');
 const ONBOARDING_PATH = path.join(ROOT, 'onboarding.html');
 

@@ -18,9 +18,9 @@ after(() => {
   globalThis.fetch = realFetch;
 });
 
-const cashReport = await import('../js/core/cash-report.js');
-const cashReportHandler = await import('../js/handlers/cash-report.js');
-const { setState, getState } = await import('../js/core/state.js');
+const cashReport = await import('../src/core/cash-report.js');
+const cashReportHandler = await import('../src/handlers/cash-report.js');
+const { setState, getState } = await import('../src/core/state.js');
 
 const row = (id, timestamp, amount, flow = 'Masuk', extra = {}) => ({
   ID_Transaksi: id,

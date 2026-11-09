@@ -10,9 +10,9 @@ Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
 const realFetch = globalThis.fetch;
 globalThis.fetch = async () => { throw new Error('Network prohibited in isolated test'); };
 after(() => { globalThis.Date = realDate; globalThis.fetch = realFetch; });
-const { setState, setCurrentRekapYear } = await import('../js/core/state.js');
-const { renderTableRekap } = await import('../js/render/rekap.js');
-const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../js/handlers/export.js');
+const { setState, setCurrentRekapYear } = await import('../src/core/state.js');
+const { renderTableRekap } = await import('../src/render/rekap.js');
+const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/handlers/export.js');
 function element() {
   return { children: [], className: '', innerHTML: '', textContent: '', value: '',
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
@@ -55,7 +55,7 @@ test('Rp5,000 installment is partial in desktop/mobile/annual print and WA; seco
 });
 
 test('bulk payment form keeps partial member selectable and disables settled or exempt periods', async () => {
-  const { renderCheckboxIuran } = await import('../js/ui/modal.js');
+  const { renderCheckboxIuran } = await import('../src/ui/modal.js');
   for (const id of ['iuran-bulan', 'iuran-tahun', 'iuran-nominal', 'count-terpilih', 'summary-count', 'summary-nominal', 'summary-total', 'btn-pilih-semua', 'iuran-checkbox-anggota']) els.set(id, element());
   els.get('iuran-bulan').value = 'Oktober';
   els.get('iuran-tahun').value = '2026';

@@ -61,7 +61,7 @@ const STANDALONE_PAGES = fs.readdirSync(ROOT)
 const HTML_FILES = [...FRAGMENT_FILES, ...STANDALONE_PAGES];
 
 /** Every client module. */
-const JS_FILES = walk('js').filter((f) => f.endsWith('.js'));
+const JS_FILES = walk('src').filter((f) => f.endsWith('.js'));
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
@@ -208,13 +208,13 @@ test('every label for= points at an input that exists', () => {
 });
 
 test('every data-action emitted by the markup or the renderers is handled', () => {
-  // The delegated switch in js/app.js is the only click router for [data-action].
+  // The delegated switch in src/app.js is the only click router for [data-action].
   const handled = new Set(
-    [...read('js/app.js').matchAll(/case\s+'([a-z0-9-]+)':/g)].map((match) => match[1])
+    [...read('src/app.js').matchAll(/case\s+'([a-z0-9-]+)':/g)].map((match) => match[1])
   );
   const emitted = attrValues('data-action');
   const unhandled = [...emitted].filter((action) => !handled.has(action));
-  assert.deepEqual(unhandled, [], `data-action with no handler in js/app.js: ${unhandled.join(', ')}`);
+  assert.deepEqual(unhandled, [], `data-action with no handler in src/app.js: ${unhandled.join(', ')}`);
 });
 
 test('modal-confirm-action buttons have valid data-actions', () => {
@@ -225,7 +225,7 @@ test('modal-confirm-action buttons have valid data-actions', () => {
 
 /* ── Reverse direction ──────────────────────────────────────────── */
 
-test('every literal DOM lookup in js/ resolves to a real element', () => {
+test('every literal DOM lookup in src/ resolves to a real element', () => {
   const ids = elementIds();
   const unresolved = jsLookups()
     .filter((lookup) => !ids.has(lookup.id) && !TOLERATED_LOOKUPS.has(lookup.id))
@@ -273,7 +273,7 @@ test('sw.js enforces cache scoping, /api/ bypass, and opaque CDN caching', () =>
 });
 
 test('modal-menu avoids auto-focusing search input on mobile viewports', () => {
-  const modalJs = read('js/ui/modal.js');
+  const modalJs = read('src/ui/modal.js');
   assert.match(modalJs, /isMobile && id === 'modal-menu'/);
   assert.match(modalJs, /pointer:\s*coarse/);
 });

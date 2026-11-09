@@ -19,9 +19,7 @@
   position: sticky;
   top: calc(-1 * var(--modal-pad));
   z-index: 3;
-  background: inherit;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: var(--surface);
 }
 
 .modal-header-left { display: flex; align-items: center; gap: 12px; }
@@ -105,9 +103,7 @@
   gap: 10px;
   margin: 20px calc(-1 * var(--modal-pad)) calc(-1 * var(--modal-pad));
   padding: 14px var(--modal-pad) var(--modal-pad);
-  background: inherit;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: var(--surface);
   border-top: 1px solid var(--border);
 }
 

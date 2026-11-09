@@ -34,6 +34,7 @@
   user-select: none;
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .toast.show {

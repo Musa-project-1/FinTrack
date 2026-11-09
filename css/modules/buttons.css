@@ -113,6 +113,48 @@
   border-color: var(--danger-strong);
 }
 
+/* --- Hold to Confirm on Destructive Terminal Actions --- */
+.btn-hold-to-confirm {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.btn-hold-to-confirm .hold-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--danger-strong);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.btn-hold-to-confirm.is-holding .hold-fill {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.1s linear;
+}
+
+.btn-hold-to-confirm .hold-label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-hold-to-confirm .hold-fill {
+    transition: none !important;
+  }
+}
+
 .btn-slate-solid {
   background: var(--surface-3);
   border-color: var(--border-strong);

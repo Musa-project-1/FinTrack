@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v185';
+const CACHE_NAME = 'finkas-v186';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -71,6 +71,7 @@ const LOCAL_ASSETS = [
   'js/ui/cdrop.js',
   'js/ui/mpick.js',
   'js/ui/keel.js',
+  'js/ui/gestures.js',
   'js/app.js',
   'js/sw-register.js',
   'js/onboarding.js',

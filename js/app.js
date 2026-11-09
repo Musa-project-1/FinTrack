@@ -62,6 +62,7 @@ import { initSaveStatus } from "./ui/save-status.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
 import { initMonthPickers } from "./ui/mpick.js";
+import { initGestures } from "./ui/gestures.js";
 import {
   openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin,
   resetGroupPinAction, removeGroupAction, renameGroupAction, manageGroupCredsAction,
@@ -544,6 +545,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initSaveStatus();
   setupRekapSearchListener();
   setupMenuSearchListener();
+  initGestures();
 
   let hasBeenOffline = false;
 

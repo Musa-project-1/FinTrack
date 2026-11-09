@@ -346,6 +346,17 @@ body.dark-mode #btn-theme-toggle {
 
   .quickpay-handle {
     display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: var(--r-pill);
+    background: var(--border-strong);
+    margin: 0 auto var(--sp-4);
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .quickpay-handle:active {
+    cursor: grabbing;
   }
 
   .menu-sheet-list .dropdown-item {

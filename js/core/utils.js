@@ -219,6 +219,75 @@ export const showToast = (message, type = 'success', options = {}) => {
     progress.style.animationPlayState = 'running';
   });
 
+  // Swipe-to-dismiss direct manipulation
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let startTime = 0;
+  let isSwiping = false;
+
+  toast.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('.toast-close-btn, a, button')) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    currentX = e.clientX;
+    startTime = Date.now();
+    isSwiping = false;
+  });
+
+  toast.addEventListener('pointermove', (e) => {
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+
+    if (!isSwiping) {
+      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        isSwiping = true;
+        stopTimer();
+        progress.style.animationPlayState = 'paused';
+        try { toast.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    }
+
+    if (isSwiping) {
+      currentX = e.clientX;
+      toast.style.transition = 'none';
+      toast.style.transform = `translateX(${deltaX}px)`;
+      const opacity = Math.max(0, 1 - Math.abs(deltaX) / (toast.offsetWidth * 0.85));
+      toast.style.opacity = String(opacity);
+    }
+  });
+
+  const onPointerEnd = (e) => {
+    if (!isSwiping) return;
+    isSwiping = false;
+    try { toast.releasePointerCapture(e.pointerId); } catch (_) {}
+
+    const deltaX = currentX - startX;
+    const elapsed = Date.now() - startTime;
+    const velocity = Math.abs(deltaX) / (elapsed || 1);
+    const threshold = (toast.offsetWidth || 280) * 0.32;
+    const isFlick = Math.abs(deltaX) > 30 && velocity > 0.35;
+
+    if (Math.abs(deltaX) > threshold || isFlick) {
+      const dir = deltaX > 0 ? 1 : -1;
+      toast.style.transition = 'transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.18s ease-out';
+      toast.style.transform = `translateX(${dir * (toast.offsetWidth + 60)}px)`;
+      toast.style.opacity = '0';
+      stopTimer();
+      setTimeout(() => toast.remove(), 190);
+    } else {
+      toast.style.transition = 'transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.2s ease-out';
+      toast.style.transform = '';
+      toast.style.opacity = '';
+      startTimer();
+      progress.style.animationPlayState = 'running';
+    }
+  };
+
+  toast.addEventListener('pointerup', onPointerEnd);
+  toast.addEventListener('pointercancel', onPointerEnd);
+
   container.appendChild(toast);
   requestAnimationFrame(() => toast.classList.add('show'));
   startTimer();

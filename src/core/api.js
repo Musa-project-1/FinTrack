@@ -107,7 +107,8 @@ export const fetchInitialData = async (targetGroupId) => {
         transaksi: data.transaksi || [],
         settings: {
           skippedMonths: data.settings?.skippedMonths || [],
-          kasStart: data.settings?.kasStart || ''
+          kasStart: data.settings?.kasStart || '',
+          ...(data.settings?.paymentAccount ? { paymentAccount: data.settings.paymentAccount } : {})
         },
         updatedAt: data.updatedAt || null,
         readMarker

@@ -1,77 +1,111 @@
-import { byNewestTimestamp } from "../core/config.js";
-import { getState } from "../core/state.js";
-import { formatRp, escapeHtml, calculateMemberContribution } from "../core/utils.js";
-import { openModal } from "../ui/modal.js";
+import { getPinnedMemberId } from '../ui/spotlight.js';
+import { createDuesLedger } from '../core/dues.js';
+import { getDuesDisplayStatus, renderPassbookEmblem } from '../ui/dues-status.js';
+import { byNewestTimestamp, NAMA_BULAN } from '../core/config.js';
+import { currentRekapYear, getIsAdminView, getState } from '../core/state.js';
+import { formatRp, escapeHtml, calculateMemberContribution, showToast } from '../core/utils.js';
+import { animateHybridAmount } from '../ui/hybrid-motion.js';
+import { openModal } from '../ui/modal.js';
 
-/* ── Member profile modal ──────────────────────────────────────── */
+const stampKind = {
+  Lunas: 'paid', Sebagian: 'pending', Belum: 'unpaid', Nanti: 'upcoming', Libur: 'holiday'
+};
+
+export const copyPassbook = async () => {
+  const text = ['p-nama-anggota', 'passbook-meta', 'p-total-kontribusi', 'passbook-paid-chip', 'passbook-unpaid-chip']
+    .map((id) => document.getElementById(id)).filter((element) => !element.hidden)
+    .map((element) => element.id === 'p-total-kontribusi' ? `Total kontribusi: ${element.dataset.fullValue}` : element.textContent)
+    .join('\n');
+  const dialog = document.getElementById('modal-profil-anggota');
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Ringkasan Buku Iuran disalin.');
+  } catch {
+    const existing = dialog.querySelector('.passbook-copy-field');
+    const field = existing || document.createElement('textarea');
+    field.className = 'passbook-copy-field form-control';
+    field.readOnly = true;
+    field.value = text;
+    field.setAttribute('aria-label', 'Ringkasan Buku Iuran untuk disalin');
+    if (!existing) dialog.querySelector('.dlg-body').append(field);
+    field.select();
+    showToast('Ringkasan dipilih. Gunakan perintah Salin di perangkatmu.', 'info');
+  }
+};
 
 export const bukaProfilAnggota = (idAnggota) => {
   const state = getState();
-  const ang = state.anggota.find((a) => a.ID_Anggota === idAnggota);
-  if (!ang) return;
+  const member = state.anggota.find((item) => item.ID_Anggota === idAnggota);
+  if (!member) return;
 
-  document.getElementById('p-nama-anggota').innerText = ang.Nama_Anggota;
-  document.getElementById('p-id-anggota').innerText = `ID: ${ang.ID_Anggota}`;
-  const statusBadge = document.getElementById('p-status-anggota');
-  statusBadge.innerText = ang.Status_Aktif;
-  statusBadge.className = ang.Status_Aktif === 'Aktif' ? 'badge badge-masuk' : 'badge badge-keluar';
+  const year = Number(currentRekapYear);
+  const admin = getIsAdminView();
+  const active = member.Status_Aktif === 'Aktif';
+  const pinned = getPinnedMemberId() === idAnggota;
+  const transactions = state.transaksi.filter((item) => item.ID_Anggota === idAnggota).sort(byNewestTimestamp);
+  const ledger = createDuesLedger(state, { year });
+  const summary = ledger.summarize(member);
+  const paid = summary.months.filter((month) => month.status === 'paid').length;
+  document.getElementById('p-nama-anggota').textContent = member.Nama_Anggota;
+  document.getElementById('passbook-meta').textContent = `${member.ID_Anggota} · ${member.Status_Aktif} · ${year}`;
+  const contribution = calculateMemberContribution(transactions, idAnggota);
+  const total = document.getElementById('p-total-kontribusi');
+  total.dataset.fullValue = formatRp(contribution);
+  animateHybridAmount(total, contribution, { format: formatRp, from: 0 });
+  document.getElementById('passbook-paid-chip').textContent = `${paid}/${summary.months.length} Lunas`;
+  const unpaid = document.getElementById('passbook-unpaid-chip');
+  unpaid.hidden = summary.unpaidMonths === 0;
+  unpaid.textContent = `${summary.unpaidMonths} Tunggakan`;
+  const pay = document.getElementById('passbook-pay');
+  pay.dataset.id = idAnggota;
+  pay.disabled = !active;
+  const pin = document.getElementById('passbook-pin');
+  pin.dataset.id = idAnggota;
+  pin.disabled = !active;
+  pin.setAttribute('aria-pressed', String(pinned));
+  document.getElementById('passbook-pin-label').textContent = pinned ? 'Lepas' : 'Sematkan';
+  document.querySelector('#modal-profil-anggota .passbook-copy-field')?.remove();
 
-  const userTrx = state.transaksi
-    .filter((t) => t.ID_Anggota === idAnggota)
-    .sort(byNewestTimestamp);
-  const totalKontribusi = calculateMemberContribution(userTrx, idAnggota);
-  const bulanCount = {};
-  const tahunSet = new Set();
-
-  userTrx.forEach((t) => {
-    if (t.Tipe_Arus === 'Masuk' && t.Bulan_Iuran && t.Bulan_Iuran !== '-') {
-      bulanCount[t.Bulan_Iuran] = (bulanCount[t.Bulan_Iuran] || 0) + 1;
+  document.getElementById('passbook-year').textContent = `Kartu Cap Iuran ${year}`;
+  document.getElementById('passbook-months').innerHTML = NAMA_BULAN.map((name, index) => {
+    const month = ledger.getMonth(member, index, year);
+    const status = getDuesDisplayStatus(month);
+    const kind = stampKind[status];
+    let action = '';
+    if (status === 'Lunas') {
+      action = `data-action="open-month-receipt" data-id="${escapeHtml(idAnggota)}" data-month="${index}" data-year="${year}"`;
+    } else if (active && month.remaining > 0) {
+      action = admin
+        ? `data-action="quickpay-card" data-anggota="${escapeHtml(idAnggota)}" data-bulan="${name}" data-year="${year}"`
+        : `data-action="open-self-pay" data-id="${escapeHtml(idAnggota)}" data-month="${index}" data-year="${year}"`;
     }
-    const year = new Date(t.Timestamp).getFullYear();
-    tahunSet.add(year);
-  });
+    const ariaLabel = `${name} ${year}, ${status}${month.paid ? `, setoran ${formatRp(month.paid)}` : ''}`;
+    return `<button type="button" class="passbook-stamp-btn ${kind}" style="--pass-i:${index}" aria-label="${escapeHtml(ariaLabel)}" ${action || 'disabled'}>
+      <span class="passbook-slot-head">
+        <span class="passbook-slot-mon">${name.slice(0, 3)}</span>
+        <span class="passbook-slot-num">${String(index + 1).padStart(2, '0')}</span>
+      </span>
+      <span class="passbook-slot-seal">${renderPassbookEmblem(kind)}</span>
+      <span class="passbook-slot-tag">${status.toUpperCase()}</span>
+    </button>`;
+  }).join('');
 
-  let bulanTerajin = '-';
-  let maxCount = 0;
-  for (const bln in bulanCount) {
-    if (bulanCount[bln] > maxCount) {
-      maxCount = bulanCount[bln];
-      bulanTerajin = bln;
-    }
-  }
-
-  document.getElementById('p-total-kontribusi').innerText = formatRp(totalKontribusi);
-  document.getElementById('p-bulan-terajin').innerText = bulanTerajin;
-
-  const listContainer = document.getElementById('p-list-transaksi');
-  listContainer.innerHTML = '';
-
-  if (userTrx.length === 0) {
-    listContainer.innerHTML = '<div class="profile-history-empty">Belum ada riwayat transaksi.</div>';
-  } else {
-    userTrx.forEach((t) => {
-      const tgl = new Date(t.Timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      const cat = state.kategori.find((k) => k.ID_Kategori === t.ID_Kategori);
-      const namaKat = cat ? cat.Nama_Kategori : '-';
-      const ket = t.Bulan_Iuran !== '-' ? `Iuran ${t.Bulan_Iuran} ${t.Tahun_Iuran}` : namaKat;
-      const card = document.createElement('div');
-      card.className = 'profile-trx-card';
-      card.innerHTML = `
-        <div class="profile-trx-main">
-          <div class="profile-trx-badge-icon">
-            <i class="ph-bold ph-check-circle"></i>
-          </div>
-          <div class="profile-trx-info">
-            <span class="profile-trx-title">${escapeHtml(ket)}</span>
-            <span class="profile-trx-date">${escapeHtml(tgl)}</span>
-          </div>
-        </div>
-        <div class="profile-trx-nominal">${formatRp(t.Nominal)}</div>
-      `;
-      listContainer.appendChild(card);
-    });
-  }
+  const deposits = transactions.filter((row) => row.Tipe_Arus === 'Masuk');
+  document.getElementById('p-list-transaksi').innerHTML = deposits.length ? deposits.map((row) => {
+    const parsedDate = new Date(row.Timestamp);
+    const date = Number.isFinite(parsedDate.valueOf())
+      ? parsedDate.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric' })
+      : '—';
+    const category = state.kategori.find((item) => item.ID_Kategori === row.ID_Kategori)?.Nama_Kategori || 'Setoran';
+    const note = row.Keterangan || (row.Bulan_Iuran && row.Bulan_Iuran !== '-' ? `Iuran ${row.Bulan_Iuran} ${row.Tahun_Iuran}` : category);
+    return `<button type="button" class="profil-history-row" data-action="open-receipt" data-id="${escapeHtml(row.ID_Transaksi)}">
+      <span class="ledger-main">
+        <span class="ledger-title">${escapeHtml(note)}</span>
+        <span class="ledger-meta"><span class="mono tnum">${escapeHtml(date)}</span><span>${escapeHtml(row.ID_Transaksi)}</span></span>
+      </span>
+      <span class="ledger-amt inflow nominal-val sensitive-amt">+${escapeHtml(formatRp(row.Nominal))}</span>
+    </button>`;
+  }).join('') : '<div class="profile-history-empty">Belum ada riwayat setoran.</div>';
 
   openModal('modal-profil-anggota');
 };
-

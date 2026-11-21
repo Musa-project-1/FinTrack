@@ -15,7 +15,8 @@ import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp,
 
 const PUBLIC_ACTIONS = ['groups'];
 const READ_ACTIONS = ['read', 'audit', 'checkUpdate', 'readAttachment', 'exportAttachments', 'exportSnapshot'];
-const ADMIN_READ_ACTIONS = ['audit', 'exportAttachments', 'exportSnapshot'];
+const SUPERADMIN_READ_ACTIONS = ['audit'];
+const ADMIN_READ_ACTIONS = ['exportAttachments', 'exportSnapshot'];
 
 /** Send a JSON response with caching disabled. */
 const sendJson = (res, status, payload) => {
@@ -79,13 +80,19 @@ export default async function handler(req, res) {
       if (!canReadGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, { status: false, message: 'Tidak memiliki akses ke grup ini.' });
       }
-      // Audit and attachment export are admin-only — reject non-admins cheaply, before any Firestore hit.
+      // Audit log is exclusively Super Admin — reject members, group admins, and revoked superadmins cheaply.
+      if (SUPERADMIN_READ_ACTIONS.includes(action) &&
+          (session.role !== ROLES.SUPERADMIN || !canWriteGroup(session, groupId, null, superadminEmails))) {
+        return sendJson(res, 403, {
+          status: false,
+          message: 'Hanya Super Admin yang dapat membaca riwayat audit.'
+        });
+      }
+      // Attachment and snapshot export are admin-only — reject non-admins cheaply, before any Firestore hit.
       if (ADMIN_READ_ACTIONS.includes(action) && !canWriteGroup(session, groupId, null, superadminEmails)) {
         return sendJson(res, 403, {
           status: false,
-          message: action !== 'audit'
-                      ? 'Hanya admin yang dapat mengekspor backup atau berkas bukti.'
-            : 'Hanya admin yang dapat membaca riwayat audit.'
+          message: 'Hanya admin yang dapat mengekspor backup atau berkas bukti.'
         });
       }
 
@@ -106,6 +113,8 @@ export default async function handler(req, res) {
       // Session revocation: the caller passed the cheap authz above, so a failure
       // now can only mean the token predates a PIN/credential change (revokedAfter).
       if (!canReadGroup(session, groupId, groupInfo, superadminEmails) ||
+          (SUPERADMIN_READ_ACTIONS.includes(action) &&
+            (session.role !== ROLES.SUPERADMIN || !canWriteGroup(session, groupId, groupInfo, superadminEmails))) ||
           (ADMIN_READ_ACTIONS.includes(action) && !canWriteGroup(session, groupId, groupInfo, superadminEmails))) {
         return unauthorized(res, 'Sesi sudah tidak berlaku setelah perubahan kredensial. Silakan masuk kembali.');
       }

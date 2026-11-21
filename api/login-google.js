@@ -12,7 +12,7 @@
  * Every mutating action requires a valid, non-expired Super Admin session.
  * There is no `NODE_ENV` bypass and no body-supplied `isSuperAdmin` shortcut.
  */
-import { fsGet, fsPatch, requireFirestoreHeaders } from './_sa.js';
+import { fsPatch, requireFirestoreHeaders } from './_sa.js';
 import { APP_CONFIG_DOC, readSuperadminEmails, writeAuditLog } from './_store.js';
 import {
   ROLES,

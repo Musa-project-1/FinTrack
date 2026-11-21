@@ -1,3 +1,4 @@
+import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/payment-account.js';
 /**
  * Full-database snapshot validation, atomic export and restore for a group.
  *
@@ -11,7 +12,6 @@
 import {
   FIRESTORE_BASE,
   decodeFields,
-  docName,
   encodeFields,
   fsCommit,
   fsListAll,
@@ -174,6 +174,11 @@ export function validateSnapshot(raw) {
     return { valid: false, error: 'Format awal kas di snapshot tidak valid (harus MM-YYYY).' };
   }
 
+  if (data.paymentAccount != null && validatePaymentAccount(data.paymentAccount)) {
+    return { valid: false, error: 'Pengaturan rekening di snapshot tidak valid.' };
+  }
+  const paymentAccount = data.paymentAccount == null ? undefined : normalizePaymentAccount(data.paymentAccount);
+
   const skippedMonths = Array.isArray(rawSkipped)
     ? rawSkipped.filter((m) => SKIPPED_MONTH_RE.test(m))
     : [];
@@ -310,6 +315,7 @@ export function validateSnapshot(raw) {
       transaksi: normalizedTransaksi,
       skippedMonths,
       kasStart: rawKasStart,
+      ...(paymentAccount ? { paymentAccount } : {}),
       attachments: validAttachments,
       operations: validOperations
     }
@@ -419,6 +425,7 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
         transaksi,
         skippedMonths,
         kasStart,
+        ...(settings?.paymentAccount ? { paymentAccount: settings.paymentAccount } : {}),
         attachments,
         operations
       }
@@ -452,7 +459,7 @@ export async function restoreSnapshot(gid, payload, headers) {
     return fail(validated.error);
   }
 
-  const { anggota, kategori, transaksi, skippedMonths, kasStart, attachments, operations } = validated.data;
+  const { anggota, kategori, transaksi, skippedMonths, kasStart, paymentAccount, attachments, operations } = validated.data;
   const timestamp = nowIso();
   const idOf = (doc) => String(doc.name || '').split('/').pop();
 
@@ -584,13 +591,10 @@ export async function restoreSnapshot(gid, payload, headers) {
     })
   );
 
-  // 6. Settings (skippedMonths + kasStart)
-  await fsPatch(
-    settingsDoc(gid),
-    { skippedMonths, kasStart: kasStart || '' },
-    headers,
-    ['skippedMonths', 'kasStart']
-  );
+  // Restoring a cash ledger across groups must retain the target group's transfer account.
+  const settings = { skippedMonths, kasStart: kasStart || '' };
+  if (paymentAccount && sourceGid === gid) settings.paymentAccount = paymentAccount;
+  await fsPatch(settingsDoc(gid), settings, headers, Object.keys(settings));
 
   await writeAuditLog(
     gid,

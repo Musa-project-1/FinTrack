@@ -25,3 +25,7 @@ tmp/
 .scratch/
 AGENTS.md
 GLOSSARY.md
+__pycache__/
+*.pyc
+AUDIT_*.md
+*_SPEC.md

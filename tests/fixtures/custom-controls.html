@@ -1,0 +1,97 @@
+<!doctype html><html lang="id"><meta charset="utf-8"><title>Custom control regression fixture</title>
+<link rel="stylesheet" href="/css/modules/cdrop.css">
+<link rel="stylesheet" href="/css/modules/mpick.css">
+<form id="form">
+<label for="choice">Kategori</label><label for="choice">transaksi</label>
+<select class="cdrop" id="choice" name="choice" required><option value="">Pilih</option><option value="a">Satu</option><option value="b" disabled>Dua</option></select>
+<label for="month">Periode</label><input class="mpick" id="month" name="month" type="month">
+<button type="submit">Simpan</button>
+</form>
+<span id="external">Nama eksternal</span>
+<select class="cdrop" id="named" aria-label="Nama singkat" aria-labelledby="external"><option>A</option></select>
+<input class="mpick" id="named-month" aria-label="Bulan laporan">
+<pre id="result"></pre>
+<script type="module">
+import { initCustomDropdowns, syncCdrop } from '/src/ui/cdrop.js';
+import { initMonthPickers } from '/src/ui/mpick.js';
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
+const name = el => el.getAttribute('aria-labelledby')?.split(/\s+/).map(id => document.getElementById(id).textContent).join(' ') || el.getAttribute('aria-label');
+const key = (el, value) => el.dispatchEvent(new KeyboardEvent('keydown', {key: value, bubbles: true, cancelable: true}));
+try {
+  initCustomDropdowns(); initMonthPickers();
+  const select = document.getElementById('choice');
+  const btn = select.parentNode.querySelector('.cdrop-btn');
+  const month = document.getElementById('month');
+  const field = month.parentNode.querySelector('.mpick-field');
+  assert(name(btn) === 'Kategori transaksi', 'all associated labels name trigger');
+  document.querySelector('label').click();
+  assert(document.activeElement === btn, 'select label focuses trigger');
+  assert(name(field) === 'Periode', 'month label names trigger');
+  document.querySelector('label[for="month"]').click();
+  assert(document.activeElement === field, 'month label focuses trigger');
+  assert(name(document.querySelector('#named + .cdrop-btn')) === 'Nama eksternal', 'labelledby precedes aria-label');
+  assert(name(document.querySelector('#named-month + .mpick-field')) === 'Bulan laporan', 'aria-label forwarded');
+  let captured = 0, submitted = 0;
+  const form = document.getElementById('form');
+  form.addEventListener('invalid', () => captured++, true);
+  form.addEventListener('submit', e => { e.preventDefault(); submitted++; });
+  form.requestSubmit();
+  assert(captured === 1 && submitted === 0, 'native invalid still propagates and blocks submission');
+  assert(document.activeElement === btn && btn.getAttribute('aria-invalid') === 'true', 'invalid focuses visible trigger');
+  assert(select.parentNode.classList.contains('is-invalid'), 'invalid visual state');
+  assert(getComputedStyle(select).display !== 'none' && select.getClientRects().length, 'native select remains rendered');
+  assert(getComputedStyle(month).display !== 'none', 'native month remains rendered');
+  key(btn, 'ArrowDown'); key(document.activeElement, 'Enter');
+  assert(select.value === 'a', 'keyboard selects enabled non-placeholder option');
+  assert(!btn.hasAttribute('aria-invalid'), 'change clears invalid');
+  form.requestSubmit();
+  assert(submitted === 1 && new FormData(form).get('choice') === 'a', 'native submit data preserved');
+  select.disabled = true; select.required = false;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert(btn.disabled && btn.getAttribute('aria-disabled') === 'true', 'dynamic disabled mirrored');
+  select.disabled = false; select.required = true; syncCdrop(select.id);
+  assert(!btn.disabled && btn.getAttribute('aria-disabled') === 'false', 'sync restores state');
+  assert(select.parentNode.querySelector('[role="listbox"]').getAttribute('aria-required') === 'true', 'required sync');
+  select.innerHTML = '<option value="">Pilih lagi</option><option value="new">Baru</option>';
+  select.disabled = true; select.required = false;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert(btn.disabled && select.parentNode.querySelectorAll('.cdrop-item').length === 2, 'repopulation mirrors state and options');
+  assert(select.parentNode.querySelector('[role="listbox"]').getAttribute('aria-required') === 'false', 'required mutation sync');
+  select.disabled = false; select.required = true;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  month.required = true;
+  form.requestSubmit();
+  assert(document.activeElement === btn && field.getAttribute('aria-invalid') === 'true', 'multiple invalid controls retain first focus');
+  select.value = 'new'; select.dispatchEvent(new Event('change', { bubbles: true }));
+  form.requestSubmit();
+  assert(document.activeElement === field, 'invalid month focuses visible trigger');
+  month.value = '2026-11'; month.dispatchEvent(new Event('change', { bubbles: true }));
+  assert(field.textContent.includes('2026') && !field.hasAttribute('aria-invalid'), 'external month change syncs UI');
+  form.reset();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert(!btn.hasAttribute('aria-invalid') && field.textContent.includes('Pilih bulan'), 'reset syncs values and errors');
+  field.click();
+  const pop = month.parentNode.querySelector('.mpick-pop');
+  assert(pop.getAttribute('role') === 'dialog' && pop.getAttribute('aria-label') === 'Pilih Bulan dan Tahun', 'named month dialog');
+  assert(pop.contains(document.activeElement), 'month popup receives focus');
+  key(document.activeElement, 'Escape');
+  assert(pop.hidden && document.activeElement === field, 'Escape restores month trigger focus');
+  const named = document.getElementById('named');
+  named.setAttribute('data-search', '');
+  // A separate searchable instance exercises filtering without changing native values.
+  const searchable = document.createElement('select');
+  searchable.id = 'searchable'; searchable.className = 'cdrop'; searchable.setAttribute('data-search', '');
+  searchable.setAttribute('aria-label', 'Cari kategori');
+  searchable.innerHTML = '<option value="x" disabled>Blocked</option><option value="y">Allowed</option>';
+  document.body.appendChild(searchable); initCustomDropdowns();
+  const searchBtn = searchable.parentNode.querySelector('.cdrop-btn');
+  searchBtn.click();
+  await new Promise(resolve => setTimeout(resolve, 40));
+  const search = searchable.parentNode.querySelector('input');
+  key(search, 'ArrowDown');
+  assert(document.getElementById(search.getAttribute('aria-activedescendant')).dataset.value === 'y', 'search keyboard skips disabled option and announces active option');
+  key(search, 'Enter');
+  assert(searchable.value === 'y' && document.activeElement === searchBtn, 'search keyboard commits native value');
+  document.body.dataset.result = 'passed';
+} catch (error) { document.getElementById('result').textContent = error.stack; document.body.dataset.result = 'failed'; }
+</script></html>

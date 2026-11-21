@@ -371,7 +371,7 @@
     display: none !important;
   }
 
-  /* Col 5: Mini Action/Edit button (26px squircle) */
+  /* Col 5: Edit control */
   #table-riwayat-data td:nth-child(5) {
     grid-column: 4 !important;
     display: flex !important;
@@ -381,9 +381,9 @@
   }
 
   #table-riwayat-data td:nth-child(5) .btn-master-action {
-    width: 26px !important;
-    height: 26px !important;
-    min-height: 26px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
     padding: 0 !important;
     border-radius: var(--r-sm) !important;
     display: inline-flex !important;

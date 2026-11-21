@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v188';
+const CACHE_NAME = 'finkas-v288';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -10,20 +10,34 @@ const LOCAL_ASSETS = [
   'offline.html',
   'css/onboarding.css',
   'css/onboarding-icons.css',
+  'css/onboarding-hero-stage.css',
+  'css/onboarding-sections.css',
+  'css/onboarding-footer-portal.css',
   'css/onboarding-motion.css',
+  'css/privacy.css',
   'style.css',
+  'src/workspace-boot-theme.js',
+  'css/modules/passbook.css',
+  'css/modules/groups-superadmin.css',
+  'css/modules/pin-input.css',
+  'src/ui/pin-input.js',
   'manifest.json',
-  /* Bagian 14 — latar panggung langit→bumi. 375,6 KB, di bawah anggaran
-     400 KB di Fase 0.5, jadi ia boleh di-precache supaya landing tetap utuh
-     saat offline — tanpa ini panggungnya kehilangan langitnya. */
-  'assets/hero-atmosphere.png',
-  'assets/hero-atmosphere.webp',
   'icons/favicon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-192.svg',
   'icons/icon-512.svg',
   'icons/icon-light-192.svg',
+  'fonts/ledger/jetbrains-mono-cyrillic-ext.woff2',
+  'fonts/ledger/jetbrains-mono-cyrillic.woff2',
+  'fonts/ledger/jetbrains-mono-greek.woff2',
+  'fonts/ledger/jetbrains-mono-vietnamese.woff2',
+  'fonts/ledger/jetbrains-mono-latin-ext.woff2',
+  'fonts/ledger/jetbrains-mono-latin.woff2',
+  'fonts/ledger/plus-jakarta-sans-cyrillic-ext.woff2',
+  'fonts/ledger/plus-jakarta-sans-vietnamese.woff2',
+  'fonts/ledger/plus-jakarta-sans-latin-ext.woff2',
+  'fonts/ledger/plus-jakarta-sans-latin.woff2',
   'fonts/phosphor/phosphor.css',
   'fonts/phosphor/regular/style.css',
   'fonts/phosphor/regular/Phosphor.woff2',
@@ -54,6 +68,33 @@ const LOCAL_ASSETS = [
   'src/handlers/cash-report.js',
   'src/ui/save-status.js',
   'src/ui/theme.js',
+  'src/ui/workspace.js',
+  'src/ui/pagination.js',
+  'src/ui/bento-dashboard.js',
+  'src/ui/spotlight.js',
+  'src/ui/dues-status.js',
+  'src/ui/kasi-mascot.js',
+  'src/ui/kasi-stage.js',
+  'src/ui/kasi-effects.js',
+  'src/ui/guided-tour.js',
+  'css/modules/kasi-mascot.css',
+  'css/modules/guided-tour.css',
+  'css/modules/hybrid-layout.css',
+  'css/modules/hybrid-motion.css',
+  'css/modules/hybrid-settings.css',
+  'css/modules/hybrid-spotlight.css',
+  'src/ui/hybrid-motion.js',
+  'src/ui/hybrid-chart.js',
+  'css/modules/hybrid-workspace.css',
+  'src/core/payment-account.js',
+  'src/handlers/payment-account.js',
+  'src/handlers/self-pay.js',
+  'src/render/receipt.js',
+  'css/modules/self-pay.css',
+  'src/ui/bulk-dues.js',
+  'css/modules/bento-dashboard.css',
+  'css/modules/spotlight.css',
+  'css/modules/workspace.css',
   'src/ui/modal.js',
   'src/ui/transaction-form.js',
   'src/render.js',
@@ -72,13 +113,25 @@ const LOCAL_ASSETS = [
   'src/handlers/transactions.js',
   'src/handlers/groups.js',
   'src/ui/cdrop.js',
+  'src/ui/control-a11y.js',
   'src/ui/mpick.js',
+  'src/ui/dpick.js',
   'src/ui/keel.js',
   'src/ui/gestures.js',
   'src/app.js',
   'src/sw-register.js',
   'src/onboarding.js',
-  'src/journey.js'
+  'src/onboarding-boot-theme.js',
+  'src/onboarding-stage.js',
+  'src/onboarding-motion.js',
+  'src/journey.js',
+  'src/privacy.js'
+];
+
+const OPTIONAL_ASSETS = [
+  'assets/hero-atmosphere.webp',
+  'assets/mountain-far.webp',
+  'assets/mountain-near.webp'
 ];
 
 // Third-party CDN domains to cache for reliable offline usage
@@ -88,108 +141,89 @@ const CDN_HOSTS = [
   'fonts.gstatic.com'
 ];
 
-// Install — cache local assets, fail gracefully
+// Core shell installation is atomic; decorative assets may fail independently.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      const results = await Promise.allSettled(
-        LOCAL_ASSETS.map((asset) => cache.add(asset))
-      );
-      const failed = results.filter((r) => r.status === 'rejected');
-      if (failed.length > 0) {
-        console.warn('SW install: failed to cache some assets', failed);
-      }
+      await cache.addAll(LOCAL_ASSETS);
+      await Promise.allSettled(OPTIONAL_ASSETS.map((asset) => cache.add(asset)));
+      await self.skipWaiting();
     })
   );
-  self.skipWaiting();
 });
 
-// Activate — purge old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key.startsWith('finkas-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch handler
+function offlineResponse() {
+  return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+}
+
+// Register the entire write lifetime synchronously, before any cache lookup settles.
+function cacheNetworkResponse(event, network, allowOpaque = false) {
+  event.waitUntil(network.then((response) => {
+    if (response && (response.ok || (allowOpaque && response.type === 'opaque'))) {
+      const copy = response.clone();
+      return caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    }
+  }).catch(() => null));
+}
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  if (url.origin === location.origin && url.pathname.startsWith('/api/')) return;
+  if (event.request.method !== 'GET') return;
 
-  // API responses are per-session and must never land in Cache Storage.
-  // The gateway is POST-only today; this keeps a future GET from being stored.
-  if (url.origin === location.origin && url.pathname.startsWith('/api/')) {
+  if (url.origin === location.origin) {
+    const network = fetch(event.request).catch(() => null);
+    cacheNetworkResponse(event, network);
+
+    if (event.request.mode === 'navigate') {
+      event.respondWith((async () => {
+        let timer;
+        const timeout = new Promise((resolve) => {
+          timer = setTimeout(() => resolve(null), 1500);
+        });
+        const response = await Promise.race([network, timeout]);
+        clearTimeout(timer);
+        if (response && response.ok) return response;
+        const fallback = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
+          (await caches.match('/', { cacheName: CACHE_NAME })) ||
+          (await caches.match('offline.html', { cacheName: CACHE_NAME }));
+        return fallback || response || offlineResponse();
+      })());
+    } else {
+      // Warm assets return immediately while the protected network task refreshes them.
+      event.respondWith((async () => {
+        const cached = await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
+        return cached || await network || offlineResponse();
+      })());
+    }
     return;
   }
 
-  // 1. Local origin assets: network-first with a 3s timeout, fallback to cache.
-  //    A hard network-first (no timeout) made every load on a slow-but-connected
-  //    link wait for the network to fail before serving the cache; racing a
-  //    timeout keeps the app responsive while the background fetch still
-  //    refreshes the cache when it eventually resolves.
-  if (url.origin === location.origin && event.request.method === 'GET') {
-    event.respondWith((async () => {
-      const cachedPromise = caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
-
-      const networkPromise = fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => null);
-
-      const timeout = new Promise((resolve) => setTimeout(() => resolve('TIMEOUT'), 3000));
-      const winner = await Promise.race([networkPromise, timeout]);
-      if (winner && winner !== 'TIMEOUT') return winner;
-
-      // Network slow or failed — serve cache if we have it (the fetch above
-      // keeps running and refreshes the cache for next time).
-      const cached = await cachedPromise;
-      if (cached) return cached;
-
-      // Nothing cached: wait out the network rather than failing early.
-      const net = await networkPromise;
-      if (net) return net;
-
-      // Offline navigation fallback: serve cached app shell so PWA functions offline
-      if (event.request.mode === 'navigate') {
-        const appShell = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
-                         (await caches.match('/', { cacheName: CACHE_NAME }));
-        if (appShell) return appShell;
-
-        const offlinePage = await caches.match('offline.html', { cacheName: CACHE_NAME });
-        if (offlinePage) return offlinePage;
+  if (CDN_HOSTS.includes(url.hostname)) {
+    // A hit never starts a network request; misses retain opaque response support.
+    const result = caches.match(event.request, { cacheName: CACHE_NAME }).then(async (cached) => {
+      if (cached) return { response: cached, fresh: false };
+      const response = await fetch(event.request).catch(() => null);
+      return { response, fresh: true };
+    });
+    event.waitUntil(result.then(({ response, fresh }) => {
+      if (fresh && response && (response.ok || response.type === 'opaque')) {
+        const copy = response.clone();
+        return caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
       }
-
-      return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
-    })());
-    return;
-  }
-
-  // 2. External CDN assets (Chart.js, Phosphor Icons, Google Fonts): Cache-first
-  if (CDN_HOSTS.includes(url.hostname) && event.request.method === 'GET') {
-    event.respondWith(
-      caches.match(event.request, { cacheName: CACHE_NAME }).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request)
-          .then((response) => {
-            if (response && (response.ok || response.type === 'opaque')) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-            }
-            return response;
-          })
-          .catch(() => cached || new Response('', { status: 408, statusText: 'Offline' }));
-      })
-    );
-    return;
+    }).catch(() => null));
+    event.respondWith(result.then(({ response }) => response || offlineResponse()));
   }
 });
 

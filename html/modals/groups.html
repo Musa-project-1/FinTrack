@@ -1,23 +1,43 @@
   <!-- 0. Modal Pilih Grup (multi-grup tahap 1) -->
-  <div class="modal-overlay modal-top" id="modal-groups">
-    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-groups-title">
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon">
-            <i class="ph-fill ph-users-three"></i>
-          </div>
-          <div class="modal-title-wrap">
+  <dialog class="modal-overlay hybrid-dialog" id="modal-groups" aria-labelledby="modal-groups-title">
+    <div class="modal-content groups-picker-sheet">
+      <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
+      <div class="hybrid-settings-header groups-sheet-header">
+        <div class="groups-header-main">
+          <span class="groups-header-emblem" aria-hidden="true"><i class="ph ph-users-three"></i></span>
+          <div class="groups-header-copy">
             <h2 id="modal-groups-title">Pilih Grup Kas</h2>
-            <p>Tiap grup ruangannya sendiri, data tidak campur</p>
+            <p id="modal-groups-subtitle">Setiap grup memiliki buku kas dan data anggota yang terpisah</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
       </div>
-      <div id="group-picker-list" class="group-picker-list"></div>
-      <div class="group-picker-actions">
-        <a class="btn btn-outline group-picker-cta" href="onboarding.html">Buka halaman sambutan</a>
-        <button class="btn btn-outline group-picker-cta" data-action="exit-group">Keluar grup aktif</button>
+
+      <div class="groups-sheet-body">
+        <div class="groups-list-meta">
+          <span class="groups-section-label">Daftar Grup Tersedia</span>
+          <span class="groups-count-pill" id="group-picker-count" hidden>0 grup</span>
+        </div>
+
+        <div id="group-picker-list" class="group-picker-list" role="list"></div>
+
+        <div class="groups-pin-tip">
+          <i class="ph ph-lock-simple" aria-hidden="true"></i>
+          <span data-i18n="groups.hint">Pilih grup lalu masukkan 4 digit PIN aksesnya.</span>
+        </div>
       </div>
-      <p class="group-picker-hint">Ketuk grup, lalu ketik PIN 4 angkanya.</p>
+
+      <div class="hybrid-settings-footer groups-sheet-footer">
+        <a class="groups-footer-btn" href="onboarding.html" data-i18n="groups.welcome">
+          <i class="ph ph-house" aria-hidden="true"></i>
+          <span>Halaman Utama</span>
+        </a>
+        <button type="button" class="groups-footer-btn is-danger" id="btn-exit-active-group" data-action="exit-group" data-i18n="groups.exit">
+          <i class="ph ph-sign-out" aria-hidden="true"></i>
+          <span>Keluar dari Grup</span>
+        </button>
+      </div>
     </div>
-  </div>
+  </dialog>

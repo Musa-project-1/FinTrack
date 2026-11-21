@@ -1,10 +1,81 @@
-/* ==========================================================================
-   Finkas — Landing page motion layer (Origin-derived)
-   Target document: onboarding.html ONLY
-   GUARDRAILS: G1 (onboarding.html only) · G2 (keep in css/ root, never modules)
-   ========================================================================== */
+/* =========================================================================
+   FINKAS — Landing & Portal Motion Layer + Responsive Breakpoints
+   Loaded ONLY by onboarding.html (and tests/qa/_qa-journey.html).
+   Guardrails: G1 (onboarding.html only) · G2 (never import in css/input.css)
+   ========================================================================= */
 
-/* 1. Reveal Guard */
+/* ── View Transitions & Smooth Theme Toggle Animation ──────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 999;
+}
+
+html.theme-fading,
+html.theme-fading * {
+  transition:
+    background-color 0.42s ease,
+    color 0.32s ease,
+    border-color 0.32s ease !important;
+}
+
+.celestial-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  overflow: visible;
+}
+
+.celestial-disc {
+  transform-origin: 12px 12px;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.celestial-cutout {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.celestial-rays {
+  transform-origin: 12px 12px;
+  opacity: 0;
+  transform: scale(0.35) rotate(-45deg);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease;
+}
+
+:root[data-theme="dark"] .celestial-disc {
+  transform: scale(0.7);
+}
+
+:root[data-theme="dark"] .celestial-cutout {
+  transform: translate3d(10px, -10px, 0);
+}
+
+:root[data-theme="dark"] .celestial-rays {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.btn-hero-primary i,
+.btn-nav-cta i,
+.btn-cta-inverted i {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-hero-primary:hover i,
+.btn-nav-cta:hover i,
+.btn-cta-inverted:hover i {
+  transform: translateX(3px);
+}
+
+/* ── Reveal Guard (.js-motion) ─────────────────────────────────────────── */
 .js-motion [data-lp-reveal] {
   opacity: 0;
   will-change: opacity;
@@ -12,7 +83,7 @@
 }
 
 .js-motion [data-lp-reveal="blur"] {
-  filter: blur(8px);
+  filter: blur(4px);
   will-change: opacity, filter;
   transition: opacity var(--lp-t-reveal), filter var(--lp-t-reveal);
 }
@@ -26,75 +97,53 @@
   filter: blur(0);
 }
 
-/* 2. Keyframes */
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
 @keyframes lp-spin {
   from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes lp-atmos-rise {
-  0%   { opacity: 0; transform: translate3d(0, 6px, 0); }
-  30%  { opacity: 0.55; transform: translate3d(0, 0, 0); }
+  0% { opacity: 0; transform: translate3d(0, 6px, 0); }
+  30% { opacity: 0.55; transform: translate3d(0, 0, 0); }
   100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes lp-turn-travel {
   from { stroke-dashoffset: 100; }
-  to   { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes lp-turn-settle {
-  0%   { opacity: 0.9; }
-  70%  { opacity: 0.55; }
+  0% { opacity: 0.9; }
+  70% { opacity: 0.55; }
   100% { opacity: 0; }
 }
 
-@keyframes lp-drawer-item {
-  from { opacity: 0; transform: translate3d(0, -6px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
 @keyframes lp-flash-veil {
-  0%   { opacity: 1; }
+  0% { opacity: 1; }
   100% { opacity: 0; }
 }
 
 @keyframes lp-stamp-fade {
   from { opacity: 0; }
-  to   { opacity: 1; }
+  to { opacity: 1; }
 }
 
-/* 3. State Transitions */
-.js-motion .drawer-link,
-.js-motion .drawer-cta,
-.js-motion .nav-hamburger,
-.js-motion .btn-cta-silver,
-.js-motion .faq-trigger {
-  transition: color var(--lp-t-state), background-color var(--lp-t-state),
-              opacity var(--lp-t-state), border-color var(--lp-t-state);
+@keyframes lp-pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  88% { transform: translateX(3px); }
 }
 
-.js-motion .faq-caret {
-  transition: transform var(--lp-t-state);
-}
+/* ── Hero Entrances & borderTurn ───────────────────────────────────────── */
+.hero-content .hero-eyebrow { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+.hero-content .hero-sub { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.36s both; }
+.hero-content .hero-cta-group { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.52s both; }
+.hero-content .hero-trust-row { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.68s both; }
 
-.js-motion .faq-trigger[aria-expanded="true"] .faq-caret {
-  transform: rotate(180deg);
-}
-
-.js-motion .nav-progress {
-  will-change: transform;
-}
-
-/* 4. Reveal & Entrance */
-.hero-content .hero-eyebrow     { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
-.hero-content h1                { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.22s both; }
-.hero-content .hero-sub         { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.42s both; }
-.hero-content .btn-hero-primary { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.66s both; }
-.hero-content .btn-hero-ghost   { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.84s both; }
-.hero-content .hero-trust-row   { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 1.02s both; }
-
-/* 4.1 borderTurn */
 .lp-turn {
   position: absolute;
   pointer-events: none;
@@ -118,51 +167,27 @@
   vector-effect: non-scaling-stroke;
 }
 
-.lp-turn-hero { inset: -20px; }
-.lp-turn-hero .lp-turn-svg  { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+.lp-turn-hero { inset: 0; }
+.lp-turn-hero .lp-turn-svg { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
 .lp-turn-hero .lp-turn-path { animation: lp-turn-travel var(--lp-t-reveal) linear 0.05s both; }
 
 .lp-turn-mockup { inset: 2px; }
-.js-motion .browser-frame.is-lp-revealed .lp-turn-mockup .lp-turn-svg  { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.35s both; }
-.js-motion .browser-frame.is-lp-revealed .lp-turn-mockup .lp-turn-path { animation: lp-turn-travel var(--lp-t-reveal) linear 0.35s both; }
-
-@media (max-width: 900px) {
-  .lp-turn-hero { inset: 0; }
+.js-motion .stage-frame.is-lp-revealed .lp-turn-mockup .lp-turn-svg {
+  animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.25s both;
+}
+.js-motion .stage-frame.is-lp-revealed .lp-turn-mockup .lp-turn-path {
+  animation: lp-turn-travel var(--lp-t-reveal) linear 0.25s both;
 }
 
-/* 4.2 Numerical stability, drawer stagger, accordion, simulator flash & stamps */
-.js-motion .lp-counting {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
-}
-
-.js-motion .nav-drawer .drawer-link,
-.js-motion .nav-drawer .drawer-cta {
-  opacity: 0;
-}
-
-.js-motion .nav-drawer.is-open .drawer-link,
-.js-motion .nav-drawer.is-open .drawer-cta {
-  animation: lp-drawer-item 0.45s var(--lp-ease-calm) both;
-}
-
-.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(2) { animation-delay: 0.06s; }
-.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(3) { animation-delay: 0.12s; }
-.js-motion .nav-drawer.is-open .drawer-link:nth-of-type(4) { animation-delay: 0.18s; }
-.js-motion .nav-drawer.is-open .drawer-cta { animation-delay: 0.24s; }
-
+/* ── FAQ Accordion & Saldo Flash ───────────────────────────────────────── */
 .js-motion .faq-body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--lp-t-state);
+  transition: grid-template-rows var(--lp-t-faq);
 }
 
 .js-motion .faq-trigger[aria-expanded="true"] ~ .faq-body {
   grid-template-rows: 1fr;
-}
-
-.js-motion .mock-saldo {
-  position: relative;
 }
 
 .js-motion .mock-saldo::after {
@@ -179,17 +204,7 @@
   animation: lp-flash-veil var(--lp-t-state) ease-out both;
 }
 
-.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-paid,
-.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-libur,
-.js-motion .matrix-scroll-wrap.is-lp-revealed .stamp-unpaid {
-  animation: lp-stamp-fade 0.5s ease-out both;
-}
-
-.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(2) span { animation-delay: 0.08s; }
-.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(3) span { animation-delay: 0.16s; }
-.js-motion .matrix-scroll-wrap.is-lp-revealed tbody tr:nth-child(4) span { animation-delay: 0.24s; }
-
-/* 5. Sky Stage Layer Bindings */
+/* ── Sky Stage Layer Bindings (consumed by src/journey.js) ─────────────── */
 .js-motion .sky-layer-sky {
   opacity: var(--lp-j-sky, 1);
   transform: translate3d(0, var(--lp-y-sky, 0%), 0);
@@ -210,17 +225,20 @@
   transform: translate3d(0, var(--lp-y-land, 0%), 0);
 }
 
-.js-motion .sky-layer {
-  will-change: opacity;
-}
-
-/* 6. PIN Spinner & Portal Transitions */
+/* ── PIN Spinner, Screen Transitions, Scroll Margin & Focus ──────────────── */
 .lp-spin {
   animation: lp-spin 0.8s linear infinite;
   display: inline-block;
 }
 
-#state-welcome:not(.hidden),
+#state-welcome:not(.hidden) {
+  opacity: 1;
+  transition: opacity 0.2s ease-out;
+  @starting-style {
+    opacity: 0;
+  }
+}
+
 #state-list:not(.hidden),
 #state-pin:not(.hidden) {
   opacity: 1;
@@ -233,31 +251,31 @@
 }
 
 .pin-input-row.is-error {
-  animation: lp-pin-shake 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+  animation: lp-pin-shake 0.22s ease;
 }
 
-.pin-input-row.is-error .pin-digit-box {
-  border-color: var(--lp-danger);
+#fitur, #matriks, #demo-simulator, #faq {
+  scroll-margin-top: 76px;
 }
 
-@keyframes lp-pin-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  45% { transform: translateX(5px); }
-  70% { transform: translateX(-3px); }
-  88% { transform: translateX(3px); }
+:focus-visible {
+  outline: 2px solid var(--lp-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* 7. Prefers-Reduced-Motion */
+/* ── Prefers-Reduced-Motion ────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .hero-content .hero-eyebrow,
-  .hero-content h1,
+  .hero-line-1,
+  .hero-line-2,
+  .hero-line-3,
   .hero-content .hero-sub,
-  .hero-content .btn-hero-primary,
-  .hero-content .btn-hero-ghost,
+  .hero-content .hero-cta-group,
   .hero-content .hero-trust-row {
     animation: none !important;
     opacity: 1;
+    filter: none;
     transform: none;
   }
 
@@ -268,33 +286,196 @@
     opacity: 1;
     filter: none;
     transition: none;
-    animation: none;
   }
 
-  .js-motion .nav-drawer .drawer-link,
-  .js-motion .nav-drawer .drawer-cta {
-    opacity: 1;
+  .js-motion .sky-layer {
     transform: none;
   }
 
-  .js-motion .sky-layer { transform: none; }
-
   .lp-spin,
-  .pin-input-row.is-error { animation: none !important; }
+  .pin-input-row.is-error,
+  .hero-em-arc path,
+  .stamp-btn.is-ink-ripple,
+  .stamp-btn.is-stamped-in,
+  .stamp-btn.is-ink-ripple::after,
+  .stamp-btn.is-stamped-in::after,
+  .receipt-slip,
+  .footer-wib-dot,
+  .footer-seal-pill {
+    animation: none !important;
+  }
 
-  #state-welcome:not(.hidden),
+  .hero-em-arc path {
+    stroke-dashoffset: 0;
+  }
+
+  .js-motion .hero-content,
+  .js-motion .stage-frame,
+  .sky-image,
+  .sky-mist,
+  .celestial-disc,
+  .celestial-cutout,
+  .celestial-rays,
+  .btn-hero-primary,
+  .btn-cta-inverted,
+  .btn-footer-top,
+  .odo-reel {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  .dossier-indicator,
+  .dossier-body {
+    transition: none !important;
+  }
+
+  .specimen-pane.is-active {
+    animation: none !important;
+  }
+
+  .footer-wordmark-stage:not(.is-pointer-active) .footer-wordmark-fill,
+  .footer-wordmark-stage.is-pointer-active .footer-wordmark-fill {
+    animation: none !important;
+    opacity: 0.28 !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .stage-frame::before {
+    display: none !important;
+  }
+
   #state-list:not(.hidden),
   #state-pin:not(.hidden) {
     transform: none !important;
     transition: opacity 0.12s ease !important;
   }
 
-  .js-motion *,
-  .js-motion *::before,
-  .js-motion *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  html.theme-fading,
+  html.theme-fading * {
+    transition: none !important;
+  }
+}
+
+/* ── Responsive Breakpoints (<= 900px & <= 640px) ─────────────────────── */
+@media (max-width: 900px) {
+  .nav-links,
+  .btn-nav-cta {
+    display: none;
+  }
+
+  .nav-hamburger {
+    display: inline-flex;
+  }
+
+  .dossier-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dossier-stage {
+    border-left: none;
+    border-top: 1px solid var(--lp-line-soft);
+    min-height: 320px;
+  }
+
+  .trust-band-sep {
+    display: none;
+  }
+
+  .matrix-scroll-hint {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .stage-frame {
+    --lens-x: 85%;
+  }
+
+  .landing-hero {
+    padding: 40px 14px;
+  }
+
+  .hero-content {
+    padding: 20px 8px;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-ghost {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .stage-topbar,
+  .stage-content,
+  .stage-footer-bar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .stage-layer-audit .audit-formula {
+    font-size: clamp(10px, 2.75vw, 18px);
+    letter-spacing: -0.03em;
+  }
+
+  .stage-layer-audit .flow-val {
+    font-size: 11px;
+    line-height: 20px;
+    min-height: 20px;
+  }
+
+  .stage-sync-chip,
+  .audit-chip {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .stage-footer-bar {
+    font-size: 9.5px;
+  }
+
+  .vault-compliance {
+    font-size: 10px;
+  }
+
+  .flow-val {
+    font-size: 13.5px;
+    line-height: 20px;
+    min-height: 20px;
+  }
+
+  .dossier-row {
+    padding: 16px 18px 16px 22px;
+  }
+
+  .dossier-stage {
+    padding: 22px 18px;
+  }
+
+  .landing-section {
+    padding: 56px 14px;
+  }
+
+  .simulator-panel {
+    padding: 20px 16px;
+  }
+
+  .sim-controls .btn-sim {
+    width: 100%;
+  }
+
+  .landing-cta-banner {
+    padding: 44px 20px;
+  }
+
+  .portal-card {
+    padding: 24px 18px;
   }
 }

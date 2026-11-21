@@ -45,6 +45,14 @@ export const getDefaultJakartaYearMonth = () => {
   return `${year}-${month}`;
 };
 
+const syncMonthValue = (input, month) => {
+  if (!input || !month) return;
+  if (input.value !== month) input.value = month;
+  if (typeof input.setAttribute === 'function' && input.getAttribute?.('value') !== month) {
+    input.setAttribute('value', month);
+  }
+};
+
 /**
  * Get the currently selected report month from DOM or default to current Jakarta month.
  * @returns {string} YYYY-MM
@@ -57,7 +65,7 @@ export const getCurrentReportMonth = () => {
     return val;
   }
   const fallback = getDefaultJakartaYearMonth();
-  if (input) input.value = fallback;
+  syncMonthValue(input, fallback);
   return fallback;
 };
 
@@ -75,11 +83,8 @@ export const renderMonthlyCashReport = (targetMonth) => {
   const state = getState();
   const report = buildMonthlyCashReport(state, month);
 
-  // Synchronize month input
-  const monthInput = document.getElementById('cash-report-month');
-  if (monthInput && monthInput.value !== month) {
-    monthInput.value = month;
-  }
+  // Synchronize month input & .mpick label
+  syncMonthValue(document.getElementById('cash-report-month'), month);
 
   // Summary metric cards
   const elSaldoAwal = document.getElementById('cash-report-saldo-awal');
@@ -132,18 +137,13 @@ export const renderMonthlyCashReport = (targetMonth) => {
 
       alertEl.style.display = 'block';
       alertEl.innerHTML = `
-        <div class="card p-12" style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: var(--r-md); color: var(--danger);">
-          <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
-            <i class="ph-bold ph-warning-circle fs-16"></i>
-            Perhatian: Ditemukan ${count} transaksi invalid yang dilewati dari buku kas!
+        <div class="report-invalid-alert">
+          <div class="report-invalid-head">
+            <i class="ph-bold ph-warning-circle" aria-hidden="true"></i>
+            <span>Perhatian: Ditemukan ${count} transaksi invalid yang dilewati dari buku kas!</span>
           </div>
-          <div class="fs-12" style="margin-top: 4px; color: var(--text-main);">
-            Periksa data berikut agar uang kas tidak hilang tanpa pencatatan:
-          </div>
-          <ul style="margin: 6px 0 0 18px; padding: 0; font-size: 11.5px; color: var(--text-muted);">
-            ${sampleList}
-            ${moreText}
-          </ul>
+          <div class="report-invalid-sub">Periksa data berikut agar uang kas tidak hilang tanpa pencatatan:</div>
+          <ul class="report-invalid-list">${sampleList}${moreText}</ul>
         </div>
       `;
     } else {
@@ -158,7 +158,7 @@ export const renderMonthlyCashReport = (targetMonth) => {
     if (report.details.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          <td colspan="6" class="td-muted-center">
             Tidak ada transaksi tercatat pada periode ${escapeHtml(report.month)}.
           </td>
         </tr>
@@ -166,31 +166,32 @@ export const renderMonthlyCashReport = (targetMonth) => {
     } else {
       tbody.innerHTML = report.details
         .map((item, idx) => {
-          const masukStr = item.type === 'Masuk' ? `+${formatRp(item.nominal)}` : '-';
-          const keluarStr = item.type === 'Keluar' ? `-${formatRp(item.nominal)}` : '-';
-          const masukStyle = item.type === 'Masuk' ? 'color: var(--income-strong); font-weight: 600;' : 'color: var(--text-muted);';
-          const keluarStyle = item.type === 'Keluar' ? 'color: var(--danger); font-weight: 600;' : 'color: var(--text-muted);';
+          const isIn = item.type === 'Masuk';
+          const masukStr = isIn ? `+${formatRp(item.nominal)}` : '-';
+          const keluarStr = !isIn ? `-${formatRp(item.nominal)}` : '-';
+          const masukCls = isIn ? 'is-income' : 'is-muted';
+          const keluarCls = !isIn ? 'is-danger' : 'is-muted';
 
           const metaParts = [];
           if (item.kategoriNama && item.kategoriNama !== '-') metaParts.push(escapeHtml(item.kategoriNama));
           if (item.anggotaNama && item.anggotaNama !== '-') metaParts.push(escapeHtml(item.anggotaNama));
-          const metaHtml = metaParts.length > 0 ? `<div class="text-muted fs-11">${metaParts.join(' • ')}</div>` : '';
-          const ketHtml = item.keterangan ? escapeHtml(item.keterangan) : `<span class="text-muted">(${item.type === 'Masuk' ? 'Pemasukan' : 'Pengeluaran'})</span>`;
+          const metaHtml = metaParts.length > 0 ? `<div class="report-row-meta">${metaParts.join(' • ')}</div>` : '';
+          const ketHtml = item.keterangan ? escapeHtml(item.keterangan) : `<span class="text-muted">(${isIn ? 'Pemasukan' : 'Pengeluaran'})</span>`;
 
           return `
-            <tr style="border-bottom: 1px solid var(--border);">
-              <td style="text-align: center; padding: 8px 6px; color: var(--text-muted); font-size: 11px;">${idx + 1}</td>
-              <td style="padding: 8px 6px; white-space: nowrap;">
-                <div style="font-weight: 500;">${escapeHtml(item.dateStr)}</div>
-                <div class="text-muted fs-11">${escapeHtml(item.timeStr)} WIB</div>
+            <tr data-type="${isIn ? 'in' : 'out'}">
+              <td class="col-no report-row-num">${idx + 1}</td>
+              <td class="col-waktu report-row-time">
+                <div class="report-row-date">${escapeHtml(item.dateStr)}</div>
+                <div class="report-row-clock">${escapeHtml(item.timeStr)} WIB</div>
               </td>
-              <td style="padding: 8px 6px;">
+              <td class="col-ket report-row-desc">
                 <div>${ketHtml}</div>
                 ${metaHtml}
               </td>
-              <td style="text-align: right; padding: 8px 6px; font-family: monospace; ${masukStyle}">${masukStr}</td>
-              <td style="text-align: right; padding: 8px 6px; font-family: monospace; ${keluarStyle}">${keluarStr}</td>
-              <td style="text-align: right; padding: 8px 6px; font-family: monospace; font-weight: 600;">${formatRp(item.balance)}</td>
+              <td class="col-amt report-row-amt report-row-in ${masukCls}">${masukStr}</td>
+              <td class="col-amt report-row-amt report-row-out ${keluarCls}">${keluarStr}</td>
+              <td class="col-saldo report-row-saldo">${formatRp(item.balance)}</td>
             </tr>
           `;
         })
@@ -312,7 +313,7 @@ export const attachCashReportListeners = () => {
   const monthInput = document.getElementById('cash-report-month');
   if (monthInput) {
     if (!monthInput.value) {
-      monthInput.value = getDefaultJakartaYearMonth();
+      syncMonthValue(monthInput, getDefaultJakartaYearMonth());
     }
     boundMonthHandler = () => renderMonthlyCashReport();
     monthInput.addEventListener('change', boundMonthHandler);

@@ -1,3 +1,4 @@
+import { billingPeriod } from './dues.js';
 /**
  * @module state
  * Centralized application state, cache persistence and session handling.
@@ -12,6 +13,7 @@ import {
   ADMIN_SESSION_KEY,
   ADMIN_ROLE_KEY,
   ADMIN_EMAIL_KEY,
+  ADMIN_VIEW_MODE_KEY,
   GROUP_SESSIONS_KEY,
   ACTIVE_GROUP_KEY,
   DEFAULT_GROUP_ID
@@ -25,7 +27,8 @@ const state = {
   kategori: [],
   transaksi: [],
   skippedMonths: [],
-  kasStart: ''
+  kasStart: '',
+  paymentAccount: null
 };
 
 /** Safe access to localStorage across browser and test environments. */
@@ -95,6 +98,7 @@ export const setState = (newState) => {
   // kasStart is a settable override: '' is a valid value (revert to fallback),
   // so guard on presence, not truthiness.
   if (newState.kasStart !== undefined) state.kasStart = newState.kasStart;
+  if (newState.paymentAccount !== undefined) state.paymentAccount = newState.paymentAccount;
   notifyStateChange();
 };
 
@@ -125,6 +129,7 @@ export const setActiveGroupId = (id) => {
     console.warn('[finkas] Cannot persist active group:', err?.message);
   }
   if (previousGroupId !== activeGroupId) {
+    state.paymentAccount = null;
     // The in-memory ledger still needs to be loaded for the newly selected group.
     publishStorageStatus('unknown', 'group-change');
     if (typeof window !== 'undefined') {
@@ -179,7 +184,7 @@ export const loadCache = () => {
     if (!data || !['anggota', 'kategori', 'transaksi'].every((key) => Array.isArray(data[key]))) {
       throw new Error('Cache pembukuan tidak valid.');
     }
-    setState({ ...data, skippedMonths: data.skippedMonths || [], kasStart: data.kasStart || '' });
+    setState({ ...data, skippedMonths: data.skippedMonths || [], kasStart: data.kasStart || '', paymentAccount: data.paymentAccount || null });
     publishStorageStatus('saved', 'load');
     return true;
   } catch (err) {
@@ -250,6 +255,9 @@ let adminRole = safelyRead(ADMIN_ROLE_KEY);
 /** @type {string} Admin user email */
 let adminUserEmail = safelyRead(ADMIN_EMAIL_KEY);
 
+/** @type {'admin' | 'anggota'} Active UI preview mode while an admin session is open. */
+let adminViewMode = safelyRead(ADMIN_VIEW_MODE_KEY) === 'anggota' ? 'anggota' : 'admin';
+
 const persistSessionField = (key, value) => {
   try {
     const storage = getLocalStorage();
@@ -264,18 +272,37 @@ const persistSessionField = (key, value) => {
 export const getAdminSession = () => adminSessionToken;
 
 /**
- * Store the admin session token.
+ * Store the admin session token and default the view mode back to Admin.
  * @param {string} token
  */
 export const setAdminSession = (token) => {
   adminSessionToken = token || '';
   persistSessionField(ADMIN_SESSION_KEY, adminSessionToken);
+  setAdminViewMode('admin');
 };
 
 export const getIsSuperAdmin = () => adminRole === 'superadmin';
 
 /** Whether an admin session is active. */
 export const getIsAdminSession = () => Boolean(adminSessionToken);
+
+/** Active UI view mode ('admin' | 'anggota'); non-admin sessions always resolve to 'anggota'. */
+export const getAdminViewMode = () => (adminSessionToken && adminViewMode === 'anggota' ? 'anggota' : (adminSessionToken ? 'admin' : 'anggota'));
+
+/**
+ * Switch the admin UI preview mode between 'admin' and 'anggota'.
+ * @param {'admin' | 'anggota'} mode
+ */
+export const setAdminViewMode = (mode) => {
+  adminViewMode = mode === 'anggota' ? 'anggota' : 'admin';
+  persistSessionField(ADMIN_VIEW_MODE_KEY, adminViewMode === 'anggota' ? 'anggota' : '');
+};
+
+/** Whether the UI should display Admin controls (true only when session is active and not previewing member view). */
+export const getIsAdminView = () => Boolean(adminSessionToken) && adminViewMode !== 'anggota';
+
+/** Whether the UI should display Super Admin controls in the active view. */
+export const getIsSuperAdminView = () => getIsSuperAdmin() && getIsAdminView();
 
 export const getAdminRole = () => adminRole;
 
@@ -304,6 +331,7 @@ export const clearAdminSession = () => {
   setAdminSession('');
   setAdminRole('');
   setAdminEmail('');
+  setAdminViewMode('admin');
   clearAllGroupSessions();
 };
 
@@ -324,7 +352,7 @@ export const resolveSessionToken = (gid, needsWrite = false) => {
 
 /* ── Current view state ────────────────────────────────────────── */
 
-export let currentRekapYear = new Date().getFullYear().toString();
+export let currentRekapYear = String(billingPeriod().year);
 export let currentHistoryFilter = 'semua';
 export let itemsToShow = 20;
 

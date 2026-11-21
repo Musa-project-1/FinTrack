@@ -5,9 +5,11 @@ import { parseKasStart } from './utils.js';
 const keyFor = (id, monthIndex, year) => JSON.stringify([id, monthIndex, Number(year)]);
 const ordinal = (monthIndex, year) => Number(year) * 12 + monthIndex;
 
+const billingFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' });
+
 /** The billing calendar is WIB, independent of the device timezone. */
 export const billingPeriod = (date = new Date()) => {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' }).formatToParts(date);
+  const parts = billingFormatter.formatToParts(date);
   return { year: Number(parts.find(p => p.type === 'year').value), monthIndex: Number(parts.find(p => p.type === 'month').value) - 1 };
 };
 

@@ -8,41 +8,54 @@
 }
 
 .mpick > input.mpick {
-  display: none !important;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .mpick-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
+  min-height: 44px;
   padding: 10px 14px;
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
   color: var(--text-main);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--t-fast), background var(--t-fast), transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 140ms ease;
 }
 
 .mpick-field:hover {
   border-color: var(--border-strong);
+  background: var(--surface);
 }
 
 .mpick-field:active:not(:disabled) {
-  transform: scale(0.98);
-  transition-duration: 0.1s;
+  transform: scale(0.99);
+  transition-duration: 90ms;
 }
 
 .mpick.open .mpick-field,
 .mpick-field:focus-visible {
+  background: var(--surface);
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-tint);
+  box-shadow: 0 0 0 3px var(--accent-tint);
   outline: none;
 }
 
@@ -65,7 +78,7 @@
   color: var(--text-muted);
 }
 
-/* Floating popup matching Finkas design system */
+/* Floating popup matching Hybrid Kinetic design system */
 .mpick-pop {
   position: absolute;
   top: calc(100% + 6px);
@@ -74,14 +87,14 @@
   width: 100%;
   min-width: 260px;
   max-width: 320px;
-  z-index: 120;
+  z-index: 140;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   box-shadow: var(--shadow-pop);
-  padding: 12px;
-  transform-origin: top left;
-  animation: dropdownFadeIn 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+  padding: 14px;
+  transform-origin: top center;
+  animation: dropdownFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mpick-head {
@@ -109,16 +122,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-main);
   font-size: 13px;
   cursor: pointer;
   padding: 0;
-  transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
 }
 
 .mpick-nav:hover {
@@ -134,9 +147,9 @@
 }
 
 .mpick-m {
-  padding: 8px 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  padding: 9px 0;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
   background: var(--surface-2);
   color: var(--text-main);
   font-size: 12.5px;
@@ -144,19 +157,19 @@
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .mpick-m:hover {
-  background: var(--surface-3);
+  background: var(--surface);
   border-color: var(--border-strong);
   color: var(--accent-strong);
 }
 
 .mpick-m.selected {
-  background: var(--accent-tint) !important;
-  border-color: var(--accent-border) !important;
-  color: var(--accent-strong) !important;
+  background: var(--accent-tint);
+  border-color: var(--accent-border);
+  color: var(--accent-strong);
   font-weight: 700;
 }
 
@@ -174,15 +187,25 @@
   background: transparent;
   color: var(--accent-strong);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: var(--r-xs);
-  transition: opacity var(--t-fast);
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: background-color 140ms ease, color 140ms ease;
 }
 
 .mpick-link:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  background: var(--accent-tint);
+  text-decoration: none;
+}
+
+.mpick-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.is-invalid > .mpick-field {
+  border-color: var(--danger);
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
 }

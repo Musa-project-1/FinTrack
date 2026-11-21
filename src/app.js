@@ -8,7 +8,7 @@
  */
 
 import {
-  setItemsToShow, setState, saveCache, loadCache, getIsAdminSession, setCurrentRekapYear, getState
+  setState, saveCache, loadCache, getIsAdminView, setCurrentRekapYear, getState, getActiveGroupId
 } from "./core/state.js";
 import { fetchInitialData } from "./core/api.js";
 import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
@@ -17,9 +17,10 @@ import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
 import { initSync, destroySync, notifySynced } from "./core/sync.js";
 import {
-  applyTheme, toggleTheme, setTheme, applyHeaderStatsPreference, toggleHeaderStats, setHeaderStatsPosition,
-  applyDensityPreference, setDensity, applyAccentPreference, applyNumberFontPreference, setNumberFont,
-  applyBgTexturePreference, setBgTexture, applyArrearsTonePreference, setArrearsTone, applyProgressFormatPreference, setProgressFormat
+  applyTheme, watchSystemTheme, toggleTheme, setTheme, setPalette, applyHeaderStatsPreference,
+  applyDensityPreference, applyAccentPreference, applyNumberFontPreference,
+  applyBgTexturePreference, setBgTexture, applyArrearsTonePreference, applyProgressFormatPreference,
+  applyLanguagePreference, setLanguage
 } from "./ui/theme.js";
 import {
   openModal, closeModal, switchTab,
@@ -32,11 +33,11 @@ import {
 } from "./render.js";
 
 import {
-  handleUI, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
+  handleUI, initLoginModal, initRoleSwitcher, setAdminViewModeAction, submitLoginAdmin, logoutAdminAction, loginGoogleSuperAdminAction, handleStealthBadgeClick
 } from "./handlers/auth.js";
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, setupRekapSearchListener,
-  openTampilanModal, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode,
+  openTampilanModal, openDuesLegend, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode,
   openCommandHubModal, setupMenuSearchListener
 } from "./handlers/navigation.js";
 import {
@@ -45,7 +46,7 @@ import {
 } from "./handlers/transactions.js";
 import {
   openSkippedMonthsModal, renderAuditLogList, openAuditLogModal, addSkippedMonth,
-  removeSkippedMonth, saveKasStart, populateKasStartInput, renderMasterAnggotaTable, renderMasterKategoriTable,
+  removeSkippedMonth, saveKasStart, renderMasterAnggotaTable, renderMasterKategoriTable,
   openKelolaMasterModal, submitTambahAnggota, toggleStatusAnggotaAction,
   hapusMasterAnggotaAction, submitTambahKategori, hapusMasterKategoriAction,
   bukaModalEditMasterAnggota, bukaModalEditMasterKategori, submitEditMasterAnggota
@@ -57,11 +58,26 @@ import {
   cetakStruk, cetakLaporanTahunan, copyMonthlyRecap, exportToCSV, createGroupReminderMessage
 } from "./handlers/export.js";
 import { printMonthlyCashReport, exportMonthlyCashCSV, initMonthlyCashReport } from "./handlers/cash-report.js";
+import { copyPassbook } from "./render/profile.js";
+import { initSelfPay, openSelfPay, selectSelfPayPreset, copySelfPay } from "./handlers/self-pay.js";
+import { initPaymentAccount } from "./handlers/payment-account.js";
+import { copyReceipt, initReceipt, openReceipt, openMonthReceipt, downloadReceiptAttachment } from "./render/receipt.js";
 import { initAttachmentControls } from "./handlers/attachments.js";
 import { initSaveStatus } from "./ui/save-status.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
 import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
+import { initTransactionModalControls } from "./ui/transaction-form.js";
 import { initMonthPickers } from "./ui/mpick.js";
+import { initDatePickers } from "./ui/dpick.js";
+import { initKasi, playKasiAction } from "./ui/kasi-mascot.js";
+import { initGuidedTour, startGuidedTour, advanceGuidedTour } from "./ui/guided-tour.js";
+import { initHistoryPagination } from "./render/transactions.js";
+import { filterDuesStatus, initDuesPagination } from "./render/rekap.js";
+import { initHybridMotion } from "./ui/hybrid-motion.js";
+import { initBento } from "./ui/bento-dashboard.js";
+import { initSpotlight, showSpotlightDetail, getPinnedMemberId, setMemberPin, toggleMemberPin } from "./ui/spotlight.js";
+import { initBulkDues, toggleBulkMode, reviewBulkDues } from "./ui/bulk-dues.js";
+import { initWorkspace, switchWorkspace, openWorkspaceHistory } from "./ui/workspace.js";
 import { initGestures } from "./ui/gestures.js";
 import {
   openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, initGroupsUI, openGroupAdmin,
@@ -75,19 +91,26 @@ let isLoading = false;
 
 const SYNC_BTNS = ['btn-sync-rekap', 'btn-sync-rekap-mobile'];
 
+const SYNC_STATES = {
+  'has-update': { text: 'Data Baru', label: 'Ada data baru — klik untuk muat ulang' },
+  'is-syncing': { text: 'Memuat…', label: 'Sedang memuat data...' },
+  'is-clean':   { text: 'Sinkron', label: 'Data sinkron — klik untuk muat ulang' }
+};
+
 const setSyncBadge = (state) => {
+  const cfg = SYNC_STATES[state] || SYNC_STATES['is-clean'];
+  const syncing = state === 'is-syncing';
   SYNC_BTNS.forEach((id) => {
     const btn = document.getElementById(id);
     if (!btn) return;
     btn.classList.remove('is-clean', 'has-update', 'is-syncing');
-    btn.classList.add(state);
-    const label = state === 'has-update'
-      ? 'Ada data baru — klik untuk muat ulang'
-      : state === 'is-syncing'
-        ? 'Sedang memuat data...'
-        : 'Data sinkron — klik untuk muat ulang';
-    btn.title = label;
-    btn.setAttribute('aria-label', label);
+    btn.classList.add(SYNC_STATES[state] ? state : 'is-clean');
+    btn.disabled = syncing;
+    btn.setAttribute('aria-busy', syncing ? 'true' : 'false');
+    btn.title = cfg.label;
+    btn.setAttribute('aria-label', cfg.label);
+    const labelEl = btn.querySelector('.sync-rekap-label');
+    if (labelEl) labelEl.textContent = cfg.text;
   });
 };
 
@@ -99,22 +122,6 @@ const setSyncBadge = (state) => {
 if (typeof window !== 'undefined') {
   window.addEventListener('finkas:request-refresh', () => {
     initApp(true, false);
-  });
-}
-
-if (typeof document !== 'undefined') {
-  document.addEventListener('finkas:modal-opened', (e) => {
-    if (e.detail?.id === 'modal-riwayat') {
-      setItemsToShow(20);
-      renderTableTransaksi();
-    }
-  });
-
-  document.addEventListener('finkas:theme-changed', () => {
-    const statModal = document.getElementById('modal-statistik');
-    if (statModal && statModal.classList.contains('active')) {
-      renderChart();
-    }
   });
 }
 
@@ -152,21 +159,38 @@ document.addEventListener('click', (e) => {
     case 'remove-group':      removeGroupAction(id); break;
 
     /* ── Navigation / menus ───────────────────────── */
-    case 'toggle-theme':      toggleTheme(); break;
-    case 'toggle-header-stats': toggleHeaderStats(); break;
+    case 'bulk-toggle': toggleBulkMode(); break;
+    case 'bulk-review': reviewBulkDues(); break;
+    case 'bento-history': openWorkspaceHistory(target.dataset.filter); break;
+    case 'spotlight-month': showSpotlightDetail(Number(target.dataset.index)); break;
+    case 'spotlight-unpin': setMemberPin('', true); break;
+    case 'toggle-member-pin': toggleMemberPin(id); break;
+    case 'spotlight-pay': showSpotlightDetail('pay'); break;
+    case 'select-rekap-year': {
+      const select = target.closest('.year-pill').querySelector('select');
+      select.value = target.dataset.year;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      break;
+    }
+    case 'filter-dues-status': filterDuesStatus(target.dataset.statusFilter); break;
+    case 'switch-workspace': switchWorkspace(target.dataset.panel); break;
+    case 'select-palette': setPalette(target.dataset.palette, e, target); break;
+    case 'select-language': setLanguage(target.dataset.lang); break;
+    case 'set-role-view': setAdminViewModeAction(target.dataset.role); break;
+    case 'toggle-privacy': setPrivacyMode(document.body.classList.contains('privacy-mode') ? 'off' : 'on'); break;
+    case 'toggle-theme':      toggleTheme(e, target); break;
     case 'open-about':        openModal('modal-about'); break;
+    case 'open-dues-legend': openDuesLegend(); break;
     case 'open-faq':          openModal('modal-faq'); break;
+    case 'start-guided-tour': startGuidedTour(); break;
+    case 'guided-tour-step': advanceGuidedTour(target.dataset.step); break;
+    case 'kasi-action': target.dataset.kasi === 'guide' ? startGuidedTour() : playKasiAction(target.dataset.kasi); break;
+    case 'open-stamp-settings': openTampilanModal('tampilan-indikator'); break;
     case 'open-tampilan':     openTampilanModal(); break;
     case 'select-indicator-style': setIndicatorStyle(target.getAttribute('data-style')); break;
-    case 'select-privacy-mode': setPrivacyMode(target.getAttribute('data-mode')); break;
     case 'select-currency-format': setCurrencyFormat(target.getAttribute('data-format')); break;
-    case 'select-theme-mode': setTheme(target.getAttribute('data-theme')); break;
-    case 'select-density': setDensity(target.getAttribute('data-density')); break;
-    case 'select-stats-pos': setHeaderStatsPosition(target.getAttribute('data-pos')); break;
-    case 'select-font': setNumberFont(target.getAttribute('data-font')); break;
+    case 'select-theme-mode': setTheme(target.getAttribute('data-theme'), e, target); break;
     case 'select-texture': setBgTexture(target.getAttribute('data-texture')); break;
-    case 'select-arrears': setArrearsTone(target.getAttribute('data-tone')); break;
-    case 'select-progress': setProgressFormat(target.getAttribute('data-format')); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':
     case 'toggle-dropdown':   openCommandHubModal(); break;
@@ -221,22 +245,21 @@ document.addEventListener('click', (e) => {
       }
       break;
     }
-    case 'open-history':      closeHeaderDropdown(); openModal('modal-riwayat'); break;
-    case 'open-statistik':    closeHeaderDropdown(); openModal('modal-statistik'); renderChart(); break;
+    case 'open-history':      closeHeaderDropdown(); switchWorkspace('history'); document.getElementById('workspace-history')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
+    case 'open-statistik':    closeHeaderDropdown(); switchWorkspace('stats'); document.getElementById('workspace-stats')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
     case 'open-export':       closeHeaderDropdown(); openModal('modal-export'); break;
     case 'buka-transaksi':    bukaModalTransaksi(); break;
 
     /* ── Bottom navigation (mobile) ───────────────── */
-    case 'nav-home': {
-      closeActiveModal();
-      const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
-      window.scrollTo({ top: 0, behavior });
-      setBottomNavActive('nav-home');
+    case 'nav-stats':
+      closeActiveModal(); switchWorkspace('stats'); document.getElementById('workspace-stats')?.scrollIntoView(); break;
+    case 'nav-pay':
+      openSelfPay(getPinnedMemberId() || getState().anggota.find((person) => person.Status_Aktif === 'Aktif')?.ID_Anggota);
       break;
-    }
-    case 'nav-riwayat':       closeActiveModal(); setBottomNavActive('nav-riwayat'); openModal('modal-riwayat'); break;
+    case 'nav-riwayat':       closeActiveModal(); switchWorkspace('history'); setBottomNavActive('nav-riwayat'); document.getElementById('workspace-history')?.scrollIntoView(); break;
     case 'nav-rekap': {
       closeActiveModal();
+      switchWorkspace('iuran');
       setBottomNavActive('nav-rekap');
       const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
       document.getElementById('section-rekap')?.scrollIntoView({ behavior });
@@ -244,7 +267,7 @@ document.addEventListener('click', (e) => {
     }
     case 'nav-catat':
       setBottomNavActive('nav-catat');
-      if (getIsAdminSession()) bukaModalTransaksi();
+      if (getIsAdminView()) bukaModalTransaksi();
       else openModal('modal-login');
       break;
     case 'nav-menu':
@@ -261,6 +284,14 @@ document.addEventListener('click', (e) => {
     case 'switch-tab':        switchTab(target.getAttribute('data-tab'), target.closest('.modal-content').closest('.modal-overlay').id); break;
 
     /* ── Member profile ───────────────────────────── */
+    case 'open-self-pay': openSelfPay(id, month === null ? undefined : Number(month), Number(target.dataset.year)); break;
+    case 'self-pay-preset': selectSelfPayPreset(target.dataset.preset); break;
+    case 'self-pay-copy': copySelfPay(target.dataset.copy); break;
+    case 'passbook-copy': copyPassbook(); break;
+    case 'open-month-receipt': openMonthReceipt(id, Number(month), Number(target.dataset.year)); break;
+    case 'open-receipt': openReceipt(id); break;
+    case 'copy-receipt': copyReceipt(); break;
+    case 'receipt-attachment': downloadReceiptAttachment(target); break;
     case 'profil':            e.stopPropagation(); bukaProfilAnggota(id); break;
 
     /* ── Transaction actions ──────────────────────── */
@@ -283,7 +314,7 @@ document.addEventListener('click', (e) => {
 
     /* ── Quick pay ────────────────────────────────── */
     case 'quickpay':
-    case 'quickpay-card':     e.stopPropagation(); openQuickPaySheet(anggota, bulan); break;
+    case 'quickpay-card':     e.stopPropagation(); openQuickPaySheet(anggota, bulan, target.dataset.year); break;
 
     /* ── Mobile card accordion ────────────────────── */
     case 'toggle-card':       toggleIuranCard(target.closest('.iuran-member-card')); break;
@@ -301,7 +332,7 @@ document.addEventListener('click', (e) => {
       break;
 
     /* ── History ──────────────────────────────────── */
-    case 'set-history-filter': setHistoryFilter(target.getAttribute('data-filter'), target); break;
+    case 'set-history-filter': setHistoryFilter(target.dataset.filter); break;
     case 'load-more':         loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
@@ -397,21 +428,6 @@ document.addEventListener('keydown', (e) => {
 
   if (e.key === 'Escape') {
     closeHeaderDropdown();
-    const activeModal = document.querySelector('.modal-overlay.active');
-    if (activeModal) closeModal(activeModal.id);
-  }
-
-  /* Accessibility: activate mobile cards on Enter / Space */
-  if ((e.key === 'Enter' || e.key === ' ') && e.target?.getAttribute('data-action') === 'toggle-card') {
-    e.preventDefault();
-    e.target.click();
-  }
-});
-
-/* Close modal on overlay click */
-window.addEventListener('click', (e) => {
-  if (e.target.classList.contains('modal-overlay')) {
-    closeModal(e.target.id);
   }
 });
 
@@ -456,17 +472,20 @@ document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
  * @param {boolean} [isUserInitiated] True if triggered directly by the user clicking sync.
  */
 export const initApp = async (forceRemote = false, isUserInitiated = false) => {
-  if (isLoading || (!forceRemote && !localStorage.getItem(GROUP_OPEN_KEY))) return false;
+  if (!forceRemote && !localStorage.getItem(GROUP_OPEN_KEY)) return false;
 
+  const group = getActiveGroupId();
+  if (!group) return false;
+  const boot = document.body.dataset;
+  if (boot.workspaceGroup !== group || boot.workspaceState === 'unavailable') boot.workspaceState = 'loading';
+  boot.workspaceGroup = group;
+  if (isLoading) return false;
   const hasCache = loadCache();
   if (hasCache) {
     renderAll();
-  } else {
-    const trxList = document.getElementById('table-riwayat-data') || document.getElementById('ui-table-trx');
-    if (trxList) trxList.innerHTML = '<tr><td colspan="5"><div style="padding: 10px;"><div class="skeleton skeleton-text"></div></div></td></tr>';
+    boot.workspaceState = 'ready';
   }
 
-  // A valid cache is enough unless the caller explicitly forces a refresh.
   if (hasCache && !forceRemote) {
     setConnectionStatus(true);
     return true;
@@ -475,18 +494,21 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   isLoading = true;
   try {
     const resJSON = await fetchInitialData();
+    if (getActiveGroupId() !== group) return false;
     if (resJSON && resJSON.status) {
       setState({
         anggota: resJSON.data.anggota || [],
         kategori: resJSON.data.kategori || [],
         transaksi: resJSON.data.transaksi || [],
         skippedMonths: resJSON.data.settings?.skippedMonths || [],
-        kasStart: resJSON.data.settings?.kasStart || ''
+        kasStart: resJSON.data.settings?.kasStart || '',
+        paymentAccount: resJSON.data.settings?.paymentAccount || null
       });
       saveCache();
       notifySynced(resJSON.data?.updatedAt, resJSON.data?.groupId || localStorage.getItem(GROUP_OPEN_KEY));
       setSyncBadge('is-clean');
       renderAll();
+      boot.workspaceState = 'ready';
       setConnectionStatus(true);
       return true;
     } else {
@@ -509,6 +531,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
     }
   } catch (error) {
     setConnectionStatus(false);
+    if (getActiveGroupId() !== group) return false;
     console.error('initApp failed:', error);
     if (hasCache) {
       renderAll();
@@ -521,29 +544,50 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
     return false;
   } finally {
     isLoading = false;
+    if (getActiveGroupId() !== group) void initApp(true);
+    else if (boot.workspaceState !== 'ready') boot.workspaceState = 'unavailable';
   }
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
+  initWorkspace();
+  initDuesPagination();
+  initHistoryPagination();
+  initBento();
+  initHybridMotion();
+  initKasi();
+  initGuidedTour();
+  initSpotlight();
+  initSelfPay();
+  initReceipt();
+  initPaymentAccount();
+  document.addEventListener('finkas:member-pin-changed', renderTableRekap);
+  initBulkDues();
+  applyAccentPreference();
   applyTheme();
+  watchSystemTheme();
   applyHeaderStatsPreference();
   applyPrivacyMode();
   applyDensityPreference();
-  applyAccentPreference();
   applyNumberFontPreference();
   applyBgTexturePreference();
   applyArrearsTonePreference();
   applyProgressFormatPreference();
+  applyLanguagePreference();
   handleUI();
 
   // Data loads only after a group is unlocked; nothing renders before that.
   initCustomDropdowns();
+  initTransactionModalControls();
   initMonthPickers();
+  initDatePickers();
   initAttachmentControls();
   initMonthlyCashReport();
   initSaveStatus();
   setupRekapSearchListener();
   setupMenuSearchListener();
+  initLoginModal();
+  initRoleSwitcher();
   initGestures();
 
   let hasBeenOffline = false;
@@ -598,7 +642,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   /* ── Input listeners ─────────────────────────────────────────── */
 
   [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
-    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openModal('modal-menu'); });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openCommandHubModal(); });
   });
 
   const iuranNominal = document.getElementById('iuran-nominal');
@@ -625,31 +669,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   const opsTipe = document.getElementById('ops-tipe');
-  if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); updateCounterOps(); });
+  if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); syncCdrop('ops-kategori'); updateCounterOps(); });
 
   const editTipe = document.getElementById('edit-tipe');
   if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
 
-  const searchTrx = document.getElementById('search-trx');
-  if (searchTrx) {
-    // Debounce like the rekap search (navigation.js): each keystroke otherwise
-    // re-filters and re-renders the whole ledger, doing a per-row member/kategori
-    // lookup on every character.
-    let trxSearchTimer = null;
-    searchTrx.addEventListener('input', () => {
-      clearTimeout(trxSearchTimer);
-      trxSearchTimer = setTimeout(renderTableTransaksi, 150);
-    });
-  }
-
-  const filterBulan = document.getElementById('filter-bulan');
-  if (filterBulan) filterBulan.addEventListener('change', renderTableTransaksi);
-
-  const filterTahun = document.getElementById('filter-tahun');
-  if (filterTahun) filterTahun.addEventListener('change', renderTableTransaksi);
+  const historySearches = ['workspace-search-history'].map((id) => document.getElementById(id)).filter(Boolean);
+  let trxSearchTimer;
+  for (const input of historySearches) input.addEventListener('input', () => {
+    for (const other of historySearches) if (other !== input) other.value = input.value;
+    clearTimeout(trxSearchTimer);
+    trxSearchTimer = setTimeout(renderTableTransaksi, 150);
+  });
 
   const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
-  if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('keyup', filterAnggotaIuran);
+  if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('input', filterAnggotaIuran);
 
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
@@ -684,21 +718,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       e.target.value = '';
     }
   });
-
-  const btnTogglePwd = document.getElementById('btn-toggle-pwd');
-  if (btnTogglePwd) {
-    btnTogglePwd.addEventListener('click', () => {
-      const input = document.getElementById('input-admin-pwd');
-      const icon = document.getElementById('icon-toggle-pwd');
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.className = 'ph ph-eye-slash';
-      } else {
-        input.type = 'password';
-        icon.className = 'ph ph-eye';
-      }
-    });
-  }
 
   /* Keep the group picker reachable once the session can no longer read the group. */
   window.addEventListener('finkas:group-changed', () => {

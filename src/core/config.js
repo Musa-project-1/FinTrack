@@ -65,6 +65,7 @@ export const GA_ID_KEY = 'finkas_ga_id';
 export const ADMIN_SESSION_KEY = 'finkas_admin_session';
 export const ADMIN_ROLE_KEY = 'finkas_admin_role';
 export const ADMIN_EMAIL_KEY = 'finkas_admin_email';
+export const ADMIN_VIEW_MODE_KEY = 'finkas_admin_view_mode';
 export const GROUP_SESSIONS_KEY = 'finkas_group_sessions';
 export const GROUP_OPEN_KEY = 'finkas_group_open';
 

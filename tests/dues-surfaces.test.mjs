@@ -40,8 +40,9 @@ function render(amounts) {
 }
 test('Rp5,000 installment is partial in desktop/mobile/annual print and WA; second installment settles', async () => {
   const october = render([5000]);
-  assert.doesNotMatch(october.innerHTML, /status-lunas-dot/, 'Partial payment cannot be LUNAS');
+  assert.doesNotMatch(october.innerHTML, /class="dues-seal\b/, 'Partial payment cannot be LUNAS');
   assert.match(october.innerHTML, /Sebagian/i);
+  assert.match(october.innerHTML, /5\.000/, 'The settled amount stays visible for partial payment');
   assert.match(els.get('iuran-cards-mobile').innerHTML, /Sebagian/i);
   await createGroupReminderMessage();
   assert.match(clipboard, /5\.000/);
@@ -49,9 +50,28 @@ test('Rp5,000 installment is partial in desktop/mobile/annual print and WA; seco
   assert.match(clipboard, /Belum lunas/);
   cetakLaporanTahunan();
   assert.match(printed, /Sebagian/);
-  assert.match(render([5000, 5000]).innerHTML, /status-lunas-dot/);
+  assert.match(render([5000, 5000]).innerHTML, /class="dues-seal\b/);
   await copyMonthlyRecap();
   assert.match(clipboard, /Semua anggota sudah lunas/);
+});
+
+test('matrix and mobile strips distinguish overdue, future, skipped and pre-start months', () => {
+  setCurrentRekapYear('2026');
+  setState({
+    ...fixture([]),
+    anggota: [{ ID_Anggota: 'TEST', Nama_Anggota: 'Anggota Uji', Status_Aktif: 'Aktif', Tanggal_Gabung: '2026-01-01' }],
+    kasStart: '08-2026',
+    skippedMonths: ['09-2026']
+  });
+  els.get('ui-table-rekap').children = [];
+  renderTableRekap();
+  const row = els.get('ui-table-rekap').children[0].children[0].children;
+  assert.match(row[7].innerHTML, /data-status="Libur"/, 'July predates the cash ledger');
+  assert.match(row[9].innerHTML, /data-status="Libur"/, 'September was skipped');
+  assert.match(row[10].innerHTML, /data-status="Belum"/, 'October is due in WIB');
+  assert.match(row[11].innerHTML, /data-status="Nanti"/, 'November is in the future');
+  const strip = els.get('iuran-cards-mobile').innerHTML.match(/class="dues-mini-strip"[^>]*>(.*?)<\/div>/s)[1];
+  assert.equal((strip.match(/data-status=/g) || []).length, 12);
 });
 
 test('bulk payment form keeps partial member selectable and disables settled or exempt periods', async () => {

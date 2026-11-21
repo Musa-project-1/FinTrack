@@ -10,6 +10,7 @@ import { addTransaction, addBulkTransactions, editTransaction, deleteDocument } 
 import {
   changeSkippedMonth,
   setKasStart,
+  setPaymentAccount,
   addMember,
   updateMemberStatus,
   addCategory,
@@ -28,6 +29,7 @@ export { addTransaction, addBulkTransactions, editTransaction, deleteDocument } 
 export {
   changeSkippedMonth,
   setKasStart,
+  setPaymentAccount,
   addMember,
   updateMemberStatus,
   addCategory,
@@ -54,6 +56,7 @@ export const WRITE_HANDLERS = {
   addSkippedMonth: (gid, payload, headers) => changeSkippedMonth(gid, payload, headers, true),
   removeSkippedMonth: (gid, payload, headers) => changeSkippedMonth(gid, payload, headers, false),
   setKasStart,
+  setPaymentAccount,
   catatAktivitas: noteClientAudit,
   restoreSnapshot
 };

@@ -80,39 +80,7 @@
 .text-main { color: var(--text-main); }
 .fs-24 { font-size: 24px; }
 
-.offline-queue-container {
-  max-height: 420px;
-  overflow: auto;
-  display: grid;
-  gap: var(--sp-2);
-  scrollbar-gutter: stable;
-}
-
-/* === EXPORT === */
-.export-actions-list {
-  display: grid;
-  gap: var(--sp-3);
-}
-
-.export-card-btn {
-  padding: var(--sp-4);
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: var(--sp-4);
-  width: 100%;
-}
-
-.export-icon-box {
-  padding: 10px;
-  border-radius: var(--r-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
+/* Queue & export modal styles consolidated into queue.css and modals.css */
 
 .bg-primary-15 {
   background: var(--accent-tint);
@@ -120,35 +88,35 @@
   border: 1px solid var(--accent-border);
 }
 
-/* WhatsApp green — semantic, never recolored by accent picker */
+/* WhatsApp icon/button — semantic zero-green ocean/paid palette */
 .bg-wa-15 {
-  background: #dcfce7;
-  color: #15803d;
-  border: 1px solid #86efac;
+  background: var(--income-bg);
+  color: var(--income-strong);
+  border: 1px solid var(--income-border);
 }
 body.dark-mode .bg-wa-15 {
-  background: #14532d33;
-  color: #4ade80;
-  border: 1px solid #16a34a66;
+  background: var(--income-bg);
+  color: var(--income-strong);
+  border: 1px solid var(--income-border);
 }
 
 .btn-wa {
-  background: #16a34a;
+  background: var(--income);
   color: #fff;
-  border: 1px solid #15803d;
+  border: 1px solid var(--income-strong);
 }
 .btn-wa:hover, .btn-wa:focus-visible {
-  background: #15803d;
-  border-color: #166534;
+  background: var(--income-strong);
+  border-color: var(--income-strong);
   color: #fff;
 }
 body.dark-mode .btn-wa {
-  background: #15803d;
-  color: #f0fdf4;
-  border-color: #16a34a;
+  background: var(--income);
+  color: #051229;
+  border-color: var(--income-border);
 }
 body.dark-mode .btn-wa:hover {
-  background: #16a34a;
+  background: var(--income-strong);
 }
 
 .bg-secondary-10 {
@@ -158,31 +126,6 @@ body.dark-mode .btn-wa:hover {
 }
 
 .text-secondary { color: var(--secondary); }
-
-.export-btn-title {
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-.export-btn-desc {
-  font-size: 12px;
-  opacity: 0.85;
-  line-height: 1.4;
-  font-weight: 400;
-}
-
-.btn-link-subtle {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 4px;
-  width: 100%;
-  text-align: center;
-}
 
 .btn-submit-large {
   width: 100%;
@@ -517,7 +460,7 @@ body.dark-mode .btn-load-more:hover:not(:disabled):not([aria-disabled="true"]):n
 .th-member-col {
   text-align: left !important;
   min-width: 180px;
-  padding-left: var(--sp-4) !important;
+  padding-left: var(--sp-4);
   /* --text-muted on the table header (--surface-2) is 4.90:1, just under AA. */
   color: var(--text-faint);
 }

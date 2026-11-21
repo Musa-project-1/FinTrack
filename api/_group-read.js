@@ -41,7 +41,8 @@ export async function readGroupData(gid, headers) {
     transaksi: fieldsOf(transactionDocs).sort(byTimestampDesc),
     settings: {
       skippedMonths: settings?.skippedMonths || [],
-      kasStart: settings?.kasStart || ''
+      kasStart: settings?.kasStart || '',
+      ...(settings?.paymentAccount ? { paymentAccount: settings.paymentAccount } : {})
     }
   };
 }

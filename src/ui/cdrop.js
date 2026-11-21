@@ -5,6 +5,8 @@
  * populate/submit/change logic keeps working untouched.
  */
 
+import { enhanceControl } from './control-a11y.js';
+
 const registry = new Map();
 
 const closeAll = (except = null) => {
@@ -14,36 +16,45 @@ const closeAll = (except = null) => {
 };
 
 const setOpen = (ui, open) => {
+  if (open && ui.select.matches(':disabled')) return;
   ui.wrap.classList.toggle('open', open);
   ui.btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   ui.list.setAttribute('aria-hidden', open ? 'false' : 'true');
   if (open) {
-    // Open upward when there is not enough space below (inside modals)
+    // Open upward when space below is tight and space above has more room
     const rect = ui.wrap.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
     const isPill = ui.wrap.closest('.year-pill');
-    ui.wrap.classList.toggle('cdrop--up', !isPill && spaceBelow < 260);
+    ui.wrap.classList.toggle('cdrop--up', !isPill && spaceBelow < 260 && spaceAbove > spaceBelow);
     if (isPill) {
       ui.list.style.left = 'auto';
       ui.list.style.right = '0';
-      ui.list.style.minWidth = '100px';
+      ui.list.style.minWidth = '112px';
     } else {
-      // Hard-align list to the trigger button by measurement, so the popup
-      // stays glued even if an ancestor creates another containing block.
+      // Align popup to trigger while keeping it inside the horizontal viewport bounds
       const parentRect = ui.list.offsetParent
         ? ui.list.offsetParent.getBoundingClientRect()
         : { left: 0 };
       const btnRect = ui.btn.getBoundingClientRect();
-      ui.list.style.left = `${Math.max(0, btnRect.left - parentRect.left)}px`;
+      const desiredLeft = Math.max(0, btnRect.left - parentRect.left);
+      const clampedLeft = window.innerWidth > 0 && btnRect.width > 0
+        ? Math.min(desiredLeft, Math.max(0, window.innerWidth - parentRect.left - btnRect.width - 8))
+        : desiredLeft;
+      ui.list.style.left = `${clampedLeft}px`;
       ui.list.style.right = 'auto';
       ui.list.style.minWidth = `${btnRect.width}px`;
     }
     if (ui.searchInput) {
       ui.searchInput.value = '';
       filterItems(ui, '');
-      setTimeout(() => ui.searchInput.focus(), 30);
+      setTimeout(() => { if (ui.wrap.classList.contains('open')) ui.searchInput.focus(); }, 30);
     }
     highlightSelected(ui);
+    if (!ui.searchInput) {
+      const selected = ui.itemsBox.querySelector('.selected:not(:disabled)');
+      (selected || ui.itemsBox.querySelector('.cdrop-item:not(:disabled)'))?.focus();
+    }
   } else if (ui.searchInput) {
     ui.searchInput.value = '';
     filterItems(ui, '');
@@ -58,12 +69,16 @@ const renderItems = (ui) => {
     return;
   }
   const frag = document.createDocumentFragment();
-  opts.forEach((opt) => {
+  opts.forEach((opt, index) => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'cdrop-item';
+    btn.id = `${ui.select.id}-option-${index}`;
     btn.setAttribute('role', 'option');
     btn.dataset.value = opt.value;
+    btn.tabIndex = -1;
+    btn.disabled = opt.disabled || opt.parentElement.disabled;
+    btn.setAttribute('aria-disabled', String(btn.disabled));
     btn.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
     if (opt.selected) btn.classList.add('selected');
     const label = document.createElement('span');
@@ -98,6 +113,7 @@ const highlightSelected = (ui) => {
 
 const filterItems = (ui, query) => {
   const q = query.trim().toLowerCase();
+  ui.searchInput?.removeAttribute('aria-activedescendant');
   let visible = 0;
   ui.itemsBox.querySelectorAll('.cdrop-item').forEach((item) => {
     const hit = q === '' || item.textContent.toLowerCase().includes(q);
@@ -117,6 +133,8 @@ const filterItems = (ui, query) => {
 };
 
 const pick = (ui, value) => {
+  const option = Array.from(ui.select.options).find(opt => opt.value === value);
+  if (ui.select.matches(':disabled') || !option || option.disabled || option.parentElement.disabled) return;
   if (ui.select.value !== value) {
     ui.select.value = value;
     ui.select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -150,6 +168,8 @@ const setup = (select) => {
 
   const list = document.createElement('div');
   list.className = 'cdrop-list';
+  list.id = `${select.id}-listbox`;
+  btn.setAttribute('aria-controls', list.id);
   list.setAttribute('role', 'listbox');
   list.setAttribute('aria-hidden', 'true');
 
@@ -162,6 +182,10 @@ const setup = (select) => {
     searchWrap.className = 'cdrop-search';
     searchInput = document.createElement('input');
     searchInput.type = 'text';
+    searchInput.setAttribute('role', 'combobox');
+    searchInput.setAttribute('aria-controls', list.id);
+    searchInput.setAttribute('aria-expanded', 'true');
+    searchInput.setAttribute('aria-autocomplete', 'list');
     if (select.id) {
       searchInput.id = `${select.id}-search`;
       searchInput.name = `${select.id}-search`;
@@ -181,7 +205,7 @@ const setup = (select) => {
       } else if (e.key === 'Enter') {
         e.preventDefault();
         const hl = itemsBox.querySelector('.cdrop-item.highlight');
-        const first = Array.from(itemsBox.querySelectorAll('.cdrop-item')).find((i) => i.style.display !== 'none');
+        const first = Array.from(itemsBox.querySelectorAll('.cdrop-item')).find((i) => i.style.display !== 'none' && !i.disabled);
         if (hl) pick(ui, hl.dataset.value);
         else if (first) pick(ui, first.dataset.value);
       }
@@ -199,38 +223,58 @@ const setup = (select) => {
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (select.matches(':disabled')) return;
     const willOpen = !wrap.classList.contains('open');
     closeAll(select.id);
     setOpen(ui, willOpen);
   });
 
   btn.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') setOpen(ui, false);
-    else if ((e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') && !wrap.classList.contains('open')) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       closeAll(select.id);
       setOpen(ui, true);
+      if (!searchInput) moveHighlight(ui, e.key === 'ArrowDown' ? 1 : -1);
     }
   });
-
-  // Re-render when options are rewritten by existing populate logic
-  const observer = new MutationObserver(() => {
+  list.addEventListener('keydown', (e) => {
+    if (e.target === searchInput) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveHighlight(ui, e.key === 'ArrowDown' ? 1 : -1);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      const item = e.target.closest('.cdrop-item');
+      if (item) { e.preventDefault(); pick(ui, item.dataset.value); }
+    }
+  });
+  wrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); setOpen(ui, false); btn.focus(); }
+    if (e.key === 'Tab') setOpen(ui, false);
+  });
+  wrap.addEventListener('focusout', () => {
+    setTimeout(() => { if (!wrap.contains(document.activeElement)) setOpen(ui, false); }, 0);
+  });
+  ui.update = enhanceControl(select, btn, wrap, () => {
     renderItems(ui);
     syncValue(ui);
-  });
-  observer.observe(select, { childList: true });
-
-  renderItems(ui);
-  syncValue(ui);
+    list.setAttribute('aria-required', String(select.required));
+    for (const attr of ['aria-label', 'aria-labelledby']) {
+      if (btn.hasAttribute(attr)) list.setAttribute(attr, btn.getAttribute(attr));
+      else list.removeAttribute(attr);
+    }
+  }, () => setOpen(ui, false));
 };
 
 const moveHighlight = (ui, dir) => {
-  const visible = Array.from(ui.itemsBox.querySelectorAll('.cdrop-item')).filter((i) => i.style.display !== 'none');
+  const visible = Array.from(ui.itemsBox.querySelectorAll('.cdrop-item')).filter((i) => i.style.display !== 'none' && !i.disabled);
   if (visible.length === 0) return;
   let idx = visible.findIndex((i) => i.classList.contains('highlight'));
+  if (idx === -1 && !ui.searchInput) idx = visible.findIndex(i => i === document.activeElement);
   idx = idx === -1 ? (dir === 1 ? 0 : visible.length - 1) : (idx + dir + visible.length) % visible.length;
   visible.forEach((i) => i.classList.remove('highlight'));
   visible[idx].classList.add('highlight');
+  if (!ui.searchInput) visible[idx].focus();
+  else ui.searchInput.setAttribute('aria-activedescendant', visible[idx].id);
   visible[idx].scrollIntoView({ block: 'nearest' });
 };
 
@@ -252,13 +296,11 @@ export const syncCdrop = (id = null) => {
   if (id) {
     const ui = registry.get(id);
     if (ui) {
-      renderItems(ui);
-      syncValue(ui);
+      ui.update();
     }
     return;
   }
   registry.forEach((ui) => {
-    renderItems(ui);
-    syncValue(ui);
+    ui.update();
   });
 };

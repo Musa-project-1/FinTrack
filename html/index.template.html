@@ -25,62 +25,86 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=optional" rel="stylesheet">
   <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=188">
+  <link rel="stylesheet" href="style.css?v=288">
 </head>
-<body>
+<body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">
+  <script src="src/workspace-boot-theme.js?v=288"></script>
+  <div class="bg-stage" id="bg-stage" aria-hidden="true">
+    <!-- Mode: aurora (default) -->
+    <div class="bg-layer bg-aurora">
+      <div class="aurora-orb orb-1"></div>
+      <div class="aurora-orb orb-2">
+        <span class="orb-2-ocean"></span>
+        <span class="orb-2-gold"></span>
+      </div>
+      <div class="aurora-orb orb-3"></div>
+      <div class="bg-ledger-grid"></div>
+    </div>
 
-  <main class="container">
-    <header class="header">
+    <!-- Mode: topo -->
+    <div class="bg-layer bg-topo">
+      <div class="topo-glow"></div>
+      <svg class="topo-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <path class="topo-wave w1" d="M-80 210 C 260 120, 520 310, 860 200 C 1160 105, 1320 260, 1520 180" />
+        <path class="topo-wave w2" d="M-80 340 C 240 430, 560 220, 900 330 C 1180 420, 1340 270, 1520 350" />
+        <path class="topo-wave w3" d="M-80 490 C 310 380, 620 580, 940 470 C 1220 375, 1360 510, 1520 440" />
+        <path class="topo-wave w4" d="M-80 650 C 280 570, 590 730, 960 630 C 1210 560, 1370 690, 1520 620" />
+        <path class="topo-wave w5" d="M-80 790 C 320 710, 650 860, 980 775 C 1230 710, 1380 820, 1520 770" />
+      </svg>
+    </div>
+
+    <!-- Mode: paper -->
+    <div class="bg-layer bg-paper">
+      <div class="paper-dots"></div>
+      <div class="paper-vignette"></div>
+    </div>
+
+    <!-- Subtle Film/Paper Grain -->
+    <div class="bg-grain"></div>
+  </div>
+
+
+  <header class="header hybrid-topbar">
+    <div class="hybrid-topbar-inner">
       <div class="header-left">
         <a href="#" class="brand-link connection-status" id="btn-about" data-action="open-about" tabindex="0" role="button" title="Tentang Finkas" aria-label="Finkas: Status Online">
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
           <span class="status-dot"></span>
+          <span class="workspace-brand"><strong>Finkas</strong><small>Buku Kas Digital</small></span>
         </a>
         <button class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup" aria-label="Pilih Grup"></button>
       </div>
 
-      <div class="header-right">
-        <!-- Compact Header Financial Stats (Toggleable via Option) -->
-        <div class="header-stats" id="header-stats">
-          <div class="header-stat-pill pill-saldo" title="Saldo Kas">
-            <i class="ph-fill ph-vault"></i>
-            <div class="header-stat-content">
-              <span class="header-stat-label">Saldo</span>
-              <span class="header-stat-val" id="hdr-saldo-val">Rp 0</span>
-            </div>
-          </div>
-          <div class="header-stat-pill pill-masuk" title="Total Pemasukan">
-            <i class="ph-fill ph-trend-up"></i>
-            <div class="header-stat-content">
-              <span class="header-stat-label">Masuk</span>
-              <span class="header-stat-val" id="hdr-masuk-val">Rp 0</span>
-            </div>
-          </div>
-          <div class="header-stat-pill pill-keluar" title="Total Pengeluaran">
-            <i class="ph-fill ph-trend-down"></i>
-            <div class="header-stat-content">
-              <span class="header-stat-label">Keluar</span>
-              <span class="header-stat-val" id="hdr-keluar-val">Rp 0</span>
-            </div>
-          </div>
+      <div class="hybrid-topbar-role">
+        <div class="role-switcher-track admin-session-only" id="role-switcher" role="tablist" aria-label="Mode Pengguna">
+          <span class="workspace-glider" aria-hidden="true"></span>
+          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-anggota" data-action="set-role-view" data-role="anggota" aria-selected="false" tabindex="-1">
+            <i class="ph ph-user" aria-hidden="true"></i>
+            <span>Anggota</span>
+          </button>
+          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-admin" data-action="set-role-view" data-role="admin" aria-selected="true" tabindex="0">
+            <i class="ph-fill ph-shield-check" aria-hidden="true"></i>
+            <span>Admin</span>
+          </button>
         </div>
-
+      </div>
+      <div class="header-right">
         <!-- Unified Actions (single set for desktop + mobile) -->
         <div class="header-actions" id="header-actions">
-          <button class="btn btn-icon" id="btn-theme-toggle" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
-            <i class="ph ph-moon theme-icon fs-18"></i>
+          <button class="btn btn-icon" data-action="open-tampilan" aria-label="Tampilan" title="Tampilan">
+            <i class="ph ph-palette fs-18" aria-hidden="true"></i><span>Tampilan</span>
+          </button>
+          <button class="btn btn-icon" data-action="toggle-privacy" aria-label="Sensor Saldo" title="Sensor Saldo" aria-pressed="false">
+            <i class="ph ph-eye fs-18" aria-hidden="true"></i><span>Sensor Saldo</span>
           </button>
 
-          <button class="btn btn-icon" id="btn-toggle-stats-header" data-action="toggle-header-stats" aria-label="Alihkan Posisi Ringkasan Kas" title="Pindah Ringkasan ke Header / Body">
-            <i class="ph ph-layout fs-18" id="icon-toggle-stats-header"></i>
+          <button class="btn btn-icon" id="btn-theme-toggle" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+            <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
           <!-- Hamburger Button opens Unified Menu Modal -->
@@ -88,125 +112,259 @@
             <i class="ph ph-list fs-22"></i>
           </button>
 
-          <button class="btn btn-primary btn-catat admin-only" data-action="buka-transaksi">
-            <i class="ph ph-plus-circle fs-18"></i> <span>Catat Transaksi</span>
-          </button>
+
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <section class="dashboard">
-      <!-- Unified cash summary: balance + inflow/outflow in one panel. -->
-      <div class="cash-summary">
-        <div class="balance-hero">
-          <span class="eyebrow">Saldo</span>
-          <div id="ui-saldo" class="balance-hero__value"><div class="skeleton skeleton-title"></div></div>
+  <div class="workspace-startup" role="status">
+    <p class="workspace-startup-loading"><span aria-hidden="true" class="workspace-loading-dot"></span>Memuat buku kas…</p>
+    <div class="workspace-startup-error">
+      <p>Buku kas belum bisa dimuat.</p>
+      <button type="button" class="btn btn-secondary" data-action="sync-rekap-data">Coba Lagi</button>
+    </div>
+  </div>
+  <main class="container">
+    <section class="group-overview" id="group-overview" aria-labelledby="group-overview-name" hidden>
+      <div>
+        <span class="group-overview-role non-admin-only"><i class="ph ph-eye" aria-hidden="true"></i> <span data-i18n="role.member">Tampilan Anggota · Transparansi Kas</span></span>
+        <span class="group-overview-role admin-only"><i class="ph ph-shield-check" aria-hidden="true"></i> <span data-i18n="role.admin">Mode Pengurus</span></span>
+        <h1 id="group-overview-name"></h1>
+        <div class="group-overview-meta">
+          <span id="group-overview-fee"></span>
+          <span id="group-overview-members"></span>
+          <span id="group-overview-start"></span>
         </div>
-        <div class="flow-strip">
-          <div class="flow-strip__item flow-in">
-            <span class="flow-strip__label">
-              <i class="ph-fill ph-trend-up" aria-hidden="true"></i> Masuk (Semua)
-            </span>
-            <span class="flow-strip__value">
-              <span class="flow-strip__sign" aria-hidden="true">+</span><span id="ui-masuk"><span class="skeleton skeleton-text"></span></span>
-            </span>
-          </div>
-          <div class="flow-strip__item flow-out">
-            <span class="flow-strip__label">
-              <i class="ph-fill ph-trend-down" aria-hidden="true"></i> Keluar (Semua)
-            </span>
-            <span class="flow-strip__value">
-              <span class="flow-strip__sign" aria-hidden="true">&minus;</span><span id="ui-keluar"><span class="skeleton skeleton-text"></span></span>
-            </span>
-          </div>
-        </div>
+      </div>
+      <div class="group-overview-actions admin-only">
+        <button type="button" class="btn btn-primary" data-action="buka-transaksi"><i class="ph ph-plus" aria-hidden="true"></i> Catat Kas</button>
+        <button type="button" class="btn" data-action="bulk-toggle" aria-pressed="false"><i class="ph ph-check-square" aria-hidden="true"></i> Pilih Banyak</button>
+        <button type="button" class="btn" data-action="print-reminder"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i> Pesan WA</button>
+        <button type="button" class="btn" data-action="open-kelola-master"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Data Master</button>
       </div>
     </section>
 
-    <div class="table-card" id="section-rekap">
-      <!-- Desktop Table Header (Clean 1-Row Toolbar) -->
-      <div class="table-header desktop-only">
-        <div class="table-header-left">
-          <h2 class="table-title">
-            <i class="ph-fill ph-users-three"></i>
-            Status Iuran
-          </h2>
-          <button
-            id="btn-sync-rekap"
-            class="btn-sync-rekap is-clean"
-            data-action="sync-rekap-data"
-            title="Data sinkron — klik untuk muat ulang"
-            aria-label="Status sinkronisasi data iuran"
-          >
-            <i class="ph ph-arrows-clockwise sync-rekap-icon"></i>
-            <span class="sync-rekap-dot"></span>
-          </button>
+    <section class="dashboard bento-dashboard" aria-label="Ringkasan saldo dan arus kas">
+      <article class="bento-kpi bento-balance hybrid-card" data-cascade="0">
+        <div class="bento-kpi-heading"><h2>Saldo Kas Aktif</h2><span aria-hidden="true"><i class="ph ph-wallet"></i></span></div>
+        <div class="bento-balance-main">
+          <div id="ui-saldo" class="balance-hero__value bento-amount sensitive-amt">Rp 0</div>
+          <div class="bento-spark">
+            <output id="bento-spark-value" class="nominal-val" for="bento-spark-month"></output>
+            <div class="bento-spark-plot">
+              <svg viewBox="0 0 116 44" aria-hidden="true" focusable="false">
+                <path id="bento-spark-area"></path>
+                <path id="bento-spark-path"></path>
+                <line id="bento-spark-guide" y1="2" y2="42"></line>
+                <circle id="bento-spark-marker" r="3.2"></circle>
+              </svg>
+              <input id="bento-spark-month" type="range" min="0" max="11" value="11" aria-label="Bulan saldo kas">
+            </div>
+          </div>
         </div>
-        <div class="table-header-controls">
-          <div class="year-pill">
-            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-            <label for="ui-tahun-rekap-select">Tahun: </label>
-            <select id="ui-tahun-rekap-select" class="cdrop" aria-label="Pilih tahun rekap iuran">
-            </select>
+        <div class="bento-compliance">
+          <div><span id="bento-compliance-label">Kepatuhan iuran tahun ini</span><span id="bento-dues-fee"></span></div>
+          <div class="bento-compliance-track" id="bento-compliance" role="progressbar" aria-valuenow="0" aria-label="Kepatuhan iuran tahun ini"><div class="bento-compliance-fill"></div></div>
+        </div>
+      </article>
+      <button type="button" class="bento-kpi bento-flow bento-in hybrid-card" data-cascade="1" data-action="bento-history" data-filter="masuk" aria-label="Buka riwayat pemasukan" aria-describedby="ui-masuk">
+        <span class="bento-kpi-heading"><strong>Total Pemasukan</strong><span aria-hidden="true"><i class="ph ph-arrow-down-left"></i></span></span>
+        <span class="bento-money sensitive-amt" id="ui-masuk" data-amount-prefix="+">+Rp 0</span>
+        <span class="bento-flow-link"><span id="bento-inflow-detail"></span><span class="bento-drill-label">Masuk <i class="ph ph-arrow-right" aria-hidden="true"></i></span></span>
+      </button>
+      <button type="button" class="bento-kpi bento-flow bento-out hybrid-card" data-cascade="2" data-action="bento-history" data-filter="keluar" aria-label="Buka riwayat pengeluaran" aria-describedby="ui-keluar">
+        <span class="bento-kpi-heading"><strong>Total Pengeluaran</strong><span aria-hidden="true"><i class="ph ph-arrow-up-right"></i></span></span>
+        <span class="bento-money sensitive-amt" id="ui-keluar" data-amount-prefix="−">−Rp 0</span>
+        <span class="bento-flow-link"><span id="bento-outflow-detail"></span><span class="bento-drill-label">Keluar <i class="ph ph-arrow-right" aria-hidden="true"></i></span></span>
+      </button>
+    </section>
+
+    <section aria-label="Pantauan Iuran Pribadi" class="member-spotlight-wrap non-admin-only" data-cascade="3" hidden="" id="member-spotlight">
+      <div class="hybrid-card quick-cek-bar" id="quick-cek-bar">
+        <div class="quick-cek-copy">
+          <div aria-hidden="true" class="quick-cek-icon">
+            <i class="ph-fill ph-push-pin"></i>
           </div>
-          <div class="member-search-wrapper">
-            <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
+          <div>
+            <strong class="quick-cek-title" data-i18n="spot.title">Pantau Iuran Saya</strong>
+            <span class="quick-cek-desc" data-i18n="spot.desc">Pilih nama Anda atau sematkan dari tabel untuk akses cepat ringkasan iuran pribadi.</span>
           </div>
-          <button class="btn btn-icon" data-action="open-tampilan" title="Pengaturan Tampilan" aria-label="Pengaturan Tampilan">
-            <i class="ph-bold ph-palette fs-16"></i>
-          </button>
-          <button id="btn-copy-wa-reminder" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
-            <i class="ph ph-whatsapp-logo"></i>
-          </button>
+        </div>
+        <div class="quick-cek-controls">
+          <label class="sr-only" for="spotlight-picker">Pilih Nama Anggota untuk Disematkan</label>
+          <select class="form-control select-ctrl" id="spotlight-picker"></select>
         </div>
       </div>
-
-      <!-- Mobile Table Header (Dedicated 2-Row Layout: Row 1 Title, Row 2 Search beside Year Pill) -->
-      <div class="table-header mobile-only">
-        <div class="table-header-top">
-          <div class="table-header-left">
-            <h2 class="table-title">
-              <i class="ph-fill ph-users-three"></i>
-              Status Iuran
-            </h2>
-            <button
-              id="btn-sync-rekap-mobile"
-              class="btn-sync-rekap is-clean"
-              data-action="sync-rekap-data"
-              title="Data sinkron — klik untuk muat ulang"
-              aria-label="Status sinkronisasi data iuran"
-            >
-              <i class="ph ph-arrows-clockwise sync-rekap-icon"></i>
-              <span class="sync-rekap-dot"></span>
+      <div class="hybrid-card spotlight-card" hidden="" id="spotlight-card">
+        <div class="spotlight-identity">
+          <div aria-label="Kepatuhan iuran saya" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="ring-box" id="spotlight-progress" role="progressbar">
+            <svg aria-hidden="true" class="ring-svg" viewBox="0 0 86 86">
+              <circle class="ring-track" cx="43" cy="43" r="35"></circle>
+              <circle class="ring-progress" cx="43" cy="43" id="spotlight-ring-arc" pathLength="100" r="35" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+            </svg>
+            <div aria-hidden="true" class="ring-center">
+              <span class="ring-pct tnum" id="spotlight-pct">0%</span>
+              <span class="ring-frac tnum" id="spotlight-frac">0/12</span>
+            </div>
+          </div>
+          <div class="spotlight-id-copy">
+            <div class="spotlight-eyebrow-row">
+              <span class="spotlight-eyebrow">
+                <i aria-hidden="true" class="ph-fill ph-push-pin"></i>
+                <span>Pantauan Iuran Saya</span>
+              </span>
+              <span class="meta-chip mono" id="spotlight-member-code" hidden></span>
+              <span class="meta-chip amber tnum" hidden="" id="spotlight-arrears-chip">0 Bulan Tertunggak</span>
+              <span class="meta-chip paid tnum" hidden="" id="spotlight-paid-chip">Lunas Bulan Berjalan</span>
+            </div>
+            <button aria-label="Buka buku iuran anggota" class="spotlight-name-btn" data-action="profil" id="spotlight-book" type="button">
+              <span id="spotlight-name">-</span>
+              <i aria-hidden="true" class="ph ph-identification-card"></i>
             </button>
+            <p class="spotlight-summary-line tnum" id="spotlight-summary"></p>
           </div>
         </div>
-        <div class="table-header-controls">
-          <div class="member-search-wrapper">
-            <i class="ph ph-magnifying-glass"></i>
-            <input type="text" id="search-member-rekap-mobile" class="form-control search-member-input" placeholder="Cari nama anggota..." aria-label="Cari nama anggota">
-          </div>
-          <div class="year-pill">
-            <i class="ph-bold ph-calendar-blank" aria-hidden="true"></i>
-            <select id="ui-tahun-rekap-select-mobile" class="cdrop" aria-label="Pilih tahun rekap iuran">
-            </select>
-          </div>
-          <button id="btn-copy-wa-reminder-mobile" class="btn-wa-reminder-icon admin-only" title="Buat Pesan Pengingat Grup WA" data-action="print-reminder" aria-label="Buat Pesan Pengingat Grup WA">
-            <i class="ph ph-whatsapp-logo"></i>
+        <div class="spotlight-actions">
+          <label class="sr-only" for="spotlight-swap-select">Ganti Anggota Tersemat</label>
+          <select class="form-control select-ctrl select-compact-34" id="spotlight-swap-select"></select>
+          <button class="btn btn-secondary btn-compact-34" data-action="spotlight-unpin" id="btn-unpin-member" type="button">
+            <i aria-hidden="true" class="ph ph-push-pin-slash"></i>
+            <span>Lepas</span>
+          </button>
+          <button class="btn btn-primary btn-compact-34" data-action="spotlight-pay" id="spotlight-pay-btn" type="button">
+            <i aria-hidden="true" class="ph-bold ph-hand-coins"></i>
+            <span id="spotlight-pay-label">Bayar Iuran</span>
           </button>
         </div>
+        <div aria-hidden="true" class="spotlight-divider"></div>
+        <div aria-label="Status iuran 12 bulan pribadi" class="spotlight-months" id="spotlight-months" role="group"></div>
+        <p aria-live="polite" class="spotlight-detail" hidden="" id="spotlight-detail"></p>
       </div>
+    </section>
 
-      <div id="ui-save-status" class="save-status-indicator" aria-live="polite"></div>
+    <section id="admin-priorities" class="spotlight admin-only hybrid-card" data-cascade="3" aria-labelledby="priority-title" hidden>
+      <div class="priority-heading">
+        <span class="quick-cek-icon" aria-hidden="true"><i class="ph-fill ph-lightning"></i></span>
+        <div><h2 id="priority-title">Tunggakan Prioritas</h2><p id="priority-period"></p></div>
+        <button type="button" class="btn" data-action="bulk-toggle" aria-pressed="false"><i class="ph ph-check-square" aria-hidden="true"></i> Pilih Banyak</button>
+      </div>
+      <ul id="priority-members" class="priority-list"></ul>
+    </section>
 
-      <div class="table-responsive">
+    <aside id="bulk-dock" class="bulk-dock" aria-label="Pilihan pembayaran massal" hidden>
+      <p id="bulk-status" role="status"></p>
+      <div>
+        <button type="button" class="btn" data-action="bulk-toggle">Batal</button>
+        <button type="button" class="btn btn-primary" data-action="bulk-review" disabled>Tinjau Pembayaran</button>
+      </div>
+    </aside>
+
+    <div class="workspace-head" data-cascade="4">
+      <div class="workspace-tabs-scroll">
+        <div class="workspace-tabs" role="tablist" aria-label="Tampilan Buku Kas">
+          <span class="workspace-glider" aria-hidden="true"></span>
+          <button type="button" id="workspace-tab-iuran" role="tab" data-action="switch-workspace" data-panel="iuran" aria-selected="true" aria-controls="workspace-iuran" tabindex="0"><i class="ph ph-table" aria-hidden="true"></i><span>Status Iuran</span></button>
+          <button type="button" id="workspace-tab-history" role="tab" data-action="switch-workspace" data-panel="history" aria-selected="false" aria-controls="workspace-history" tabindex="-1"><i class="ph ph-receipt" aria-hidden="true"></i><span class="workspace-label-desktop">Riwayat Arus Kas</span><span class="workspace-label-mobile">Arus Kas</span></button>
+          <button type="button" id="workspace-tab-stats" role="tab" data-action="switch-workspace" data-panel="stats" aria-selected="false" aria-controls="workspace-stats" tabindex="-1"><i class="ph ph-chart-bar" aria-hidden="true"></i><span class="workspace-label-desktop">Kesehatan &amp; Grafik Kas</span><span class="workspace-label-mobile">Grafik Kas</span></button>
+        </div>
+      </div>
+      <div class="workspace-matrix-tools" role="group" aria-label="Cari dan filter status iuran">
+        <div class="workspace-search workspace-desktop-search">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="search-member-rekap" class="form-control search-member-input" placeholder="Cari nama atau catatan..." aria-label="Cari nama anggota">
+        </div>
+        <div class="workspace-search workspace-mobile-search">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="search-member-rekap-mobile" class="form-control search-member-input" placeholder="Cari nama atau catatan..." aria-label="Cari nama anggota">
+        </div>
+        <div class="workspace-status-filter" role="group" aria-label="Filter status tahun terpilih">
+          <span class="workspace-glider" aria-hidden="true"></span>
+          <button type="button" data-action="filter-dues-status" data-status-filter="all" aria-pressed="true">Semua</button>
+          <button type="button" data-action="filter-dues-status" data-status-filter="unpaid" aria-pressed="false">Nunggak</button>
+          <button type="button" data-action="filter-dues-status" data-status-filter="paid" aria-pressed="false">Lunas</button>
+        </div>
+        <button type="button" class="btn btn-secondary workspace-jump" data-action="open-menu-modal" aria-label="Buka Pencarian Cepat"><i class="ph ph-command" aria-hidden="true"></i><span>Lompat Cepat</span><span class="workspace-kbd-hint" aria-hidden="true">Ctrl+K</span></button>
+      </div>
+      <div class="workspace-history-tools" role="group" aria-label="Cari dan filter riwayat arus kas">
+        <div class="workspace-search">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="workspace-search-history" class="form-control search-member-input" placeholder="Cari nama atau catatan..." aria-label="Cari transaksi atau anggota">
+        </div>
+        <div class="workspace-status-filter" role="group" aria-label="Jenis Arus Kas">
+          <span class="workspace-glider" aria-hidden="true"></span>
+          <button type="button" data-action="set-history-filter" data-filter="semua" aria-pressed="true">Semua (0)</button>
+          <button type="button" data-action="set-history-filter" data-filter="masuk" aria-pressed="false">Masuk (0)</button>
+          <button type="button" data-action="set-history-filter" data-filter="keluar" aria-pressed="false">Keluar (0)</button>
+        </div>
+      </div>
+    </div>
+    <div class="workspace-panels">
+    <section id="workspace-iuran" class="workspace-panel" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-iuran" tabindex="0">
+    <div class="table-card hybrid-card hybrid-matrix" id="section-rekap">
+<!-- Desktop Table Header (Clean 1-Row Toolbar) -->
+<div class="table-header desktop-only">
+<div class="table-header-left">
+<div aria-label="Legenda status iuran" class="matrix-legend">
+<span data-status="Lunas">Lunas</span>
+<span data-status="Sebagian">Sebagian</span>
+<span data-status="Belum">Tunggakan</span>
+<span data-status="Nanti">Akan Datang</span>
+<span data-status="Libur">Libur</span>
+</div>
+</div>
+<div class="table-header-controls">
+<div class="year-pill">
+<i aria-hidden="true" class="ph-bold ph-calendar-blank"></i>
+<label for="ui-tahun-rekap-select">Tahun: </label>
+<select aria-label="Pilih tahun rekap iuran" class="cdrop" id="ui-tahun-rekap-select">
+</select><div class="hybrid-year-glider" role="group" aria-label="Tahun buku kas" hidden></div>
+</div>
+<button type="button" aria-label="Data sinkron — klik untuk muat ulang" class="btn-sync-rekap is-clean" data-action="sync-rekap-data" id="btn-sync-rekap" title="Data sinkron — klik untuk muat ulang">
+<span class="sync-rekap-dot" aria-hidden="true"></span>
+<i class="ph ph-arrows-clockwise sync-rekap-icon" aria-hidden="true"></i>
+<span class="sync-rekap-label">Sinkron</span>
+</button>
+<button class="dues-status-help" data-action="open-dues-legend" type="button"><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
+</div>
+</div>
+<!-- Mobile matrix toolbar -->
+<div class="table-header mobile-only">
+<div class="table-header-top">
+<div class="table-header-left">
+<div aria-label="Legenda status iuran" class="matrix-legend">
+<span data-status="Lunas">Lunas</span>
+<span data-status="Sebagian">Sebagian</span>
+<span data-status="Belum">Tunggakan</span>
+<span data-status="Nanti">Akan Datang</span>
+<span data-status="Libur">Libur</span>
+</div>
+</div>
+</div>
+<div class="table-header-controls dues-mobile-controls">
+<div class="dues-mobile-actions">
+<div class="year-pill">
+<label for="ui-tahun-rekap-select-mobile">Tahun</label>
+<select aria-label="Pilih tahun rekap iuran" class="cdrop" id="ui-tahun-rekap-select-mobile"></select><div class="hybrid-year-glider" role="group" aria-label="Tahun buku kas" hidden></div>
+</div>
+<button type="button" aria-label="Data sinkron — klik untuk muat ulang" class="btn-sync-rekap is-clean" data-action="sync-rekap-data" id="btn-sync-rekap-mobile" title="Data sinkron — klik untuk muat ulang">
+<span class="sync-rekap-dot" aria-hidden="true"></span>
+<i class="ph ph-arrows-clockwise sync-rekap-icon" aria-hidden="true"></i>
+<span class="sync-rekap-label">Sinkron</span>
+</button>
+<button class="dues-status-help" data-action="open-dues-legend" type="button"><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
+</div>
+</div>
+</div>
+
+      <div class="table-responsive" tabindex="0" role="region" aria-label="Matriks Status Iuran 12 Bulan">
         <table class="table-matriks">
+          <caption class="sr-only">Status pembayaran iuran per anggota sepanjang 12 bulan</caption>
           <thead>
             <tr>
-              <th class="th-member-col">Nama Anggota</th>
-              <th>Jan</th> <th>Feb</th> <th>Mar</th> <th>Apr</th> <th>Mei</th> <th>Jun</th>
-              <th>Jul</th> <th>Agu</th> <th>Sep</th> <th>Okt</th> <th>Nov</th> <th>Des</th>
+              <th class="th-member-col">Anggota</th>
+              <th data-col-month="0">Jan</th> <th data-col-month="1">Feb</th> <th data-col-month="2">Mar</th> <th data-col-month="3">Apr</th> <th data-col-month="4">Mei</th> <th data-col-month="5">Jun</th>
+              <th data-col-month="6">Jul</th> <th data-col-month="7">Agu</th> <th data-col-month="8">Sep</th> <th data-col-month="9">Okt</th> <th data-col-month="10">Nov</th> <th data-col-month="11">Des</th>
             </tr>
           </thead>
           <tbody id="ui-table-rekap">
@@ -221,6 +379,65 @@
           <div class="skeleton skeleton-text h-100 w-full"></div>
         </div>
       </div>
+      <nav id="dues-pagination" class="dues-pagination" aria-label="Halaman Status Iuran" hidden>
+        <p id="dues-page-range" data-page-range role="status"></p>
+        <div class="dues-page-actions">
+          <form class="dues-page-jump" hidden>
+            <label for="dues-page-number">Hal</label>
+            <input type="number" id="dues-page-number" data-page-number class="form-control" min="1" step="1" inputmode="numeric" required aria-describedby="dues-page-total">
+            <span id="dues-page-total" data-page-total></span>
+          </form>
+          <div class="dues-page-controls">
+            <button type="button" class="btn btn-secondary dues-page-step" data-page-step="-1" aria-label="Halaman sebelumnya"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+            <div class="dues-page-list" data-page-list role="group" aria-label="Daftar halaman"></div>
+            <button type="button" class="btn btn-secondary dues-page-step" data-page-step="1" aria-label="Halaman berikutnya"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </nav>
+    </div>
+    </section>
+    <section id="workspace-history" class="workspace-panel hybrid-card" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-history" tabindex="0" hidden>
+      <div class="hybrid-ledger-toolbar">
+        <strong id="hybrid-ledger-count">Menampilkan 0 transaksi</strong>
+        <span>Klik baris untuk membuka Struk Digital</span>
+      </div>
+      <div class="ledger-list" id="hybrid-ledger-list"></div>
+      <nav id="history-pagination" class="dues-pagination" aria-label="Halaman Riwayat Arus Kas" hidden>
+        <p id="history-page-range" data-page-range role="status"></p>
+        <div class="dues-page-actions">
+          <form class="dues-page-jump" hidden>
+            <label for="history-page-number">Hal</label>
+            <input type="number" id="history-page-number" data-page-number class="form-control" min="1" step="1" inputmode="numeric" required aria-describedby="history-page-total">
+            <span id="history-page-total" data-page-total></span>
+          </form>
+          <div class="dues-page-controls">
+            <button type="button" class="btn btn-secondary dues-page-step" data-page-step="-1" aria-label="Halaman sebelumnya"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+            <div class="dues-page-list" data-page-list role="group" aria-label="Daftar halaman"></div>
+            <button type="button" class="btn btn-secondary dues-page-step" data-page-step="1" aria-label="Halaman berikutnya"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </nav>
+    </section>
+    <section id="workspace-stats" class="workspace-panel analytics-grid" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-stats" tabindex="0" hidden>
+      <article class="hybrid-card chart-card">
+        <div class="chart-head">
+          <div><h2 class="chart-title" id="hybrid-chart-title">Arus Kas Bulanan &amp; Tren Saldo</h2>
+            <div class="chart-legend" aria-label="Legenda grafik"><span>Pemasukan</span><span>Pengeluaran</span><span>Tren Saldo Kumulatif</span></div>
+          </div>
+          <button type="button" class="btn btn-secondary" data-action="export-csv"><i class="ph ph-download-simple" aria-hidden="true"></i><span>Unduh CSV</span></button>
+        </div>
+        <figure class="chart-figure">
+          <div class="chart-stage"><svg class="chart-svg" id="hybrid-cashflow" viewBox="0 0 720 250" role="img" aria-label="Arus kas 12 bulan dan tren saldo"></svg></div>
+          <figcaption class="chart-tooltip-box tnum" id="hybrid-chart-readout" aria-live="polite"></figcaption>
+        </figure>
+      </article>
+      <article class="hybrid-card chart-card">
+        <div class="chart-head">
+          <div><h2 class="chart-title">Komposisi &amp; Kepatuhan</h2><p class="page-subtitle">Distribusi pengeluaran &amp; tingkat pelunasan anggota</p></div>
+        </div>
+        <div class="breakdown-list" id="hybrid-analytics-breakdown"></div>
+      </article>
+    </section>
     </div>
   </main>
 
@@ -228,33 +445,231 @@
 
   <!-- @@INJECT_MODALS@@ -->
 
-  <div id="toast-container"></div>
+  <aside id="kasi-dock" class="kasi-dock" aria-label="Kasi si Kucing Kas" hidden>
+    <button type="button" class="kasi-fab" id="kasi-fab" aria-label="Aksi Kasi si Kucing Kas" aria-expanded="false" aria-controls="kasi-halo">
+      <svg class="kasi-svg" data-kasi-mascot data-mood="idle" viewBox="0 0 80 80" aria-hidden="true">
+        <ellipse class="kasi-ground-shadow" cx="40" cy="73" rx="19" ry="4"></ellipse>
+        <g class="kasi-body-rig">
+          <g class="kasi-tail-rig">
+            <path class="kasi-tail-body" d="M54 61 C65 60 71 49 67 38"></path>
+            <circle class="kasi-tail-tip" cx="67" cy="38" r="3.2"></circle>
+          </g>
+          <path class="kasi-torso" d="M23 64 C23 50 28 45 40 45 C52 45 57 50 57 64 C57 69 52 71 40 71 C28 71 23 69 23 64 Z"></path>
+          <ellipse class="kasi-belly" cx="40" cy="60.5" rx="10.5" ry="8.5"></ellipse>
+          <path class="kasi-collar" d="M26 48 Q40 53.5 54 48"></path>
+          <g class="kasi-bell-rig">
+            <circle class="kasi-bell" cx="40" cy="54" r="4.6"></circle>
+            <line class="kasi-bell-slot" x1="37.6" y1="54.2" x2="42.4" y2="54.2"></line>
+            <circle class="kasi-bell-clapper" cx="40" cy="56" r="1"></circle>
+          </g>
+          <g class="kasi-paw-left">
+            <ellipse class="kasi-paw" cx="30" cy="67.5" rx="5.2" ry="3.8"></ellipse>
+            <path class="kasi-toe-mark" d="M28.5 67.5 v2 M31.5 67.5 v2"></path>
+          </g>
+          <g class="kasi-paw-right">
+            <ellipse class="kasi-paw" cx="50" cy="67.5" rx="5.2" ry="3.8"></ellipse>
+            <path class="kasi-toe-mark" d="M48.5 67.5 v2 M51.5 67.5 v2"></path>
+          </g>
+          <g class="kasi-head-rig">
+            <g class="kasi-ear-left">
+              <path class="kasi-ear-outer" d="M20 27 L17 11 C16.6 8.5 19.2 7.5 21.2 9.2 L32 18 Z"></path>
+              <path class="kasi-ear-inner" d="M21 24 L19.4 13.5 L28.5 19.5 Z"></path>
+            </g>
+            <g class="kasi-ear-right">
+              <path class="kasi-ear-outer" d="M60 27 L63 11 C63.4 8.5 60.8 7.5 58.8 9.2 L48 18 Z"></path>
+              <path class="kasi-ear-inner" d="M59 24 L60.6 13.5 L51.5 19.5 Z"></path>
+            </g>
+            <ellipse class="kasi-head" cx="40" cy="31" rx="22" ry="18.5"></ellipse>
+            <path class="kasi-tabby-mark" d="M40 14.5 v4.5 M35.5 15.8 l1.2 3.5 M44.5 15.8 l-1.2 3.5"></path>
+            <ellipse class="kasi-muzzle" cx="40" cy="38.2" rx="10.2" ry="6"></ellipse>
+            <ellipse class="kasi-blush" cx="24.5" cy="35" rx="3.4" ry="2"></ellipse>
+            <ellipse class="kasi-blush" cx="55.5" cy="35" rx="3.4" ry="2"></ellipse>
+            <g class="kasi-eyes-open">
+              <g class="kasi-eye-blink">
+                <circle class="kasi-eye-sclera" cx="30.5" cy="29.5" r="4.8"></circle>
+                <circle class="kasi-pupil" data-kasi-pupil cx="30.5" cy="29.5" r="2.7"></circle>
+                <circle class="kasi-catchlight" cx="29.3" cy="28.1" r="1.1"></circle>
+                <circle class="kasi-catchlight" cx="31.8" cy="30.8" r="0.6"></circle>
+              </g>
+              <g class="kasi-eye-blink">
+                <circle class="kasi-eye-sclera" cx="49.5" cy="29.5" r="4.8"></circle>
+                <circle class="kasi-pupil" data-kasi-pupil cx="49.5" cy="29.5" r="2.7"></circle>
+                <circle class="kasi-catchlight" cx="48.3" cy="28.1" r="1.1"></circle>
+                <circle class="kasi-catchlight" cx="50.8" cy="30.8" r="0.6"></circle>
+              </g>
+            </g>
+            <g class="kasi-eyes-bliss">
+              <path d="M26 30.8 Q30.5 26 35 30.8"></path>
+              <path d="M45 30.8 Q49.5 26 54 30.8"></path>
+            </g>
+            <g class="kasi-eyes-star">
+              <path d="M30.5 24 L32 28 L36 29.5 L32 31 L30.5 35 L29 31 L25 29.5 L29 28 Z"></path>
+              <path d="M49.5 24 L51 28 L55 29.5 L51 31 L49.5 35 L48 31 L44 29.5 L48 28 Z"></path>
+            </g>
+            <g class="kasi-eyes-sleep">
+              <path d="M26 29.5 Q30.5 33.8 35 29.5"></path>
+              <path d="M45 29.5 Q49.5 33.8 54 29.5"></path>
+            </g>
+            <g class="kasi-glasses">
+              <circle cx="30.5" cy="29.5" r="6.4"></circle>
+              <circle cx="49.5" cy="29.5" r="6.4"></circle>
+              <line x1="36.9" y1="29.5" x2="43.1" y2="29.5"></line>
+            </g>
+            <path class="kasi-nose" d="M38.2 35.2 H41.8 L40 37.5 Z"></path>
+            <path class="kasi-mouth-w" d="M35.5 39.2 Q37.8 41.8 40 39 Q42.2 41.8 44.5 39.2"></path>
+            <path class="kasi-mouth-open" d="M37 38.6 Q40 44.2 43 38.6 Z"></path>
+            <g class="kasi-whiskers">
+              <path d="M21 33.5 L12 31.5 M20.5 36.8 L11.5 37.2"></path>
+              <path d="M59 33.5 L68 31.5 M59.5 36.8 L68.5 37.2"></path>
+            </g>
+            <g class="kasi-zzz">
+              <path d="M56 12 H62 L56 18 H62"></path>
+              <path d="M64 6 H69 L64 11 H69"></path>
+            </g>
+          </g>
+        </g>
+      </svg>
+    </button>
+    <div class="kasi-mini-bubble" id="kasi-mini-bubble" hidden aria-live="polite"></div>
+    <div class="kasi-halo" id="kasi-halo" role="group" aria-label="Interaksi Kasi" hidden>
+      <button type="button" data-action="kasi-action" data-kasi="pet"><i class="ph-fill ph-hand-palm" aria-hidden="true"></i><span>Elus</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="coin"><i class="ph-fill ph-coin" aria-hidden="true"></i><span>Koin</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="fish"><i class="ph-fill ph-fish-simple" aria-hidden="true"></i><span>Ikan</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="flip"><i class="ph-fill ph-paw-print" aria-hidden="true"></i><span>Salto</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="trick"><i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Trik</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="guide"><i class="ph-fill ph-book-open-text" aria-hidden="true"></i><span>Panduan</span></button>
+    </div>
+    <span id="kasi-feedback" class="sr-only" aria-live="polite"></span>
+  </aside>
+  <div id="kasi-treat" class="kasi-treat" hidden aria-hidden="true"></div>
+
+  <dialog class="modal-overlay guided-tour" id="modal-guided-tour" aria-labelledby="guided-tour-title">
+    <div class="guided-tour-highlight" aria-hidden="true"></div>
+    <div class="modal-content guided-tour-card">
+      <div class="guided-tour-head">
+        <svg class="kasi-svg kasi-tour-svg" id="tour-kasi-mini" data-kasi-mascot data-mood="explain" viewBox="0 0 80 80" aria-hidden="true">
+          <ellipse class="kasi-ground-shadow" cx="40" cy="73" rx="19" ry="4"></ellipse>
+          <g class="kasi-body-rig">
+            <g class="kasi-tail-rig">
+              <path class="kasi-tail-body" d="M54 61 C65 60 71 49 67 38"></path>
+              <circle class="kasi-tail-tip" cx="67" cy="38" r="3.2"></circle>
+            </g>
+            <path class="kasi-torso" d="M23 64 C23 50 28 45 40 45 C52 45 57 50 57 64 C57 69 52 71 40 71 C28 71 23 69 23 64 Z"></path>
+            <ellipse class="kasi-belly" cx="40" cy="60.5" rx="10.5" ry="8.5"></ellipse>
+            <path class="kasi-collar" d="M26 48 Q40 53.5 54 48"></path>
+            <g class="kasi-bell-rig">
+              <circle class="kasi-bell" cx="40" cy="54" r="4.6"></circle>
+              <line class="kasi-bell-slot" x1="37.6" y1="54.2" x2="42.4" y2="54.2"></line>
+              <circle class="kasi-bell-clapper" cx="40" cy="56" r="1"></circle>
+            </g>
+            <g class="kasi-paw-left">
+              <ellipse class="kasi-paw" cx="30" cy="67.5" rx="5.2" ry="3.8"></ellipse>
+              <path class="kasi-toe-mark" d="M28.5 67.5 v2 M31.5 67.5 v2"></path>
+            </g>
+            <g class="kasi-paw-right">
+              <ellipse class="kasi-paw" cx="50" cy="67.5" rx="5.2" ry="3.8"></ellipse>
+              <path class="kasi-toe-mark" d="M48.5 67.5 v2 M51.5 67.5 v2"></path>
+            </g>
+            <g class="kasi-head-rig">
+              <g class="kasi-ear-left">
+                <path class="kasi-ear-outer" d="M20 27 L17 11 C16.6 8.5 19.2 7.5 21.2 9.2 L32 18 Z"></path>
+                <path class="kasi-ear-inner" d="M21 24 L19.4 13.5 L28.5 19.5 Z"></path>
+              </g>
+              <g class="kasi-ear-right">
+                <path class="kasi-ear-outer" d="M60 27 L63 11 C63.4 8.5 60.8 7.5 58.8 9.2 L48 18 Z"></path>
+                <path class="kasi-ear-inner" d="M59 24 L60.6 13.5 L51.5 19.5 Z"></path>
+              </g>
+              <ellipse class="kasi-head" cx="40" cy="31" rx="22" ry="18.5"></ellipse>
+              <path class="kasi-tabby-mark" d="M40 14.5 v4.5 M35.5 15.8 l1.2 3.5 M44.5 15.8 l-1.2 3.5"></path>
+              <ellipse class="kasi-muzzle" cx="40" cy="38.2" rx="10.2" ry="6"></ellipse>
+              <ellipse class="kasi-blush" cx="24.5" cy="35" rx="3.4" ry="2"></ellipse>
+              <ellipse class="kasi-blush" cx="55.5" cy="35" rx="3.4" ry="2"></ellipse>
+              <g class="kasi-eyes-open">
+                <g class="kasi-eye-blink">
+                  <circle class="kasi-eye-sclera" cx="30.5" cy="29.5" r="4.8"></circle>
+                  <circle class="kasi-pupil" cx="30.5" cy="29.5" r="2.7"></circle>
+                  <circle class="kasi-catchlight" cx="29.3" cy="28.1" r="1.1"></circle>
+                  <circle class="kasi-catchlight" cx="31.8" cy="30.8" r="0.6"></circle>
+                </g>
+                <g class="kasi-eye-blink">
+                  <circle class="kasi-eye-sclera" cx="49.5" cy="29.5" r="4.8"></circle>
+                  <circle class="kasi-pupil" cx="49.5" cy="29.5" r="2.7"></circle>
+                  <circle class="kasi-catchlight" cx="48.3" cy="28.1" r="1.1"></circle>
+                  <circle class="kasi-catchlight" cx="50.8" cy="30.8" r="0.6"></circle>
+                </g>
+              </g>
+              <g class="kasi-eyes-bliss">
+                <path d="M26 30.8 Q30.5 26 35 30.8"></path>
+                <path d="M45 30.8 Q49.5 26 54 30.8"></path>
+              </g>
+              <g class="kasi-eyes-star">
+                <path d="M30.5 24 L32 28 L36 29.5 L32 31 L30.5 35 L29 31 L25 29.5 L29 28 Z"></path>
+                <path d="M49.5 24 L51 28 L55 29.5 L51 31 L49.5 35 L48 31 L44 29.5 L48 28 Z"></path>
+              </g>
+              <g class="kasi-eyes-sleep">
+                <path d="M26 29.5 Q30.5 33.8 35 29.5"></path>
+                <path d="M45 29.5 Q49.5 33.8 54 29.5"></path>
+              </g>
+              <g class="kasi-glasses">
+                <circle cx="30.5" cy="29.5" r="6.4"></circle>
+                <circle cx="49.5" cy="29.5" r="6.4"></circle>
+                <line x1="36.9" y1="29.5" x2="43.1" y2="29.5"></line>
+              </g>
+              <path class="kasi-nose" d="M38.2 35.2 H41.8 L40 37.5 Z"></path>
+              <path class="kasi-mouth-w" d="M35.5 39.2 Q37.8 41.8 40 39 Q42.2 41.8 44.5 39.2"></path>
+              <path class="kasi-mouth-open" d="M37 38.6 Q40 44.2 43 38.6 Z"></path>
+              <g class="kasi-whiskers">
+                <path d="M21 33.5 L12 31.5 M20.5 36.8 L11.5 37.2"></path>
+                <path d="M59 33.5 L68 31.5 M59.5 36.8 L68.5 37.2"></path>
+              </g>
+              <g class="kasi-zzz">
+                <path d="M56 12 H62 L56 18 H62"></path>
+                <path d="M64 6 H69 L64 11 H69"></path>
+              </g>
+            </g>
+          </g>
+        </svg>
+        <div class="guided-tour-head-text">
+          <p id="guided-tour-count"></p>
+          <h2 id="guided-tour-title" tabindex="-1"></h2>
+        </div>
+      </div>
+      <p id="guided-tour-description"></p>
+      <div class="guided-tour-actions">
+        <button type="button" class="btn" data-action="guided-tour-step" data-step="skip">Lewati Tur</button>
+        <button type="button" class="btn" data-action="guided-tour-step" data-step="back" hidden>Kembali</button>
+        <button type="button" class="btn btn-primary" data-action="guided-tour-step" data-step="next">Lanjut</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast-container" popover="manual" aria-live="polite"></div>
 
   <!-- Bottom Navigation (mobile only) -->
-  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigasi utama">
-    <button class="bottom-nav-item active" data-action="nav-home" aria-label="Beranda">
-      <i class="ph-fill ph-house"></i>
-      <span>Beranda</span>
+  <nav class="bottom-nav mobile-bottom-nav" id="bottom-nav" aria-label="Navigasi Cepat Seluler">
+    <button type="button" class="bottom-nav-item mobile-nav-btn active" data-action="nav-rekap" aria-controls="workspace-iuran" aria-current="location">
+      <i class="ph ph-table" aria-hidden="true"></i>
+      <span>Status Iuran</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-riwayat" aria-label="Riwayat">
-      <i class="ph ph-clock-counter-clockwise"></i>
-      <span>Riwayat</span>
+    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-riwayat" aria-controls="workspace-history">
+      <i class="ph ph-receipt" aria-hidden="true"></i>
+      <span>Arus Kas</span>
     </button>
-    <button class="bottom-nav-item bottom-nav-cta admin-only" data-action="nav-catat" aria-label="Catat Transaksi">
-      <i class="ph-bold ph-plus"></i>
-      <span>Catat</span>
+    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-stats" aria-controls="workspace-stats">
+      <i class="ph ph-chart-bar" aria-hidden="true"></i>
+      <span>Grafik</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-rekap" aria-label="Rekap">
-      <i class="ph ph-table"></i>
-      <span>Rekap</span>
+    <button type="button" class="bottom-nav-item mobile-nav-btn cta admin-only" data-action="nav-catat">
+      <i class="ph-bold ph-plus" aria-hidden="true"></i>
+      <span>Catat Kas</span>
     </button>
-    <button class="bottom-nav-item" data-action="nav-menu" aria-label="Menu">
-      <i class="ph ph-list"></i>
-      <span>Menu</span>
+    <button type="button" class="bottom-nav-item mobile-nav-btn cta non-admin-only" data-action="nav-pay">
+      <i class="ph-bold ph-hand-coins" aria-hidden="true"></i>
+      <span>Bayar</span>
     </button>
   </nav>
 
-  <script type="module" src="src/app.js?v=188"></script>
-  <script src="src/sw-register.js?v=188" defer></script>
+  <script type="module" src="src/app.js?v=288"></script>
+  <script src="src/sw-register.js?v=288" defer></script>
 </body>
 </html>

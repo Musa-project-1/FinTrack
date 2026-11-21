@@ -8,15 +8,16 @@
  */
 
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
-import { getState, addTransaction, currentRekapYear, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "../core/state.js";
+import { getState, addTransaction, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "../core/state.js";
 import { billingPeriod } from "../core/dues.js";
 import { formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "../core/utils.js";
 import { isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
 import { deliverMutation, generateOperationId } from "../core/mutation.js";
 import { withBusyButton, withLiquidSave } from "../ui/keel.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
-import { renderCheckboxIuran, filterKategori, updateEditDelta } from "../ui/transaction-form.js";
+import { renderCheckboxIuran, filterKategori, updateEditDelta, updateCounterIuran, updateCounterOps, resetTrxWizard } from "../ui/transaction-form.js";
 import { syncCdrop } from "../ui/cdrop.js";
+import { syncDpick } from "../ui/dpick.js";
 import { markNewlyPaidCells } from "../render.js";
 import {
   refreshAppData,
@@ -40,13 +41,13 @@ const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHL
    ══════════════════════════════════════════════════════════════════ */
 
 /** Open the main transaction modal on the iuran tab, reset to defaults. */
-export const bukaModalTransaksi = () => {
+export const bukaModalTransaksi = (selection) => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
   switchTab("iuran", "modal-transaksi");
   document.getElementById("search-anggota-iuran").value = "";
   const defaultPeriod = billingPeriod(new Date());
-  document.getElementById("iuran-tahun").value = defaultPeriod.year;
-  document.getElementById("iuran-bulan").value = NAMA_BULAN[defaultPeriod.monthIndex];
+  document.getElementById("iuran-tahun").value = selection?.year ?? defaultPeriod.year;
+  document.getElementById("iuran-bulan").value = NAMA_BULAN[selection?.month ?? defaultPeriod.monthIndex];
   syncCdrop("iuran-bulan");
   syncCdrop("iuran-kategori");
   renderCheckboxIuran();
@@ -56,14 +57,30 @@ export const bukaModalTransaksi = () => {
   document.getElementById("ops-tipe").value = "Keluar";
   filterKategori("ops-tipe", "ops-kategori");
   syncCdrop("ops-anggota");
-  syncCdrop("ops-tipe");
   syncCdrop("ops-kategori");
+  updateCounterOps();
 
-  document.getElementById("iuran-nominal").value = DEFAULT_FEE_DISPLAY;
+  document.getElementById("iuran-nominal").value = selection
+    ? new Intl.NumberFormat("id-ID").format(selection.amount) : DEFAULT_FEE_DISPLAY;
+  if (selection) {
+    const selectedMembers = new Set(selection.memberIds);
+    document.querySelectorAll(".chk-iuran:not(:disabled)").forEach((input) => {
+      input.checked = selectedMembers.has(input.value);
+    });
+  }
+  updateCounterIuran();
   const iuranTgl = document.getElementById("iuran-tanggal");
   if (iuranTgl) iuranTgl.value = "";
   const opsTgl = document.getElementById("ops-tanggal");
   if (opsTgl) opsTgl.value = "";
+  syncDpick("iuran-tanggal");
+  syncDpick("ops-tanggal");
+  const hasPreselected = Boolean(
+    selection?.memberIds?.length > 0 &&
+    document.querySelectorAll(".chk-iuran:not(:disabled):checked").length > 0 &&
+    document.getElementById("iuran-kategori")?.value
+  );
+  resetTrxWizard("iuran", hasPreselected ? 3 : 1);
   openModal("modal-transaksi");
 };
 
@@ -369,8 +386,9 @@ export const submitOperasional = async (e) => {
             if (opsTipe) opsTipe.value = "Keluar";
             filterKategori("ops-tipe", "ops-kategori");
             syncCdrop("ops-anggota");
-            syncCdrop("ops-tipe");
             syncCdrop("ops-kategori");
+            syncDpick("ops-tanggal");
+            updateCounterOps();
           }
         };
       });
@@ -408,6 +426,7 @@ export const bukaModalEdit = (idTrx) => {
 
   const editTanggal = document.getElementById("edit-tanggal");
   if (editTanggal) editTanggal.value = isoToDateInput(trx.Timestamp);
+  syncDpick("edit-tanggal");
 
   // Populate delta preview with original values and bind live update
   const _originalNominal = trx.Nominal || 0;
@@ -425,7 +444,6 @@ export const bukaModalEdit = (idTrx) => {
   if (nomEl) { nomEl.removeEventListener("input", nomEl._deltaHandler); nomEl._deltaHandler = _rebind; nomEl.addEventListener("input", _rebind); }
   if (tipeEl) { tipeEl.removeEventListener("change", tipeEl._deltaHandler); tipeEl._deltaHandler = _rebind; tipeEl.addEventListener("change", _rebind); }
 
-  document.getElementById("modal-riwayat").classList.remove("active");
   openModal("modal-edit-transaksi");
 };
 

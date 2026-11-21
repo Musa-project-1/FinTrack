@@ -103,8 +103,12 @@
 
   .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
   .table-responsive table { min-width: 860px; }
-  .table-responsive::-webkit-scrollbar { height: 4px; }
-  .table-responsive::-webkit-scrollbar-thumb { background: var(--border-strong); }
+@supports not (scrollbar-color: auto) {
+.table-responsive { scrollbar-width: auto; }
+.table-responsive::-webkit-scrollbar { height: 6px; }
+  .table-responsive::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-pill); }
+  .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover, var(--scrollbar-thumb)); }
+}
 
   /* Modals */
   .modal-overlay { padding: 12px; }
@@ -132,8 +136,6 @@
   .table-matriks th, .table-matriks td { padding: 8px; border: 1px solid var(--border); }
   .table-matriks th { background: var(--surface-2); font-size: 10px; padding: 6px 4px; }
   .table-matriks td:first-child, .table-matriks th:first-child { min-width: 120px; position: sticky; left: 0; z-index: 10; padding: 8px 12px; }
-  .table-matriks .status-lunas-dot { width: 30px; height: 20px; }
-  .table-matriks .status-lunas-dot span { font-size: 9px; }
   .table-matriks td.text-center { text-align: center; padding: 6px; min-width: 40px; }
 
   /* Mobile card view replaces the matrix table */

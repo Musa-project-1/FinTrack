@@ -6,6 +6,7 @@
  * Multiple instances per page are fully independent (registry by id).
  */
 
+import { enhanceControl } from './control-a11y.js';
 import { NAMA_BULAN } from '../core/config.js';
 
 const SHORT = NAMA_BULAN.map((m) => m.slice(0, 3));
@@ -35,11 +36,13 @@ const closeAll = (except = null) => {
 };
 
 const setOpen = (ui, open) => {
+  if (open && ui.input.matches(':disabled')) return;
   ui.wrap.classList.toggle('open', open);
   ui.field.setAttribute('aria-expanded', open ? 'true' : 'false');
   ui.pop.hidden = !open;
   if (open) {
     renderGrid(ui);
+    (ui.grid.querySelector('.selected') || ui.grid.querySelector('button'))?.focus();
   }
 };
 
@@ -108,6 +111,10 @@ const setup = (input) => {
 
   const pop = document.createElement('div');
   pop.className = 'mpick-pop';
+  pop.id = `${input.id}-dialog`;
+  pop.setAttribute('role', 'dialog');
+  pop.setAttribute('aria-label', 'Pilih Bulan dan Tahun');
+  field.setAttribute('aria-controls', pop.id);
   pop.hidden = true;
 
   const head = document.createElement('div');
@@ -160,10 +167,21 @@ const setup = (input) => {
 
   const start = parseValue(input.value);
   if (start) ui.year = start.year;
-  syncLabel(ui);
+  enhanceControl(input, field, wrap, () => syncLabel(ui), () => setOpen(ui, false));
+  wrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setOpen(ui, false);
+      field.focus();
+    }
+  });
+  wrap.addEventListener('focusout', () => {
+    setTimeout(() => { if (!wrap.contains(document.activeElement)) setOpen(ui, false); }, 0);
+  });
 
   field.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (input.matches(':disabled')) return;
     const parsed = parseValue(input.value);
     ui.year = parsed ? parsed.year : new Date().getFullYear();
     const willOpen = !wrap.classList.contains('open');
@@ -193,17 +211,6 @@ const setup = (input) => {
   });
 
   pop.addEventListener('click', (e) => e.stopPropagation());
-
-  // Auto-close popover on selecting a month
-  grid.addEventListener('click', (e) => {
-    const btn = e.target.closest('.mpick-m');
-    if (btn) {
-      setTimeout(() => {
-        setOpen(ui, false);
-        field.focus();
-      }, 50);
-    }
-  });
 };
 
 /** Wrap every input.mpick on the page. Safe to call once. */

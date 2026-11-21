@@ -1,21 +1,28 @@
-import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH, DEFAULT_MONTHLY_FEE } from "../core/config.js";
+import { getReceiptData, renderReceiptHtml } from '../render/receipt.js';
+import { NAMA_BULAN } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
 import { formatRp, showToast, escapeHtml } from "../core/utils.js";
-import { createDuesLedger, duesStatusLabel, billingPeriod } from "../core/dues.js";
+import { createDuesLedger, billingPeriod } from "../core/dues.js";
 import { closeModal } from "../ui/modal.js";
 import { trackEvent } from "../core/analytics.js";
 
 export const cetakStruk = (idTrx) => {
-  const state = getState();
-  const trx = state.transaksi.find((t) => t.ID_Transaksi === idTrx);
-  if (!trx) return;
-  const tglStr = new Date(trx.Timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const objKategori = state.kategori.find((k) => k.ID_Kategori === trx.ID_Kategori);
-  const namaKat = objKategori ? objKategori.Nama_Kategori : '-';
-  const objAng = state.anggota.find((a) => a.ID_Anggota === trx.ID_Anggota);
-  const namaAnggota = objAng ? objAng.Nama_Anggota : '-';
-
-  const html = `<html><head><title>Struk Transaksi</title><style>body{font-family:'Courier New',monospace;font-size:14px;color:#000;padding:20px;width:300px;margin:0 auto}.header{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}.row{display:flex;justify-content:space-between;margin-bottom:5px}.footer{text-align:center;border-top:1px dashed #000;padding-top:10px;margin-top:10px;font-size:12px}h2{margin:0;font-size:18px}</style></head><body><div class="header"><h2>FINKAS</h2><div>Bukti Transaksi</div><div style="font-size:11px;margin-top:4px;">ID: ${escapeHtml(trx.ID_Transaksi)}</div></div><div style="margin-bottom:15px;font-size:12px;">Waktu: ${escapeHtml(tglStr)}</div><div class="row"><span>Tipe Arus:</span><span><b>${escapeHtml((trx.Tipe_Arus || '').toUpperCase())}</b></span></div><div class="row"><span>Kategori:</span><span>${escapeHtml(namaKat)}</span></div><div class="row"><span>Anggota:</span><span>${escapeHtml(namaAnggota)}</span></div><div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #ccc;"><span><b>NOMINAL:</b></span><span style="font-size:16px;"><b>${formatRp(trx.Nominal)}</b></span></div><div style="margin-top:15px;">Catatan:<br><i>${escapeHtml(trx.Keterangan || '-')}</i></div><div class="footer">Dicetak oleh Sistem<br><i>Terima kasih</i></div></body></html>`;
+  const receipt = getReceiptData(idTrx);
+  if (!receipt) return;
+  const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Struk Transaksi</title>
+    <style>
+      body{font:14px/1.45 monospace;color:#111;padding:20px;max-width:320px;margin:auto}
+      header{text-align:center;border-bottom:1px dashed;padding-bottom:10px}
+      h1{font-size:18px;margin:0}.receipt-amount{font-size:22px;font-weight:bold}
+      .receipt-rows{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 12px}
+      .receipt-rows dd{margin:0;overflow-wrap:anywhere}.receipt-footer{border-top:1px dashed;padding-top:8px}
+      .receipt-seal{display:flex;align-items:center;gap:8px;border:1.5px solid;padding:7px;width:fit-content;margin:12px auto 0;border-radius:8px}
+      .receipt-seal-ico svg{width:34px;height:34px}.receipt-seal-copy{display:grid;gap:2px}
+      .seal-halo,.seal-track-ring,.seal-core-ring{fill:none;stroke:currentColor}.seal-core{fill:currentColor}
+      .seal-check{fill:none;stroke:white;stroke-width:2.3}
+      .receipt-seal[data-tone="verified"]{color:#174ea6}
+    </style></head><body><header><h1>Finkas · Bukti Transaksi</h1><p>${escapeHtml(receipt.group)} · ${escapeHtml(receipt.transaction.ID_Transaksi)}</p></header>
+    ${renderReceiptHtml(receipt)}</body></html>`;
 
   const pw = window.open('', '_blank', 'width=400,height=600');
   if (!pw) return showToast('Izinkan pop-up untuk mencetak bukti transaksi.', 'warning');

@@ -20,6 +20,7 @@ const SW_PATH = path.join(ROOT, 'sw.js');
 const SW_REGISTER_PATH = path.join(ROOT, 'src', 'sw-register.js');
 const TEMPLATE_PATH = path.join(ROOT, 'html', 'index.template.html');
 const ONBOARDING_PATH = path.join(ROOT, 'onboarding.html');
+const PRIVACY_PATH = path.join(ROOT, 'privacy.html');
 
 // 1. Detect current version from sw.js
 const swContent = fs.readFileSync(SW_PATH, 'utf8');
@@ -67,14 +68,15 @@ if (fs.existsSync(TEMPLATE_PATH)) {
   fs.writeFileSync(TEMPLATE_PATH, updatedTpl, 'utf8');
 }
 
-// 5. Update onboarding.html
-if (fs.existsSync(ONBOARDING_PATH)) {
-  const onbContent = fs.readFileSync(ONBOARDING_PATH, 'utf8');
-  const updatedOnb = onbContent.replace(
+// 5. Update onboarding.html and privacy.html
+for (const pagePath of [ONBOARDING_PATH, PRIVACY_PATH]) {
+  if (!fs.existsSync(pagePath)) continue;
+  const pageContent = fs.readFileSync(pagePath, 'utf8');
+  const updatedPage = pageContent.replace(
     new RegExp(`\\?v=${currentVersion}`, 'g'),
     `?v=${newVersion}`
   );
-  fs.writeFileSync(ONBOARDING_PATH, updatedOnb, 'utf8');
+  fs.writeFileSync(pagePath, updatedPage, 'utf8');
 }
 
 // 6. Automatically rebuild index.html

@@ -116,6 +116,27 @@ let lastToastKey = '';
 let lastToastTime = 0;
 
 /**
+ * Promote active #toast-container above modal dialogs in the browser top layer.
+ * @param {HTMLElement|null} [container]
+ */
+export const promoteToastLayer = (container = document.getElementById('toast-container')) => {
+  if (!container?.children?.length) return;
+  try {
+    if (container.matches?.(':popover-open')) container.hidePopover?.();
+    container.showPopover?.();
+  } catch (_) {}
+};
+
+const syncToastPopoverState = (container) => {
+  if (!container) return;
+  if (container.children.length > 0) {
+    promoteToastLayer(container);
+    return;
+  }
+  try { container.hidePopover?.(); } catch (_) {}
+};
+
+/**
  * Show a floating toast notification.
  * @param {string} message - Message text.
  * @param {'success'|'error'|'warning'|'info'} [type='success'] - Toast type.
@@ -160,15 +181,22 @@ export const showToast = (message, type = 'success', options = {}) => {
   const body = document.createElement('div');
   body.className = 'toast-body';
 
-  const badgeText = options?.badge || (safeType === 'success' ? 'SUKSES' : safeType.toUpperCase());
-  const titleText = options?.title || '';
+  const TOAST_BADGE_MAP = {
+    success: 'SUKSES',
+    error: 'GALAT',
+    warning: 'PERINGATAN',
+    info: 'INFO'
+  };
+  const badgeText = options?.badge || TOAST_BADGE_MAP[safeType] || safeType.toUpperCase();
+  const titleText = String(options?.title || '').trim();
+  if (titleText) toast.classList.add('has-title');
 
   const headerRow = document.createElement('div');
   headerRow.className = 'toast-header-row';
 
   const badgeTag = document.createElement('span');
   badgeTag.className = 'toast-badge-tag';
-  badgeTag.textContent = `● ${badgeText}`;
+  badgeTag.textContent = badgeText;
   headerRow.appendChild(badgeTag);
 
   if (titleText) {
@@ -198,9 +226,16 @@ export const showToast = (message, type = 'success', options = {}) => {
   toast.append(iconWrap, body, closeBtn, progress);
 
   let timer = null;
+  let removed = false;
+  const removeToast = () => {
+    if (removed) return;
+    removed = true;
+    toast.remove();
+    syncToastPopoverState(container);
+  };
   const hide = () => {
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 280);
+    setTimeout(removeToast, 280);
   };
   const startTimer = () => { timer = setTimeout(hide, duration); };
   const stopTimer = () => { if (timer) clearTimeout(timer); };
@@ -275,7 +310,7 @@ export const showToast = (message, type = 'success', options = {}) => {
       toast.style.transform = `translateX(${dir * (toast.offsetWidth + 60)}px)`;
       toast.style.opacity = '0';
       stopTimer();
-      setTimeout(() => toast.remove(), 190);
+      setTimeout(removeToast, 190);
     } else {
       toast.style.transition = 'transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.2s ease-out';
       toast.style.transform = '';
@@ -289,6 +324,7 @@ export const showToast = (message, type = 'success', options = {}) => {
   toast.addEventListener('pointercancel', onPointerEnd);
 
   container.appendChild(toast);
+  promoteToastLayer(container);
   requestAnimationFrame(() => toast.classList.add('show'));
   startTimer();
 };

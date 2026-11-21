@@ -1,92 +1,154 @@
   <!-- 1. Modal Login Admin -->
-  <div class="modal-overlay modal-top" id="modal-login">
-    <div class="modal-content modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon stealth-badge" id="badge-admin-login" data-action="stealth-badge-click">
-            <i class="ph-fill ph-lock-key"></i>
-          </div>
-          <div class="modal-title-wrap">
-            <h2 id="modal-login-title">Akses Pengurus</h2>
-            <p>Kelola kas &amp; pencatatan grup aktif</p>
+  <dialog class="modal-overlay hybrid-dialog" id="modal-login" aria-labelledby="modal-login-title">
+    <div class="modal-content auth-login-sheet">
+      <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
+      <div class="hybrid-settings-header auth-sheet-header">
+        <div class="auth-header-main">
+          <button type="button" class="auth-header-emblem stealth-badge" id="badge-admin-login" data-action="stealth-badge-click" aria-label="Login Pengurus">
+            <i class="ph ph-lock-key" aria-hidden="true"></i>
+          </button>
+          <div class="auth-header-copy">
+            <h2 id="modal-login-title">Login Pengurus</h2>
+            <p id="modal-login-subtitle">Masuk untuk mengelola pencatatan dan pengaturan kas grup</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
       </div>
 
-      <form id="form-login-admin" class="auth-modal-form">
-        <div class="form-group auth-form-group">
-          <label for="input-admin-email">Email Pengurus</label>
-          <div class="input-with-icon">
-            <i class="ph ph-envelope group-input-icon"></i>
-            <input type="email" id="input-admin-email" name="admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="username">
+      <div class="auth-sheet-body">
+        <div class="auth-group-context">
+          <div class="auth-group-context-left">
+            <span class="auth-context-dot" aria-hidden="true"></span>
+            <div class="auth-group-context-meta">
+              <span class="auth-context-label">Grup Aktif</span>
+              <strong class="auth-context-name" id="auth-login-group-name">Finkas</strong>
+            </div>
           </div>
+          <span class="auth-role-pill">Akses Pengurus</span>
         </div>
 
-        <div class="form-group auth-form-group auth-form-group-pwd">
-          <label for="input-admin-pwd">Password</label>
-          <div class="input-with-icon">
-            <i class="ph ph-key group-input-icon"></i>
-            <input type="password" id="input-admin-pwd" name="admin-pwd" class="form-control group-form-input auth-pwd-input" placeholder="Ketik password admin..." required autofocus autocomplete="current-password">
-            <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek" aria-label="Lihat Password">
-              <i class="ph ph-eye" id="icon-toggle-pwd"></i>
-            </button>
+        <form id="form-login-admin" class="auth-modal-form" method="post" aria-labelledby="modal-login-title">
+          <div id="auth-login-error" class="auth-inline-alert" role="alert" aria-live="assertive" hidden>
+            <i class="ph-fill ph-warning-circle" aria-hidden="true"></i>
+            <span id="auth-login-error-text"></span>
           </div>
-        </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-submit-login">
-          <i class="ph-bold ph-sign-in"></i> Masuk sebagai Pengurus
-        </button>
-      </form>
+          <div class="auth-field">
+            <div class="auth-label-row">
+              <label for="input-admin-email">Email Pengurus</label>
+              <span class="auth-field-badge">Opsional</span>
+            </div>
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true"><i class="ph ph-envelope-simple"></i></span>
+              <input type="email" id="input-admin-email" name="admin-email" class="auth-input" placeholder="admin@finkas.id" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="next">
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <div class="auth-label-row">
+              <label for="input-admin-pwd">Kata Sandi</label>
+              <span class="auth-capslock-pill" id="auth-capslock-hint" hidden>
+                <i class="ph-bold ph-arrow-fat-up" aria-hidden="true"></i>
+                <span>Caps Lock aktif</span>
+              </span>
+            </div>
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true"><i class="ph ph-key"></i></span>
+              <input type="password" id="input-admin-pwd" name="admin-pwd" class="auth-input auth-pwd-input" placeholder="Masukkan kata sandi..." required autofocus autocomplete="current-password" enterkeyhint="done">
+              <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek auth-pwd-toggle" aria-pressed="false" aria-label="Tampilkan kata sandi" aria-controls="input-admin-pwd">
+                <i class="ph ph-eye" id="icon-toggle-pwd" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn auth-submit-btn" id="btn-submit-login">
+            <i class="ph-bold ph-sign-in" aria-hidden="true"></i>
+            <span>Masuk sebagai Pengurus</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="hybrid-settings-footer auth-sheet-footer">
+        <div class="auth-footer-trust">
+          <i class="ph ph-lock-simple" aria-hidden="true"></i>
+          <span>Sesi terenkripsi · Berlaku 12 jam</span>
+        </div>
+        <button type="button" class="auth-cancel-link" data-action="close-modal">Batal</button>
+      </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- 2. Modal Logout Admin Confirmation -->
-  <div class="modal-overlay" id="modal-logout">
-    <div class="modal-content modal-sm modal-center-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-logout-title">
+  <dialog class="modal-overlay hybrid-dialog hybrid-alert-dialog" id="modal-logout" aria-labelledby="modal-logout-title">
+    <div class="modal-content modal-sm modal-center-dialog">
+      <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="modal-badge-icon slate">
         <i class="ph-bold ph-sign-out"></i>
       </div>
       <h2 id="modal-logout-title">Keluar Sesi Admin?</h2>
       <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
-        <button class="btn btn-outline" data-action="cancel-logout">Batal</button>
-        <button class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-logout">Batal</button>
+        <button type="button" class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- 2b. Modal About -->
-  <div class="modal-overlay modal-top" id="modal-about">
-    <div class="modal-content modal-sm about-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-about-title">
-      <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+  <dialog class="modal-overlay hybrid-dialog" id="modal-about" aria-labelledby="modal-about-title">
+    <div class="modal-content about-sheet">
+      <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
+      <div class="about-hero">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
 
-      <div class="about-logo-wrap">
-        <img src="icons/icon-192.svg" alt="Logo Finkas" class="about-logo brand-logo-dark">
-        <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="about-logo brand-logo-light">
+        <div class="about-logo-frame">
+          <img src="icons/icon-192.svg" alt="Logo Finkas" class="about-logo brand-logo-dark">
+          <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="about-logo brand-logo-light">
+        </div>
+
+        <div class="about-title-row">
+          <h2 class="about-name" id="modal-about-title">Finkas</h2>
+          <span class="about-ver-pill">v1.0.0</span>
+        </div>
+        <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
       </div>
 
       <div class="about-body">
-        <h2 class="about-name" id="modal-about-title">Finkas</h2>
-        <p class="about-tagline">Pembukuan kas kelompok yang sederhana dan jujur.</p>
-
-        <div class="about-meta">
-          <div class="about-meta-row">
-            <span class="about-meta-label">Versi</span>
-            <span class="about-meta-val">1.0.0</span>
-          </div>
-          <div class="about-meta-row">
-            <span class="about-meta-label">Platform</span>
-            <span class="about-meta-val">Progressive Web App</span>
-          </div>
-          <div class="about-meta-row">
-            <span class="about-meta-label">Backend</span>
-            <span class="about-meta-val">Firestore (finkas-kas)</span>
-          </div>
+        <div class="about-pillars" role="list">
+          <span class="about-pillar" role="listitem"><i class="ph ph-eye" aria-hidden="true"></i><span>Transparan</span></span>
+          <span class="about-pillar" role="listitem"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Sinkron Cloud</span></span>
+          <span class="about-pillar" role="listitem"><i class="ph ph-wifi-slash" aria-hidden="true"></i><span>Siap Offline</span></span>
         </div>
 
-        <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart"></i> untuk pengelolaan kas yang lebih baik.</p>
-        <p class="about-privacy-link"><a href="privacy.html">Kebijakan Privasi</a></p>
+        <dl class="about-meta">
+          <div class="about-meta-row">
+            <dt class="about-meta-label"><i class="ph ph-tag" aria-hidden="true"></i><span>Versi</span></dt>
+            <dd class="about-meta-val">1.0.0</dd>
+          </div>
+          <div class="about-meta-row">
+            <dt class="about-meta-label"><i class="ph ph-devices" aria-hidden="true"></i><span>Platform</span></dt>
+            <dd class="about-meta-val">Progressive Web App</dd>
+          </div>
+          <div class="about-meta-row">
+            <dt class="about-meta-label"><i class="ph ph-cloud-check" aria-hidden="true"></i><span>Backend</span></dt>
+            <dd class="about-meta-val">Cloud Firestore</dd>
+          </div>
+        </dl>
+
+        <p class="about-copy">&copy; 2025 Finkas. Dibuat dengan <i class="ph-fill ph-heart about-heart" aria-hidden="true"></i> untuk pengelolaan kas yang lebih baik.</p>
+      </div>
+
+      <div class="hybrid-settings-footer about-sheet-footer">
+        <a class="about-footer-link" href="privacy.html">
+          <i class="ph ph-shield-check" aria-hidden="true"></i>
+          <span>Kebijakan Privasi</span>
+          <i class="ph ph-arrow-up-right about-ext-ico" aria-hidden="true"></i>
+        </a>
+        <button type="button" class="about-close-pill" data-action="close-modal">Tutup</button>
       </div>
     </div>
-  </div>
+  </dialog>

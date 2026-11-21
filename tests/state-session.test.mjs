@@ -20,7 +20,7 @@ const makeStorage = () => {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-const { ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
+const { ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, ADMIN_VIEW_MODE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
 const state = await import('../src/core/state.js');
 
 /* ── Group sessions ──────────────────────────────────────────────── */
@@ -108,6 +108,54 @@ test('session tokens are persisted in localStorage', () => {
   assert.equal(localStorage.getItem(ADMIN_SESSION_KEY), 'secret-token');
   const groups = JSON.parse(localStorage.getItem(GROUP_SESSIONS_KEY));
   assert.equal(groups['GRP-S'], 'secret-group-token');
+});
+
+test('admin view mode toggles member preview while keeping admin and superadmin sessions intact', () => {
+  state.clearAdminSession();
+  assert.equal(state.getAdminViewMode(), 'anggota');
+  assert.equal(state.getIsAdminView(), false);
+  assert.equal(state.getIsSuperAdminView(), false);
+
+  state.setAdminSession('admin-token');
+  state.setAdminRole('group_admin');
+  assert.equal(state.getAdminViewMode(), 'admin');
+  assert.equal(state.getIsAdminView(), true);
+  assert.equal(state.getIsSuperAdminView(), false);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), null);
+
+  state.setAdminViewMode('anggota');
+  assert.equal(state.getIsAdminSession(), true);
+  assert.equal(state.getIsSuperAdmin(), false);
+  assert.equal(state.getAdminViewMode(), 'anggota');
+  assert.equal(state.getIsAdminView(), false);
+  assert.equal(state.getIsSuperAdminView(), false);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), 'anggota');
+
+  state.setAdminViewMode('admin');
+  assert.equal(state.getAdminViewMode(), 'admin');
+  assert.equal(state.getIsAdminView(), true);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), null);
+
+  state.setAdminRole('superadmin');
+  assert.equal(state.getIsSuperAdminView(), true);
+  state.setAdminViewMode('anggota');
+  assert.equal(state.getIsAdminSession(), true);
+  assert.equal(state.getIsSuperAdmin(), true);
+  assert.equal(state.getIsAdminView(), false);
+  assert.equal(state.getIsSuperAdminView(), false);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), 'anggota');
+
+  state.setAdminSession('fresh-token');
+  assert.equal(state.getAdminViewMode(), 'admin');
+  assert.equal(state.getIsAdminView(), true);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), null);
+
+  state.setAdminViewMode('anggota');
+  state.clearAdminSession();
+  assert.equal(state.getIsAdminSession(), false);
+  assert.equal(state.getIsAdminView(), false);
+  assert.equal(state.getIsSuperAdminView(), false);
+  assert.equal(localStorage.getItem(ADMIN_VIEW_MODE_KEY), null);
 });
 
 /* ── Token resolution ────────────────────────────────────────────── */

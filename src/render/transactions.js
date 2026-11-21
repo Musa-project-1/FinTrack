@@ -1,30 +1,28 @@
-import { NAMA_BULAN, byNewestTimestamp } from "../core/config.js";
-import { getState, currentHistoryFilter, itemsToShow, incrementItemsToShow, getIsAdminSession } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml } from "../core/utils.js";
+import { createPagination } from '../ui/pagination.js';
+import { byNewestTimestamp } from "../core/config.js";
+import { getState, currentHistoryFilter, getIsAdminView, getActiveGroupId } from "../core/state.js";
+import { formatDisplayRp, escapeHtml } from "../core/utils.js";
 
-/* ── Transaction history table ─────────────────────────────────── */
+const historyPagination = createPagination('history-pagination', 'transaksi', () => renderTableTransaksi());
+export const initHistoryPagination = historyPagination.init;
+
+/* ── Transaction history ledger (#workspace-history) ───────────── */
 
 export const renderTableTransaksi = () => {
-  const tbody = document.getElementById('table-riwayat-data') || document.getElementById('ui-table-trx');
-  if (!tbody) return;
+  const workspace = document.getElementById('workspace-history');
+  if (!workspace || workspace.hidden !== false) return;
   const state = getState();
 
-  const searchInput = document.getElementById('search-trx');
+  const searchInput = document.getElementById('workspace-search-history');
   const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
-  const filterBulan = document.getElementById('filter-bulan')?.value || 'all';
-  const filterTahun = document.getElementById('filter-tahun')?.value || 'all';
-  const loadMoreBtn = document.getElementById('btn-load-more') || document.getElementById('load-more-container');
 
-  // Build id→name lookups once. The filter below runs over every transaction on
-  // each keystroke; a per-row Array.find() over members/categories made it
-  // O(rows × members), so index them into Maps first (O(rows + members)).
   const anggotaById = new Map(state.anggota.map((a) => [a.ID_Anggota, a]));
   const kategoriById = new Map(state.kategori.map((k) => [k.ID_Kategori, k]));
 
+  const flowCounts = { semua: 0, masuk: 0, keluar: 0 };
   const filteredTrx = [...state.transaksi].sort(byNewestTimestamp).filter((trx) => {
-    const tglObj = new Date(trx.Timestamp);
     const rowTipe = (trx.Tipe_Arus || '').toLowerCase();
-    const rowIsIuran = trx.ID_Anggota !== '-';
+    const rowIsIuran = Boolean(trx.ID_Anggota) && trx.ID_Anggota !== '-';
 
     const matchesChip =
       currentHistoryFilter === 'semua' ||
@@ -51,159 +49,54 @@ export const renderTableTransaksi = () => {
       tahunIuran.includes(searchQuery) ||
       idTrx.includes(searchQuery);
 
-    // Iuran rows are matched by their iuran period (Bulan_Iuran/Tahun_Iuran),
-    // not by the date they were recorded. Operasional rows use the timestamp.
-    const isIuranRow = trx.Tipe_Arus === 'Masuk' && trx.ID_Anggota !== '-' && trx.Bulan_Iuran && trx.Bulan_Iuran !== '-';
-    const iuranMonthIdx = isIuranRow ? NAMA_BULAN.indexOf(trx.Bulan_Iuran) : -1;
-    const trxMonth = iuranMonthIdx !== -1 ? iuranMonthIdx : tglObj.getMonth();
-    const trxYear = isIuranRow && trx.Tahun_Iuran && trx.Tahun_Iuran !== '-' ? String(trx.Tahun_Iuran) : String(tglObj.getFullYear());
-    const matchesMonth = filterBulan === 'all' || String(trxMonth) === filterBulan;
-    const matchesYear = filterTahun === 'all' || trxYear === filterTahun;
-
-    return matchesChip && matchesSearch && matchesMonth && matchesYear;
+    if (!matchesSearch) return false;
+    flowCounts.semua++;
+    if (rowTipe === 'masuk' || rowTipe === 'keluar') flowCounts[rowTipe]++;
+    return matchesChip;
   });
 
-  // Update quick summary statistics for filtered dataset
-  const rwCountEl = document.getElementById('rw-count');
-  const rwMasukEl = document.getElementById('rw-masuk');
-  const rwKeluarEl = document.getElementById('rw-keluar');
-  if (rwCountEl && rwMasukEl && rwKeluarEl) {
-    let totalMasuk = 0;
-    let totalKeluar = 0;
-    filteredTrx.forEach((t) => {
-      const nom = Number(t.Nominal) || 0;
-      if (t.Tipe_Arus === 'Masuk') totalMasuk += nom;
-      else if (t.Tipe_Arus === 'Keluar') totalKeluar += nom;
-    });
-    rwCountEl.innerText = `${filteredTrx.length} transaksi`;
-    rwMasukEl.innerText = `+${formatDisplayRp(totalMasuk)}`;
-    rwKeluarEl.innerText = `-${formatDisplayRp(totalKeluar)}`;
+  const labels = { semua: 'Semua', masuk: 'Masuk', keluar: 'Keluar' };
+  for (const button of document.querySelectorAll('.workspace-history-tools [data-filter]')) {
+    const flow = button.dataset.filter;
+    button.textContent = `${labels[flow]} (${flowCounts[flow]})`;
   }
-
-  if (filteredTrx.length === 0) {
-    // 5 columns for admins (Aksi shown), 4 otherwise.
-    const emptyCols = getIsAdminSession() ? 5 : 4;
-    tbody.innerHTML = `<tr><td colspan="${emptyCols}" class="td-muted-center">Tidak ada transaksi ditemukan.</td></tr>`;
-    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-    return;
-  }
-
-  const visibleTrx = filteredTrx.slice(0, itemsToShow);
-  if (loadMoreBtn) loadMoreBtn.style.display = filteredTrx.length > itemsToShow ? 'block' : 'none';
-
-  const fragment = document.createDocumentFragment();
-  let lastDateStr = '';
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  const todayStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-  const yesterdayStr = yesterday.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  visibleTrx.forEach((trx) => {
-    const tglObj = new Date(trx.Timestamp);
-
-    const dateStr = tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    if (dateStr !== lastDateStr) {
-      let dateHeader = '';
-
-      if (dateStr === todayStr) dateHeader = 'Hari Ini';
-      else if (dateStr === yesterdayStr) dateHeader = 'Kemarin';
-      else dateHeader = dateStr;
-
-      const headerRow = document.createElement('tr');
-      headerRow.className = 'date-group-header';
-      headerRow.innerHTML = `<td colspan="5" class="td-date-group-header">${dateHeader}</td>`;
-      fragment.appendChild(headerRow);
-      lastDateStr = dateStr;
-    }
-
-    const isMasuk = trx.Tipe_Arus === 'Masuk';
-    const nominalColor = isMasuk ? 'var(--primary)' : 'var(--danger)';
-    const badgeClass = isMasuk ? 'badge-masuk' : 'badge-keluar';
-    const iconPh = isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right';
-
-    const dayMonth = tglObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-    const timeOnly = tglObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
-    const tglTime = `${dayMonth} • ${timeOnly}`;
-    const tglTimeMobile = `${dayMonth} ${timeOnly}`;
-
-    let ketExtra = '';
-    if (trx.ID_Anggota && trx.ID_Anggota !== '-') {
-      const angObj = anggotaById.get(trx.ID_Anggota);
-      const namaAnggota = angObj ? angObj.Nama_Anggota : trx.ID_Anggota;
-      const bulanShort = (trx.Bulan_Iuran || '').slice(0, 3);
-      const periodShort = trx.Bulan_Iuran ? `${bulanShort} ${trx.Tahun_Iuran || ''}`.trim() : '';
-      const hasCustomNote = trx.Keterangan && trx.Keterangan.trim().toLowerCase() !== 'iuran anggota' && trx.Keterangan.trim() !== '-';
-
-      ketExtra = `<div class="trx-title-row"><strong class="clickable-name" data-action="profil" data-id="${escapeHtml(trx.ID_Anggota)}">${escapeHtml(namaAnggota)}</strong><span class="trx-period desktop-only-inline">Iuran • ${escapeHtml(trx.Bulan_Iuran)} ${escapeHtml(trx.Tahun_Iuran)}</span></div><div class="trx-meta-row mono"><span class="trx-meta-pill">${escapeHtml(periodShort)}</span><span class="trx-meta-sep">·</span><span class="trx-meta-time">${tglTimeMobile}</span>${hasCustomNote ? `<span class="trx-meta-note">· ${escapeHtml(trx.Keterangan)}</span>` : ''}</div>${hasCustomNote ? `<span class="trx-subnote desktop-only-block">${escapeHtml(trx.Keterangan)}</span>` : ''}`;
-    } else {
-      const objKat = kategoriById.get(trx.ID_Kategori);
-      const namaKat = objKat ? objKat.Nama_Kategori : 'Operasional';
-      const hasKet = trx.Keterangan && trx.Keterangan.trim() !== '-' && trx.Keterangan.trim() !== '';
-      const opTitle = hasKet ? trx.Keterangan : namaKat;
-      const opSub = hasKet ? namaKat : 'Operasional';
-
-      ketExtra = `<div class="trx-title-row"><strong class="trx-category-title">${escapeHtml(opTitle)}</strong></div><div class="trx-meta-row mono"><span class="trx-meta-pill">${escapeHtml(opSub)}</span><span class="trx-meta-sep">·</span><span class="trx-meta-time">${tglTimeMobile}</span></div>${hasKet ? `<span class="trx-subnote desktop-only-block">${escapeHtml(namaKat)}</span>` : ''}`;
-    }
-
-    const isAdmin = getIsAdminSession();
-    const aksiHtml = isAdmin ? `
-          <button class="btn btn-outline btn-master-action admin-only" data-action="edit" data-id="${escapeHtml(trx.ID_Transaksi)}" title="Edit Data Transaksi">
-            <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
-          </button>
-        ` : '';
-    const aksiTd = isAdmin
-      ? `<td data-label="Aksi" class="td-center-nowrap admin-only">${aksiHtml}</td>`
-      : '';
-
-    const tr = document.createElement('tr');
-    tr.className = isMasuk ? 'row-masuk' : 'row-keluar';
-    tr.setAttribute('data-tipe', isMasuk ? 'Masuk' : 'Keluar');
-    tr.setAttribute('data-nominal', trx.Nominal);
-    tr.setAttribute('data-is-iuran', trx.ID_Anggota !== '-' ? 'true' : 'false');
-
-    tr.innerHTML = `
-        <td data-label="Waktu" class="td-time-col">
-          ${tglTime}
-        </td>
-        <td data-label="Keterangan">${ketExtra}</td>
-        <td data-label="Nominal" class="td-nominal-col ${isMasuk ? 'text-primary' : 'text-danger'}">${formatDisplayRp(trx.Nominal)}</td>
-        <td data-label="Tipe Arus" class="va-middle"><span class="badge ${badgeClass}"><i class="ph-bold ${iconPh}"></i> ${escapeHtml(trx.Tipe_Arus)}</span></td>
-        ${aksiTd}
-    `;
-    fragment.appendChild(tr);
-  });
-
-  tbody.innerHTML = '';
-  tbody.appendChild(fragment);
+  const rows = historyPagination.paginate(filteredTrx,
+    JSON.stringify([getActiveGroupId(), currentHistoryFilter, searchQuery]));
+  renderWorkspaceLedger(rows, filteredTrx.length, anggotaById, kategoriById);
 };
 
-/* ── Load more history ─────────────────────────────────────────── */
+const renderWorkspaceLedger = (rows, count, members, categories) => {
+  const list = document.getElementById('hybrid-ledger-list');
+  if (!list) return;
+  const countEl = document.getElementById('hybrid-ledger-count');
+  if (countEl) countEl.textContent = `Menampilkan ${count} transaksi`;
+  const hint = getIsAdminView() ? 'Koreksi / Struk' : 'Lihat Struk';
+  list.innerHTML = rows.length ? rows.map((trx) => {
+    const inflow = trx.Tipe_Arus === 'Masuk';
+    const category = categories.get(trx.ID_Kategori)?.Nama_Kategori || 'Operasional';
+    const member = members.get(trx.ID_Anggota)?.Nama_Anggota;
+    const title = member && trx.Bulan_Iuran && trx.Bulan_Iuran !== '-'
+      ? `Iuran ${trx.Bulan_Iuran} · ${member}` : trx.Keterangan?.trim() || category;
+    const date = new Date(trx.Timestamp);
+    const label = Number.isFinite(date.valueOf()) ? date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric'
+    }) : '—';
+    const flow = inflow ? 'inflow' : 'outflow';
+    return `<button type="button" class="ledger-row" data-action="open-receipt" data-id="${escapeHtml(trx.ID_Transaksi)}">
+      <span class="ledger-type-icon ${flow}" aria-hidden="true"><i class="ph ${inflow ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
+      <span class="ledger-main">
+        <span class="ledger-title">${escapeHtml(title)}</span>
+        <span class="ledger-meta"><span class="mono">${escapeHtml(label)}</span>
+          <span class="cat-tag">${escapeHtml(category)}</span><span class="ledger-id">${escapeHtml(trx.ID_Transaksi)}</span></span>
+      </span>
+      <span class="ledger-amt-col"><span class="ledger-amt ${flow} nominal-val sensitive-amt">${inflow ? '+' : '−'}${escapeHtml(formatDisplayRp(trx.Nominal))}</span>
+        <span class="ledger-action-hint">${hint}</span></span>
+    </button>`;
+  }).join('') : '<p class="hybrid-ledger-empty">Belum ada transaksi yang sesuai filter.</p>';
+};
 
 export const loadMoreHistory = () => {
-  incrementItemsToShow(20);
   renderTableTransaksi();
 };
 
-/* ── Year selectors ────────────────────────────────────────────── */
-
-export const populateFilterTahunHistory = () => {
-  const select = document.getElementById('filter-tahun');
-  if (!select) return;
-  const yearsSet = new Set();
-  getState().transaksi.forEach((t) => {
-    yearsSet.add(new Date(t.Timestamp).getFullYear().toString());
-    if (t.Tahun_Iuran && t.Tahun_Iuran !== '-') yearsSet.add(t.Tahun_Iuran.toString());
-  });
-  const currentVal = select.value;
-  select.innerHTML = '<option value="all">Semua Tahun</option>';
-  Array.from(yearsSet).sort((a, b) => b - a).forEach((y) => {
-    const option = document.createElement('option');
-    option.value = y;
-    option.text = y;
-    if (y === currentVal) option.selected = true;
-    select.appendChild(option);
-  });
-};
-
+export const populateFilterTahunHistory = () => {};

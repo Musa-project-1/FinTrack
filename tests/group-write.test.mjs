@@ -526,6 +526,7 @@ test('the write dispatch table exposes exactly the expected actions', () => {
     'addSkippedMonth',
     'removeSkippedMonth',
     'setKasStart',
+    'setPaymentAccount',
     'catatAktivitas',
     'restoreSnapshot'
   ];

@@ -43,10 +43,10 @@ const JOURNEY_STOPS = {
  * The windows overlap on purpose — that is what removes the "garis patah"
  * between one visual band and the next. */
 const JOURNEY_LAYERS = [
-  { name: 'sky',       fadeIn: [0.00, 0.00], fadeOut: [0.14, 0.34], drift: [0.00, 0.34], from: 0,  to: -9 },
-  { name: 'ridge-far', fadeIn: [0.24, 0.44], fadeOut: [0.60, 0.86], drift: [0.22, 0.88], from: 30, to: -10 },
-  { name: 'cloud',     fadeIn: [0.06, 0.24], fadeOut: [0.56, 0.80], drift: [0.08, 0.80], from: 16, to: -20 },
-  { name: 'land',      fadeIn: [0.36, 0.58], fadeOut: [0.68, 0.96], drift: [0.34, 1.00], from: 26, to: -12 }
+  { name: 'sky',       fadeIn: [0.00, 0.00], fadeOut: [0.28, 0.85], endBase: 0.44, drift: [0.00, 1.00], from: 0,  to: -10 },
+  { name: 'ridge-far', fadeIn: [0.16, 0.38], fadeOut: [0.76, 1.00], endBase: 0.68, drift: [0.16, 1.00], from: 16, to: -6 },
+  { name: 'cloud',     base: 0.35, fadeIn: [0.00, 0.16], fadeOut: [0.64, 0.96], endBase: 0.28, drift: [0.00, 1.00], from: 12, to: -18 },
+  { name: 'land',      fadeIn: [0.28, 0.54], fadeOut: [0.85, 1.00], endBase: 0.92, drift: [0.28, 1.00], from: 20, to: -8 }
 ];
 
 /** Drift is the only part of the journey that moves; reduced motion drops it. */
@@ -128,12 +128,17 @@ const collectStops = () => {
  * @param {boolean} [withDrift] drop the travel when reduced motion is on
  * @returns {Array<{name: string, opacity: number, drift: number}>}
  */
-export const skyLayerStatesAt = (t, withDrift = true) => JOURNEY_LAYERS.map((layer) => ({
-  name: layer.name,
-  opacity: ramp(t, layer.fadeIn[0], layer.fadeIn[1])
-    * (1 - ramp(t, layer.fadeOut[0], layer.fadeOut[1])),
-  drift: withDrift ? lerp(layer.from, layer.to, ramp(t, layer.drift[0], layer.drift[1])) : 0
-}));
+export const skyLayerStatesAt = (t, withDrift = true) => JOURNEY_LAYERS.map((layer) => {
+  const inAmount = layer.base
+    ? lerp(layer.base, 1, ramp(t, layer.fadeIn[0], layer.fadeIn[1]))
+    : ramp(t, layer.fadeIn[0], layer.fadeIn[1]);
+  const outFactor = lerp(1, layer.endBase || 0, ramp(t, layer.fadeOut[0], layer.fadeOut[1]));
+  return {
+    name: layer.name,
+    opacity: inAmount * outFactor,
+    drift: withDrift ? lerp(layer.from, layer.to, ramp(t, layer.drift[0], layer.drift[1])) : 0
+  };
+});
 
 /**
  * Bind the sky stage to the page scroll. Call once, after the DOM is parsed.

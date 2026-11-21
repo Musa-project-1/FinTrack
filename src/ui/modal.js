@@ -3,7 +3,7 @@
  * Modal open/close, tab switching, and dialog interactions.
  */
 
-import { showToast } from '../core/utils.js';
+import { promoteToastLayer } from '../core/utils.js';
 
 export {
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
@@ -12,102 +12,117 @@ export {
 
 /* ── Modal open / close ────────────────────────────────────────── */
 
-const activeElementStack = [];
+const activeModalStack = [];
+const boundDialogs = new WeakSet();
+const duesExitAnimations = new WeakMap();
 
-const trapFocus = (e, modalEl) => {
-  if (e.key !== 'Tab') return;
-  const focusables = Array.from(modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
-    .filter((el) => !el.disabled && el.offsetParent !== null);
-  if (focusables.length === 0) return;
-  const first = focusables[0];
-  const last = focusables[focusables.length - 1];
+export const getActiveModalId = () => activeModalStack.at(-1)?.id;
 
-  if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault();
-    last.focus();
-  } else if (!e.shiftKey && document.activeElement === last) {
-    e.preventDefault();
-    first.focus();
+const finishClose = (el) => {
+  const index = activeModalStack.indexOf(el);
+  if (index === -1) return;
+  activeModalStack.splice(index, 1);
+  el.classList.remove('active');
+  if (el.id === 'modal-confirm-action') pendingConfirmAction = null;
+  if (!activeModalStack.length) {
+    document.body.classList.remove('modal-open');
+    const panel = document.querySelector?.('.workspace-tabs [aria-selected="true"]')?.dataset?.panel;
+    const action = { history: 'nav-riwayat', stats: 'nav-stats' }[panel] || 'nav-rekap';
+    document.querySelectorAll('.bottom-nav-item').forEach((b) => {
+      const active = b.getAttribute('data-action') === action;
+      b.classList.toggle('active', active);
+      if (active) b.setAttribute('aria-current', 'location');
+      else b.removeAttribute('aria-current');
+    });
   }
 };
 
-/**
- * Open a modal by its element ID.
- * @param {string} id
- */
+const bindDialog = (el) => {
+  if (boundDialogs.has(el)) return;
+  boundDialogs.add(el);
+  el.addEventListener('cancel', (event) => {
+    // Native cancel targets the top-layer dialog; route it through shared cleanup.
+    event.preventDefault();
+    if (getActiveModalId() === el.id) closeModal(el.id);
+  });
+  el.addEventListener('close', () => {
+    // close events are queued: an older event must not clean up a reopened dialog.
+    if (!el.open) finishClose(el);
+  });
+  let pressedOverlay = false;
+  el.addEventListener('pointerdown', (event) => {
+    pressedOverlay = event.target === el;
+  });
+  el.addEventListener('pointercancel', () => { pressedOverlay = false; });
+  el.addEventListener('click', (event) => {
+    // The dialog fills the viewport; its empty area is the visual backdrop.
+    // Require the press outside too, so a drag out of the content cannot dismiss.
+    if (pressedOverlay && event.target === el && getActiveModalId() === el.id) {
+      closeModal(el.id);
+    }
+    pressedOverlay = false;
+  });
+};
+
+/** Open a native modal by its element ID. */
 export const openModal = (id) => {
   closeMobileMenu();
-  if (id !== 'modal-menu') {
-    closeModal('modal-menu');
-  }
+  if (id !== 'modal-menu') closeModal('modal-menu');
   const el = document.getElementById(id);
   if (!el) {
     console.error('openModal: Element not found with id:', id);
     return;
   }
-  if (id === 'modal-riwayat') {
-    // Reset items-to-show when opening history
-    document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id } }));
+  if (el.open) {
+    duesExitAnimations.delete(el);
+    el.removeAttribute?.('data-dues-closing');
+    return;
   }
-  document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id } }));
-  if (document.activeElement) {
-    activeElementStack.push(document.activeElement);
-  }
+  bindDialog(el);
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth < 768 ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches)
+  );
+  // Choose the close button before showModal runs its synchronous focusing steps,
+  // avoiding even a brief focus on search that would summon the mobile keyboard.
+  const safeFocus = isMobile && id === 'modal-menu'
+    ? el.querySelector('[data-action="close-modal"]') : null;
+  const hadAutofocus = safeFocus?.hasAttribute('autofocus');
+  safeFocus?.setAttribute('autofocus', '');
+  el.showModal();
+  if (safeFocus && !hadAutofocus) safeFocus.removeAttribute('autofocus');
+  promoteToastLayer();
+  activeModalStack.push(el);
   el.classList.add('active');
   document.body.classList.add('modal-open');
-
-  if (el._focusHandler) el.removeEventListener('keydown', el._focusHandler);
-  el._focusHandler = (e) => trapFocus(e, el);
-  el.addEventListener('keydown', el._focusHandler);
-
-  setTimeout(() => {
-    const isMobile = typeof window !== 'undefined' && (
-      window.innerWidth < 768 ||
-      (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches)
-    );
-
-    // Di mobile, cegah auto-focus ke search input pada modal navigasi agar keyboard virtual tidak langsung terbuka
-    if (isMobile && id === 'modal-menu') {
-      if (document.activeElement && typeof document.activeElement.blur === 'function') {
-        document.activeElement.blur();
-      }
-      return;
-    }
-
-    const first = el.querySelector('input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled])');
-    if (first) first.focus();
-  }, 50);
+  document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id }, bubbles: true }));
 };
 
-/**
- * Close a modal by its element ID.
- * @param {string} id
- */
+/** Close a modal and synchronously synchronize application state. */
 export const closeModal = (id) => {
   const el = document.getElementById(id);
-  if (!el || !el.classList.contains('active')) return;
-
-  el.classList.remove('active');
-  if (el._focusHandler) {
-    el.removeEventListener('keydown', el._focusHandler);
-    delete el._focusHandler;
-  }
-  if (!document.querySelector('.modal-overlay.active')) {
-    document.body.classList.remove('modal-open');
-    document.querySelectorAll('.bottom-nav-item').forEach((b) => {
-      b.classList.toggle('active', b.getAttribute('data-action') === 'nav-home');
-    });
-    const targetEl = activeElementStack.pop();
-    activeElementStack.length = 0;
-    if (targetEl && typeof targetEl.focus === 'function') {
-      targetEl.focus();
+  if (!el) return;
+  if (el.open && el.classList.contains('dues-dialog') &&
+      !(globalThis.CSS?.supports('overlay: auto') && globalThis.CSS.supports('transition-behavior: allow-discrete'))) {
+    if (el.hasAttribute('data-dues-closing')) return;
+    el.setAttribute('data-dues-closing', '');
+    const transitions = el.getAnimations().filter((animation) => animation.transitionProperty === 'opacity');
+    if (transitions.length) {
+      duesExitAnimations.set(el, transitions);
+      Promise.allSettled(transitions.map((animation) => animation.finished)).then(() => {
+        if (duesExitAnimations.get(el) === transitions && el.open) {
+          duesExitAnimations.delete(el);
+          el.removeAttribute('data-dues-closing');
+          el.close();
+          finishClose(el);
+        }
+      });
+      return;
     }
-  } else {
-    const targetEl = activeElementStack.pop();
-    if (targetEl && typeof targetEl.focus === 'function') {
-      targetEl.focus();
-    }
+    el.removeAttribute('data-dues-closing');
   }
+  if (el.open) el.close();
+  finishClose(el);
 };
 
 /* ── Unified Database Confirmation Dialog ────────────────────────── */
@@ -144,6 +159,11 @@ export const showConfirmDialog = ({
   if (badgeEl) badgeEl.className = 'modal-badge-icon ' + (badgeClass || '');
 
   if (submitBtn) {
+    if (submitBtn.dataset) {
+      delete submitBtn.dataset.holdArmed;
+      delete submitBtn.dataset.origText;
+      delete submitBtn.dataset.holdVerified;
+    }
     submitBtn.textContent = confirmText;
     submitBtn.className = `btn ${confirmClass}`;
   }
@@ -178,6 +198,7 @@ export const switchTab = (tabName, modalId) => {
   modal.querySelectorAll('.tab-btn').forEach((btn) => {
     const isTarget = btn.getAttribute('data-tab') === tabName || btn.id === `btn-tab-${tabName}`;
     btn.classList.toggle('active', isTarget);
+    if (btn.getAttribute('role') === 'tab') btn.setAttribute('aria-selected', String(isTarget));
   });
   modal.querySelectorAll('.tab-content').forEach((content) => {
     content.classList.toggle('active', content.id === tabName || content.id === `tab-${tabName}`);

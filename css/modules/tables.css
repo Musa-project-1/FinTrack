@@ -83,8 +83,13 @@
   scrollbar-gutter: stable;
 }
 
+@supports not (scrollbar-color: auto) {
+.table-responsive {
+  scrollbar-width: auto;
+}
+
 .table-responsive::-webkit-scrollbar {
-  height: 4px;
+  height: 6px;
 }
 
 .table-responsive::-webkit-scrollbar-track {
@@ -92,8 +97,13 @@
 }
 
 .table-responsive::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--scrollbar-thumb);
   border-radius: var(--r-pill);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, var(--scrollbar-thumb));
+}
 }
 
 .table-scrollable {
@@ -304,10 +314,10 @@ body.dark-mode .table-matriks thead th {
 .table-matriks thead th:first-child {
   text-align: left;
   padding-left: var(--sp-4);
-  color: var(--accent) !important;
+  color: var(--text-muted);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.10em;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
   background: var(--surface-2);
 }
 
@@ -335,19 +345,19 @@ body.dark-mode .table-matriks thead th {
   z-index: 10;
 }
 
-.table-matriks tbody tr:nth-child(even) td {
+body:not([data-palette]) .table-matriks tbody tr:nth-child(even) td {
   background: rgba(234, 240, 248, 0.45);
 }
 
-.table-matriks tbody tr:nth-child(even) td:first-child {
+body:not([data-palette]) .table-matriks tbody tr:nth-child(even) td:first-child {
   background: #f6f9fd;
 }
 
-body.dark-mode .table-matriks tbody tr:nth-child(even) td {
+body:not([data-palette]).dark-mode .table-matriks tbody tr:nth-child(even) td {
   background: rgba(22, 34, 59, 0.45);
 }
 
-body.dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
+body:not([data-palette]).dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
   background: #111c33;
 }
 
@@ -360,23 +370,15 @@ body.dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
   background: var(--surface-2);
 }
 
-/* === CLICKABLE CELLS === */
-.td-clickable {
-  cursor: pointer;
-  position: relative;
+/* Member names stay readable beside the compact numeric status columns. */
+.dues-name .clickable-name {
+  font: 700 .875rem/1.28 var(--font-sans);
+  letter-spacing: -.015em;
+  text-align: start;
+  overflow-wrap: anywhere;
 }
 
-.td-clickable:hover:not(:has(.status-lunas-dot)) {
-  background: var(--surface-2) !important;
-}
-
-.td-clickable:hover:not(:has(.status-lunas-dot))::after {
-  content: '\ea14'; /* ph-plus */
-  font-family: 'Phosphor';
-  color: var(--accent-strong);
-  font-size: 14px;
-  opacity: 0.55;
-}
+body:not([data-palette]) .table-matriks td:has(.matrix-dues-button:hover) { background: var(--surface-2); }
 
 /* === SKELETONS === */
 .skeleton-text { height: 16px; width: 100%; margin-bottom: 8px; }
@@ -442,81 +444,113 @@ body.dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
 }
 
 /* === MEMBER CHECKBOX GRID SCROLLBAR === */
-.checkbox-grid::-webkit-scrollbar { width: 6px; }
+@supports not (scrollbar-color: auto) {
+.checkbox-grid { scrollbar-width: auto; }
+.checkbox-grid::-webkit-scrollbar { width: 8px; }
 .checkbox-grid::-webkit-scrollbar-track { background: transparent; }
-.checkbox-grid::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-sm); }
-.checkbox-grid::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+.checkbox-grid::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--r-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.checkbox-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, var(--scrollbar-thumb));
+  border-radius: var(--r-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+}
 
-/* ── Sync Rekap Badge ─────────────────────────────────────────────── */
+/* ── Sync Rekap Pill (Hybrid Kinetic status button) ───────────────── */
 .btn-sync-rekap {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  gap: 6px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--text-muted);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast), transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, transform 0.16s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .btn-sync-rekap:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
-  background: var(--surface-3);
-  color: var(--text-main);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
 }
 .btn-sync-rekap:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]):not(.is-syncing) {
   transform: scale(0.97);
-  transition-duration: 0.1s;
 }
 .sync-rekap-icon {
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1;
-  transition: transform 0.4s ease;
+  color: var(--text-muted);
+  transition: transform 0.4s ease, color 140ms ease;
+}
+.btn-sync-rekap:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) .sync-rekap-icon {
+  color: var(--text-main);
 }
 .sync-rekap-dot {
-  position: absolute;
-  top: 1px;
-  right: 1px;
+  position: static;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  border: 1.5px solid var(--surface-2);
-  background: var(--accent);
-  transition: background 0.3s;
+  flex-shrink: 0;
+  background: var(--income);
+  box-shadow: 0 0 0 3px var(--income-bg);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 
 /* Biru: data sinkron */
 .btn-sync-rekap.is-clean .sync-rekap-dot {
-  background: var(--accent);
+  background: var(--income);
+  box-shadow: 0 0 0 3px var(--income-bg);
   animation: none;
 }
-.btn-sync-rekap.is-clean {
-  border-color: var(--border);
-}
 
-/* Merah: ada data baru dari admin */
-.btn-sync-rekap.has-update .sync-rekap-dot {
-  background: #ef4444;
-  animation: sync-dot-pulse 1.4s ease-in-out infinite;
-}
+/* Coral: ada data baru */
 .btn-sync-rekap.has-update {
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #ef4444;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
-.btn-sync-rekap.has-update:hover {
-  background: rgba(239, 68, 68, 0.08);
+.btn-sync-rekap.has-update:hover:not(:disabled) {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
+.btn-sync-rekap.has-update .sync-rekap-icon {
+  color: var(--danger);
+}
+.btn-sync-rekap.has-update .sync-rekap-dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-bg);
+  animation: sync-dot-pulse 1.4s ease-in-out infinite;
 }
 
 /* Sinkronisasi sedang berjalan */
+.btn-sync-rekap.is-syncing {
+  background: var(--accent-tint);
+  border-color: var(--accent-border);
+  color: var(--accent-strong);
+  cursor: wait;
+}
 .btn-sync-rekap.is-syncing .sync-rekap-icon {
+  color: var(--accent-strong);
   animation: sync-icon-spin 0.7s linear infinite;
 }
 .btn-sync-rekap.is-syncing .sync-rekap-dot {
   background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
   animation: none;
 }
 

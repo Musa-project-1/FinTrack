@@ -22,7 +22,7 @@ export const prefersReducedMotion = () => {
  * Initialize swipe-down gestures on mobile bottom sheets.
  */
 export const initBottomSheetGestures = () => {
-  const sheets = document.querySelectorAll('.quickpay-sheet');
+  const sheets = document.querySelectorAll('.quickpay-sheet, .hybrid-dialog > .modal-content');
   sheets.forEach((sheet) => {
     if (sheet.dataset.gestureBound === '1') return;
     sheet.dataset.gestureBound = '1';
@@ -30,18 +30,36 @@ export const initBottomSheetGestures = () => {
     const overlay = sheet.closest('.modal-overlay');
     if (!overlay) return;
     const modalId = overlay.id;
+    const hasDuesBackdrop = overlay.classList?.contains('dues-dialog');
+    const fadeSheet = (opacity) => {
+      overlay.style.setProperty('opacity', opacity, 'important');
+      if (hasDuesBackdrop) overlay.style.setProperty('--dues-drag-opacity', opacity);
+    };
 
     let startY = 0;
     let currentY = 0;
     let startTime = 0;
     let isDragging = false;
+    let activePointer = null;
+    let settleTimer = null;
+    const cleanup = () => {
+      sheet.style.removeProperty('transform');
+      sheet.style.removeProperty('transition');
+      overlay.style.removeProperty('opacity');
+      if (hasDuesBackdrop) overlay.style.removeProperty('--dues-drag-opacity');
+      overlay.style.removeProperty('transition');
+    };
 
     // Draggable affordance: handle and header area
     const onPointerDown = (e) => {
+      if (isDragging) return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       if (e.target.closest('input, button, select, textarea, a, .close-modal-btn')) return;
       if (sheet.scrollTop > 0) return;
 
+      clearTimeout(settleTimer);
+      cleanup();
+      activePointer = e.pointerId;
       startY = e.clientY;
       currentY = e.clientY;
       startTime = Date.now();
@@ -50,7 +68,7 @@ export const initBottomSheetGestures = () => {
     };
 
     const onPointerMove = (e) => {
-      if (!isDragging) return;
+      if (!isDragging || e.pointerId !== activePointer) return;
       currentY = e.clientY;
       const deltaY = currentY - startY;
 
@@ -59,9 +77,10 @@ export const initBottomSheetGestures = () => {
         sheet.style.setProperty('transition', 'none', 'important');
         sheet.style.setProperty('transform', `translateY(${deltaY}px)`, 'important');
         const progress = Math.min(1, deltaY / (sheet.offsetHeight || 300));
-        overlay.style.setProperty('opacity', String(Math.max(0.1, 1 - progress * 0.75)), 'important');
+        fadeSheet(String(Math.max(0.1, 1 - progress * 0.75)));
       } else {
         // Rubber-band resistance upwards
+        fadeSheet('1');
         const rubber = deltaY * 0.22;
         sheet.style.setProperty('transition', 'none', 'important');
         sheet.style.setProperty('transform', `translateY(${rubber}px)`, 'important');
@@ -69,10 +88,13 @@ export const initBottomSheetGestures = () => {
     };
 
     const onPointerEnd = (e) => {
-      if (!isDragging) return;
+      if (!isDragging || e.pointerId !== activePointer) return;
       isDragging = false;
+      activePointer = null;
       try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
 
+      // A browser scroll takeover or interrupted pointer never dismisses.
+      const instant = e.type !== 'pointerup' || prefersReducedMotion();
       const deltaY = currentY - startY;
       const elapsed = Date.now() - startTime;
       const velocity = deltaY / (elapsed || 1);
@@ -80,44 +102,44 @@ export const initBottomSheetGestures = () => {
       const threshold = (sheet.offsetHeight || 300) * 0.32;
       const isFlick = deltaY > 40 && velocity > 0.35;
 
-      if (deltaY > threshold || isFlick) {
+      if (e.type === 'pointerup' && (deltaY > threshold || isFlick)) {
         // Dismiss sheet downward with iOS curve
-        sheet.style.setProperty('transition', 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)', 'important');
-        overlay.style.setProperty('transition', 'opacity 0.22s ease-out', 'important');
+        sheet.style.setProperty('transition', instant ? 'none' : 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)', 'important');
+        overlay.style.setProperty('transition', instant ? 'none' : 'opacity 0.22s ease-out', 'important');
         sheet.style.setProperty('transform', 'translateY(100%)', 'important');
-        overlay.style.setProperty('opacity', '0', 'important');
-        setTimeout(() => {
-          closeModal(modalId);
-          sheet.style.removeProperty('transform');
-          sheet.style.removeProperty('transition');
-          overlay.style.removeProperty('opacity');
-          overlay.style.removeProperty('transition');
-        }, 220);
+        fadeSheet('0');
+        const dismiss = () => { closeModal(modalId); cleanup(); };
+        if (instant) dismiss();
+        else settleTimer = setTimeout(dismiss, 220);
       } else {
         // Snap back
-        sheet.style.setProperty('transition', 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)', 'important');
-        overlay.style.setProperty('opacity', '0.2s ease-out', 'important');
+        sheet.style.setProperty('transition', instant ? 'none' : 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)', 'important');
+        overlay.style.setProperty('transition', instant ? 'none' : 'opacity 0.2s ease-out', 'important');
         sheet.style.setProperty('transform', 'translateY(0)', 'important');
-        overlay.style.setProperty('opacity', '1', 'important');
-        setTimeout(() => {
-          sheet.style.removeProperty('transform');
-          sheet.style.removeProperty('transition');
-          overlay.style.removeProperty('opacity');
-          overlay.style.removeProperty('transition');
-        }, 200);
+        fadeSheet('1');
+        if (instant) {
+          // Commit the unanimated reset before restoring stylesheet transitions.
+          void sheet.offsetHeight;
+          void overlay.offsetHeight;
+          cleanup();
+        }
+        else settleTimer = setTimeout(cleanup, 200);
       }
     };
 
     const dragZones = [
       sheet.querySelector('.quickpay-handle'),
-      sheet.querySelector('.modal-header-standard')
+      sheet.querySelector('.hybrid-sheet-handle'),
+      sheet.classList?.contains('quickpay-sheet') ? sheet.querySelector('.modal-header-standard') : null
     ].filter(Boolean);
 
     dragZones.forEach((zone) => {
+      zone.style.setProperty('touch-action', zone.classList?.contains('hybrid-sheet-handle') ? 'none' : 'pan-y');
       zone.addEventListener('pointerdown', onPointerDown);
       zone.addEventListener('pointermove', onPointerMove);
       zone.addEventListener('pointerup', onPointerEnd);
       zone.addEventListener('pointercancel', onPointerEnd);
+      zone.addEventListener('lostpointercapture', onPointerEnd);
     });
   });
 };

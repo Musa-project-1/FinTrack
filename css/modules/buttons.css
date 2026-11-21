@@ -292,6 +292,7 @@
 }
 
 /* === ROLE VISIBILITY === */
+body:not(.admin-session) .admin-session-only { display: none !important; }
 body:not(.admin-mode) .admin-only { display: none !important; }
 body:not(.superadmin-mode) .superadmin-only { display: none !important; }
 

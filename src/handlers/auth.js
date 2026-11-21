@@ -7,39 +7,141 @@
  * it never holds or compares credentials.
  */
 
-import { getIsAdminSession, getIsSuperAdmin, getActiveGroupId, clearAdminSession } from "../core/state.js";
+import {
+  getIsAdminSession,
+  getIsSuperAdmin,
+  getIsAdminView,
+  getIsSuperAdminView,
+  getAdminViewMode,
+  setAdminViewMode,
+  getActiveGroupId,
+  clearAdminSession
+} from "../core/state.js";
 import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "../core/api.js";
 import { GOOGLE_CLIENT_ID } from "../core/config.js";
 import { showToast } from "../core/utils.js";
 import { closeModal } from "../ui/modal.js";
+import { syncBulkDues } from "../ui/bulk-dues.js";
+import { syncWorkspaceGliders } from "../ui/workspace.js";
 import { renderAll, renderChart } from "../render.js";
 
 const GOOGLE_SDK_SRC = "https://accounts.google.com/gsi/client";
 
+const syncRoleAdminTitle = () => {
+  const roleAdminBtn = document.getElementById("role-btn-admin");
+  if (!roleAdminBtn) return;
+  const isSuperSession = getIsSuperAdmin();
+  roleAdminBtn.title = isSuperSession
+    ? (isEnglish() ? "Super Admin Mode" : "Mode Super Admin")
+    : (isEnglish() ? "Admin Mode" : "Mode Admin");
+};
+
+const syncRoleSwitcherUI = (isAdminView) => {
+  const memberBtn = document.getElementById("role-btn-anggota");
+  const adminBtn = document.getElementById("role-btn-admin");
+  if (memberBtn) {
+    memberBtn.setAttribute("aria-selected", String(!isAdminView));
+    memberBtn.tabIndex = !isAdminView ? 0 : -1;
+  }
+  if (adminBtn) {
+    adminBtn.setAttribute("aria-selected", String(isAdminView));
+    adminBtn.tabIndex = isAdminView ? 0 : -1;
+  }
+  syncRoleAdminTitle();
+
+  const switcherTrack = document.getElementById("role-switcher");
+  const activeRoleBtn = isAdminView ? adminBtn : memberBtn;
+  if (switcherTrack && activeRoleBtn?.offsetWidth) {
+    switcherTrack.style.setProperty("--glider-left", `${activeRoleBtn.offsetLeft}px`);
+    switcherTrack.style.setProperty("--glider-width", `${activeRoleBtn.offsetWidth}px`);
+  }
+  syncWorkspaceGliders();
+};
+
 /**
- * Apply the current session to the interface.
+ * Apply the current session and active view mode to the interface.
  *
  * Admin controls are a presentation concern only — the server authorizes every
- * request independently, so hiding them is convenience, not security.
+ * request independently, so toggling preview mode is convenience, not security.
  */
 export const handleUI = () => {
-  const isAdmin = getIsAdminSession();
-  const isSuper = getIsSuperAdmin();
+  const hasSession = getIsAdminSession();
+  const isAdminView = getIsAdminView();
+  const isSuperView = getIsSuperAdminView();
 
-  document.body.classList.toggle("admin-mode", isAdmin);
-  document.body.classList.toggle("superadmin-mode", isSuper);
+  document.body.classList.toggle("admin-session", hasSession);
+  document.body.classList.toggle("admin-mode", isAdminView);
+  document.body.classList.toggle("superadmin-mode", isSuperView);
+  document.documentElement.dataset.role = isAdminView ? "admin" : "anggota";
 
+  document.querySelectorAll(".admin-session-only").forEach((el) => {
+    el.style.display = hasSession ? "" : "none";
+  });
   document.querySelectorAll(".admin-only").forEach((el) => {
-    el.style.display = isAdmin ? "" : "none";
+    el.style.display = isAdminView ? "" : "none";
   });
   document.querySelectorAll(".superadmin-only").forEach((el) => {
-    el.style.display = isSuper ? "" : "none";
+    el.style.display = isSuperView ? "" : "none";
   });
   document.querySelectorAll(".non-admin-only").forEach((el) => {
-    el.style.display = isAdmin ? "none" : "";
+    el.style.display = isAdminView ? "none" : "";
   });
 
+  syncRoleSwitcherUI(isAdminView);
   renderAdminUI();
+};
+
+/** Switch between Admin View and Member Preview View without ending the admin session. */
+export const setAdminViewModeAction = (mode) => {
+  if (!getIsAdminSession()) return;
+  const nextMode = mode === "anggota" ? "anggota" : "admin";
+  if (getAdminViewMode() === nextMode) return;
+
+  setAdminViewMode(nextMode);
+  handleUI();
+  syncBulkDues();
+  renderAll();
+
+  if (nextMode === "anggota") {
+    showToast(
+      isEnglish() ? "Switched to Member View (Preview)." : "Beralih ke Tampilan Anggota (Pratinjau).",
+      "info"
+    );
+    return;
+  }
+
+  const isSuper = getIsSuperAdmin();
+  showToast(
+    isSuper
+      ? (isEnglish() ? "Switched back to Super Admin Mode." : "Kembali ke Mode Super Admin.")
+      : (isEnglish() ? "Switched back to Admin Mode." : "Kembali ke Mode Admin."),
+    "success"
+  );
+};
+
+/** Wire keyboard navigation (ArrowLeft/Right, Home, End) and i18n title sync for #role-switcher. */
+export const initRoleSwitcher = () => {
+  const switcher = document.getElementById("role-switcher");
+  if (!switcher) return;
+
+  const tabs = [...switcher.querySelectorAll('[role="tab"]')];
+  switcher.addEventListener("keydown", (event) => {
+    const current = tabs.indexOf(event.target);
+    if (current < 0) return;
+    const last = tabs.length - 1;
+    const next = {
+      ArrowLeft: current === 0 ? last : current - 1,
+      ArrowRight: current === last ? 0 : current + 1,
+      Home: 0,
+      End: last
+    }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    tabs[next].focus();
+    setAdminViewModeAction(tabs[next].dataset.role);
+  });
+
+  document.addEventListener("finkas:language-changed", syncRoleAdminTitle);
 };
 
 /** Reflect admin state in the header actions and login buttons. */
@@ -57,12 +159,117 @@ export const renderAdminUI = () => {
 
   const logoutBtn = document.getElementById("btn-logout-admin");
   if (logoutBtn) logoutBtn.style.display = isAdmin ? "" : "none";
+};
 
-  const waBtn = document.getElementById("btn-copy-wa-reminder");
-  if (waBtn) waBtn.style.display = isAdmin ? "" : "none";
+/* ── Login Modal UI Helpers ──────────────────────────────────────── */
 
-  const waBtnMobile = document.getElementById("btn-copy-wa-reminder-mobile");
-  if (waBtnMobile) waBtnMobile.style.display = isAdmin ? "" : "none";
+const isEnglish = () => document.body?.dataset?.lang === "en";
+
+const syncLoginGroupContext = () => {
+  const groupEl = document.getElementById("auth-login-group-name");
+  if (!groupEl) return;
+  const activeGroupName = document.getElementById("app-group-name")?.textContent?.trim() || "Finkas";
+  groupEl.textContent = activeGroupName;
+};
+
+const clearLoginError = () => {
+  const errEl = document.getElementById("auth-login-error");
+  const errTextEl = document.getElementById("auth-login-error-text");
+  if (errEl) errEl.hidden = true;
+  if (errTextEl) errTextEl.textContent = "";
+  for (const id of ["input-admin-email", "input-admin-pwd"]) {
+    const input = document.getElementById(id);
+    if (!input) continue;
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
+  }
+};
+
+const showLoginError = (message, targetInput) => {
+  const errEl = document.getElementById("auth-login-error");
+  const errTextEl = document.getElementById("auth-login-error-text");
+  if (errTextEl) errTextEl.textContent = message;
+  if (errEl) {
+    errEl.hidden = false;
+    if (errEl.style) {
+      errEl.style.animation = "none";
+      void errEl.offsetWidth;
+      errEl.style.animation = "";
+    }
+  }
+  const target = targetInput || document.getElementById("input-admin-pwd");
+  if (target) {
+    target.setAttribute("aria-invalid", "true");
+    target.setAttribute("aria-describedby", "auth-login-error");
+  }
+};
+
+const resetPasswordVisibility = () => {
+  const pwdInput = document.getElementById("input-admin-pwd");
+  const toggleBtn = document.getElementById("btn-toggle-pwd");
+  const icon = document.getElementById("icon-toggle-pwd");
+  const capsHint = document.getElementById("auth-capslock-hint");
+  if (pwdInput) pwdInput.type = "password";
+  if (toggleBtn) {
+    toggleBtn.setAttribute("aria-pressed", "false");
+    toggleBtn.setAttribute("aria-label", isEnglish() ? "Show password" : "Tampilkan kata sandi");
+  }
+  if (icon) icon.className = "ph ph-eye";
+  if (capsHint) capsHint.hidden = true;
+};
+
+const prepareLoginModal = () => {
+  syncLoginGroupContext();
+  clearLoginError();
+  resetPasswordVisibility();
+};
+
+/** Wire login modal UX helpers (group context, inline alerts, password toggle, Caps Lock). */
+export const initLoginModal = () => {
+  const modal = document.getElementById("modal-login");
+  if (!modal) return;
+
+  document.addEventListener("finkas:modal-opened", (e) => {
+    if (e.detail?.id === "modal-login") prepareLoginModal();
+  });
+  window.addEventListener("finkas:group-changed", syncLoginGroupContext);
+  modal.addEventListener("close", () => {
+    resetPasswordVisibility();
+    clearLoginError();
+  });
+
+  const btnTogglePwd = document.getElementById("btn-toggle-pwd");
+  btnTogglePwd?.addEventListener("click", () => {
+    const pwdInput = document.getElementById("input-admin-pwd");
+    const icon = document.getElementById("icon-toggle-pwd");
+    if (!pwdInput) return;
+    const nextVisible = pwdInput.type === "password";
+    pwdInput.type = nextVisible ? "text" : "password";
+    btnTogglePwd.setAttribute("aria-pressed", String(nextVisible));
+    btnTogglePwd.setAttribute(
+      "aria-label",
+      nextVisible
+        ? (isEnglish() ? "Hide password" : "Sembunyikan kata sandi")
+        : (isEnglish() ? "Show password" : "Tampilkan kata sandi")
+    );
+    if (icon) icon.className = nextVisible ? "ph ph-eye-slash" : "ph ph-eye";
+  });
+
+  const emailInput = document.getElementById("input-admin-email");
+  const pwdInput = document.getElementById("input-admin-pwd");
+  const capsHint = document.getElementById("auth-capslock-hint");
+  emailInput?.addEventListener("input", clearLoginError);
+  pwdInput?.addEventListener("input", clearLoginError);
+
+  const syncCapsLock = (e) => {
+    if (!capsHint || typeof e?.getModifierState !== "function") return;
+    capsHint.hidden = !e.getModifierState("CapsLock");
+  };
+  pwdInput?.addEventListener("keydown", syncCapsLock);
+  pwdInput?.addEventListener("keyup", syncCapsLock);
+  pwdInput?.addEventListener("blur", () => {
+    if (capsHint) capsHint.hidden = true;
+  });
 };
 
 /* ── Password login ──────────────────────────────────────────────── */
@@ -74,13 +281,21 @@ export const renderAdminUI = () => {
  */
 export const submitLoginAdmin = async (e) => {
   e?.preventDefault?.();
+  clearLoginError();
+
   const emailInput = document.getElementById("input-admin-email");
   const pwdInput = document.getElementById("input-admin-pwd");
   const email = (emailInput?.value || "").trim();
   const password = (pwdInput?.value || "").trim();
 
+  if (email && emailInput?.checkValidity && !emailInput.checkValidity()) {
+    showLoginError("Format email tidak valid.", emailInput);
+    emailInput.focus();
+    return;
+  }
+
   if (!password) {
-    showToast("Masukkan password admin terlebih dahulu.", "error");
+    showLoginError("Masukkan kata sandi pengurus terlebih dahulu.", pwdInput);
     pwdInput?.focus();
     return;
   }
@@ -89,8 +304,9 @@ export const submitLoginAdmin = async (e) => {
     || document.getElementById("btn-submit-login");
   const originalHtml = btn ? btn.innerHTML : "";
   if (btn) {
-    btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Mengecek...';
+    btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i><span>Mengecek...</span>';
     btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
   }
 
   try {
@@ -99,6 +315,7 @@ export const submitLoginAdmin = async (e) => {
     if (res && res.status) {
       if (emailInput) emailInput.value = "";
       if (pwdInput) pwdInput.value = "";
+      resetPasswordVisibility();
       closeModal("modal-login");
       handleUI();
       renderAll();
@@ -109,7 +326,7 @@ export const submitLoginAdmin = async (e) => {
       return;
     }
 
-    showToast(res ? res.message : "Gagal terhubung ke server.", "error");
+    showLoginError(res ? res.message : "Gagal terhubung ke server.", pwdInput);
     if (pwdInput) {
       pwdInput.value = "";
       pwdInput.focus();
@@ -118,6 +335,7 @@ export const submitLoginAdmin = async (e) => {
     if (btn) {
       btn.innerHTML = originalHtml;
       btn.disabled = false;
+      btn.removeAttribute("aria-busy");
     }
   }
 };

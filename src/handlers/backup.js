@@ -1,3 +1,4 @@
+import { normalizePaymentAccount } from '../core/payment-account.js';
 /**
  * @module handlers/backup
  * Disaster Recovery: Full JSON Snapshot Backup & Restore.
@@ -8,7 +9,6 @@
  */
 
 import {
-  getState,
   setState,
   saveCache,
   getIsAdminSession,
@@ -113,6 +113,7 @@ export const restoreJSONBackup = (file) => {
         transaksi,
         skippedMonths,
         kasStart,
+        paymentAccount,
         attachments,
         operations
       } = content.data;
@@ -206,6 +207,7 @@ export const restoreJSONBackup = (file) => {
           transaksi,
           skippedMonths: safeSkipped,
           kasStart: kasStart || '',
+          ...(paymentAccount && srcGid === activeGid ? { paymentAccount } : {}),
           attachments: safeAttachments,
           operations: safeOperations
         }
@@ -226,7 +228,8 @@ export const restoreJSONBackup = (file) => {
         kategori: safeKategori,
         transaksi,
         skippedMonths: safeSkipped,
-        kasStart: kasStart || ''
+        kasStart: kasStart || '',
+        ...(paymentAccount && srcGid === activeGid ? { paymentAccount: normalizePaymentAccount(paymentAccount) } : {})
       });
       saveCache();
       renderAll();

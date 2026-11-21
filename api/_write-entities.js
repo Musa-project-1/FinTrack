@@ -1,3 +1,4 @@
+import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/payment-account.js';
 /**
  * Entity write handlers for a single group: members, categories, skipped
  * (holiday) months, the kas-start override and client-reported audit events.
@@ -68,6 +69,15 @@ export async function setKasStart(gid, payload, headers) {
   await fsPatch(settingsDoc(gid), { kasStart: raw }, headers, ['kasStart']);
   await writeAuditLog(gid, 'UBAH_AWAL_KAS', raw || '(dikosongkan)', headers);
   return ok('Awal mulai kas diperbarui.', { kasStart: raw });
+}
+
+export async function setPaymentAccount(gid, payload, headers) {
+  const error = validatePaymentAccount(payload?.paymentAccount);
+  if (error) return fail(error);
+  const paymentAccount = normalizePaymentAccount(payload.paymentAccount);
+  await fsPatch(settingsDoc(gid), { paymentAccount }, headers, ['paymentAccount']);
+  await writeAuditLog(gid, 'UBAH_REKENING_KAS', 'Pengaturan pembayaran grup diperbarui.', headers);
+  return ok('Pengaturan pembayaran disimpan.', { paymentAccount });
 }
 
 /* ── Members ─────────────────────────────────────────────────────── */

@@ -20,7 +20,9 @@ const modalFiles = [
   'riwayat.html',
   'transactions.html',
   'faq.html',
-  'tampilan.html'
+  'tampilan.html',
+  'self-pay.html',
+  'struk.html'
 ];
 
 const dirFiles = fs.readdirSync(modalsDir).filter(f => f.endsWith('.html'));

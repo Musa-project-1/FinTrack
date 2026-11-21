@@ -55,7 +55,7 @@ const FRAGMENT_FILES = [
  * duplicate-id check.
  */
 const STANDALONE_PAGES = fs.readdirSync(ROOT)
-  .filter((f) => f.endsWith('.html') && f !== 'index.html');
+  .filter((f) => f.endsWith('.html') && f !== 'index.html' && !f.startsWith('prototype-'));
 
 /** Every markup file a literal `getElementById` may legitimately resolve in. */
 const HTML_FILES = [...FRAGMENT_FILES, ...STANDALONE_PAGES];
@@ -139,12 +139,12 @@ function jsLookups() {
  * this test will tell you (see the "allow-list has no stale rows" test).
  */
 const TOLERATED_LOOKUPS = new Map([
-  ['ui-table-trx', 'alternative in `#table-riwayat-data || #ui-table-trx`; primary exists, result is null-guarded'],
-  ['load-more-container', 'alternative in `#btn-load-more || #load-more-container`; primary exists'],
+
+
   ['container-checkbox-anggota', 'alternative in `#iuran-checkbox-anggota || …`; primary exists, result is null-guarded'],
   ['btn-header-menu-mobile', 'removed during header unification; collected via `.filter(Boolean)`'],
   ['header-dropdown', 'header dropdown was removed when the menu became #modal-menu; every lookup is null-guarded'],
-  ['icon-toggle-stats-mobile', 'mobile stats toggle was removed; lookup is null-guarded']
+
 ]);
 
 /* ── Forward direction ──────────────────────────────────────────── */
@@ -153,7 +153,7 @@ const TOLERATED_LOOKUPS = new Map([
 const MODAL_IDS = [
   'modal-transaksi', 'modal-edit-transaksi', 'modal-hapus', 'modal-confirm-action',
   'modal-kelola-master', 'modal-edit-master-anggota', 'modal-edit-master-kategori',
-  'modal-audit-log', 'modal-offline-queue', 'modal-riwayat', 'modal-statistik',
+  'modal-audit-log', 'modal-offline-queue',
   'modal-profil-anggota', 'modal-export', 'modal-menu', 'modal-quickpay', 'modal-login',
   'modal-logout', 'modal-about', 'modal-group-pin', 'modal-groups', 'modal-group-admin',
   'modal-group-credentials', 'modal-tampilan', 'modal-faq'

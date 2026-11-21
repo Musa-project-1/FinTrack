@@ -1,3 +1,4 @@
+import { resetPinInput, syncPinInput, wirePinInput } from "../ui/pin-input.js";
 /**
  * @module handlers/groups
  * Multi-group support: PIN entry, group isolation and the owner's group console.
@@ -12,7 +13,6 @@ import {
   clearAdminSession,
   clearGroupSession,
   getActiveGroupId,
-  getAdminEmail,
   getAdminSession,
   getGroups,
   getIsSuperAdmin,
@@ -28,7 +28,7 @@ import {
 } from "../core/api.js";
 import { apiPost } from "../core/api-client.js";
 import { escapeHtml, showToast } from "../core/utils.js";
-import { openModal, closeModal } from "../ui/modal.js";
+import { openModal, closeModal, switchTab } from "../ui/modal.js";
 import { handleUI, renderAdminUI } from "./auth.js";
 
 const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!";
@@ -106,38 +106,36 @@ export const requestGroupPin = (id) => {
   pendingGroupId = id;
   const nameEl = document.getElementById("group-pin-name");
   if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
-  ["pin0", "pin1", "pin2", "pin3"].forEach((p) => {
-    const el = document.getElementById(p);
-    if (el) el.value = "";
-  });
+  resetPinInput(document.getElementById("group-pin"));
   const msg = document.getElementById("group-pin-msg");
   if (msg) msg.replaceChildren();
   closeModal("modal-groups");
   openModal("modal-group-pin");
-  setTimeout(() => { document.getElementById("pin0")?.focus(); }, 120);
+  setTimeout(() => { document.getElementById("group-pin")?.focus(); }, 120);
 };
 
 /** Kirim PIN yang diketik user. */
 export const submitGroupPin = async () => {
   if (!pendingGroupId) return;
-  const pin = ["pin0", "pin1", "pin2", "pin3"].map((p) => document.getElementById(p)?.value || "").join("");
+  const pin = document.getElementById("group-pin")?.value || "";
   const msg = document.getElementById("group-pin-msg");
   const res = await verifyGroupPin(pendingGroupId, pin);
 
   if (msg) msg.replaceChildren(document.createTextNode(res.message));
   if (!res.status) {
     showToast(res.message, "error");
-    const firstPin = document.getElementById("pin0");
+    const firstPin = document.getElementById("group-pin");
     const pinRow = firstPin?.closest?.(".pin-row");
     if (pinRow) {
       pinRow.classList.remove("is-error");
       void pinRow.offsetWidth;
       pinRow.classList.add("is-error");
     }
-    ["pin0", "pin1", "pin2", "pin3"].forEach((p) => {
-      const el = document.getElementById(p);
-      if (el) el.value = "";
-    });
+    if (firstPin) {
+      firstPin.value = "";
+      firstPin.setAttribute("aria-invalid", "true");
+      syncPinInput(firstPin);
+    }
     firstPin?.focus();
     return;
   }
@@ -148,36 +146,80 @@ export const submitGroupPin = async () => {
 
 /** Muat daftar grup lalu tampilkan layar pilih grup. */
 export const openGroupPicker = async () => {
-  // Show modal instantly with cached data, then refresh in background
-  renderGroupPicker();
+  // Show modal instantly with cached data (or skeleton if empty), then refresh in background
+  renderGroupPicker({ loading: !getGroups().length });
   openModal("modal-groups");
   await fetchGroups();
   renderGroupPicker();
 };
 
 /** Gambar daftar grup ke dalam modal pilih grup. */
-export const renderGroupPicker = () => {
+export const renderGroupPicker = ({ loading = false } = {}) => {
   const box = document.getElementById("group-picker-list");
   if (!box) return;
   const list = getGroups();
   const active = getActiveGroupId();
 
-  if (!list.length) {
-    box.innerHTML = '<div class="group-empty-state"><p class="text-muted">Belum ada grup. Minta admin pemilik membuatkan grup.</p></div>';
+  const exitBtn = document.getElementById("btn-exit-active-group");
+  if (exitBtn) exitBtn.hidden = !active;
+
+  const countEl = document.getElementById("group-picker-count");
+  if (countEl) {
+    if (loading || !list.length) {
+      countEl.hidden = true;
+    } else {
+      countEl.hidden = false;
+      countEl.textContent = `${list.length} grup`;
+    }
+  }
+
+  if (loading && !list.length) {
+    box.innerHTML = `
+      <div class="group-picker-skeleton" aria-busy="true" aria-label="Memuat daftar grup...">
+        <div class="group-skel-row"></div>
+        <div class="group-skel-row"></div>
+      </div>`;
     return;
   }
 
+  if (!list.length) {
+    box.innerHTML = `
+      <div class="group-picker-empty">
+        <span class="group-empty-ico" aria-hidden="true"><i class="ph ph-folders"></i></span>
+        <strong>Belum ada grup kas tersedia</strong>
+        <p>Hubungi pengurus pemilik untuk membuat ruang kas baru.</p>
+      </div>`;
+    return;
+  }
+
+  const isSA = getIsSuperAdmin();
   box.innerHTML = list.map((g) => {
     const rawName = g.nama || "?";
     const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
     const initial = escapeHtml(rawName.charAt(0).toUpperCase());
-    const isSA = getIsSuperAdmin();
+    const isActive = g.id === active;
+    const subText = isActive
+      ? "Grup aktif saat ini"
+      : isSA
+        ? "Akses langsung tanpa PIN"
+        : "Ketuk untuk masuk dengan PIN";
+    const trailBadge = isActive
+      ? '<span class="group-status-pill is-active"><span class="group-status-dot" aria-hidden="true"></span><span>Aktif</span></span>'
+      : isSA
+        ? '<span class="group-status-pill is-direct"><i class="ph ph-lightning" aria-hidden="true"></i><span>Instan</span></span>'
+        : '<span class="group-pin-badge" aria-hidden="true"><i class="ph ph-lock-simple"></i><span>PIN</span></span>';
     return `
-    <button class="group-item${g.id === active ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}">
-      <span class="avatar">${initial}</span>
-      <span><h3>${safeName}</h3><small>${g.id === active ? "Grup aktif" : isSA ? "Langsung masuk" : "Ketuk untuk masuk"}</small></span>
-      <span class="chev">›</span>
+    <button type="button" class="group-item${isActive ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}" role="listitem"${isActive ? ' aria-current="true"' : ""}>
+      <span class="group-item-avatar" aria-hidden="true">${initial}</span>
+      <span class="group-item-meta">
+        <span class="group-item-name">${safeName}</span>
+        <span class="group-item-sub">${subText}</span>
+      </span>
+      <span class="group-item-trail">
+        ${trailBadge}
+        <i class="ph ph-caret-right group-item-chev" aria-hidden="true"></i>
+      </span>
     </button>`;
   }).join("");
 };
@@ -224,6 +266,8 @@ export const exitGroup = () => {
     renderAdminUI();
   }
   setActiveGroupId("");
+  document.body.dataset.workspaceState = "idle";
+  delete document.body.dataset.workspaceGroup;
   try {
     localStorage.removeItem(GROUP_OPEN_KEY);
     localStorage.removeItem(ACTIVE_GROUP_NAME_KEY);
@@ -323,6 +367,12 @@ export const manageGroupCredsAction = async (id) => {
 
 /** Buka modal kelola grup. */
 export const openGroupAdmin = async () => {
+  const searchEl = document.getElementById("search-group-admin");
+  if (searchEl) searchEl.value = "";
+  switchTab("tab-group-list", "modal-group-admin");
+  const chk = document.getElementById("chk-group-admin-auto");
+  const box = document.getElementById("box-group-admin-creds");
+  if (chk && box) box.hidden = !chk.checked;
   await fetchGroups();
   renderGroupAdmin();
   refreshAutoAdminCreds();
@@ -350,51 +400,70 @@ export const renderGroupAdmin = () => {
   if (!box) return;
   const list = getGroups();
   const countEl = document.getElementById("group-admin-count");
-  if (countEl) countEl.textContent = `${list.length} Grup`;
+  if (countEl) countEl.textContent = String(list.length);
+
+  const query = (document.getElementById("search-group-admin")?.value || "").trim().toLowerCase();
+  const filtered = query
+    ? list.filter((g) => (g.nama || "").toLowerCase().includes(query) || (g.id || "").toLowerCase().includes(query))
+    : list;
+
+  const filterMeta = document.getElementById("group-admin-filter-meta");
+  if (filterMeta) {
+    filterMeta.textContent = query ? `${filtered.length} dari ${list.length} grup` : `${list.length} grup terdaftar`;
+  }
 
   if (!list.length) {
     box.innerHTML = `
       <div class="group-empty-state">
-        <i class="ph-fill ph-users-three"></i>
+        <i class="ph-fill ph-users-three" aria-hidden="true"></i>
         <p>Belum ada grup terdaftar. Buat grup pertama di atas.</p>
       </div>`;
     return;
   }
 
+  if (!filtered.length) {
+    box.innerHTML = `
+      <div class="group-empty-state">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <p>Tidak ada grup yang cocok dengan pencarian.</p>
+      </div>`;
+    return;
+  }
+
   const activeId = getActiveGroupId();
-  box.innerHTML = list.map((g, idx) => {
+  box.innerHTML = filtered.map((g, idx) => {
     const rawName = g.nama || "?";
     const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
     const isActive = g.id === activeId;
     const initial = escapeHtml(rawName.charAt(0).toUpperCase());
     return `
-    <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}">
+    <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}" role="listitem">
       <div class="group-card-main">
-        <span class="group-card-avatar" data-index="${idx % 4}">${initial}</span>
+        <span class="group-card-avatar" data-index="${idx % 4}" aria-hidden="true">${initial}</span>
         <div class="group-card-details">
           <div class="group-card-title-row">
             <h3 class="group-card-title">${safeName}</h3>
-            ${isActive ? '<span class="group-badge-active"><i class="ph-fill ph-check-circle"></i> Aktif</span>' : ""}
+            ${isActive ? '<span class="group-badge-active"><span class="group-status-dot" aria-hidden="true"></span><span>Aktif</span></span>' : ""}
           </div>
-          <span class="group-card-id-pill"><i class="ph ph-hash"></i> ${safeId}</span>
+          <span class="group-card-id-pill"><i class="ph ph-hash" aria-hidden="true"></i> ${safeId}</span>
         </div>
       </div>
       <div class="group-card-actions">
-        <button class="btn-group-chip" data-action="manage-group-creds" data-id="${safeId}" title="Atur Akun Admin Grup">
-          <i class="ph-bold ph-user-gear"></i>
+        <button type="button" class="btn-group-chip" data-action="manage-group-creds" data-id="${safeId}" title="Atur Akun Admin Grup">
+          <i class="ph-bold ph-user-gear" aria-hidden="true"></i>
           <span>Admin</span>
         </button>
-        <button class="btn-group-chip" data-action="rename-group" data-id="${safeId}" title="Ubah Nama Grup">
-          <i class="ph-bold ph-pencil-simple"></i>
+        <button type="button" class="btn-group-chip" data-action="rename-group" data-id="${safeId}" title="Ubah Nama Grup">
+          <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>
           <span>Nama</span>
         </button>
-        <button class="btn-group-chip" data-action="reset-group-pin" data-id="${safeId}" title="Ubah PIN Grup">
-          <i class="ph-bold ph-key"></i>
+        <button type="button" class="btn-group-chip" data-action="reset-group-pin" data-id="${safeId}" title="Ubah PIN Grup">
+          <i class="ph-bold ph-key" aria-hidden="true"></i>
           <span>PIN</span>
         </button>
-        <button class="btn-group-chip danger" data-action="remove-group" data-id="${safeId}" title="Hapus Grup" aria-label="Hapus ${safeName}">
-          <i class="ph-bold ph-trash"></i>
+        <button type="button" class="btn-group-chip danger" data-action="remove-group" data-id="${safeId}" title="Hapus Grup" aria-label="Hapus ${safeName}">
+          <i class="ph-bold ph-trash" aria-hidden="true"></i>
         </button>
       </div>
     </div>`;
@@ -404,6 +473,7 @@ export const renderGroupAdmin = () => {
 /** Render daftar email Super Admin. */
 export const renderSuperAdminList = async () => {
   const container = document.getElementById("superadmin-emails-list");
+  const countEl = document.getElementById("superadmin-count");
   if (!container) return;
   container.innerHTML = '<span class="superadmin-empty-text">Memuat daftar superadmin...</span>';
 
@@ -416,17 +486,22 @@ export const renderSuperAdminList = async () => {
       showToast("Sesi Super Admin telah berakhir. Silakan login kembali.", "warning");
       return;
     }
+    if (countEl) countEl.textContent = "0";
     container.innerHTML = '<span class="superadmin-empty-text">Tidak dapat memuat daftar superadmin.</span>';
     return;
   }
 
+  if (countEl) countEl.textContent = String(res.data.length);
   container.innerHTML = res.data.map((item) => {
     const isPrimary = item.isPrimary;
     const email = escapeHtml(item.email);
     return `
-    <div class="superadmin-email-item">
-      <span class="superadmin-email-text"><strong>${email}</strong> ${isPrimary ? '<span class="superadmin-email-tag">(Pemilik Utama)</span>' : ""}</span>
-      ${!isPrimary ? `<button type="button" class="superadmin-email-del" data-action="remove-superadmin-email" data-email="${email}" aria-label="Cabut akses ${email}"><i class="ph-bold ph-trash"></i></button>` : ""}
+    <div class="superadmin-email-item" role="listitem">
+      <div class="superadmin-email-meta">
+        <span class="superadmin-avatar" aria-hidden="true"><i class="${isPrimary ? "ph-fill ph-crown" : "ph ph-shield-check"}"></i></span>
+        <span class="superadmin-email-text"><strong>${email}</strong> ${isPrimary ? '<span class="superadmin-email-tag">Pemilik Utama</span>' : ""}</span>
+      </div>
+      ${!isPrimary ? `<button type="button" class="superadmin-email-del" data-action="remove-superadmin-email" data-email="${email}" title="Cabut akses" aria-label="Cabut akses ${email}"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>` : ""}
     </div>`;
   }).join("");
 };
@@ -601,6 +676,7 @@ export const initGroupsUI = (onGroupChanged) => {
 
   document.getElementById("form-create-group")?.addEventListener("submit", submitCreateGroup);
   document.getElementById("form-add-superadmin")?.addEventListener("submit", submitAddSuperAdminAction);
+  document.getElementById("search-group-admin")?.addEventListener("input", renderGroupAdmin);
 
   document.getElementById("input-group-nama")?.addEventListener("input", (e) => {
     const emailEl = document.getElementById("input-group-admin-email");
@@ -610,7 +686,7 @@ export const initGroupsUI = (onGroupChanged) => {
 
   document.getElementById("chk-group-admin-auto")?.addEventListener("change", (e) => {
     const box = document.getElementById("box-group-admin-creds");
-    if (box) box.style.display = e.target.checked ? "flex" : "none";
+    if (box) box.hidden = !e.target.checked;
   });
 
   document.getElementById("btn-refresh-admin-pwd")?.addEventListener("click", () => {
@@ -618,17 +694,5 @@ export const initGroupsUI = (onGroupChanged) => {
     if (pwdEl) pwdEl.value = generateRandomPassword(10);
   });
 
-  document.querySelectorAll(".pin-box").forEach((box) => {
-    box.addEventListener("input", () => {
-      box.value = box.value.replace(/\D/g, "").slice(0, 1);
-      const idx = Number(box.getAttribute("data-pin"));
-      if (box.value && idx < 3) document.getElementById(`pin${idx + 1}`)?.focus();
-      const pin = ["pin0", "pin1", "pin2", "pin3"].map((p) => document.getElementById(p)?.value || "").join("");
-      if (pin.length === 4) submitGroupPin();
-    });
-    box.addEventListener("keydown", (e) => {
-      const idx = Number(box.getAttribute("data-pin"));
-      if (e.key === "Backspace" && !box.value && idx > 0) document.getElementById(`pin${idx - 1}`)?.focus();
-    });
-  });
+  wirePinInput(document.getElementById("group-pin"), submitGroupPin);
 };

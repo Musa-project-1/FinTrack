@@ -1,48 +1,64 @@
-import { NAMA_BULAN, CHART_COLORS, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
-import { getState, setCashFlowChart, setExpenseChart, getCashFlowChart, getExpenseChart, setArrearsRankChart, getArrearsRankChart } from "../core/state.js";
-import { formatRp, formatDisplayRp, escapeHtml, kasStartFirstOfMonth } from "../core/utils.js";
-import { createDuesLedger } from "../core/dues.js";
+import { renderHybridChart } from '../ui/hybrid-chart.js';
+import { animateHybridAmount, enterHybridOverview } from '../ui/hybrid-motion.js';
+import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
+import { getState } from "../core/state.js";
+import { formatDisplayRp, escapeHtml, parseKasStart } from "../core/utils.js";
+import { billingPeriod, createDuesLedger } from "../core/dues.js";
+import { renderBento } from "../ui/bento-dashboard.js";
+import { renderSpotlight } from "../ui/spotlight.js";
 import { filterKategori } from "../ui/modal.js";
 
 /* ── Dashboard summary cards ───────────────────────────────────── */
 
 export const renderDashboard = () => {
-  let tMasuk = 0, tKeluar = 0;
-  getState().transaksi.forEach((trx) => {
+  let tMasuk = 0, tKeluar = 0, deposits = 0;
+  const expenses = new Map();
+  const state = getState();
+  state.transaksi.forEach((trx) => {
     const nom = Number(trx.Nominal) || 0;
-    if (trx.Tipe_Arus === 'Masuk') tMasuk += nom;
-    if (trx.Tipe_Arus === 'Keluar') tKeluar += nom;
+    if (trx.Tipe_Arus === 'Masuk') {
+      tMasuk += nom;
+      deposits++;
+    } else if (trx.Tipe_Arus === 'Keluar') {
+      tKeluar += nom;
+      expenses.set(trx.ID_Kategori, (expenses.get(trx.ID_Kategori) || 0) + nom);
+    }
   });
   const saldo = tMasuk - tKeluar;
   const saldoFormatted = formatDisplayRp(saldo);
-  const masukFormatted = formatDisplayRp(tMasuk);
-  const keluarFormatted = formatDisplayRp(tKeluar);
 
   const elMasuk = document.getElementById('ui-masuk');
   const elKeluar = document.getElementById('ui-keluar');
   const elSaldo = document.getElementById('ui-saldo');
 
-  const flashVal = (el, nextVal) => {
-    if (!el) return;
-    if (el.textContent !== nextVal && el.textContent !== '') {
-      el.classList.remove('val-flash');
-      void el.offsetWidth;
-      el.classList.add('val-flash');
-    }
-    el.innerText = nextVal;
-  };
+  const firstRender = document.body?.dataset?.workspaceState === 'loading';
+  animateHybridAmount(elMasuk, tMasuk, { from: firstRender ? 0 : undefined });
+  animateHybridAmount(elKeluar, tKeluar, { from: firstRender ? 0 : undefined });
+  animateHybridAmount(elSaldo, saldo, { from: firstRender ? 0 : undefined });
 
-  flashVal(elMasuk, masukFormatted);
-  flashVal(elKeluar, keluarFormatted);
-  flashVal(elSaldo, saldoFormatted);
+  if (document.getElementById('bento-spark-month')) {
+    elSaldo?.style.setProperty('--amount-length', saldoFormatted.length);
+    const current = billingPeriod();
+    const ledger = createDuesLedger(state, { year: current.year });
+    renderBento(state, ledger, current, deposits, expenses);
+    renderSpotlight(ledger, current);
+    renderGroupOverview(state, ledger);
+    enterHybridOverview();
+  }
+};
 
-  // Header compact pills (when enabled)
-  const elHdrSaldo = document.getElementById('hdr-saldo-val');
-  const elHdrMasuk = document.getElementById('hdr-masuk-val');
-  const elHdrKeluar = document.getElementById('hdr-keluar-val');
-  if (elHdrSaldo) elHdrSaldo.innerText = saldoFormatted;
-  if (elHdrMasuk) elHdrMasuk.innerText = masukFormatted;
-  if (elHdrKeluar) elHdrKeluar.innerText = keluarFormatted;
+const renderGroupOverview = (state, ledger) => {
+  const section = document.getElementById('group-overview');
+  const groupName = document.getElementById('app-group-name')?.textContent.trim();
+  if (!section || !groupName) return;
+  const start = parseKasStart(state.kasStart);
+  const startLabel = start ? `${NAMA_BULAN[start.monthIndex]} ${start.year}` :
+    `${NAMA_BULAN[GROUP_START_MONTH - 1]} ${GROUP_START_YEAR}`;
+  document.getElementById('group-overview-name').textContent = groupName;
+  document.getElementById('group-overview-fee').textContent = `Iuran ${formatDisplayRp(ledger.monthlyFee)}/bln`;
+  document.getElementById('group-overview-members').textContent = `${ledger.members.length} anggota aktif`;
+  document.getElementById('group-overview-start').textContent = `Awal kas: ${startLabel}`;
+  section.hidden = false;
 };
 
 /* ── Dropdown population ───────────────────────────────────────── */
@@ -65,433 +81,17 @@ export const renderDropdowns = () => {
   document.getElementById('iuran-kategori').innerHTML = optKatMasuk;
 
   filterKategori('ops-tipe', 'ops-kategori');
-  const now = new Date();
-  document.getElementById('iuran-tahun').value = now.getFullYear();
-  document.getElementById('iuran-bulan').value = NAMA_BULAN[now.getMonth()];
+  const { year, monthIndex } = billingPeriod();
+  const tahunEl = document.getElementById('iuran-tahun');
+  const bulanEl = document.getElementById('iuran-bulan');
+  if (tahunEl) tahunEl.value = year;
+  if (bulanEl) bulanEl.value = NAMA_BULAN[monthIndex];
 };
 
-
-/* ── Lazy load Chart.js on demand ─────────────────────────────── */
-let chartJsPromise = null;
-const ensureChartJs = () => {
-  if (window.Chart) return Promise.resolve(window.Chart);
-  if (!chartJsPromise) {
-    chartJsPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      // Pin the major version: the legend uses Chart.overrides.* (a v4 internal),
-      // so letting the unversioned URL float to the next major would break the
-      // expense-chart legend silently the day jsDelivr serves it.
-      script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4';
-      script.onload = () => resolve(window.Chart);
-      script.onerror = (err) => {
-        script.remove();
-        chartJsPromise = null;
-        reject(err);
-      };
-      document.head.appendChild(script);
-    });
-  }
-  return chartJsPromise;
-};
-
-/* ── Charts ────────────────────────────────────────────────────── */
+/* ── Charts (#workspace-stats) ─────────────────────────────────── */
 
 export const renderChart = async () => {
   const state = getState();
-  const chartEl = document.getElementById('cashFlowChart');
-  if (!chartEl) return;
-
-  try {
-    await ensureChartJs();
-  } catch (err) {
-    console.warn('Gagal memuat pustaka Chart.js:', err);
-    return;
-  }
-
-  const ctx = chartEl.getContext('2d');
-
-  const now = new Date();
-  const startDate = kasStartFirstOfMonth(state.kasStart, GROUP_START_YEAR, GROUP_START_MONTH);
-  const months = [];
-  const monthLabels = [];
-  let cursor = new Date(startDate);
-  while (cursor <= now) {
-    months.push({
-      label: cursor.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }),
-      monthIndex: cursor.getMonth(),
-      year: cursor.getFullYear()
-    });
-    monthLabels.push(cursor.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }));
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-
-  const ledger = createDuesLedger(state, { now });
-  const memberStatus = ledger.members;
-  const totalExpected = memberStatus.reduce((sum, m) => sum + m.expectedTotal, 0);
-  const totalCollected = memberStatus.reduce((sum, m) => sum + m.paidTotal, 0);
-  const healthPct = totalExpected ? Math.round((totalCollected / totalExpected) * 100) : 100;
-
-  document.getElementById('stat-health-pct').innerText = `${healthPct}%`;
-  document.getElementById('stat-health-fill').style.width = `${healthPct}%`;
-  document.getElementById('stat-health-label').innerText = `Tercapai ${formatRp(totalCollected)} dari target iuran ${formatRp(totalExpected)} (${healthPct}% kepatuhan).`;
-  const noteEl = document.getElementById('stat-health-note');
-  if (noteEl) noteEl.innerText = '';
-
-  const fullyPaidCount = memberStatus.filter((item) => item.arrears === 0).length;
-  const withArrearsCount = memberStatus.filter((item) => item.arrears > 0).length;
-  const potentialUncollected = memberStatus.reduce((sum, item) => sum + item.arrears, 0);
-
-  document.getElementById('stat-fully-paid').innerText = fullyPaidCount.toString();
-  document.getElementById('stat-with-arrears').innerText = withArrearsCount.toString();
-  document.getElementById('stat-uncollected').innerText = formatRp(potentialUncollected);
-
-  // Data Pemasukan (Iuran + Operasional Masuk)
-  const dataMasuk = months.map((m) =>
-    state.transaksi
-      .filter((t) => {
-        const tgl = new Date(t.Timestamp);
-        return tgl.getMonth() === m.monthIndex && tgl.getFullYear() === m.year && t.Tipe_Arus === 'Masuk';
-      })
-      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0)
-  );
-
-  // Data Pengeluaran Kas
-  const dataKeluar = months.map((m) =>
-    state.transaksi
-      .filter((t) => {
-        const tgl = new Date(t.Timestamp);
-        return tgl.getMonth() === m.monthIndex && tgl.getFullYear() === m.year && t.Tipe_Arus === 'Keluar';
-      })
-      .reduce((sum, t) => sum + (Number(t.Nominal) || 0), 0)
-  );
-
-  const isDark = document.body.classList.contains('dark-mode');
-  const textColor = isDark ? '#93b4c7' : '#3b5e78';
-  const gridColor = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(14, 36, 55, 0.08)';
-  const reduceMotion = typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-  const existingFlow = getCashFlowChart();
-  if (existingFlow && existingFlow.canvas === chartEl) {
-    existingFlow.data.labels = monthLabels;
-    existingFlow.data.datasets[0].data = dataMasuk;
-    existingFlow.data.datasets[0].borderColor = isDark ? '#2dd4bf' : '#0d9488';
-    existingFlow.data.datasets[0].backgroundColor = isDark ? 'rgba(45, 212, 191, 0.20)' : 'rgba(13, 148, 136, 0.20)';
-    existingFlow.data.datasets[0].pointBackgroundColor = isDark ? '#2dd4bf' : '#0d9488';
-    existingFlow.data.datasets[0].pointBorderColor = isDark ? '#112334' : '#fff';
-    existingFlow.data.datasets[1].data = dataKeluar;
-    existingFlow.data.datasets[1].borderColor = isDark ? '#fb7185' : '#e11d48';
-    existingFlow.data.datasets[1].backgroundColor = isDark ? 'rgba(251, 113, 133, 0.20)' : 'rgba(225, 29, 72, 0.20)';
-    existingFlow.data.datasets[1].pointBackgroundColor = isDark ? '#fb7185' : '#e11d48';
-    existingFlow.data.datasets[1].pointBorderColor = isDark ? '#112334' : '#fff';
-    existingFlow.options.plugins.legend.labels.color = textColor;
-    existingFlow.options.scales.x.ticks.color = textColor;
-    existingFlow.options.scales.y.ticks.color = textColor;
-    existingFlow.options.scales.y.grid.color = gridColor;
-    existingFlow.update(reduceMotion ? 'none' : undefined);
-  } else {
-    if (existingFlow) existingFlow.destroy();
-
-    const cashFlowChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: monthLabels,
-        datasets: [
-          {
-            label: 'Pemasukan',
-            data: dataMasuk,
-            borderColor: isDark ? '#2dd4bf' : '#0d9488',
-            backgroundColor: isDark ? 'rgba(45, 212, 191, 0.20)' : 'rgba(13, 148, 136, 0.20)',
-            tension: 0.25,
-            pointRadius: 2.5,
-            pointHoverRadius: 5,
-            fill: true,
-            borderWidth: 2,
-            pointBackgroundColor: isDark ? '#2dd4bf' : '#0d9488',
-            pointBorderColor: isDark ? '#112334' : '#fff',
-          },
-          {
-            label: 'Pengeluaran',
-            data: dataKeluar,
-            borderColor: isDark ? '#fb7185' : '#e11d48',
-            backgroundColor: isDark ? 'rgba(251, 113, 133, 0.20)' : 'rgba(225, 29, 72, 0.20)',
-            tension: 0.25,
-            pointRadius: 2.5,
-            pointHoverRadius: 5,
-            fill: true,
-            borderWidth: 2,
-            pointBackgroundColor: isDark ? '#fb7185' : '#e11d48',
-            pointBorderColor: isDark ? '#112334' : '#fff',
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            align: 'end',
-            labels: {
-              boxWidth: 8,
-              boxHeight: 8,
-              usePointStyle: true,
-              color: textColor,
-              font: { family: 'Inter', size: 10.5, weight: 600 }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` ${ctx.dataset.label}: ${formatRp(ctx.raw)}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              maxRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 12
-            }
-          },
-          y: {
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + ' jt' : val >= 1000 ? (val / 1000).toFixed(0) + ' rb' : val
-            }
-          }
-        }
-      }
-    });
-    setCashFlowChart(cashFlowChart);
-  }
-
-  const updateEl = document.getElementById('last-update');
-  if (updateEl) updateEl.innerText = new Date().toLocaleTimeString('id-ID');
-
-  renderExpenseChart(isDark, textColor);
-  renderArrearsRankChart(memberStatus, isDark, textColor, gridColor);
+  const workspace = document.getElementById('workspace-stats');
+  if (workspace?.hidden === false) renderHybridChart(state);
 };
-
-const renderExpenseChart = (isDark, textColor) => {
-  const chartEl = document.getElementById('expenseChart');
-  if (!chartEl) return;
-  const ctx = chartEl.getContext('2d');
-  const state = getState();
-  const now = new Date();
-  const currentYear = now.getFullYear();
-
-  // Ambil seluruh pengeluaran tahun berjalan (atau sepanjang masa jika tahun ini kosong)
-  let expenses = state.transaksi.filter((t) => {
-    const tgl = new Date(t.Timestamp);
-    return tgl.getFullYear() === currentYear && t.Tipe_Arus === 'Keluar';
-  });
-  let periodLabel = `Tahun ${currentYear}`;
-  if (expenses.length === 0) {
-    expenses = state.transaksi.filter((t) => t.Tipe_Arus === 'Keluar');
-    periodLabel = 'Seluruh Transaksi';
-  }
-
-  const titleEl = document.getElementById('expense-chart-title');
-  if (titleEl) {
-    titleEl.textContent = `Distribusi Pengeluaran (${periodLabel})`;
-  }
-
-  const categoryTotals = {};
-  let grandTotalExpense = 0;
-  expenses.forEach((t) => {
-    const cat = state.kategori.find((k) => k.ID_Kategori === t.ID_Kategori);
-    const catName = cat ? cat.Nama_Kategori : 'Lainnya';
-    const nom = Number(t.Nominal) || 0;
-    categoryTotals[catName] = (categoryTotals[catName] || 0) + nom;
-    grandTotalExpense += nom;
-  });
-
-  const labels = Object.keys(categoryTotals);
-  const data = Object.values(categoryTotals);
-
-  const existingExpense = getExpenseChart();
-
-  if (labels.length === 0) {
-    if (existingExpense) {
-      existingExpense.destroy();
-      setExpenseChart(null);
-    }
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = textColor;
-    ctx.font = '13px Inter';
-    ctx.clearRect(0, 0, chartEl.width, chartEl.height);
-    ctx.fillText('Belum ada data pengeluaran kas', chartEl.width / 2, chartEl.height / 2);
-    return;
-  }
-
-  const isMobileView = window.innerWidth < 768;
-  const reduceMotion = typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-  if (existingExpense && existingExpense.canvas === chartEl) {
-    existingExpense.data.labels = labels;
-    existingExpense.data.datasets[0].data = data;
-    existingExpense.data.datasets[0].backgroundColor = CHART_COLORS.slice(0, labels.length);
-    existingExpense.data.datasets[0].borderWidth = isDark ? 2 : 1;
-    existingExpense.data.datasets[0].borderColor = isDark ? '#112334' : '#fff';
-    existingExpense.options.plugins.legend.labels.color = textColor;
-    existingExpense.update(reduceMotion ? 'none' : undefined);
-  } else {
-    if (existingExpense) existingExpense.destroy();
-
-    const expenseChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{
-          data,
-          backgroundColor: CHART_COLORS.slice(0, labels.length),
-          borderWidth: isDark ? 2 : 1,
-          borderColor: isDark ? '#112334' : '#fff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: isMobileView ? 'bottom' : 'right',
-            labels: {
-              color: textColor,
-              font: { family: 'Inter', size: 11, weight: 500 },
-              padding: isMobileView ? 10 : 16,
-              boxWidth: 12,
-              boxHeight: 12,
-              generateLabels: (chart) => {
-                const orig = Chart.overrides.doughnut.plugins.legend.labels.generateLabels(chart);
-                return orig.map((item) => {
-                  const val = data[item.index] || 0;
-                  const pct = grandTotalExpense ? Math.round((val / grandTotalExpense) * 100) : 0;
-                  item.text = `${item.text} (${pct}%)`;
-                  return item;
-                });
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
-                const val = ctx.raw || 0;
-                const pct = grandTotalExpense ? Math.round((val / grandTotalExpense) * 100) : 0;
-                return ` ${ctx.label}: ${formatRp(val)} (${pct}%)`;
-              }
-            }
-          }
-        },
-        cutout: '68%'
-      }
-    });
-    setExpenseChart(expenseChart);
-  }
-};
-
-/**
- * Horizontal bar chart ranking members by outstanding arrears (largest first).
- * Skill rule (chart domain, "Compare Categories"): Bar Chart is the correct type
- * for ranking members; horizontal keeps long names readable.
- * @param {Array<{ang: object, arrears: number}>} memberStatus
- */
-const renderArrearsRankChart = (memberStatus, isDark, textColor, gridColor) => {
-  const chartEl = document.getElementById('arrearsRankChart');
-  if (!chartEl) return;
-  const emptyEl = document.getElementById('arrears-rank-empty');
-
-  const existingArrears = getArrearsRankChart();
-
-  const ranked = memberStatus
-    .filter((item) => item.arrears > 0)
-    .sort((a, b) => b.arrears - a.arrears)
-    .slice(0, 8);
-
-  // No arrears → hide the canvas, show the reassuring empty note.
-  if (ranked.length === 0) {
-    chartEl.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'flex';
-    if (existingArrears) {
-      existingArrears.destroy();
-      setArrearsRankChart(null);
-    }
-    return;
-  }
-  chartEl.style.display = '';
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  const ctx = chartEl.getContext('2d');
-  const labels = ranked.map((item) => item.ang.Nama_Anggota || item.ang.ID_Anggota);
-  const data = ranked.map((item) => item.arrears);
-  const barColor = isDark ? '#fb7185' : '#e11d48';
-  const reduceMotion = typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-  if (existingArrears && existingArrears.canvas === chartEl) {
-    existingArrears.data.labels = labels;
-    existingArrears.data.datasets[0].data = data;
-    existingArrears.data.datasets[0].backgroundColor = isDark ? 'rgba(251, 113, 133, 0.72)' : 'rgba(225, 29, 72, 0.78)';
-    existingArrears.data.datasets[0].borderColor = barColor;
-    existingArrears.options.scales.x.grid.color = gridColor;
-    existingArrears.options.scales.x.ticks.color = textColor;
-    existingArrears.options.scales.y.ticks.color = textColor;
-    existingArrears.update(reduceMotion ? 'none' : undefined);
-  } else {
-    if (existingArrears) existingArrears.destroy();
-
-    const arrearsChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Tunggakan',
-          data,
-          backgroundColor: isDark ? 'rgba(251, 113, 133, 0.72)' : 'rgba(225, 29, 72, 0.78)',
-          borderColor: barColor,
-          borderWidth: 1,
-          borderRadius: 6,
-          maxBarThickness: 26
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` ${ctx.label}: ${formatRp(ctx.raw)}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + 'jt' : val >= 1000 ? (val / 1000).toFixed(0) + 'rb' : val
-            }
-          },
-          y: { grid: { display: false }, ticks: { color: textColor, font: { size: 11, weight: 500 } } }
-        }
-      }
-    });
-    setArrearsRankChart(arrearsChart);
-  }
-};
-

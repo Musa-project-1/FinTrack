@@ -1,26 +1,33 @@
+import { getActiveIndicatorStyle, renderLunasHtml, renderMiniStamp, renderPassbookEmblem, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
 import { setCurrentHistoryFilter, setItemsToShow } from "../core/state.js";
-import { openModal, closeModal } from "../ui/modal.js";
+import { openModal, closeModal, getActiveModalId, switchTab } from "../ui/modal.js";
 import { renderAll, renderTableTransaksi, renderTableRekap } from "../render.js";
 
 /* ── Bottom nav helpers ────────────────────────────────────────── */
 
 export const setBottomNavActive = (action) => {
   document.querySelectorAll('.bottom-nav-item').forEach((b) => {
-    b.classList.toggle('active', b.getAttribute('data-action') === action);
+    const active = b.getAttribute('data-action') === action;
+    b.classList.toggle('active', active);
+    if (active) b.setAttribute('aria-current', 'location');
+    else b.removeAttribute('aria-current');
   });
 };
 
 export const closeActiveModal = () => {
-  const active = document.querySelector('.modal-overlay.active');
-  if (active) closeModal(active.id);
+  const id = getActiveModalId();
+  if (id) closeModal(id);
 };
 
 /* ── History Filter ─────────────────────────────────────────────── */
 
-export const setHistoryFilter = (filter, btn) => {
+export const setHistoryFilter = (filter) => {
   setCurrentHistoryFilter(filter);
-  document.querySelectorAll('[data-action="set-history-filter"]').forEach((b) => b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('[data-action="set-history-filter"]').forEach((button) => {
+    const selected = button.dataset.filter === filter;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
   setItemsToShow(20);
   renderTableTransaksi();
 };
@@ -56,23 +63,47 @@ export const applyPrivacyMode = () => {
   try {
     const isPrivate = localStorage.getItem('finkas_privacy_mode') === 'on';
     document.body.classList.toggle('privacy-mode', isPrivate);
+    const toggle = document.querySelector('[data-action="toggle-privacy"]');
+    toggle?.setAttribute('aria-pressed', String(isPrivate));
+    const icon = toggle?.querySelector('i');
+    if (icon) icon.className = `ph ${isPrivate ? 'ph-eye-slash' : 'ph-eye'} fs-18`;
   } catch (_) {}
 };
 
-export const openTampilanModal = () => {
-  const currentIndicator = localStorage.getItem('finkas_indicator_style') || 'paid';
+const updateStampPicker = (animate = false) => {
+  const currentStyle = getActiveIndicatorStyle();
+  const meta = STAMP_META[currentStyle] || STAMP_META.seal;
   document.querySelectorAll('#indicator-style-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-style') === currentIndicator);
+    const active = card.dataset.style === currentStyle;
+    card.classList.toggle('active', active);
+    card.setAttribute('aria-pressed', String(active));
   });
+  const titleEl = document.querySelector('#tampilan-style-preview .tampilan-preview-title');
+  const labelEl = document.getElementById('hybrid-stamp-label');
+  const sampleEl = document.getElementById('hybrid-stamp-sample');
+  if (titleEl) titleEl.textContent = meta.label;
+  if (labelEl) labelEl.textContent = meta.sub;
+  if (sampleEl) {
+    sampleEl.innerHTML =
+      `<span class="tampilan-preview-cell paid">${renderLunasHtml(animate, currentStyle)}</span>` +
+      `<span class="tampilan-preview-stamp">${renderPassbookEmblem('paid', currentStyle)}</span>`;
+  }
+};
 
-  const currentPrivacy = localStorage.getItem('finkas_privacy_mode') === 'on' ? 'on' : 'off';
-  document.querySelectorAll('#privacy-mode-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-mode') === currentPrivacy);
-  });
+export const openDuesLegend = () => {
+  switchTab('faq-glossary', 'modal-faq');
+  openModal('modal-faq');
+  document.getElementById('dues-legend')?.focus();
+};
+
+export const openTampilanModal = (tab) => {
+  updateStampPicker();
 
   const currentFormat = localStorage.getItem('finkas_currency_format') === 'compact' ? 'compact' : 'full';
   document.querySelectorAll('#currency-format-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-format') === currentFormat);
+    const active = card.getAttribute('data-format') === currentFormat;
+    card.classList.toggle('active', active);
+    card.setAttribute('aria-pressed', String(active));
   });
 
   const currentTheme = localStorage.getItem('theme') || 'light';
@@ -80,49 +111,15 @@ export const openTampilanModal = () => {
     card.classList.toggle('active', card.getAttribute('data-theme') === currentTheme);
   });
 
-  const currentDensity = localStorage.getItem('finkas_density') === 'compact' ? 'compact' : 'normal';
-  document.querySelectorAll('#density-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-density') === currentDensity);
-  });
-
-  const currentPos = localStorage.getItem('finkas_header_stats') === 'true' ? 'header' : 'body';
-  document.querySelectorAll('#stats-pos-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-pos') === currentPos);
-  });
-
-  const currentFont = localStorage.getItem('finkas_number_font') === 'mono' ? 'mono' : 'sans';
-  document.querySelectorAll('#font-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-font') === currentFont);
-  });
-
-  const currentTexture = localStorage.getItem('finkas_bg_texture') || 'dots';
-  document.querySelectorAll('#texture-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-texture') === currentTexture);
-  });
-
-  const currentTone = localStorage.getItem('finkas_arrears_tone') || 'red';
-  document.querySelectorAll('#arrears-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-tone') === currentTone);
-  });
-
-  const currentProgress = localStorage.getItem('finkas_progress_format') === 'ratio' ? 'ratio' : 'bar';
-  document.querySelectorAll('#progress-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-format') === currentProgress);
-  });
-
   openModal('modal-tampilan');
+  if (tab === 'tampilan-indikator') document.getElementById('tab-tampilan-indikator')?.scrollIntoView({ block: 'nearest' });
 };
 
 export const setIndicatorStyle = (styleKey) => {
-  if (!styleKey) return;
-  try {
-    localStorage.setItem('finkas_indicator_style', styleKey);
-  } catch (e) {
-    console.warn('[finkas] Cannot persist indicator style:', e?.message);
-  }
-  document.querySelectorAll('#indicator-style-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-style') === styleKey);
-  });
+  if (!saveIndicatorStyle(styleKey)) return;
+  updateStampPicker(true);
+  document.querySelectorAll('#passbook-months .paid .passbook-slot-seal').forEach((slot) => { slot.innerHTML = renderPassbookEmblem('paid', styleKey); });
+  document.querySelectorAll('#spotlight-months .mini-stamp-ico').forEach((stamp) => { stamp.outerHTML = renderMiniStamp(styleKey); });
   renderTableRekap();
 };
 
@@ -133,9 +130,6 @@ export const setPrivacyMode = (mode) => {
   } catch (e) {
     console.warn('[finkas] Cannot persist privacy mode:', e?.message);
   }
-  document.querySelectorAll('#privacy-mode-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-mode') === safeMode);
-  });
   applyPrivacyMode();
 };
 
@@ -147,7 +141,9 @@ export const setCurrencyFormat = (formatKey) => {
     console.warn('[finkas] Cannot persist currency format:', e?.message);
   }
   document.querySelectorAll('#currency-format-picker .style-option-card').forEach((card) => {
-    card.classList.toggle('active', card.getAttribute('data-format') === safeFormat);
+    const active = card.getAttribute('data-format') === safeFormat;
+    card.classList.toggle('active', active);
+    card.setAttribute('aria-pressed', String(active));
   });
   renderAll();
 };
@@ -156,42 +152,112 @@ export const setCurrencyFormat = (formatKey) => {
    COMMAND HUB SEARCH & LAUNCHER
    ══════════════════════════════════════════════════════════════════ */
 
-export const openCommandHubModal = () => {
+const getVisibleNavItems = () =>
+  Array.from(document.querySelectorAll('#modal-menu .nav-item')).filter((it) => {
+    if (it.classList.contains('is-search-hidden')) return false;
+    return typeof getComputedStyle === 'function'
+      ? getComputedStyle(it).display !== 'none'
+      : it.style.display !== 'none';
+  });
+
+const syncNavGroupVisibility = () => {
+  document.querySelectorAll('#modal-menu .nav-group').forEach((group) => {
+    const visible = Array.from(group.querySelectorAll('.nav-item')).some((it) => {
+      if (it.classList.contains('is-search-hidden')) return false;
+      return typeof getComputedStyle === 'function'
+        ? getComputedStyle(it).display !== 'none'
+        : it.style.display !== 'none';
+    });
+    group.classList.toggle('is-search-hidden', !visible);
+  });
+};
+
+const applyNavMenuFilter = (rawQuery) => {
+  const query = String(rawQuery || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('btn-clear-nav-search');
+  if (clearBtn) clearBtn.hidden = !query;
+
+  document.querySelectorAll('#modal-menu .nav-item').forEach((item) => {
+    const text = (item.querySelector('.nav-txt')?.textContent || '').toLowerCase();
+    const sub = (item.querySelector('.nav-sub')?.textContent || '').toLowerCase();
+    const keywords = (item.getAttribute('data-keywords') || '').toLowerCase();
+    const match = !query || text.includes(query) || sub.includes(query) || keywords.includes(query);
+    item.classList.toggle('is-search-hidden', !match);
+    item.classList.remove('is-selected');
+  });
+
+  syncNavGroupVisibility();
+
+  const visibleItems = getVisibleNavItems();
+  const emptyState = document.getElementById('nav-search-empty');
+  if (emptyState) emptyState.hidden = visibleItems.length > 0;
+  if (query && visibleItems.length > 0) visibleItems[0].classList.add('is-selected');
+};
+
+const prepareCommandHubModal = () => {
   const searchInput = document.getElementById('search-nav-menu');
-  if (searchInput) {
-    searchInput.value = '';
-    document.querySelectorAll('#modal-menu .nav-item').forEach((it) => { it.style.display = 'flex'; });
-    document.querySelectorAll('#modal-menu .nav-group').forEach((gr) => { gr.style.display = 'block'; });
-  }
+  if (searchInput) searchInput.value = '';
+  document.querySelectorAll('#modal-menu .nav-item, #modal-menu .nav-group').forEach((el) => {
+    el.classList.remove('is-search-hidden', 'is-selected');
+  });
+  const clearBtn = document.getElementById('btn-clear-nav-search');
+  if (clearBtn) clearBtn.hidden = true;
+  const emptyState = document.getElementById('nav-search-empty');
+  if (emptyState) emptyState.hidden = true;
+
   const groupLabel = document.getElementById('command-footer-group');
   if (groupLabel) {
     const activeGroupName = document.getElementById('app-group-name')?.textContent?.trim() || 'Finkas';
     groupLabel.textContent = `Grup: ${activeGroupName}`;
   }
+  syncNavGroupVisibility();
+};
+
+export const openCommandHubModal = () => {
+  prepareCommandHubModal();
   openModal('modal-menu');
+  syncNavGroupVisibility();
 };
 
 export const setupMenuSearchListener = () => {
   const searchInput = document.getElementById('search-nav-menu');
   if (!searchInput) return;
 
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    const items = document.querySelectorAll('#modal-menu .nav-item');
-    const groups = document.querySelectorAll('#modal-menu .nav-group');
+  document.addEventListener('finkas:modal-opened', (e) => {
+    if (e.detail?.id === 'modal-menu') prepareCommandHubModal();
+  });
 
-    items.forEach((item) => {
-      const text = (item.querySelector('.nav-txt')?.textContent || '').toLowerCase();
-      const sub = (item.querySelector('.nav-sub')?.textContent || '').toLowerCase();
-      const keywords = (item.getAttribute('data-keywords') || '').toLowerCase();
-      const match = !query || text.includes(query) || sub.includes(query) || keywords.includes(query);
-      item.style.display = match ? 'flex' : 'none';
-    });
+  searchInput.addEventListener('input', (e) => applyNavMenuFilter(e.target.value));
 
-    groups.forEach((group) => {
-      const visible = Array.from(group.querySelectorAll('.nav-item')).some((it) => it.style.display !== 'none');
-      group.style.display = visible ? 'block' : 'none';
-    });
+  document.getElementById('btn-clear-nav-search')?.addEventListener('click', () => {
+    searchInput.value = '';
+    applyNavMenuFilter('');
+    searchInput.focus();
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    const visibleItems = getVisibleNavItems();
+    if (!visibleItems.length) return;
+    const currentIdx = visibleItems.findIndex((it) => it.classList.contains('is-selected'));
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const delta = e.key === 'ArrowDown' ? 1 : -1;
+      const nextIdx = currentIdx < 0
+        ? (delta > 0 ? 0 : visibleItems.length - 1)
+        : (currentIdx + delta + visibleItems.length) % visibleItems.length;
+      visibleItems.forEach((it) => it.classList.remove('is-selected'));
+      const target = visibleItems[nextIdx];
+      target.classList.add('is-selected');
+      target.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      const target = (currentIdx >= 0 ? visibleItems[currentIdx] : null)
+        || (visibleItems.length === 1 ? visibleItems[0] : null);
+      if (target) {
+        e.preventDefault();
+        target.click();
+      }
+    }
   });
 };
 

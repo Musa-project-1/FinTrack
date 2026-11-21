@@ -9,42 +9,44 @@
 }
 
 .tampilan-top-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: 4px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   padding: 4px;
   margin-bottom: 18px;
 }
 
 .tampilan-top-tabs .tab-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 9px 8px;
-  font-size: 13px;
-  font-weight: 600;
+  min-height: 36px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--text-muted);
-  border-radius: var(--r-sm);
-  border: none;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: background-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+  transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
   white-space: nowrap;
 }
 
 .tampilan-top-tabs .tab-btn:hover:not(.active) {
   color: var(--text-main);
-  background: var(--surface-3);
+  background: color-mix(in oklab, var(--surface-3) 65%, transparent);
 }
 
 .tampilan-top-tabs .tab-btn.active {
   background: var(--surface);
-  color: var(--accent);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: var(--text-main);
+  border-color: var(--border);
+  box-shadow: var(--hybrid-card-shadow);
 }
 
 .tampilan-tab-body {
@@ -297,7 +299,7 @@
   /* Kartu Opsi Tema & Tekstur */
   .tampilan-card-tile {
     padding: 6px 8px !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
     gap: 6px !important;
     justify-content: center !important;
     border-radius: var(--r-sm) !important;
@@ -326,4 +328,18 @@
   .tampilan-card-tile .style-check-indicator {
     display: none !important;
   }
+}
+
+#palette-picker [data-palette="terracotta"] { --palette-sample: var(--sample-terracotta); }
+#palette-picker [data-palette="cobalt"] { --palette-sample: var(--sample-cobalt); }
+#palette-picker [data-palette="charcoal"] { --palette-sample: var(--sample-charcoal); }
+#palette-picker [data-palette="indigo"] { --palette-sample: var(--sample-indigo); }
+#palette-picker .style-preview-wrap { color: var(--palette-sample); }
+
+#indicator-style-picker .style-option-card { min-height: 50px; }
+#indicator-style-picker .stamp-preview {
+  min-width: 44px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
 }

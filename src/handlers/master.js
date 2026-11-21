@@ -1,9 +1,10 @@
-import { getState, getIsAdminSession } from "../core/state.js";
+import { getState, getIsAdminSession, getIsSuperAdmin } from "../core/state.js";
 import { fetchAuditLogApi } from "../core/api.js";
 import { isUnsyncedTempId } from "../core/offline.js";
-import { showToast, showDatabaseToast, escapeHtml } from "../core/utils.js";
+import { showToast, showDatabaseToast, escapeHtml, getInitials } from "../core/utils.js";
 import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
+import { syncCdrop } from "../ui/cdrop.js";
 import { renderSkippedMonthsList } from "../render.js";
 
 const refreshAppData = async () => { requestAppRefresh(); };
@@ -20,82 +21,126 @@ export const openSkippedMonthsModal = () => {
    AUDIT LOG
    ══════════════════════════════════════════════════════════════════ */
 
-/**
- * Human-readable labels for every audit action the server can record.
- * An unknown action falls back to its raw tag (see renderAuditLogList).
- */
-export const AUDIT_ACTION_LABELS = {
-  // Sessions & access
-  LOGIN_ADMIN:              { label: 'Login Admin', color: 'var(--primary)' },
-  LOGIN_GAGAL:              { label: 'Login Gagal', color: 'var(--danger)' },
-  LOGIN_SUPERADMIN_GOOGLE:  { label: 'Login Google', color: 'var(--primary)' },
-  LOGOUT_ADMIN:             { label: 'Logout', color: '#64748b' },
-  PIN_BENAR:                { label: 'PIN Benar', color: '#64748b' },
-  PIN_SALAH:                { label: 'PIN Salah', color: 'var(--danger)' },
-  PIN_TIDAK_DISETEL:        { label: 'Tanpa PIN', color: 'var(--warning)' },
+const TONE_COLOR = { accent: 'var(--accent-strong)', warning: 'var(--warning)', danger: 'var(--danger)', neutral: 'var(--text-muted)' };
+const AUDIT_SPECS = [
+  ['LOGIN_ADMIN', 'Login Admin', 'accent', 'akses', 'ph-sign-in'], ['LOGIN_GAGAL', 'Login Gagal', 'danger', 'akses', 'ph-shield-warning'],
+  ['LOGIN_SUPERADMIN_GOOGLE', 'Login Google', 'accent', 'akses', 'ph-google-logo'], ['LOGOUT_ADMIN', 'Logout', 'neutral', 'akses', 'ph-sign-out'],
+  ['PIN_BENAR', 'PIN Benar', 'neutral', 'akses', 'ph-lock-open'], ['PIN_SALAH', 'PIN Salah', 'danger', 'akses', 'ph-warning-circle'],
+  ['PIN_TIDAK_DISETEL', 'Tanpa PIN', 'warning', 'akses', 'ph-key'], ['TAMBAH_TRANSAKSI', 'Tambah Transaksi', 'accent', 'transaksi', 'ph-plus-circle'],
+  ['TAMBAH_IURAN_MASSAL', 'Iuran Massal', 'accent', 'transaksi', 'ph-users-three'], ['EDIT_TRANSAKSI', 'Edit Transaksi', 'warning', 'transaksi', 'ph-pencil-simple'],
+  ['HAPUS_TRANSAKSI', 'Hapus Transaksi', 'danger', 'transaksi', 'ph-trash'], ['DUPLIKAT_DITOLAK', 'Duplikat Ditolak', 'danger', 'transaksi', 'ph-copy-simple'],
+  ['OFFLINE_SYNC', 'Sinkron Offline', 'neutral', 'transaksi', 'ph-cloud-check'], ['TAMBAH_ANGGOTA', 'Tambah Anggota', 'accent', 'master', 'ph-user-plus'],
+  ['HAPUS_ANGGOTA', 'Hapus Anggota', 'danger', 'master', 'ph-user-minus'], ['STATUS_ANGGOTA', 'Status Anggota', 'warning', 'master', 'ph-user-switch'],
+  ['TAMBAH_KATEGORI', 'Tambah Kategori', 'accent', 'master', 'ph-tag'], ['HAPUS_KATEGORI', 'Hapus Kategori', 'danger', 'master', 'ph-tag-simple'],
+  ['TAMBAH_BULAN_LIBUR', 'Bulan Libur +', 'warning', 'master', 'ph-calendar-x'], ['HAPUS_BULAN_LIBUR', 'Bulan Libur -', 'warning', 'master', 'ph-calendar-check'],
+  ['BACKUP_DATABASE', 'Backup', 'neutral', 'grup', 'ph-download-simple'], ['RESTORE_DATABASE', 'Restore', 'warning', 'grup', 'ph-upload-simple'],
+  ['BUAT_GRUP', 'Buat Grup', 'accent', 'grup', 'ph-buildings'], ['HAPUS_GRUP', 'Hapus Grup', 'danger', 'grup', 'ph-trash'],
+  ['UBAH_NAMA', 'Ubah Nama', 'warning', 'grup', 'ph-pencil'], ['UBAH_PIN', 'Ubah PIN', 'warning', 'akses', 'ph-password'],
+  ['UBAH_KREDENSIAL_ADMIN', 'Ubah Admin', 'warning', 'akses', 'ph-user-gear'], ['TAMBAH_SUPERADMIN', 'Super Admin +', 'accent', 'akses', 'ph-crown'],
+  ['HAPUS_SUPERADMIN', 'Super Admin -', 'danger', 'akses', 'ph-crown']
+];
 
-  // Transactions
-  TAMBAH_TRANSAKSI:         { label: 'Tambah Transaksi', color: 'var(--primary)' },
-  TAMBAH_IURAN_MASSAL:      { label: 'Iuran Massal', color: 'var(--primary)' },
-  EDIT_TRANSAKSI:           { label: 'Edit Transaksi', color: 'var(--warning)' },
-  HAPUS_TRANSAKSI:          { label: 'Hapus Transaksi', color: 'var(--danger)' },
-  DUPLIKAT_DITOLAK:         { label: 'Duplikat Ditolak', color: 'var(--danger)' },
-  OFFLINE_SYNC:             { label: 'Sinkron Offline', color: '#64748b' },
+/** Human-readable labels, semantic tones, and category groups for audit actions. */
+export const AUDIT_ACTION_LABELS = Object.fromEntries(
+  AUDIT_SPECS.map(([key, label, tone, cat, icon]) => [key, { label, tone, cat, icon, color: TONE_COLOR[tone] }])
+);
 
-  // Master data
-  TAMBAH_ANGGOTA:           { label: 'Tambah Anggota', color: 'var(--primary)' },
-  HAPUS_ANGGOTA:            { label: 'Hapus Anggota', color: 'var(--danger)' },
-  STATUS_ANGGOTA:           { label: 'Status Anggota', color: 'var(--warning)' },
-  TAMBAH_KATEGORI:          { label: 'Tambah Kategori', color: 'var(--primary)' },
-  HAPUS_KATEGORI:           { label: 'Hapus Kategori', color: 'var(--danger)' },
-  TAMBAH_BULAN_LIBUR:       { label: 'Bulan Libur +', color: 'var(--warning)' },
-  HAPUS_BULAN_LIBUR:        { label: 'Bulan Libur -', color: 'var(--warning)' },
+let cachedAuditLog = [];
+let auditFilterCat = 'all';
+let auditSearchQuery = '';
+let auditBound = false;
 
-  // Backup
-  BACKUP_DATABASE:          { label: 'Backup', color: '#64748b' },
-  RESTORE_DATABASE:         { label: 'Restore', color: 'var(--warning)' },
+const formatAuditDate = (ts) =>
+  new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  // Group administration
-  BUAT_GRUP:                { label: 'Buat Grup', color: 'var(--primary)' },
-  HAPUS_GRUP:               { label: 'Hapus Grup', color: 'var(--danger)' },
-  UBAH_NAMA:                { label: 'Ubah Nama', color: 'var(--warning)' },
-  UBAH_PIN:                 { label: 'Ubah PIN', color: 'var(--warning)' },
-  UBAH_KREDENSIAL_ADMIN:    { label: 'Ubah Admin', color: 'var(--warning)' },
-  TAMBAH_SUPERADMIN:        { label: 'Super Admin +', color: 'var(--primary)' },
-  HAPUS_SUPERADMIN:         { label: 'Super Admin -', color: 'var(--danger)' }
+const updateAuditCount = (shown, total) => {
+  const el = document.getElementById('audit-log-count');
+  if (el) el.textContent = shown === total ? `${total} entri` : `${shown} / ${total} entri`;
 };
 
-export const renderAuditLogList = async () => {
+const setAuditFilterChip = (cat) => {
+  auditFilterCat = cat || 'all';
+  document.querySelectorAll('#audit-filter-chips [data-audit-cat]').forEach((chip) => {
+    const active = chip.dataset.auditCat === auditFilterCat;
+    chip.classList.toggle('active', active);
+    chip.setAttribute('aria-selected', String(active));
+  });
+};
+
+const guardAuditSuperAdmin = (shouldClose = false) => {
+  if (getIsSuperAdmin()) return true;
+  if (shouldClose) closeModal('modal-audit-log');
+  showToast('Hanya Super Admin yang dapat mengakses Log Aktivitas.', 'error');
+  return false;
+};
+
+const paintAuditLogRows = () => {
   const tbody = document.getElementById('audit-log-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>';
-
-  const res = await fetchAuditLogApi();
-  if (!res || !res.status) {
-    tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center text-danger">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
+  const q = auditSearchQuery.trim().toLowerCase();
+  const rows = cachedAuditLog.filter((entry) => {
+    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi, cat: 'grup' };
+    if (auditFilterCat !== 'all' && meta.cat !== auditFilterCat) return false;
+    if (!q) return true;
+    return `${meta.label} ${entry.Aksi || ''} ${entry.Detail || ''} ${formatAuditDate(entry.Timestamp)}`.toLowerCase().includes(q);
+  });
+  updateAuditCount(rows.length, cachedAuditLog.length);
+  if (rows.length === 0) {
+    const msg = cachedAuditLog.length === 0 ? 'Belum ada aktivitas tercatat.' : 'Tidak ada aktivitas yang cocok dengan filter.';
+    tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center">${msg}</td></tr>`;
     return;
   }
-
-  const log = res.data?.log || [];
-  if (log.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada aktivitas tercatat.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = log.map((entry) => {
-    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi, color: 'var(--text-main)' };
-    const tgl = new Date(entry.Timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    return `
-      <tr>
-        <td class="td-audit-time">${escapeHtml(tgl)}</td>
-        <td class="ws-nowrap"><span class="audit-action-tag" style="color:${meta.color};">${escapeHtml(meta.label)}</span></td>
-        <td class="td-audit-detail">${escapeHtml(String(entry.Detail || ''))}</td>
-      </tr>
-    `;
+  tbody.innerHTML = rows.map((entry) => {
+    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
+    return `<tr><td class="td-audit-time">${escapeHtml(formatAuditDate(entry.Timestamp))}</td><td class="td-audit-aksi ws-nowrap"><span class="audit-action-pill is-${meta.tone}"><i class="ph ${meta.icon}" aria-hidden="true"></i> ${escapeHtml(meta.label)}</span></td><td class="td-audit-detail">${escapeHtml(String(entry.Detail || ''))}</td></tr>`;
   }).join('');
 };
 
+const ensureAuditLogBound = () => {
+  if (auditBound) return;
+  auditBound = true;
+  document.getElementById('search-audit-log')?.addEventListener('input', (e) => {
+    auditSearchQuery = e.target.value || '';
+    paintAuditLogRows();
+  });
+  document.getElementById('audit-filter-chips')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-audit-cat]');
+    if (!btn) return;
+    setAuditFilterChip(btn.dataset.auditCat);
+    paintAuditLogRows();
+  });
+};
+
+export const renderAuditLogList = async () => {
+  if (!guardAuditSuperAdmin(true)) return;
+  const tbody = document.getElementById('audit-log-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>';
+  const refreshBtn = document.getElementById('btn-refresh-audit-log');
+  if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.classList.add('is-loading'); }
+  try {
+    const res = await fetchAuditLogApi();
+    if (!res || !res.status) {
+      cachedAuditLog = [];
+      updateAuditCount(0, 0);
+      tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center text-danger">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
+      return;
+    }
+    cachedAuditLog = res.data?.log || [];
+    paintAuditLogRows();
+  } finally {
+    if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
+  }
+};
+
+/** Open the Admin Activity Audit Log modal (Super Admin only). */
 export const openAuditLogModal = () => {
+  if (!guardAuditSuperAdmin(false)) return;
+  ensureAuditLogBound();
+  auditSearchQuery = '';
+  const searchEl = document.getElementById('search-audit-log');
+  if (searchEl) searchEl.value = '';
+  setAuditFilterChip('all');
   openModal('modal-audit-log');
   renderAuditLogList();
 };
@@ -210,76 +255,111 @@ export const saveKasStart = async () => {
    MASTER DATA CRUD (ANGGOTA & KATEGORI)
    ══════════════════════════════════════════════════════════════════ */
 
+const syncMasterTabCounts = () => {
+  const { anggota = [], kategori = [], skippedMonths = [] } = getState();
+  const elAng = document.getElementById('master-count-anggota');
+  const elKat = document.getElementById('master-count-kategori');
+  const elSkip = document.getElementById('master-count-skipped');
+  const elStats = document.getElementById('master-anggota-stats');
+
+  if (elAng) elAng.textContent = String(anggota.length);
+  if (elKat) elKat.textContent = String(kategori.length);
+  if (elSkip) elSkip.textContent = String(skippedMonths.length);
+  if (elStats) {
+    const aktifCount = anggota.filter((a) => a.Status_Aktif === 'Aktif').length;
+    const nonaktifCount = anggota.length - aktifCount;
+    elStats.textContent = nonaktifCount > 0
+      ? `${aktifCount} aktif · ${nonaktifCount} nonaktif`
+      : `${aktifCount} aktif`;
+  }
+};
+
+export const filterMasterAnggota = () => {
+  const q = (document.getElementById('search-master-anggota')?.value || '').trim().toLowerCase();
+  document.querySelectorAll?.('#master-anggota-tbody tr.master-row').forEach((row) => {
+    const hay = (row.dataset?.search || row.textContent || '').toLowerCase();
+    row.style.display = !q || hay.includes(q) ? '' : 'none';
+  });
+};
+
 export const renderMasterAnggotaTable = () => {
   const tbody = document.getElementById('master-anggota-tbody');
   if (!tbody) return;
   const anggota = getState().anggota || [];
+  syncMasterTabCounts();
   if (anggota.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="td-muted-center">Belum ada anggota terdaftar.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="td-muted-center">Belum ada anggota terdaftar.</td></tr>';
     return;
   }
   tbody.innerHTML = anggota.map((ang) => {
     const isAktif = ang.Status_Aktif === 'Aktif';
     const statusBadge = isAktif
-      ? '<span class="badge badge-masuk"><i class="ph-bold ph-check"></i> Aktif</span>'
-      : '<span class="badge badge-keluar"><i class="ph-bold ph-x"></i> Nonaktif</span>';
+      ? '<span class="badge badge-masuk"><i class="ph-bold ph-check" aria-hidden="true"></i> Aktif</span>'
+      : '<span class="badge badge-keluar"><i class="ph-bold ph-x" aria-hidden="true"></i> Nonaktif</span>';
     const rawWa = (ang.Nomor_WA || '').trim();
     const cleanWa = rawWa.replace(/\D/g, '');
     const waDisplay = cleanWa
-      ? `<a href="https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}" target="_blank" rel="noopener" class="master-wa-link" title="Chat WhatsApp"><i class="ph-fill ph-whatsapp-logo"></i> <span>${escapeHtml(rawWa)}</span></a>`
+      ? `<a href="https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}" target="_blank" rel="noopener" class="master-wa-link" title="Chat WhatsApp"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i> <span>${escapeHtml(rawWa)}</span></a>`
       : '<span class="text-muted">-</span>';
+    const initials = escapeHtml(getInitials(ang.Nama_Anggota));
 
     return `
-      <tr class="master-row ${isAktif ? 'is-aktif' : 'is-nonaktif'}">
-        <td class="td-id-col"><span class="master-id-pill">${escapeHtml(ang.ID_Anggota)}</span></td>
+      <tr class="master-row ${isAktif ? 'is-aktif' : 'is-nonaktif'}" data-search="${escapeHtml(`${ang.Nama_Anggota} ${ang.ID_Anggota} ${rawWa}`)}">
         <td class="td-name-col">
-          <div class="master-name-wrap">
-            <span class="master-mobile-id">${escapeHtml(ang.ID_Anggota)}</span>
-            <span class="master-name-text">${escapeHtml(ang.Nama_Anggota)}</span>
+          <div class="master-cell-identity">
+            <span class="master-avatar ${isAktif ? '' : 'is-inactive'}" aria-hidden="true">${initials}</span>
+            <div class="master-name-wrap">
+              <span class="master-name-text">${escapeHtml(ang.Nama_Anggota)}</span>
+              <span class="master-id-pill">${escapeHtml(ang.ID_Anggota)}</span>
+            </div>
           </div>
         </td>
         <td class="td-wa-col">${waDisplay}</td>
         <td class="td-status-col text-center">${statusBadge}</td>
         <td class="td-action-col">
           <div class="master-actions-wrap">
-            <button class="btn btn-outline btn-master-action" data-action="edit-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" title="Kelola Anggota">
-              <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
+            <button type="button" class="btn btn-outline btn-master-action" data-action="edit-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" title="Kelola Anggota">
+              <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> <span>Edit</span>
             </button>
           </div>
         </td>
       </tr>
     `;
   }).join('');
+  filterMasterAnggota();
 };
 
 export const renderMasterKategoriTable = () => {
   const tbody = document.getElementById('master-kategori-tbody');
   if (!tbody) return;
   const kategori = getState().kategori || [];
+  syncMasterTabCounts();
   if (kategori.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="td-muted-center">Belum ada kategori.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada kategori.</td></tr>';
     return;
   }
   tbody.innerHTML = kategori.map((kat) => {
     const isMasuk = kat.Tipe === 'Masuk';
     const badge = isMasuk
-      ? '<span class="badge badge-masuk"><i class="ph-bold ph-arrow-down-left"></i> Masuk</span>'
-      : '<span class="badge badge-keluar"><i class="ph-bold ph-arrow-up-right"></i> Keluar</span>';
+      ? '<span class="badge badge-masuk"><i class="ph-bold ph-arrow-down-left" aria-hidden="true"></i> Masuk</span>'
+      : '<span class="badge badge-keluar"><i class="ph-bold ph-arrow-up-right" aria-hidden="true"></i> Keluar</span>';
 
     return `
       <tr class="master-row ${isMasuk ? 'is-masuk' : 'is-keluar'}">
-        <td class="td-id-col"><span class="master-id-pill">${escapeHtml(kat.ID_Kategori)}</span></td>
         <td class="td-name-col">
-          <div class="master-name-wrap">
-            <span class="master-mobile-id">${escapeHtml(kat.ID_Kategori)}</span>
-            <span class="master-name-text">${escapeHtml(kat.Nama_Kategori)}</span>
+          <div class="master-cell-identity">
+            <span class="master-kat-icon ${isMasuk ? 'is-masuk' : 'is-keluar'}" aria-hidden="true"><i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
+            <div class="master-name-wrap">
+              <span class="master-name-text">${escapeHtml(kat.Nama_Kategori)}</span>
+              <span class="master-id-pill">${escapeHtml(kat.ID_Kategori)}</span>
+            </div>
           </div>
         </td>
         <td class="td-status-col text-center">${badge}</td>
         <td class="td-action-col">
           <div class="master-actions-wrap">
-            <button class="btn btn-outline btn-master-action" data-action="edit-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}" title="Kelola Kategori">
-              <i class="ph-bold ph-pencil-simple"></i> <span>Edit</span>
+            <button type="button" class="btn btn-outline btn-master-action" data-action="edit-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}" title="Kelola Kategori">
+              <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> <span>Edit</span>
             </button>
           </div>
         </td>
@@ -294,9 +374,16 @@ export const bukaModalEditMasterAnggota = (idAnggota) => {
 
   const rawWa = (ang.Nomor_WA || '').trim();
   const cleanWa = rawWa.replace(/\D/g, '');
+  const isAktif = (ang.Status_Aktif || 'Aktif') === 'Aktif';
 
   const idInput = document.getElementById('edit-master-anggota-id');
   if (idInput) idInput.value = ang.ID_Anggota;
+
+  const avatarEl = document.getElementById('edit-master-anggota-avatar');
+  if (avatarEl) {
+    avatarEl.textContent = getInitials(ang.Nama_Anggota);
+    avatarEl.classList?.toggle?.('is-inactive', !isAktif);
+  }
 
   const idBadge = document.getElementById('edit-master-anggota-id-badge');
   if (idBadge) idBadge.textContent = ang.ID_Anggota;
@@ -310,6 +397,7 @@ export const bukaModalEditMasterAnggota = (idAnggota) => {
   const statusSelect = document.getElementById('edit-master-status-select');
   if (statusSelect) {
     statusSelect.value = ang.Status_Aktif || 'Aktif';
+    syncCdrop('edit-master-status-select');
   }
 
   const waLink = document.getElementById('edit-master-anggota-wa-link');
@@ -389,10 +477,16 @@ export const bukaModalEditMasterKategori = (idKategori) => {
   const namaEl = document.getElementById('edit-master-kategori-nama');
   if (namaEl) namaEl.textContent = kat.Nama_Kategori;
 
+  const iconWrap = document.getElementById('edit-master-kategori-icon');
+  if (iconWrap) {
+    iconWrap.className = `master-kat-icon is-lg ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
+    iconWrap.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}" aria-hidden="true"></i>`;
+  }
+
   const tipeBadge = document.getElementById('edit-master-kategori-tipe-badge');
   if (tipeBadge) {
     tipeBadge.className = `badge ${isMasuk ? 'badge-masuk' : 'badge-keluar'}`;
-    tipeBadge.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i> Kas ${kat.Tipe}`;
+    tipeBadge.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}" aria-hidden="true"></i> Kas ${escapeHtml(kat.Tipe)}`;
   }
 
   openModal('modal-edit-master-kategori');
@@ -404,10 +498,20 @@ export const openKelolaMasterModal = () => {
     openModal('modal-login');
     return;
   }
+  const searchEl = document.getElementById('search-master-anggota');
+  if (searchEl) {
+    searchEl.value = '';
+    if (!searchEl.dataset?.masterBound) {
+      if (searchEl.dataset) searchEl.dataset.masterBound = '1';
+      searchEl.addEventListener('input', filterMasterAnggota);
+    }
+  }
+  syncCdrop('input-tipe-kategori');
   renderMasterAnggotaTable();
   renderMasterKategoriTable();
   renderSkippedMonthsList();
   populateKasStartInput();
+  syncMasterTabCounts();
   openModal('modal-kelola-master');
 };
 

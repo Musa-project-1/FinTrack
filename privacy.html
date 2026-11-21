@@ -3,172 +3,236 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Kebijakan Privasi - Finkas</title>
-  <meta name="description" content="Kebijakan Privasi dan Perlindungan Data Aplikasi Finkas.">
-  <meta name="theme-color" content="#0f1011">
+  <meta name="description" content="Kebijakan Privasi dan Perlindungan Data Aplikasi Pembukuan Kas Finkas.">
+  <meta name="theme-color" content="#f4f7fb">
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <style>
-    :root {
-      /* Surfaces — Origin color step: abyss → canvas → graphite → steel */
-      --lp-abyss: #090a0b;
-      --lp-canvas: #0f1011;
-      --lp-graphite: #2e2e2e;
-      --lp-steel: #3f4041;
-      --lp-void: #000000;
-
-      /* Text */
-      --lp-pure: #ffffff;
-      --lp-cloud: #f5f5f7;
-      --lp-ash: #9f9fa0;
-      --lp-body-onstage: #b0b0b2;
-
-      /* Hairlines */
-      --lp-line: rgba(255, 255, 255, 0.15);
-      --lp-line-soft: rgba(255, 255, 255, 0.10);
-
-      /* Radius scale (R4) */
-      --lp-r-btn: 8px;
-      --lp-r-card: 16px;
-      --lp-r-pill: 9999px;
-
-      /* Motion — state only; tidak ada reveal di halaman ini */
-      --lp-t-state: 0.2s ease;
-
-      /* Type */
-      --lp-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --lp-font-display: 'Fraunces', Georgia, serif;
-      --lp-font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-      --lp-tracking-tight: -0.02em;
-      --lp-tracking-body: -0.01em;
-      --lp-tracking-display: -0.03em;
-      --lp-tracking-eyebrow: 0.14em;
-
-      /* Spacing — index = kelipatan basis 4px (R9) */
-      --lp-sp-1: 4px;
-      --lp-sp-2: 8px;
-      --lp-sp-3: 12px;
-      --lp-sp-4: 16px;
-      --lp-sp-6: 24px;
-      --lp-sp-8: 32px;
-      --lp-sp-12: 48px;
-      --lp-sp-20: 80px;
-
-      /* Layout */
-      --lp-content-max: 1200px;
-
-      color-scheme: dark;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    .monogram { color: var(--lp-cloud); flex-shrink: 0; }
-    .badge-pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      max-width: 100%; padding: 4px 12px;
-      border-radius: var(--lp-r-pill);
-      background: var(--lp-steel); border: 1px solid var(--lp-line-soft);
-      font-family: var(--lp-font-mono); font-size: 10.5px; font-weight: 500;
-      letter-spacing: var(--lp-tracking-eyebrow); text-transform: uppercase;
-      color: var(--lp-cloud); white-space: normal; overflow-wrap: anywhere;
-    }
-    .btn-return {
-      display: inline-flex; align-items: center; justify-content: center; gap: var(--lp-sp-2);
-      background: var(--lp-pure); color: var(--lp-void); border: none;
-      border-radius: var(--lp-r-btn); padding: 14px 24px; min-height: 44px;
-      font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500;
-      letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
-      transition: opacity var(--lp-t-state); white-space: nowrap;
-    }
-    .arrow { flex-shrink: 0; }
-    .btn-return:hover { opacity: 0.88; }
-    :focus-visible { outline: 2px solid var(--lp-pure); outline-offset: 3px; border-radius: 2px; }
-    a:focus:not(:focus-visible) { outline: none; }
-    @media (max-width: 359px) {
-      .btn-return { padding-inline: var(--lp-sp-2); }
-    }
-    body {
-      font-family: var(--lp-font-sans); background-color: var(--lp-canvas);
-      color: var(--lp-ash); line-height: 1.6; letter-spacing: var(--lp-tracking-body);
-      padding: var(--lp-sp-12) var(--lp-sp-4);
-    }
-    @media (min-width: 640px) { body { padding: var(--lp-sp-20) var(--lp-sp-6); } }
-    .wrap {
-      max-width: 780px; margin: 0 auto; padding: var(--lp-sp-8);
-      background: var(--lp-graphite); border: 1px solid var(--lp-line-soft);
-      border-radius: var(--lp-r-card);
-    }
-    .brand { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lp-sp-3); margin-bottom: var(--lp-sp-6); }
-    .brand-name { font-family: var(--lp-font-display); font-size: 20px; font-weight: 300; letter-spacing: var(--lp-tracking-tight); color: var(--lp-cloud); }
-    h1, h2 { font-family: var(--lp-font-display); font-weight: 300; line-height: 1.05; color: var(--lp-cloud); }
-    h1 { font-size: clamp(36px, 5vw, 52px); letter-spacing: var(--lp-tracking-display); text-align: center; margin-bottom: var(--lp-sp-3); }
-    h2 { font-size: 20px; margin: var(--lp-sp-6) 0 var(--lp-sp-2); }
-    p, li { font-size: 15px; color: var(--lp-ash); line-height: 1.6; margin-bottom: var(--lp-sp-3); }
-    ul { padding-left: 20px; }
-    li { margin-bottom: var(--lp-sp-1); }
-    strong { font-weight: 600; color: var(--lp-cloud); }
-    code { font-family: var(--lp-font-mono); font-size: 0.85em; background: var(--lp-steel); color: var(--lp-cloud); border-radius: var(--lp-r-btn); padding: 1px 6px; }
-    .timestamp { font-family: var(--lp-font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: var(--lp-tracking-eyebrow); color: var(--lp-ash); margin-bottom: var(--lp-sp-6); }
-    .footer-actions {
-      border-top: 1px solid var(--lp-line-soft); padding-top: var(--lp-sp-6); margin-top: var(--lp-sp-8);
-      display: flex; flex-wrap: wrap; gap: var(--lp-sp-4); justify-content: space-between; align-items: center;
-    }
-  </style>
+  <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
+  <link rel="stylesheet" href="style.css?v=288">
+  <link rel="stylesheet" href="css/privacy.css?v=288">
 </head>
-<body>
-  <main class="wrap">
-    <header class="brand">
-      <svg class="monogram" viewBox="0 0 192 192" width="34" height="34" role="img" aria-label="Logo Finkas" focusable="false">
-        <g transform="translate(51, 47)" fill="currentColor">
-          <rect x="0" y="0" width="18" height="98" rx="9" />
-          <rect x="0" y="0" width="82" height="18" rx="9" />
-          <rect x="0" y="36" width="60" height="18" rx="9" opacity="0.72" />
-          <circle cx="74" cy="45" r="9" opacity="0.55" />
-        </g>
-      </svg>
-      <span class="brand-name">Finkas</span>
-      <span class="badge-pill">KEBIJAKAN PRIVASI &amp; KEAMANAN DATA</span>
-    </header>
-    <h1>Kebijakan Privasi</h1>
-    <p class="timestamp">PEMBARUAN TERAKHIR: SEPTEMBER 2026</p>
-    <p>Finkas berkomitmen menjaga privasi dan integritas data keuangan kelompok/komunitas Anda dengan prinsip sederhana, transparan, dan terisolasi.</p>
+<body class="privacy-page" data-palette="cobalt" data-canvas="aurora">
+  <script src="src/workspace-boot-theme.js?v=288"></script>
 
-    <section>
-      <h2>1. Data yang Dikelola</h2>
-      <ul>
-        <li><strong>Informasi Kas:</strong> Catatan transaksi pemasukan, pengeluaran, saldo, dan rekap iuran bulanan yang dimasukkan secara manual oleh pengurus kelompok.</li>
-        <li><strong>Data Anggota:</strong> Nama atau inisial anggota serta nomor WhatsApp opsional untuk kemudahan konfirmasi rekap pembayaran.</li>
-        <li><strong>Data Kredensial:</strong> PIN kelompok (4 digit) yang diverifikasi melalui hash aman di sisi peladen.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>2. Penyimpanan &amp; Isolasi Data</h2>
-      <p>Seluruh rekaman kas disimpan secara cloud pada infrastruktur Google Cloud Firestore dalam skema isolasi per kelompok (<code>groupId</code>). Data satu kelompok tidak dapat diakses atau bercampur dengan kelompok lain.</p>
-    </section>
-
-    <section>
-      <h2>3. Autentikasi Google</h2>
-      <p>Fitur otentikasi Google Sign-In digunakan secara terbatas untuk verifikasi identitas pemilik/admin utama. Finkas hanya membaca alamat surel (email) dan profil dasar untuk pencocokan hak akses; tidak ada data kontak, email masuk, atau berkas Google Drive yang diakses.</p>
-    </section>
-
-    <section>
-      <h2>4. Ketiadaan Pelacak Komersial</h2>
-      <p>Finkas tidak menjual, membagikan, atau memonetisasi data pengguna kepada pihak ketiga untuk kepentingan periklanan. Seluruh interaksi ditujukan murni untuk efisiensi pembukuan kas komunitas.</p>
-    </section>
-
-    <section>
-      <h2>5. Hak Pengguna &amp; Penghapusan</h2>
-      <p>Admin grup memiliki hak penuh untuk memperbarui, mengekspor salinan data kas (format Excel/CSV), atau mengajukan penghapusan rekaman data kelompok kapan saja.</p>
-    </section>
-
-    <footer class="footer-actions">
-      <a class="btn-return" href="onboarding.html">KEMBALI KE BERANDA
-        <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-          <path d="M2.5 8h11M9 3.5 13.5 8 9 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
+  <header class="privacy-topbar">
+    <div class="privacy-topbar-inner">
+      <a href="index.html" class="privacy-brand-link">
+        <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-light">
+        <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-dark">
+        <span class="privacy-brand-name">Finkas</span>
+        <span class="privacy-brand-sep" aria-hidden="true">/</span>
+        <span class="privacy-brand-crumb" data-i18n="crumb">Privasi</span>
       </a>
-    </footer>
-  </main>
+
+      <div class="privacy-topbar-actions">
+        <div class="privacy-lang-switch" role="group" aria-label="Pilihan bahasa" data-i18n-aria="langGroup">
+          <button type="button" class="privacy-lang-btn" data-privacy-lang="id" aria-pressed="true">ID</button>
+          <button type="button" class="privacy-lang-btn" data-privacy-lang="en" aria-pressed="false">EN</button>
+        </div>
+
+        <button type="button" class="privacy-icon-btn" id="btn-privacy-theme" aria-label="Ganti tema terang atau gelap" aria-pressed="false">
+          <i class="ph ph-moon" id="privacy-theme-icon" aria-hidden="true"></i>
+        </button>
+
+        <a href="index.html" class="privacy-back-btn">
+          <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+          <span data-i18n="backApp">Kembali ke Aplikasi</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section class="privacy-hero">
+    <div class="privacy-hero-inner">
+      <span class="privacy-eyebrow">
+        <i class="ph ph-shield-check" aria-hidden="true"></i>
+        <span data-i18n="eyebrow">Kebijakan Privasi &amp; Keamanan Data</span>
+      </span>
+
+      <h1 data-i18n="title">Kebijakan Privasi</h1>
+
+      <p class="privacy-lead" data-i18n="lead">Finkas berkomitmen menjaga privasi dan integritas data keuangan kelompok Anda dengan prinsip sederhana, transparan, dan terisolasi.</p>
+
+      <div class="privacy-meta-strip">
+        <span class="privacy-meta-chip"><i class="ph ph-calendar-check" aria-hidden="true"></i><span data-i18n="metaUpdated">Pembaruan terakhir: September 2026</span></span>
+        <span class="privacy-meta-chip"><i class="ph ph-list-checks" aria-hidden="true"></i><span data-i18n="metaSections">5 bagian ringkas</span></span>
+        <span class="privacy-meta-chip"><i class="ph ph-clock" aria-hidden="true"></i><span data-i18n="metaRead">~2 menit baca</span></span>
+      </div>
+
+      <div class="privacy-pillars">
+        <article class="privacy-pillar-card">
+          <span class="privacy-pillar-ico" aria-hidden="true"><i class="ph ph-lock-key"></i></span>
+          <div>
+            <h2 data-i18n="pillar1Title">Terisolasi Per Grup</h2>
+            <p data-i18n="pillar1Desc">Data setiap grup terpisah ketat berdasarkan ID grup aktif.</p>
+          </div>
+        </article>
+        <article class="privacy-pillar-card">
+          <span class="privacy-pillar-ico" aria-hidden="true"><i class="ph ph-prohibit"></i></span>
+          <div>
+            <h2 data-i18n="pillar2Title">Tanpa Pelacak Iklan</h2>
+            <p data-i18n="pillar2Desc">Tidak pernah menjual atau membagikan data ke pihak ketiga.</p>
+          </div>
+        </article>
+        <article class="privacy-pillar-card">
+          <span class="privacy-pillar-ico" aria-hidden="true"><i class="ph ph-sliders-horizontal"></i></span>
+          <div>
+            <h2 data-i18n="pillar3Title">Kendali Penuh Admin</h2>
+            <p data-i18n="pillar3Desc">Ekspor Excel/CSV/JSON, perbarui, atau hapus data kapan saja.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="privacy-layout">
+    <aside class="privacy-aside">
+      <nav class="privacy-toc-nav" aria-label="Daftar isi kebijakan privasi" data-i18n-aria="tocAria">
+        <span class="privacy-toc-title" data-i18n="tocTitle">Daftar Isi</span>
+        <a href="#data-dikelola" class="privacy-toc-link" aria-current="true">
+          <span class="privacy-toc-num">01</span>
+          <span data-i18n="toc1">Data yang Dikelola</span>
+        </a>
+        <a href="#penyimpanan-isolasi" class="privacy-toc-link">
+          <span class="privacy-toc-num">02</span>
+          <span data-i18n="toc2">Penyimpanan &amp; Isolasi</span>
+        </a>
+        <a href="#autentikasi-google" class="privacy-toc-link">
+          <span class="privacy-toc-num">03</span>
+          <span data-i18n="toc3">Autentikasi Google</span>
+        </a>
+        <a href="#tanpa-pelacak" class="privacy-toc-link">
+          <span class="privacy-toc-num">04</span>
+          <span data-i18n="toc4">Ketiadaan Pelacak</span>
+        </a>
+        <a href="#hak-pengguna" class="privacy-toc-link">
+          <span class="privacy-toc-num">05</span>
+          <span data-i18n="toc5">Hak &amp; Penghapusan</span>
+        </a>
+      </nav>
+
+      <div class="privacy-trust-box">
+        <dl class="privacy-trust-list">
+          <div class="privacy-trust-row">
+            <dt data-i18n="trustStorageLabel">Penyimpanan</dt>
+            <dd>Cloud Firestore</dd>
+          </div>
+          <div class="privacy-trust-row">
+            <dt data-i18n="trustPinLabel">Verifikasi PIN</dt>
+            <dd data-i18n="trustPinVal">Hash scrypt</dd>
+          </div>
+        </dl>
+        <button type="button" class="privacy-print-btn" id="btn-privacy-print">
+          <i class="ph ph-printer" aria-hidden="true"></i>
+          <span data-i18n="printBtn">Cetak Halaman</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="privacy-article">
+      <section id="data-dikelola" tabindex="-1" class="privacy-section">
+        <span class="privacy-sec-tag" data-i18n="sec1Tag">01 · Inventaris Data</span>
+        <h2 data-i18n="sec1Title">1. Data yang Dikelola</h2>
+        <p data-i18n="sec1Intro">Finkas hanya menyimpan informasi yang diperlukan pengurus dan anggota untuk menjalankan pembukuan kas kelompok secara akurat.</p>
+
+        <ul class="privacy-item-list">
+          <li class="privacy-item-card">
+            <span class="privacy-item-ico" aria-hidden="true"><i class="ph ph-receipt"></i></span>
+            <div>
+              <strong data-i18n="sec1Item1Title">Informasi Kas</strong>
+              <p data-i18n="sec1Item1Desc">Catatan transaksi pemasukan, pengeluaran, saldo, bukti lampiran opsional, dan rekap iuran bulanan yang dimasukkan oleh pengurus kelompok.</p>
+            </div>
+          </li>
+          <li class="privacy-item-card">
+            <span class="privacy-item-ico" aria-hidden="true"><i class="ph ph-users"></i></span>
+            <div>
+              <strong data-i18n="sec1Item2Title">Data Anggota</strong>
+              <p data-i18n="sec1Item2Desc">Nama atau inisial anggota serta nomor WhatsApp opsional untuk memudahkan konfirmasi rekap pembayaran dan pengingat iuran.</p>
+            </div>
+          </li>
+          <li class="privacy-item-card">
+            <span class="privacy-item-ico" aria-hidden="true"><i class="ph ph-key"></i></span>
+            <div>
+              <strong data-i18n="sec1Item3Title">Data Kredensial</strong>
+              <p data-i18n="sec1Item3Desc">PIN akses kelompok (4 digit) dan kata sandi pengurus disimpan sebagai hash kriptografis scrypt satu arah di sisi server.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section id="penyimpanan-isolasi" tabindex="-1" class="privacy-section">
+        <span class="privacy-sec-tag" data-i18n="sec2Tag">02 · Arsitektur Cloud</span>
+        <h2 data-i18n="sec2Title">2. Penyimpanan &amp; Isolasi Data</h2>
+        <p>
+          <span data-i18n="sec2Part1">Seluruh rekaman kas disimpan pada infrastruktur Google Cloud Firestore dalam skema isolasi ketat per kelompok (</span><code class="privacy-code">groupId</code><span data-i18n="sec2Part2">). Data satu kelompok tidak dapat diakses atau bercampur dengan kelompok lain.</span>
+        </p>
+        <div class="privacy-callout">
+          <span class="privacy-callout-ico" aria-hidden="true"><i class="ph ph-shield-check"></i></span>
+          <div>
+            <strong data-i18n="sec2CalloutTitle">Otorisasi Terbatas Sesi</strong>
+            <p data-i18n="sec2CalloutDesc">Setiap permintaan baca dan tulis diperiksa ulang di server memakai token sesi bertanda tangan yang terikat pada ID grup terkait.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="autentikasi-google" tabindex="-1" class="privacy-section">
+        <span class="privacy-sec-tag" data-i18n="sec3Tag">03 · Kontrol OAuth</span>
+        <h2 data-i18n="sec3Title">3. Autentikasi Google</h2>
+        <p data-i18n="sec3Body">Fitur autentikasi Google Sign-In digunakan terbatas untuk memverifikasi identitas pemilik atau Super Admin utama terhadap daftar email resmi.</p>
+
+        <div class="privacy-scope-grid">
+          <div class="privacy-scope-card is-allow">
+            <div class="privacy-scope-head">
+              <i class="ph-fill ph-check-circle" aria-hidden="true"></i>
+              <span data-i18n="sec3AllowTitle">Yang Diakses</span>
+            </div>
+            <ul>
+              <li data-i18n="sec3Allow1">Alamat email terverifikasi untuk pencocokan hak akses Super Admin</li>
+              <li data-i18n="sec3Allow2">Profil dasar akun untuk konfirmasi sesi aktif</li>
+            </ul>
+          </div>
+          <div class="privacy-scope-card is-deny">
+            <div class="privacy-scope-head">
+              <i class="ph-fill ph-x-circle" aria-hidden="true"></i>
+              <span data-i18n="sec3DenyTitle">Tidak Pernah Diakses</span>
+            </div>
+            <ul>
+              <li data-i18n="sec3Deny1">Daftar kontak atau buku alamat Google Anda</li>
+              <li data-i18n="sec3Deny2">Isi kotak masuk Gmail maupun berkas Google Drive</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="tanpa-pelacak" tabindex="-1" class="privacy-section">
+        <span class="privacy-sec-tag" data-i18n="sec4Tag">04 · Prinsip Netralitas</span>
+        <h2 data-i18n="sec4Title">4. Ketiadaan Pelacak Komersial</h2>
+        <p data-i18n="sec4Body">Finkas tidak menjual, menyewakan, atau membagikan data pengguna maupun data transaksi kepada pihak ketiga untuk periklanan. Seluruh sistem ditujukan murni demi efisiensi pembukuan kas komunitas.</p>
+      </section>
+
+      <section id="hak-pengguna" tabindex="-1" class="privacy-section">
+        <span class="privacy-sec-tag" data-i18n="sec5Tag">05 · Kendali Pemilik Data</span>
+        <h2 data-i18n="sec5Title">5. Hak Pengguna &amp; Penghapusan</h2>
+        <p data-i18n="sec5Body">Pengurus grup memegang hak penuh untuk memperbarui catatan, mengekspor arsip pembukuan kapan saja dalam format Excel/CSV maupun JSON, serta menghapus data grup secara permanen.</p>
+      </section>
+
+      <footer class="privacy-footer-card">
+        <p class="privacy-footer-copy" data-i18n="footerCopy">&copy; 2025–2026 Finkas · Pembukuan kas kelompok yang sederhana, transparan, dan terisolasi.</p>
+        <div class="privacy-footer-actions">
+          <a class="privacy-cta-primary" href="index.html">
+            <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+            <span data-i18n="backApp">Kembali ke Aplikasi</span>
+          </a>
+          <a class="privacy-cta-secondary" href="onboarding.html">
+            <i class="ph ph-house" aria-hidden="true"></i>
+            <span data-i18n="welcomePage">Halaman Utama</span>
+          </a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script type="module" src="src/privacy.js?v=288"></script>
 </body>
 </html>

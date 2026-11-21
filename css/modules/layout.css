@@ -247,23 +247,6 @@ body.dark-mode #btn-theme-toggle {
   margin-bottom: var(--sp-4);
 }
 
-.qp-avatar {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: var(--r-pill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-tint);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 15px;
-  border: 1px solid var(--accent-border);
-  letter-spacing: 0.02em;
-}
-
 .menu-sheet {
   max-width: 380px;
   width: 92%;
@@ -351,7 +334,7 @@ body.dark-mode #btn-theme-toggle {
     border-radius: var(--r-pill);
     background: var(--border-strong);
     margin: 0 auto var(--sp-4);
-    touch-action: none;
+    touch-action: pan-y;
     cursor: grab;
   }
 
@@ -374,89 +357,10 @@ body.dark-mode #btn-theme-toggle {
     display: none !important;
   }
 
-  /* ---- Bottom navigation ---- */
-  .bottom-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 90;
-    display: flex;
-    align-items: stretch;
-    justify-content: space-around;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: var(--sp-1) var(--sp-2) calc(var(--sp-1) + env(safe-area-inset-bottom, 0px));
-  }
-
   body {
     padding-bottom: 76px;
   }
 
-  .bottom-nav-item {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    background: none;
-    border: none;
-    color: var(--text-faint);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    padding: 6px 0;
-    border-radius: var(--r-md);
-    -webkit-tap-highlight-color: transparent;
-    transition: color var(--t-fast);
-  }
-
-  .bottom-nav-item > * {
-    align-self: center;
-  }
-
-  .bottom-nav-item i {
-    font-size: 22px;
-    line-height: 1;
-    transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  .bottom-nav-item:active:not(:disabled) i {
-    transform: scale(0.94);
-    transition-duration: 0.1s;
-  }
-
-  /* Active state is the accent itself — no filled pill. */
-  .bottom-nav-item.active,
-  .bottom-nav-item.active i {
-    color: var(--accent-strong);
-    background: transparent;
-  }
-
-  .bottom-nav-cta {
-    color: var(--text-faint);
-  }
-
-  /* The one square CTA — radius 8px, not a circle. */
-  .bottom-nav-cta i {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent);
-    color: var(--accent-ink);
-    border-radius: var(--r-md);
-    font-size: 22px;
-  }
-
-  .bottom-nav-cta span {
-    margin-top: 2px;
-  }
-
-  /* Large modals anchor to the top on mobile */
   .modal-overlay.modal-top {
     align-items: flex-start;
     padding-top: max(10px, env(safe-area-inset-top, 0px));
@@ -467,32 +371,34 @@ body.dark-mode #btn-theme-toggle {
   }
 
   /* Charts stack vertically — an inline minmax(400px) overflows phones */
-  #modal-statistik .chart-section {
+  :is(#modal-statistik, #workspace-stats) .chart-section {
     grid-template-columns: 1fr !important;
   }
 
   /* Stat cards: two per row, health card full width */
-  #modal-statistik .stats-overview {
+  :is(#modal-statistik, #workspace-stats) .stats-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
-  #modal-statistik .stat-card {
+  :is(#modal-statistik, #workspace-stats) .stat-card {
     padding: var(--sp-3);
   }
 
   /* Large rupiah values must fit the narrow cards */
-  #modal-statistik .stat-card-value {
+  :is(#modal-statistik, #workspace-stats) .stat-card-value {
     font-size: 20px;
     overflow-wrap: anywhere;
   }
 
-  #modal-statistik .stat-card-title {
+  :is(#modal-statistik, #workspace-stats) .stat-card-title {
     font-size: 12px;
   }
 
-  #modal-statistik .stat-card.health-card,
-  #modal-statistik .stat-card:last-child {
+  :is(#modal-statistik, #workspace-stats) .stat-card.health-card,
+  :is(#modal-statistik, #workspace-stats) .stat-card:last-child {
     grid-column: 1 / -1;
   }
 }
+
+.quickpay-sheet .modal-header-standard { touch-action: pan-y; }

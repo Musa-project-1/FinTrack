@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* === FINKAS GRANULAR MODULAR ARCHITECTURE (ALL MODULES < 430 LINES) === */
+/* === FINKAS GRANULAR MODULAR ARCHITECTURE (AUTHORED MODULES < 750 LINES) === */
 @import "./modules/tokens.css";
 @import "./modules/typography.css";
 @import "./modules/base.css";
@@ -10,6 +10,8 @@
 @import "./modules/tables.css";
 @import "./modules/forms.css";
 @import "./modules/groups-modal.css";
+@import "./modules/groups-superadmin.css";
+@import "./modules/pin-input.css";
 @import "./modules/modals.css";
 @import "./modules/view-tampilan.css";
 @import "./modules/view-dues.css";
@@ -22,7 +24,25 @@
 @import "./modules/view-master.css";
 @import "./modules/cdrop.css";
 @import "./modules/navmenu.css";
+@import "./modules/auth-modal.css";
+@import "./modules/groups-picker.css";
+@import "./modules/about-modal.css";
 @import "./modules/queue.css";
 @import "./modules/mpick.css";
+@import "./modules/dpick.css";
 @import "./modules/responsive-tablet.css";
 @import "./modules/responsive-mobile.css";
+@import "./modules/workspace.css";
+@import "./modules/bento-dashboard.css";
+@import "./modules/spotlight.css";
+@import "./modules/self-pay.css";
+@import "./modules/passbook.css";
+@import "./modules/guided-tour.css";
+@import "./modules/kasi-mascot.css";
+@import "./modules/kasi-stage.css";
+@import "./modules/hybrid-layout.css";
+@import "./modules/hybrid-motion.css";
+@import "./modules/hybrid-settings.css";
+@import "./modules/trx-modal.css";
+@import "./modules/hybrid-spotlight.css";
+@import "./modules/hybrid-workspace.css";

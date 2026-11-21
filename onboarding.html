@@ -1,696 +1,649 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka</title>
-<meta name="description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka untuk RT/RW, kas kelas, dan arisan.">
-<meta name="theme-color" content="#0f1011">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka</title>
+  <meta name="description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka untuk RT/RW, kas kelas, dan arisan.">
+  <meta id="meta-theme-color" name="theme-color" content="#faf8f6">
 
-<!-- Social Preview / Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Finkas">
-<meta property="og:title" content="Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka">
-<meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
-<meta property="og:image" content="icons/icon-512.png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka">
-<meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
-<meta name="twitter:image" content="icons/icon-512.png">
-<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <!-- Social Preview / Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Finkas">
+  <meta property="og:title" content="Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka">
+  <meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Finkas - Pembukuan Kas Komunitas Modern &amp; Terbuka">
+  <meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
+  <meta name="twitter:image" content="icons/icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Fase 2.1 — Fraunces 300 + italic axis and Inter 300 are REQUIRED:
-     the display voice is weight 300 with one italic word. Weights that no
-     landing rule uses (Inter 700/800, JetBrains Mono 600/700) are dropped so
-     the browser never synthesises a bold it was not given. -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-/* Finkas Onboarding Icons — Scoped subset (21 icons) for 100% performance */
-@font-face {
-  font-family: "Phosphor-Bold";
-  src: url("fonts/phosphor/bold/Phosphor-Bold.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-.ph-bold {
-  font-family: "Phosphor-Bold" !important;
-  speak: never;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  letter-spacing: 0;
-  -webkit-font-feature-settings: "liga";
-  font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-@font-face {
-  font-family: "Phosphor-Fill";
-  src: url("fonts/phosphor/fill/Phosphor-Fill.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-.ph-fill {
-  font-family: "Phosphor-Fill" !important;
-  speak: never;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  letter-spacing: 0;
-  -webkit-font-feature-settings: "liga";
-  font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.ph-bold.ph-arrow-counter-clockwise:before {
-  content: "\e038";
-}
-.ph-bold.ph-arrow-left:before {
-  content: "\e058";
-}
-.ph-bold.ph-arrow-right:before {
-  content: "\e06c";
-}
-.ph-bold.ph-caret-down:before {
-  content: "\e136";
-}
-.ph-bold.ph-caret-right:before {
-  content: "\e13a";
-}
-.ph-bold.ph-check-circle:before {
-  content: "\e184";
-}
-.ph-bold.ph-list:before {
-  content: "\e2f0";
-}
-.ph-bold.ph-plus-circle:before {
-  content: "\e3d6";
-}
-.ph-bold.ph-sign-in:before {
-  content: "\e428";
-}
-.ph-bold.ph-spinner-gap:before {
-  content: "\e66c";
-}
-.ph-bold.ph-warning-circle:before {
-  content: "\e4e2";
-}
-.ph-fill.ph-chat-circle-dots:before {
-  content: "\e16c";
-}
-.ph-fill.ph-cloud-arrow-up:before {
-  content: "\e1ae";
-}
-.ph-fill.ph-cloud-slash:before {
-  content: "\e1b6";
-}
-.ph-fill.ph-file-text:before {
-  content: "\e23a";
-}
-.ph-fill.ph-lock-key:before {
-  content: "\e2fe";
-}
-.ph-fill.ph-shield-check:before {
-  content: "\e40c";
-}
-.ph-fill.ph-sliders:before {
-  content: "\e432";
-}
-.ph-fill.ph-table:before {
-  content: "\e476";
-}
-.ph-fill.ph-users-three:before {
-  content: "\e68e";
-}
-.ph-fill.ph-vault:before {
-  content: "\e76e";
-}
-</style>
-<link rel="stylesheet" href="css/onboarding.css?v=188">
-<link rel="stylesheet" href="css/onboarding-motion.css?v=188">
+  <link rel="stylesheet" href="css/onboarding-icons.css?v=288">
+  <link rel="stylesheet" href="css/onboarding.css?v=288">
+  <link rel="stylesheet" href="css/onboarding-hero-stage.css?v=288">
+  <link rel="stylesheet" href="css/onboarding-sections.css?v=288">
+  <link rel="stylesheet" href="css/onboarding-footer-portal.css?v=288">
+  <link rel="stylesheet" href="css/onboarding-motion.css?v=288">
+  <script src="src/onboarding-boot-theme.js"></script>
 </head>
 <body>
+  <div class="nav-progress" id="nav-progress" aria-hidden="true"></div>
 
-<!-- Sticky Glass Navigation -->
-<!-- 3.6 scroll progress bar -->
-<div class="nav-progress" id="nav-progress" aria-hidden="true"></div>
+  <!-- 1. Sticky Glass Navbar -->
+  <header class="landing-nav" id="landing-nav">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-brand" id="nav-brand-home">
+        <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img logo-light" width="32" height="32">
+        <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img logo-dark" width="32" height="32">
+        <span class="brand-title">Finkas</span>
+      </a>
 
-<header class="landing-nav" id="landing-nav">
-  <div class="nav-inner">
-    <!-- 3.2 logo mark: explicit width/height prevents unstyled layout shift -->
-    <a href="#state-welcome" class="nav-brand">
-      <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img" width="32" height="32">
-      <span class="brand-title">Finkas</span>
-    </a>
+      <nav class="nav-links" id="nav-links" aria-label="Navigasi utama">
+        <a href="#fitur" class="nav-spy-link">FITUR</a>
+        <a href="#matriks" class="nav-spy-link">MATRIKS</a>
+        <a href="#demo-simulator" class="nav-spy-link">DEMO</a>
+        <a href="#faq" class="nav-spy-link">FAQ</a>
+      </nav>
 
-    <!-- 3.3 nav items mono uppercase di tengah -->
-    <nav class="nav-links" id="nav-links" aria-label="Navigasi utama">
-      <a href="#fitur" class="nav-spy-link">FITUR</a>
-      <a href="#matriks" class="nav-spy-link">MATRIKS</a>
-      <a href="#demo-simulator" class="nav-spy-link">DEMO</a>
-      <a href="#faq" class="nav-spy-link">FAQ</a>
-    </nav>
-
-    <div class="nav-right">
-      <!-- 3.4 CTA putih, panah di kanan (trailing) — BUG-4 fix -->
-      <button class="btn-nav-cta" id="btn-nav-portal">
-        PILIH GRUP KAS <i class="ph-bold ph-arrow-right"></i>
-      </button>
-      <!-- 3.7 hamburger mobile -->
-      <button class="nav-hamburger" id="nav-hamburger"
-              aria-label="Buka menu navigasi" aria-expanded="false"
-              aria-controls="nav-drawer">
-        <i class="ph-bold ph-list" id="hamburger-icon"></i>
-      </button>
-    </div>
-  </div>
-</header>
-
-<!-- 3.7 mobile drawer -->
-<div class="nav-drawer" id="nav-drawer" aria-hidden="true" inert>
-  <nav class="drawer-links" aria-label="Navigasi mobile">
-    <a href="#fitur"           class="drawer-link nav-spy-link">FITUR</a>
-    <a href="#matriks"         class="drawer-link nav-spy-link">MATRIKS</a>
-    <a href="#demo-simulator"  class="drawer-link nav-spy-link">DEMO</a>
-    <a href="#faq"             class="drawer-link nav-spy-link">FAQ</a>
-    <button class="drawer-cta" id="btn-nav-portal-drawer">
-      PILIH GRUP KAS <i class="ph-bold ph-arrow-right"></i>
-    </button>
-  </nav>
-</div>
-<div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
-
-<!-- Layar 1: Landing Page Web2 Fintech Modern -->
-<main id="state-welcome">
-
-  <!-- Bagian 14 — Panggung "Perjalanan Visual dari Langit ke Bumi".
-       Satu latar fixed di belakang SELURUH konten, berisi empat lapisan
-       bertumpuk dari belakang ke depan: langit malam → punggungan jauh →
-       lautan awan → punggungan dekat. js/journey.js hanya menulis custom
-       property --lp-j-* dan --lp-y-* pada .sky-stage saat halaman di-scroll;
-       tidak ada lapisan yang bergerak sendiri. Murni dekoratif: aria-hidden,
-       inert bagi pointer, dan tidak pernah menangkap klik. -->
-  <div class="sky-stage" id="sky-stage" aria-hidden="true">
-
-    <!-- Lapis 1 — Langit malam gelap pekat + foto atmosfer + sapuan kabut teal -->
-    <div class="sky-layer sky-layer-sky">
-      <span class="sky-image"></span>
-      <span class="sky-mist"></span>
-      <span class="sky-scrim"></span>
-    </div>
-
-    <!-- Lapis 2 — Punggungan jauh, berdiri di belakang lautan awan -->
-    <div class="sky-layer sky-layer-ridge-far">
-      <span class="ridge ridge-far"></span>
-    </div>
-
-    <!-- Lapis 3 — Lautan awan: enam bank kabut bergulung + pendaran teal -->
-    <div class="sky-layer sky-layer-clouds">
-      <span class="cloud-glow"></span>
-      <span class="cloud-bank cloud-bank-1"></span>
-      <span class="cloud-bank cloud-bank-2"></span>
-      <span class="cloud-bank cloud-bank-3"></span>
-      <span class="cloud-bank cloud-bank-4"></span>
-      <span class="cloud-bank cloud-bank-5"></span>
-      <span class="cloud-bank cloud-bank-6"></span>
-    </div>
-
-    <!-- Lapis 4 — Punggungan dekat; dasarnya memudar ke kanvas Obsidian -->
-    <div class="sky-layer sky-layer-land">
-      <span class="ridge ridge-near"></span>
-    </div>
-
-  </div>
-
-  <div class="landing-wrap">
-
-    <!-- Hero Center-Aligned (4.1 + 4.2). Atmosfernya kini milik .sky-stage
-         supaya tidak ada garis patah saat gambar hero habis di-scroll. -->
-    <section class="landing-hero">
-      <div class="hero-content">
-        <!-- 8.6 borderTurn — satu stroke 1px yang berjalan sekali mengelilingi
-             blok hero lalu memudar habis. Dekoratif & inert: tanpa gradien,
-             tanpa loop, dan tidak pernah menangkap klik. -->
-        <span class="lp-turn lp-turn-hero" aria-hidden="true">
-          <svg class="lp-turn-svg" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
-            <path class="lp-turn-path" d="M0.5,0.5 H99.5 V99.5 H0.5 Z" pathLength="100"></path>
+      <div class="nav-right">
+        <button type="button" class="btn-theme-toggle" id="btn-toggle-theme" aria-label="Ubah Tema Terang atau Gelap" title="Ganti Mode Terang / Gelap">
+          <svg class="celestial-svg" id="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <mask id="celestial-moon-mask">
+                <rect x="0" y="0" width="24" height="24" fill="white"></rect>
+                <circle class="celestial-cutout" cx="17.5" cy="6.5" r="7" fill="black"></circle>
+              </mask>
+            </defs>
+            <g class="celestial-rays" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <line x1="12" y1="2" x2="12" y2="4.2"></line>
+              <line x1="12" y1="19.8" x2="12" y2="22"></line>
+              <line x1="4.93" y1="4.93" x2="6.49" y2="6.49"></line>
+              <line x1="17.51" y1="17.51" x2="19.07" y2="19.07"></line>
+              <line x1="2" y1="12" x2="4.2" y2="12"></line>
+              <line x1="19.8" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="19.07" x2="6.49" y2="17.51"></line>
+              <line x1="17.51" y1="6.49" x2="19.07" y2="4.93"></line>
+            </g>
+            <circle class="celestial-disc" cx="12" cy="12" r="7.5" fill="currentColor" mask="url(#celestial-moon-mask)"></circle>
           </svg>
-        </span>
-
-        <!-- chip eyebrow — badge-pill dipindah dari nav (3.2) -->
-        <span class="badge-pill hero-eyebrow">
-          <i class="ph-fill ph-users-three"></i> KAS RT/RW · ARISAN · KAS KELAS
-        </span>
-        <h1>Pembukuan Kas Komunitas yang Rapi, <em>Jujur</em>, dan Terbuka</h1>
-        <p class="hero-sub">
-          Kelola kas kelompok, pantau iuran bulanan, dan laporkan keuangan warga secara transparan tanpa rekap manual berulang.
-        </p>
-        <!-- CTA primer: teks dulu, panah trailing — BUG-4 -->
-        <div class="hero-cta-group">
-          <button class="btn-hero-primary" id="btn-to-list">
-            PILIH GRUP KAS <i class="ph-bold ph-arrow-right"></i>
-          </button>
-          <a href="#demo-simulator" class="btn-hero-ghost">
-            COBA DEMO
-          </a>
-        </div>
-        <!-- trust band mono uppercase -->
-        <div class="hero-trust-row">
-          <span><i class="ph-fill ph-shield-check"></i> PIN TERISOLASI</span>
-          <span><i class="ph-fill ph-cloud-slash"></i> 100% OFFLINE-READY</span>
-          <span><i class="ph-fill ph-table"></i> MATRIKS 12 BULAN</span>
-        </div>
+        </button>
+        <button type="button" class="btn-nav-cta" id="btn-nav-portal">
+          <span>PILIH GRUP KAS</span>
+          <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="nav-hamburger" id="nav-hamburger" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-drawer">
+          <i class="ph-bold ph-list" id="hamburger-icon" aria-hidden="true"></i>
+        </button>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <!-- Product Band — mockup pindah dari hero (4.4).
-         data-lp-journey="clouds-in": saat puncak band ini menyentuh puncak
-         viewport, t=0.22 — langit sedang memudar dan lautan awan masuk. -->
-    <section class="product-band" data-lp-journey="clouds-in">
-      <div class="product-band-inner">
-        <!-- data-lp-reveal="blur" — 8.4: frame masuk dengan fade 2.5s sekaligus
-             blur(8px) → 0; 8.6 borderTurn berjalan bersamaan. -->
-        <div class="browser-frame" data-lp-reveal="blur">
-          <span class="lp-turn lp-turn-mockup" aria-hidden="true">
+  <div class="nav-drawer" id="nav-drawer" aria-hidden="true" inert>
+    <nav class="drawer-links" aria-label="Navigasi mobile">
+      <a href="#fitur" class="drawer-link nav-spy-link">FITUR</a>
+      <a href="#matriks" class="drawer-link nav-spy-link">MATRIKS</a>
+      <a href="#demo-simulator" class="drawer-link nav-spy-link">DEMO</a>
+      <a href="#faq" class="drawer-link nav-spy-link">FAQ</a>
+      <button type="button" class="drawer-cta" id="btn-nav-portal-drawer">
+        <span>PILIH GRUP KAS</span>
+        <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+      </button>
+    </nav>
+  </div>
+  <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
+  <!-- SCREEN 1: LANDING PAGE -->
+  <main id="state-welcome">
+    <div class="sky-stage" id="sky-stage" aria-hidden="true">
+      <div class="sky-layer sky-layer-sky">
+        <span class="sky-image"></span>
+        <span class="sky-mist"></span>
+        <span class="sky-scrim"></span>
+      </div>
+      <div class="sky-layer sky-layer-ridge-far">
+        <span class="ridge ridge-far"></span>
+      </div>
+      <canvas class="horizon-canvas" id="horizon-canvas" aria-hidden="true"></canvas>
+      <div class="sky-layer sky-layer-clouds">
+        <span class="cloud-glow"></span>
+        <span class="cloud-bank cloud-bank-1"></span>
+        <span class="cloud-bank cloud-bank-2"></span>
+        <span class="cloud-bank cloud-bank-3"></span>
+        <span class="cloud-bank cloud-bank-4"></span>
+        <span class="cloud-bank cloud-bank-5"></span>
+        <span class="cloud-bank cloud-bank-6"></span>
+      </div>
+      <div class="sky-layer sky-layer-land">
+        <span class="ridge ridge-near"></span>
+      </div>
+    </div>
+
+    <div class="landing-wrap">
+      <!-- 2. Centered Hero -->
+      <section class="landing-hero" id="hero">
+        <div class="hero-content">
+          <span class="lp-turn lp-turn-hero" aria-hidden="true">
             <svg class="lp-turn-svg" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
               <path class="lp-turn-path" d="M0.5,0.5 H99.5 V99.5 H0.5 Z" pathLength="100"></path>
             </svg>
           </span>
-          <div class="browser-topbar">
-            <div class="mac-dots">
-              <span class="mac-dot red"></span>
-              <span class="mac-dot yellow"></span>
-              <span class="mac-dot green"></span>
-            </div>
-            <div class="browser-url">finkas.app/kas-rt-04</div>
+
+          <span class="badge-pill hero-eyebrow">
+            <i class="ph-fill ph-users-three" aria-hidden="true"></i>
+            <span>KAS RT/RW · ARISAN</span>
+            <span>· KAS KELAS</span>
+          </span>
+
+          <h1>
+            <span class="hero-line-mask"><span class="hero-line hero-line-1">Pembukuan Kas</span></span>
+            <span class="hero-line-mask"><span class="hero-line hero-line-2">Komunitas yang Rapi,</span></span>
+            <span class="hero-line-mask"><span class="hero-line hero-line-3"><em class="hero-em">Jujur<svg class="hero-em-arc" viewBox="0 0 180 18" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M3,13 C48,4 128,3 177,11"></path></svg></em>, dan Terbuka</span></span>
+          </h1>
+
+          <p class="hero-sub">Kelola kas kelompok, pantau iuran bulanan, dan laporkan keuangan warga secara transparan tanpa rekap manual berulang.</p>
+
+          <div class="hero-cta-group">
+            <button type="button" class="btn-hero-primary" id="btn-to-list">
+              <span>PILIH GRUP KAS</span>
+              <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
+            </button>
+            <a href="#demo-simulator" class="btn-hero-ghost">COBA DEMO</a>
           </div>
 
-          <div class="browser-content">
-            <div class="mock-header">
-              <span class="mock-header-title">Kas RT 04 / RW 02</span>
-              <span class="mock-group-pill">Online</span>
-            </div>
+          <div class="hero-trust-row">
+            <span><i class="ph-fill ph-shield-check" aria-hidden="true"></i> PIN TERISOLASI</span>
+            <span><i class="ph-fill ph-cloud-slash" aria-hidden="true"></i> 100% OFFLINE-READY</span>
+            <span><i class="ph-fill ph-table" aria-hidden="true"></i> MATRIKS 12 BULAN</span>
+          </div>
+        </div>
+      </section>
 
-            <div class="mock-saldo-card">
-              <div class="mock-card-label">Saldo Kas Saat Ini</div>
-              <div class="mock-saldo font-mono" id="hero-demo-saldo">Rp 14.850.000</div>
+      <!-- 3. Product Showcase Band & Optical Audit Lens -->
+      <section class="product-band" data-lp-journey="clouds-in" aria-label="Pratinjau Buku Kas RT 05 Melati">
+        <div class="product-band-inner">
+          <div class="stage-frame" data-lp-reveal="blur">
+            <span class="lp-turn lp-turn-mockup" aria-hidden="true">
+              <svg class="lp-turn-svg" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
+                <path class="lp-turn-path" d="M0.5,0.5 H99.5 V99.5 H0.5 Z" pathLength="100"></path>
+              </svg>
+            </span>
 
-              <div class="flow-strip">
-                <div class="flow-cell flow-in">
-                  <span class="flow-label">Masuk (+)</span>
-                  <span class="flow-val font-mono">Rp 16.500.000</span>
+            <div class="stage-layer-human">
+              <div class="stage-topbar">
+                <div class="stage-group-meta">
+                  <span class="stage-group-name">Kas RT 05 / RW 03 Melati</span>
+                  <span class="stage-group-year">Tahun Buku 2026</span>
                 </div>
-                <div class="flow-cell flow-out">
-                  <span class="flow-label">Keluar (−)</span>
-                  <span class="flow-val font-mono">Rp 1.650.000</span>
+                <span class="stage-sync-chip"><i class="ph-bold ph-check-circle" aria-hidden="true"></i> <span>Tersinkron</span></span>
+              </div>
+
+              <div class="stage-content">
+                <div class="vault-card">
+                  <div class="mock-card-label">SALDO KAS AKTIF</div>
+                  <div class="mock-saldo font-mono" id="hero-demo-saldo">Rp 14.850.000</div>
+                  <div class="flow-strip">
+                    <div class="flow-cell flow-in"><span class="flow-label">MASUK</span><span class="flow-val font-mono">+Rp 16.500.000</span></div>
+                    <div class="flow-cell flow-out"><span class="flow-label">KELUAR</span><span class="flow-val font-mono">−Rp 1.650.000</span></div>
+                  </div>
+                  <div class="vault-compliance">88% Lunas · Iuran Rp 50.000/bln</div>
+                </div>
+
+                <div class="mock-roster">
+                  <div class="mock-roster-item"><span>Bambang Sudiro <span class="mock-roster-role">· Ketua RT</span></span><span class="mock-badge paid">LUNAS</span></div>
+                  <div class="mock-roster-item"><span>Siti Aminah <span class="mock-roster-role">· Bendahara</span></span><span class="mock-badge paid">LUNAS</span></div>
+                  <div class="mock-roster-item"><span>Budi Santoso</span><span class="mock-badge unpaid" id="hero-demo-budi-badge">BELUM</span></div>
                 </div>
               </div>
-            </div>
 
-            <div class="mock-roster">
-              <div class="mock-roster-item">
-                <span>Bambang Sudiro (Ketua RT)</span>
-                <span class="mock-badge paid">PAID</span>
-              </div>
-              <div class="mock-roster-item">
-                <span>Siti Aminah (Bendahara)</span>
-                <span class="mock-badge paid">PAID</span>
-              </div>
-              <div class="mock-roster-item">
-                <span>Budi Santoso</span>
-                <span class="mock-badge unpaid" id="hero-demo-budi-badge">BELUM</span>
+              <div class="stage-footer-bar">
+                <span>Catat Kas 3-Langkah: Rincian &rarr; Anggota &rarr; Tinjau</span>
+                <span>Ekspor WIB PDF/CSV</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Trust Stats Band — 4 card lama → band mono (4.7) -->
-    <section class="trust-band">
-      <div class="trust-band-inner" data-lp-reveal="fade">
-        <div class="trust-stat">
-          <i class="ph-fill ph-cloud-slash"></i>
-          <span class="trust-stat-label">100% OFFLINE-FIRST</span>
-        </div>
-        <div class="trust-band-sep" aria-hidden="true"></div>
-        <div class="trust-stat">
-          <i class="ph-fill ph-lock-key"></i>
-          <span class="trust-stat-label">PIN TERISOLASI SERVER</span>
-        </div>
-        <div class="trust-band-sep" aria-hidden="true"></div>
-        <div class="trust-stat">
-          <i class="ph-fill ph-table"></i>
-          <span class="trust-stat-label">MATRIKS IURAN 12 BULAN</span>
-        </div>
-        <div class="trust-band-sep" aria-hidden="true"></div>
-        <div class="trust-stat">
-          <i class="ph-fill ph-chat-circle-dots"></i>
-          <span class="trust-stat-label">STRUK WHATSAPP INSTAN</span>
-        </div>
-      </div>
-    </section>
+            <div class="stage-layer-audit" aria-hidden="true">
+              <div class="stage-topbar">
+                <div class="stage-group-meta">
+                  <span class="stage-group-name">AUDIT SERVER · SCRYPT + HMAC-SHA256</span>
+                  <span class="stage-group-year">ISOLASI: RT05-MELATI (LOCKED)</span>
+                </div>
+                <span class="audit-chip">VERIFIED · UTC+7 WIB</span>
+              </div>
 
-    <!-- Bento Grid Fitur Unggulan.
-         data-lp-journey="land-in": t=0.50 — balik lautan awan, punggungan
-         pegunungan mulai muncul di kejauhan. -->
-    <section id="fitur" class="landing-section" data-lp-journey="land-in">
-      <div class="section-header">
-        <span class="badge-pill section-eyebrow">FITUR UNGGULAN</span>
-        <h2>Dirancang Khusus untuk Pengurus Kas</h2>
-        <p>Semua yang Anda butuhkan untuk transparansi dan ketertiban administrasi kelompok.</p>
-      </div>
+              <div class="stage-content">
+                <div class="vault-card">
+                  <div class="mock-card-label">VERIFIKASI FORMULA LEDGER</div>
+                  <div class="audit-formula" id="audit-saldo-formula">Rp 14.850.000 = 297 SETORAN × Rp 50.000</div>
+                  <div class="flow-strip">
+                    <div class="flow-cell"><span class="flow-label">INTEGRITAS ARUS MASUK</span><span class="flow-val font-mono">330 MUTASI TERVALIDASI</span></div>
+                    <div class="flow-cell"><span class="flow-label">ANTRIAN OFFLINE</span><span class="flow-val font-mono">0 PENDING SYNC</span></div>
+                  </div>
+                  <div class="vault-compliance">0 SELISIH HITUNG · HASH RANTAI UTUH</div>
+                </div>
 
-      <!-- 6 Feature Cards (Dark Fintech Ocean Ledger Aesthetic) -->
-      <div class="tile-grid" data-lp-reveal="fade">
+                <div class="mock-roster">
+                  <div class="mock-roster-item"><span>#TX-2611-01 · HASH 9F4A</span><span class="mock-badge paid">VERIFIED</span></div>
+                  <div class="mock-roster-item"><span>#TX-2611-02 · HASH 3C8E</span><span class="mock-badge paid">VERIFIED</span></div>
+                  <div class="mock-roster-item"><span>#TX-2611-03 · HASH 7B2D</span><span class="mock-badge unpaid" id="audit-budi-badge">PENDING</span></div>
+                </div>
+              </div>
 
-        <div class="tile tile-teal">
-          <div class="tile-icon-box"><i class="ph-fill ph-vault"></i></div>
-          <h3 class="tile-title">Ledger Kas Real-Time</h3>
-          <p class="tile-desc">Pencatatan pemasukan dan pengeluaran dengan polaritas warna semantik. Saldo kas terkini terhitung otomatis seketika.</p>
-        </div>
+              <div class="stage-footer-bar">
+                <span>END-TO-END INTEGRITY · 0 SELISIH HITUNG</span>
+                <span>JSON + CSV + PDF WIB</span>
+              </div>
+            </div>
 
-        <div class="tile tile-cyan">
-          <div class="tile-icon-box"><i class="ph-fill ph-table"></i></div>
-          <h3 class="tile-title">Matriks Iuran 12 Bulan</h3>
-          <p class="tile-desc">Lihat status lunas per anggota dalam satu layar kalender iuran tanpa rumus tabel yang rumit.</p>
-        </div>
-
-        <div class="tile tile-green">
-          <div class="tile-icon-box"><i class="ph-fill ph-file-text"></i></div>
-          <h3 class="tile-title">Struk WhatsApp Instan</h3>
-          <p class="tile-desc">Kirim bukti pembayaran anggota dan rekap bulanan ke grup chat warga tanpa mengetik ulang satu per satu.</p>
-        </div>
-
-        <div class="tile tile-indigo">
-          <div class="tile-icon-box"><i class="ph-fill ph-cloud-arrow-up"></i></div>
-          <h3 class="tile-title">Antrean Offline Cerdas</h3>
-          <p class="tile-desc">Mencatat transaksi saat di lapangan tanpa koneksi internet. Otomatis disinkronkan saat terhubung kembali.</p>
-        </div>
-
-        <div class="tile tile-amber">
-          <div class="tile-icon-box"><i class="ph-fill ph-users-three"></i></div>
-          <h3 class="tile-title">Ruang Kas Terpisah</h3>
-          <p class="tile-desc">Satu aplikasi untuk berbagai kebutuhan kas komunitas: RT/RW, kas angkatan sekolah, kas paguyuban, dan arisan.</p>
-        </div>
-
-        <div class="tile tile-purple">
-          <div class="tile-icon-box"><i class="ph-fill ph-sliders"></i></div>
-          <h3 class="tile-title">11 Opsi Kustomisasi</h3>
-          <p class="tile-desc">Sensor privasi saldo, format nominal ringkas, gaya stempel iuran, tema gelap, dan lebih banyak lagi.</p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Showcase Matriks Iuran.
-         data-lp-journey="clouds-out": t=0.78 — lautan awan sudah lewat,
-         hanya dasar pegunungan yang tersisa dan memudar. -->
-    <section id="matriks" class="landing-section" data-lp-journey="clouds-out">
-      <div class="section-header">
-        <span class="badge-pill section-eyebrow">TRANSPARANSI</span>
-        <h2>Matriks Iuran 12 Bulan: Selamat Tinggal Buku Tulis</h2>
-        <p>Deteksi seketika siapa yang sudah bayar, siapa yang menunggak, dan bulan mana yang libur iuran.</p>
-      </div>
-
-      <!-- 6.3 scroll horizontal container dengan hint -->
-      <div class="matrix-scroll-wrap" data-lp-reveal="fade">
-        <div class="matrix-card">
-          <table class="matrix-table font-mono">
-            <thead>
-              <tr>
-                <th>NAMA ANGGOTA</th>
-                <th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th>
-                <th>MEI</th><th>JUN</th><th>JUL</th><th>AGS</th>
-                <th>SEP</th><th>OKT</th><th>NOV</th><th>DES</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Bambang Sudiro</td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-              </tr>
-              <tr>
-                <td>Siti Aminah</td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-libur">LIBUR</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-libur">LIBUR</span></td>
-              </tr>
-              <tr>
-                <td>Budi Santoso</td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <!-- 6.4 BUG-7: inline style → .stamp-unpaid -->
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-                <td><span class="stamp-unpaid">−</span></td>
-              </tr>
-              <tr>
-                <td>Hendra Wijaya</td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-libur">LIBUR</span></td>
-                <td><span class="stamp-libur">LIBUR</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-                <td><span class="stamp-libur">LIBUR</span></td>
-                <td><span class="stamp-paid">PAID</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="matrix-scroll-hint" aria-hidden="true">← geser untuk lihat semua bulan →</div>
-      </div>
-    </section>
-
-    <!-- Interactive Simulator Section -->
-    <section id="demo-simulator" class="landing-section">
-      <div class="section-header">
-        <span class="badge-pill section-eyebrow">DEMO INTERAKTIF</span>
-        <h2>Coba Langsung Kecepatan Finkas</h2>
-        <p>Uji interaktivitas pencatatan kas Finkas secara langsung di browser Anda.</p>
-      </div>
-
-      <div class="simulator-panel" data-lp-reveal="fade">
-        <div class="mock-saldo-card">
-          <div class="mock-card-label">Simulasi Saldo Kas</div>
-          <div class="mock-saldo font-mono" id="sim-saldo">Rp 14.850.000</div>
-        </div>
-
-        <div class="sim-controls">
-          <button class="btn btn-outline btn-pill" id="sim-btn-add-income">
-            <i class="ph-bold ph-plus-circle"></i> Tambah Kas Masuk (+Rp 50.000)
-          </button>
-          <button class="btn btn-outline btn-pill" id="sim-btn-toggle-dues">
-            <i class="ph-bold ph-check-circle"></i> Toggle Iuran Budi Santoso
-          </button>
-          <button class="btn btn-outline btn-pill" id="sim-btn-reset">
-            <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Simulasi
-          </button>
-        </div>
-
-        <div class="sim-feedback font-mono" id="sim-feedback-msg">
-          Klik tombol simulasi di atas untuk menguji responsivitas instan.
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ Accordion Section — 6.6 BUG-9: <details> → <button aria-expanded>.
-         data-lp-journey="solid": t=1.00 — perjalanan tuntas; seluruh panggung
-         sudah pudar dan halaman berdiri di kanvas #0f1011 pekat. -->
-    <section id="faq" class="landing-section" data-lp-journey="solid">
-      <div class="section-header">
-        <span class="badge-pill section-eyebrow">PERTANYAAN UMUM</span>
-        <h2>Pertanyaan yang Sering Diajukan</h2>
-        <p>Jawaban untuk pengurus dan bendahara kelompok.</p>
-      </div>
-
-      <div class="faq-grid" data-lp-reveal="fade">
-
-        <div class="faq-card">
-          <button class="faq-trigger" aria-expanded="false">
-            <span>Apakah data kas antar grup bisa tercampur atau diintip grup lain?</span>
-            <!-- 6.7 caret Phosphor, berputar 180° saat terbuka -->
-            <i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i>
-          </button>
-          <div class="faq-body" role="region">
-            <div class="faq-body-inner">
-              <p>Tidak. Setiap grup memiliki ruang kas terisolasi dengan PIN 4 angka unik. Akses database diproteksi di sisi server sehingga data kas satu grup tidak dapat dilihat oleh grup lain.</p>
+            <div class="audit-lens-rail" id="audit-lens-rail" role="slider" tabindex="0" aria-label="Geser Lensa Transparansi Audit" aria-valuemin="0" aria-valuemax="100" aria-valuenow="76">
+              <span class="audit-lens-grip"><i class="ph-bold ph-arrows-left-right" aria-hidden="true"></i> AUDIT</span>
             </div>
           </div>
         </div>
+      </section>
 
-        <div class="faq-card">
-          <button class="faq-trigger" aria-expanded="false">
-            <span>Siapa saja yang berhak mencatat transaksi kas?</span>
-            <i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i>
-          </button>
-          <div class="faq-body" role="region">
-            <div class="faq-body-inner">
-              <p>Hanya Admin atau pengurus yang mengetahui PIN 4 angka grup yang berhak mencatat pemasukan, pengeluaran, dan mengubah status anggota.</p>
+      <!-- 4. Quiet Trust Band -->
+      <section class="trust-band" aria-label="Keunggulan Operasional Finkas">
+        <div class="trust-band-inner" data-lp-reveal="fade">
+          <div class="trust-stat"><i class="ph-fill ph-cloud-slash" aria-hidden="true"></i><span class="trust-stat-label">100% OFFLINE-FIRST</span></div>
+          <div class="trust-band-sep" aria-hidden="true"></div>
+          <div class="trust-stat"><i class="ph-fill ph-lock-key" aria-hidden="true"></i><span class="trust-stat-label">PIN TERISOLASI SERVER</span></div>
+          <div class="trust-band-sep" aria-hidden="true"></div>
+          <div class="trust-stat"><i class="ph-fill ph-table" aria-hidden="true"></i><span class="trust-stat-label">MATRIKS IURAN 12 BULAN</span></div>
+          <div class="trust-band-sep" aria-hidden="true"></div>
+          <div class="trust-stat"><i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i><span class="trust-stat-label">LAPORAN WIB &amp; WHATSAPP</span></div>
+        </div>
+      </section>
+
+      <!-- 5. Split Ledger Dossier (#fitur) -->
+      <section id="fitur" class="landing-section" data-lp-journey="land-in">
+        <div class="section-header">
+          <h2>Dirancang Khusus untuk Pengurus Kas</h2>
+          <p>Pilih setiap alur di indeks kiri untuk menguji langsung cara kerja Finkas di panel kanan.</p>
+        </div>
+
+        <div class="dossier-shell" data-lp-reveal="fade">
+          <div class="dossier-list" role="tablist" aria-label="Indeks kemampuan Finkas">
+            <span class="dossier-indicator" id="dossier-indicator" aria-hidden="true"></span>
+
+            <button type="button" class="dossier-row is-active" role="tab" id="tab-dossier-0" aria-selected="true" aria-controls="panel-dossier-0" data-dossier-tab="0">
+              <span class="dossier-row-head"><span class="dossier-num">01</span><span class="dossier-title">Wizard Catat Kas 3-Langkah</span></span>
+              <span class="dossier-body"><span class="dossier-body-inner"><span class="dossier-desc">Catat iuran massal atau kas operasional melalui tiga tahap ringkas: rincian tagihan, checklist anggota, lalu tinjau dampak saldo.</span><span class="dossier-tag">ALUR TERPANDU · ANTI SALAH INPUT</span></span></span>
+            </button>
+
+            <button type="button" class="dossier-row" role="tab" id="tab-dossier-1" aria-selected="false" aria-controls="panel-dossier-1" data-dossier-tab="1">
+              <span class="dossier-row-head"><span class="dossier-num">02</span><span class="dossier-title">Bayar Kilat &amp; Rekap WhatsApp</span></span>
+              <span class="dossier-body"><span class="dossier-body-inner"><span class="dossier-desc">Lunasi iuran sekali ketuk dan bagikan ringkasan kas bulanan berformat rapi siap tempel ke grup WhatsApp warga.</span><span class="dossier-tag is-warm">SIAP SALIN · FORMAT GRUP WA</span></span></span>
+            </button>
+
+            <button type="button" class="dossier-row" role="tab" id="tab-dossier-2" aria-selected="false" aria-controls="panel-dossier-2" data-dossier-tab="2">
+              <span class="dossier-row-head"><span class="dossier-num">03</span><span class="dossier-title">Antrean Offline IndexedDB</span></span>
+              <span class="dossier-body"><span class="dossier-body-inner"><span class="dossier-desc">Tetap catat transaksi iuran di lapangan tanpa sinyal internet. Mutasi disimpan di IndexedDB dan disinkronkan saat kembali online.</span><span class="dossier-tag">OFFLINE-FIRST · ZERO DATA LOSS</span></span></span>
+            </button>
+
+            <button type="button" class="dossier-row" role="tab" id="tab-dossier-3" aria-selected="false" aria-controls="panel-dossier-3" data-dossier-tab="3">
+              <span class="dossier-row-head"><span class="dossier-num">04</span><span class="dossier-title">Laporan Buku Kas WIB</span></span>
+              <span class="dossier-body"><span class="dossier-body-inner"><span class="dossier-desc">Perhitungan saldo awal, arus masuk/keluar, dan saldo akhir terkunci pada zona waktu Asia/Jakarta (UTC+7) siap cetak PDF dan CSV.</span><span class="dossier-tag is-warm">PRESISI UTC+7 · PDF &amp; CSV</span></span></span>
+            </button>
+
+            <button type="button" class="dossier-row" role="tab" id="tab-dossier-4" aria-selected="false" aria-controls="panel-dossier-4" data-dossier-tab="4">
+              <span class="dossier-row-head"><span class="dossier-num">05</span><span class="dossier-title">Isolasi PIN &amp; Audit Admin</span></span>
+              <span class="dossier-body"><span class="dossier-body-inner"><span class="dossier-desc">Setiap grup terisolasi dengan PIN 4 angka hash scrypt, sesi HMAC bertanda tangan, serta log aktivitas khusus Super Admin.</span><span class="dossier-tag">SCRYPT + HMAC-SHA256 · MULTI-GRUP</span></span></span>
+            </button>
+          </div>
+
+          <div class="dossier-stage">
+            <div class="specimen-topbar">
+              <span>PRATINJAU LANGSUNG</span>
+              <span class="specimen-counter" id="dossier-counter">01 / 05</span>
             </div>
+
+            <div class="specimen-body">
+              <div class="specimen-pane is-active" role="tabpanel" id="panel-dossier-0" aria-labelledby="tab-dossier-0">
+                <div class="specimen-heading">Setor Iuran Massal · April 2026</div>
+                <div class="specimen-pills">
+                  <button type="button" class="specimen-step-btn is-active" data-wiz-step="1">1. RINCIAN</button>
+                  <button type="button" class="specimen-step-btn" data-wiz-step="2">2. ANGGOTA</button>
+                  <button type="button" class="specimen-step-btn" data-wiz-step="3">3. TINJAU</button>
+                </div>
+                <div class="specimen-lines" id="specimen-wiz-lines">
+                  <div class="specimen-line"><span>Jenis Transaksi</span><span class="specimen-val">Iuran Bulanan Warga</span></div>
+                  <div class="specimen-line"><span>Nominal per Anggota</span><span class="specimen-val is-paid">+Rp 50.000</span></div>
+                  <div class="specimen-line"><span>Periode Buku Kas</span><span class="specimen-mono">APRIL 2026 (WIB)</span></div>
+                </div>
+                <div class="specimen-foot-note" id="specimen-wiz-note">TAHAP 1/3 · VERIFIKASI NOMINAL IURAN PER KEPALA KELUARGA</div>
+              </div>
+
+              <div class="specimen-pane" role="tabpanel" id="panel-dossier-1" aria-labelledby="tab-dossier-1" hidden>
+                <div class="specimen-heading">Ringkasan Siap Tempel Grup Warga</div>
+                <pre class="specimen-wa-pre" id="specimen-wa-text">*REKAP KAS RT 05 MELATI — APR 2026*
+Status Iuran : 24 / 27 Warga Lunas
+Kas Masuk    : +Rp 16.500.000
+Kas Keluar   : -Rp 1.650.000
+Saldo Akhir  : *Rp 14.850.000*
+Update WIB   : Terkunci UTC+7</pre>
+                <div class="specimen-action-row">
+                  <button type="button" class="specimen-btn" id="specimen-copy-wa"><i class="ph-bold ph-copy" aria-hidden="true"></i><span>Salin Teks WA</span></button>
+                  <span class="specimen-mono">TIDAK PERLU REKAP ULANG</span>
+                </div>
+              </div>
+
+              <div class="specimen-pane" role="tabpanel" id="panel-dossier-2" aria-labelledby="tab-dossier-2" hidden>
+                <div class="specimen-heading">Mutasi Lapangan Tanpa Sinyal</div>
+                <div class="specimen-lines">
+                  <div class="specimen-line"><span><strong>#Q-01</strong> &middot; Setoran Budi (Apr)</span><span class="specimen-status-tag" id="queue-status-1">ANTREAN LOKAL</span></div>
+                  <div class="specimen-line"><span><strong>#Q-02</strong> &middot; Iuran Kas RT (+Rp 50.000)</span><span class="specimen-status-tag" id="queue-status-2">ANTREAN LOKAL</span></div>
+                </div>
+                <div class="specimen-action-row">
+                  <button type="button" class="specimen-btn" id="specimen-sync-btn"><i class="ph-bold ph-arrows-clockwise" aria-hidden="true"></i><span>Simulasikan Kembali Online</span></button>
+                  <span class="specimen-mono">TERIKAT ID GRUP</span>
+                </div>
+              </div>
+
+              <div class="specimen-pane" role="tabpanel" id="panel-dossier-3" aria-labelledby="tab-dossier-3" hidden>
+                <div class="specimen-heading">Neraca Tutup Buku · UTC+7 WIB</div>
+                <div class="specimen-pills">
+                  <button type="button" class="specimen-step-btn is-active" data-export-fmt="PDF">PDF SIAP CETAK</button>
+                  <button type="button" class="specimen-step-btn" data-export-fmt="CSV">CSV EXCEL</button>
+                </div>
+                <div class="specimen-lines">
+                  <div class="specimen-line"><span>Saldo Awal Bulan</span><span class="specimen-val">Rp 0</span></div>
+                  <div class="specimen-line"><span>Total Arus Masuk</span><span class="specimen-val is-paid">+Rp 16.500.000</span></div>
+                  <div class="specimen-line"><span>Total Kas Keluar</span><span class="specimen-val is-danger">-Rp 1.650.000</span></div>
+                  <div class="specimen-line is-double"><span>Saldo Akhir (UTC+7 WIB)</span><span class="specimen-val">Rp 14.850.000</span></div>
+                </div>
+                <div class="specimen-foot-note" id="specimen-export-meta">laporan-kas-rt05-apr2026-wib.pdf &middot; A4 Portrait</div>
+              </div>
+
+              <div class="specimen-pane" role="tabpanel" id="panel-dossier-4" aria-labelledby="tab-dossier-4" hidden>
+                <div class="specimen-heading">Ruang Kas Terisolasi per Grup</div>
+                <div class="specimen-lines">
+                  <div class="specimen-line"><span>RT 05 / RW 03 Melati</span><span class="specimen-status-tag is-synced">SESI AKTIF</span></div>
+                  <div class="specimen-line"><span>Arisan Ibu-Ibu Blok C</span><span class="specimen-status-tag">TERISOLASI</span></div>
+                  <div class="specimen-line"><span>Verifikasi Kriptografi</span><span class="specimen-mono">HASH: scrypt</span></div>
+                </div>
+                <div class="specimen-foot-note">SESI: HMAC-SHA256 OK &middot; DATA ANTAR GRUP TIDAK PERNAH BERCAMPUR</div>
+              </div>
+            </div>
+
+            <div class="specimen-foot-note">NAVIGASI: KLIK ATAU PANAH ATAS/BAWAH</div>
           </div>
         </div>
+      </section>
 
-        <div class="faq-card">
-          <button class="faq-trigger" aria-expanded="false">
-            <span>Bagaimana jika bendahara mencatat saat tidak ada koneksi internet?</span>
-            <i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i>
-          </button>
-          <div class="faq-body" role="region">
-            <div class="faq-body-inner">
-              <p>Finkas bekerja 100% offline-first. Anda tetap bisa mencatat kas di lapangan. Transaksi tersimpan aman di antrean lokal perangkat dan otomatis tersinkronisasi saat kembali online.</p>
+      <!-- 6. 12-Month Matrix (#matriks) -->
+      <section id="matriks" class="landing-section" data-lp-journey="clouds-out">
+        <div class="section-header">
+          <h2>Matriks Iuran 12 Bulan: Selamat Tinggal Buku Tulis</h2>
+          <p>Klik sel LUNAS atau tanda belum bayar di bawah ini untuk mencoba pembaruan status dan saldo seketika.</p>
+        </div>
+
+        <div class="matrix-scroll-wrap" data-lp-reveal="fade">
+          <div class="matrix-card">
+            <table class="matrix-table font-mono">
+              <thead>
+                <tr>
+                  <th>NAMA ANGGOTA</th>
+                  <th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th>
+                  <th>MEI</th><th>JUN</th><th>JUL</th><th>AGS</th>
+                  <th>SEP</th><th>OKT</th><th>NOV</th><th>DES</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-tbody">
+                <tr>
+                  <td>Bambang Sudiro</td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                </tr>
+                <tr>
+                  <td>Siti Aminah</td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><span class="stamp-libur">LIBUR</span></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><span class="stamp-libur">LIBUR</span></td>
+                </tr>
+                <tr>
+                  <td>Budi Santoso</td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                  <td><button type="button" class="stamp-btn is-unpaid" data-matrix-cell data-initial="unpaid">−</button></td>
+                </tr>
+                <tr>
+                  <td>Hendra Wijaya</td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><span class="stamp-libur">LIBUR</span></td>
+                  <td><span class="stamp-libur">LIBUR</span></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                  <td><span class="stamp-libur">LIBUR</span></td>
+                  <td><button type="button" class="stamp-btn is-paid" data-matrix-cell data-initial="paid">LUNAS</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="matrix-scroll-hint" aria-hidden="true">Geser ke samping untuk melihat semua bulan</div>
+        </div>
+      </section>
+
+      <!-- 7. Live Simulator & Thermal Receipt Feed -->
+      <section id="demo-simulator" class="landing-section">
+        <div class="section-header">
+          <h2>Coba Langsung Kecepatan Finkas</h2>
+          <p>Uji pembaruan saldo kas dan status iuran anggota secara langsung di halaman ini.</p>
+        </div>
+
+        <div class="simulator-panel" data-lp-reveal="fade">
+          <div class="vault-card">
+            <div class="mock-card-label">Simulasi Saldo Kas</div>
+            <div class="mock-saldo font-mono" id="sim-saldo">Rp 14.850.000</div>
+          </div>
+
+          <div class="sim-controls">
+            <button type="button" class="btn-sim" id="sim-btn-add-income"><i class="ph-bold ph-plus-circle" aria-hidden="true"></i><span>Tambah Kas Masuk (+Rp 50.000)</span></button>
+            <button type="button" class="btn-sim" id="sim-btn-toggle-dues"><i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Toggle Iuran Budi Santoso</span></button>
+            <button type="button" class="btn-sim" id="sim-btn-reset"><i class="ph-bold ph-arrow-counter-clockwise" aria-hidden="true"></i><span>Reset Simulasi</span></button>
+          </div>
+
+          <div class="sim-feedback" id="sim-feedback-msg">Klik tombol simulasi di atas atau sel matriks untuk menguji pembaruan saldo instan.</div>
+
+          <div class="receipt-feed-wrap">
+            <div class="receipt-slot-head">
+              <span class="receipt-slot-slot" aria-hidden="true"></span>
+              <span class="receipt-slot-label">Pita Bukti Transaksi Langsung (WIB)</span>
+              <span class="receipt-slot-slot" aria-hidden="true"></span>
             </div>
+            <div class="receipt-stack" id="sim-receipt-stack" aria-live="polite"></div>
           </div>
         </div>
+      </section>
 
-        <div class="faq-card">
-          <button class="faq-trigger" aria-expanded="false">
-            <span>Apakah laporan bisa dibagikan langsung ke grup WhatsApp?</span>
-            <i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i>
-          </button>
-          <div class="faq-body" role="region">
-            <div class="faq-body-inner">
-              <p>Ya. Tersedia fitur buat struk transaksi sekali ketuk serta ekspor rekap kas bulanan berformat teks yang rapi dan mudah dibaca di WhatsApp.</p>
-            </div>
+      <!-- 8. FAQ Accordion -->
+      <section id="faq" class="landing-section" data-lp-journey="solid">
+        <div class="section-header">
+          <h2>Pertanyaan yang Sering Diajukan</h2>
+          <p>Jawaban singkat untuk pengurus, bendahara, dan anggota kelompok.</p>
+        </div>
+
+        <div class="faq-grid" data-lp-reveal="fade">
+          <div class="faq-card">
+            <button type="button" class="faq-trigger" id="faq-btn-1" aria-expanded="false" aria-controls="faq-panel-1"><span>Apakah data kas antar grup bisa tercampur atau diintip grup lain?</span><i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i></button>
+            <div class="faq-body" id="faq-panel-1" role="region" aria-labelledby="faq-btn-1"><div class="faq-body-inner"><p>Tidak. Setiap grup memiliki ruang kas terisolasi dengan PIN 4 angka unik. Akses database diverifikasi di sisi server dengan hash scrypt dan sesi HMAC sehingga data satu grup tidak dapat dibaca grup lain.</p></div></div>
+          </div>
+          <div class="faq-card">
+            <button type="button" class="faq-trigger" id="faq-btn-2" aria-expanded="false" aria-controls="faq-panel-2"><span>Siapa saja yang berhak mencatat transaksi kas?</span><i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i></button>
+            <div class="faq-body" id="faq-panel-2" role="region" aria-labelledby="faq-btn-2"><div class="faq-body-inner"><p>Anggota dapat melihat transparansi kas dengan PIN grup, sedangkan pencatatan pemasukan, pengeluaran, dan pengelolaan data master dibatasi bagi bendahara atau Admin grup terotorisasi.</p></div></div>
+          </div>
+          <div class="faq-card">
+            <button type="button" class="faq-trigger" id="faq-btn-3" aria-expanded="false" aria-controls="faq-panel-3"><span>Bagaimana jika bendahara mencatat saat tidak ada koneksi internet?</span><i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i></button>
+            <div class="faq-body" id="faq-panel-3" role="region" aria-labelledby="faq-btn-3"><div class="faq-body-inner"><p>Finkas bekerja offline-first. Anda tetap dapat mencatat kas di lapangan; transaksi tersimpan aman di antrean lokal IndexedDB beserta ID grup dan otomatis tersinkronisasi saat koneksi kembali stabil.</p></div></div>
+          </div>
+          <div class="faq-card">
+            <button type="button" class="faq-trigger" id="faq-btn-4" aria-expanded="false" aria-controls="faq-panel-4"><span>Apakah laporan bisa dibagikan langsung ke grup WhatsApp?</span><i class="ph-bold ph-caret-down faq-caret" aria-hidden="true"></i></button>
+            <div class="faq-body" id="faq-panel-4" role="region" aria-labelledby="faq-btn-4"><div class="faq-body-inner"><p>Ya. Tersedia pembuat struk transaksi sekali ketuk, cetak laporan bulanan WIB (PDF/CSV), serta ekspor rekap kas berformat teks rapi yang siap dibagikan ke grup WhatsApp warga.</p></div></div>
           </div>
         </div>
+      </section>
 
+      <!-- 9. Inverted Contrast CTA Banner -->
+      <div class="cta-section-wrap">
+        <section class="landing-cta-banner" data-lp-reveal="fade">
+          <h2>Kelola Kas Komunitas Lebih Rapi Hari Ini</h2>
+          <p>Mulai gunakan Finkas untuk pencatatan kas yang jujur, terbuka, dan bebas rekap manual.</p>
+          <button type="button" class="btn-cta-inverted" id="btn-to-list-bottom"><span>PILIH GRUP KAS SEKARANG</span><i class="ph-bold ph-arrow-right" aria-hidden="true"></i></button>
+        </section>
       </div>
-    </section>
 
-    <!-- 6.8 CTA Banner — Silver inverted, radius 30px, teks hitam, nol inline style (6.11) -->
-    <section class="landing-cta-banner" data-lp-reveal="fade">
-      <h2>Kelola Kas Komunitas Lebih Rapi Hari Ini</h2>
-      <p>Mulai gunakan Finkas untuk pencatatan kas yang jujur, terbuka, dan bebas rekap manual.</p>
-      <button class="btn-cta-silver" id="btn-to-list-bottom">
-        PILIH GRUP KAS SEKARANG <i class="ph-bold ph-arrow-right"></i>
-      </button>
-    </section>
+      <!-- Architectural Colophon Footer -->
+      <footer class="landing-footer">
+        <div class="footer-shell">
+          <div class="footer-top-grid">
+            <div class="footer-brand-col">
+              <div class="footer-brand-name">Finkas</div>
+              <p class="footer-brand-tagline">Pembukuan kas komunitas yang tenang, jujur, dan terbuka.</p>
+              <div class="footer-wib-badge">
+                <span class="footer-wib-dot" aria-hidden="true"></span>
+                <span><span id="footer-wib-clock">--:--:-- WIB</span> &middot; BUKU KAS AKTIF</span>
+              </div>
+            </div>
 
-    <!-- 6.10 Footer — hairline, mono uppercase -->
-    <footer class="landing-footer">
-      <div class="footer-inner">
-        <span class="footer-copy">&copy; 2026 FINKAS · PEMBUKUAN KAS KOMUNITAS</span>
-        <div class="footer-links">
-          <a href="index.html">BUKA APLIKASI</a>
-          <a href="privacy.html">KEBIJAKAN PRIVASI</a>
+            <nav class="footer-nav-links" aria-label="Tautan footer">
+              <a href="#fitur">FITUR</a>
+              <a href="#matriks">MATRIKS</a>
+              <a href="#demo-simulator">DEMO</a>
+              <a href="#faq">FAQ</a>
+              <a href="index.html">BUKA APLIKASI</a>
+              <a href="privacy.html">KEBIJAKAN PRIVASI</a>
+            </nav>
+
+            <button type="button" class="btn-footer-top" id="btn-footer-top">
+              <span>KE LANGIT</span>
+              <span class="btn-footer-top-arrow" aria-hidden="true">&uarr;</span>
+            </button>
+          </div>
+
+          <div class="footer-wordmark-wrap">
+            <button type="button" class="footer-wordmark-btn" id="footer-wordmark-btn" aria-label="Finkas — Verifikasi riak buku kas">
+              <span class="footer-wordmark-stage" id="footer-wordmark-stage" aria-hidden="true">
+                <span class="footer-wordmark-outline">Finkas</span>
+                <span class="footer-wordmark-fill">Finkas</span>
+              </span>
+            </button>
+            <div class="footer-seal-pill" id="footer-seal-pill" aria-live="polite">KLIK WORDMARK UNTUK VERIFIKASI RIAK KAS</div>
+          </div>
+
+          <div class="footer-bottom-row">
+            <span class="footer-copy">&copy; 2026 FINKAS &middot; PEMBUKUAN KAS KOMUNITAS</span>
+            <span class="footer-copy">100% OFFLINE-FIRST &middot; ASIA/JAKARTA (UTC+7)</span>
+          </div>
         </div>
-      </div>
-    </footer>
-
-  </div>
-</main>
-
-<!-- Layar 2: Pilih Grup Kas (Portal) — 7.1 nol shadow, nol border -->
-<section id="state-list" class="hidden">
-  <div class="portal-wrap">
-    <div class="portal-card">
-      <div class="screen-header">
-        <div class="screen-header-icon">
-          <i class="ph-fill ph-users-three"></i>
-        </div>
-        <h2>Pilih Grup Kas</h2>
-        <p>Pilih kelompok kas untuk membuka pembukuan</p>
-      </div>
-
-      <div id="group-list" class="group-list-container">
-        <p class="loading-state">Memuat daftar grup...</p>
-      </div>
-
-      <button class="btn btn-outline" id="btn-to-welcome">
-        <i class="ph-bold ph-arrow-left"></i> Kembali ke Beranda
-      </button>
-
-      <p class="note">
-        Grup baru hanya dibuat admin pemilik.<br>
-        Sudah di dalam? <a href="index.html">Buka aplikasi</a>
-      </p>
+      </footer>
     </div>
-  </div>
-</section>
+  </main>
 
-<!-- Layar 3: Masuk PIN Grup — 7.5 gelap, tidak ada lompatan terang→gelap -->
-<section id="state-pin" class="hidden">
-  <div class="portal-wrap">
-    <div class="portal-card">
-      <div class="pin-card-header">
-        <div class="pin-avatar-icon">
-          <i class="ph-fill ph-lock-key"></i>
+  <!-- SCREEN 2: PORTAL PILIH GRUP KAS (#state-list) -->
+  <section id="state-list" class="hidden" aria-labelledby="portal-list-heading">
+    <div class="portal-wrap">
+      <div class="portal-card">
+        <div class="screen-header">
+          <div class="screen-header-icon"><i class="ph-fill ph-users-three" aria-hidden="true"></i></div>
+          <h2 id="portal-list-heading">Pilih Grup Kas</h2>
+          <p>Pilih kelompok kas untuk membuka pembukuan</p>
         </div>
-        <h2 class="pin-group-title" id="pin-name">Nama Grup</h2>
-        <p class="pin-group-sub">Ketik PIN 4 angka grup ini untuk masuk</p>
+
+        <div class="portal-search-box">
+          <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="group-search-input" class="portal-search-input" aria-label="Cari grup kas" placeholder="Cari grup (mis. RT 04, RT 05, Kelas, Arisan)..." autocomplete="off">
+        </div>
+
+        <div id="group-list" class="group-list-container">
+          <p class="loading-state">Memuat daftar grup...</p>
+        </div>
+
+        <button type="button" class="portal-btn portal-btn-outline" id="btn-to-welcome">
+          <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+          <span>Kembali ke Beranda</span>
+        </button>
+
+        <p class="portal-note">
+          Grup baru dibuat oleh admin pemilik.<br>
+          Sudah di dalam? <a href="index.html">Buka aplikasi</a>
+        </p>
       </div>
-
-      <div class="pin-box-panel">
-        <div class="pin-box-label">PIN 4 Angka</div>
-        <div class="pin-input-row">
-          <input id="pin0" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 1">
-          <input id="pin1" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 2">
-          <input id="pin2" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 3">
-          <input id="pin3" class="pin-digit-box" type="password" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit PIN 4">
-        </div>
-        <div class="pin-security-hint">
-          <i class="ph-fill ph-shield-check"></i>
-          <span>Salah 5 kali, akses terkunci sementara</span>
-        </div>
-      </div>
-
-      <div id="pin-msg" class="pin-msg" aria-live="polite"></div>
-
-      <button class="btn btn-primary" id="btn-enter">
-        <i class="ph-bold ph-sign-in"></i> Masuk Grup
-      </button>
-      <button class="btn btn-outline" id="btn-back">
-        Ganti Grup
-      </button>
     </div>
-  </div>
-</section>
+  </section>
 
-<script type="module" src="src/onboarding.js"></script>
+  <!-- SCREEN 3: VERIFIKASI PIN 4 ANGKA (#state-pin) -->
+  <section id="state-pin" class="hidden" aria-labelledby="pin-name">
+    <div class="portal-wrap">
+      <div class="portal-card">
+        <div class="screen-header">
+          <div class="screen-header-icon"><i class="ph-fill ph-lock-key" aria-hidden="true"></i></div>
+          <h2 id="pin-name">Nama Grup</h2>
+          <p>Ketik PIN 4 angka grup ini untuk masuk</p>
+        </div>
+
+        <div class="pin-box-panel">
+          <div class="pin-box-label">PIN 4 Angka</div>
+          <div class="pin-input-row pin-control">
+            <input id="group-pin" name="group-pin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN grup, 4 angka" aria-describedby="pin-msg" aria-invalid="false">
+            <span class="pin-digit-box" aria-hidden="true"></span>
+            <span class="pin-digit-box" aria-hidden="true"></span>
+            <span class="pin-digit-box" aria-hidden="true"></span>
+            <span class="pin-digit-box" aria-hidden="true"></span>
+          </div>
+          <div class="pin-security-hint">
+            <i class="ph-fill ph-shield-check" aria-hidden="true"></i>
+            <span>Salah 5 kali, akses terkunci sementara</span>
+          </div>
+        </div>
+
+        <div id="pin-msg" class="pin-msg" aria-live="polite"></div>
+
+        <button type="button" class="portal-btn portal-btn-primary" id="btn-enter">
+          <i class="ph-bold ph-sign-in" aria-hidden="true"></i>
+          <span>Masuk Grup</span>
+        </button>
+        <button type="button" class="portal-btn portal-btn-outline" id="btn-back">Ganti Grup</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/onboarding.js"></script>
 </body>
 </html>

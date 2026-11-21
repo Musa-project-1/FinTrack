@@ -8,6 +8,9 @@ function makeElement(id = '') {
   const listeners = new Map();
   return {
     id,
+    open: false,
+    showModal() { this.open = true; },
+    close() { this.open = false; this.dispatchEvent({ type: 'close' }); },
     value: '',
     innerText: '',
     textContent: '',
@@ -158,7 +161,9 @@ beforeEach(() => {
   };
 });
 
-afterEach(() => {
+afterEach(async () => {
+  const { closeModal } = await import('../src/ui/modal.js');
+  domElements.forEach((el) => { if (el.open) closeModal(el.id); });
   globalThis.document = savedDoc;
   globalThis.window = savedWin;
   globalThis.localStorage = savedStorage;

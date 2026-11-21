@@ -93,7 +93,22 @@ test('data gateway rejects member reading audit log with 403', async () => {
     }
   }, res);
   assert.equal(res.statusCode, 403);
-  assert.equal(res.body.message, 'Hanya admin yang dapat membaca riwayat audit.');
+  assert.equal(res.body.message, 'Hanya Super Admin yang dapat membaca riwayat audit.');
+});
+
+test('data gateway rejects group admin reading audit log with 403', async () => {
+  const adminToken = signSession({ role: ROLES.GROUP_ADMIN, gid: GID_A }, GROUP_SESSION_TTL);
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: {
+      action: 'audit',
+      groupId: GID_A,
+      sessionToken: adminToken
+    }
+  }, res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.message, 'Hanya Super Admin yang dapat membaca riwayat audit.');
 });
 
 test('data gateway rejects unknown action with 400', async () => {
@@ -184,6 +199,17 @@ globalThis.fetch = async (url, opts) => {
       }
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
+  if (target.includes(`/documents/groups/${GID_A}/audit_log`)) {
+    return new Response(JSON.stringify({
+      documents: [{
+        fields: {
+          Timestamp: { stringValue: '2026-11-20T10:00:00.000Z' },
+          Aksi: { stringValue: 'LOGIN_ADMIN' },
+          Detail: { stringValue: 'Uji akses superadmin' }
+        }
+      }]
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
   return realFetch(url, opts);
 };
 
@@ -239,4 +265,35 @@ test('data gateway lets a whitelisted superadmin write to a group', async () => 
   }, res);
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.status, true);
+});
+
+test('data gateway rejects a revoked superadmin reading audit log with 403', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: 'revoked@example.com' },
+    GROUP_SESSION_TTL
+  );
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: { action: 'audit', groupId: GID_A, sessionToken: token }
+  }, res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.status, false);
+  assert.equal(res.body.message, 'Tidak memiliki akses ke grup ini.');
+});
+
+test('data gateway allows a whitelisted superadmin reading audit log', async () => {
+  const token = signSession(
+    { role: ROLES.SUPERADMIN, email: SA_WHITELIST[0] },
+    GROUP_SESSION_TTL
+  );
+  const res = mockRes();
+  await handler({
+    method: 'POST',
+    body: { action: 'audit', groupId: GID_A, sessionToken: token }
+  }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, true);
+  assert.equal(Array.isArray(res.body.data?.log), true);
+  assert.equal(res.body.data.log.length, 1);
 });

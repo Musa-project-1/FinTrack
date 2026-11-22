@@ -1,5 +1,5 @@
 import { getActiveIndicatorStyle, renderLunasHtml, renderMiniStamp, renderPassbookEmblem, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
-import { setCurrentHistoryFilter, setItemsToShow } from "../core/state.js";
+import { setCurrentHistoryFilter } from "../core/state.js";
 import { openModal, closeModal, getActiveModalId, switchTab } from "../ui/modal.js";
 import { renderAll, renderTableTransaksi, renderTableRekap } from "../render.js";
 
@@ -28,7 +28,6 @@ export const setHistoryFilter = (filter) => {
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
-  setItemsToShow(20);
   renderTableTransaksi();
 };
 

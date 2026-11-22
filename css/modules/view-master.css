@@ -412,7 +412,9 @@
   background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); white-space: nowrap;
 }
 .audit-filter-chips { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 1px; }
-.audit-filter-chips::-webkit-scrollbar { display: none; }
+@supports not (scrollbar-color: auto) {
+  .audit-filter-chips::-webkit-scrollbar { display: none; }
+}
 .audit-chip {
   height: 30px; min-height: 30px; padding: 0 11px; border-radius: var(--r-pill);
   border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);

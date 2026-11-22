@@ -197,6 +197,7 @@ const setup = (select) => {
     searchInput.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Escape') {
+        e.preventDefault();
         setOpen(ui, false);
         btn.focus();
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

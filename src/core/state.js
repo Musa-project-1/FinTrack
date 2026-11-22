@@ -354,12 +354,9 @@ export const resolveSessionToken = (gid, needsWrite = false) => {
 
 export let currentRekapYear = String(billingPeriod().year);
 export let currentHistoryFilter = 'semua';
-export let itemsToShow = 20;
 
 export const setCurrentRekapYear = (y) => { currentRekapYear = y.toString(); };
 export const setCurrentHistoryFilter = (f) => { currentHistoryFilter = f; };
-export const setItemsToShow = (n) => { itemsToShow = n; };
-export const incrementItemsToShow = (n) => { itemsToShow += n; };
 
 /* ── Chart instances ───────────────────────────────────────────── */
 

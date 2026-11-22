@@ -141,10 +141,16 @@ const syncOpsReview = () => {
 
 /* ── Wizard Step Validation & Transitions ──────────────────────── */
 
+const markControlInvalid = (el) => {
+  if (el && typeof Event !== 'undefined') el.dispatchEvent?.(new Event('invalid'));
+};
+
 const validateIuranStep = (step) => {
   if (step === 1) {
-    const kat = document.getElementById('iuran-kategori')?.value;
+    const katEl = document.getElementById('iuran-kategori');
+    const kat = katEl?.value;
     if (!kat || kat === '-') {
+      markControlInvalid(katEl);
       showToast('Pilih kategori iuran terlebih dahulu.', 'error');
       return false;
     }
@@ -154,9 +160,11 @@ const validateIuranStep = (step) => {
       document.getElementById('iuran-nominal')?.focus?.();
       return false;
     }
-    const bln = document.getElementById('iuran-bulan')?.value;
+    const blnEl = document.getElementById('iuran-bulan');
+    const bln = blnEl?.value;
     const thn = Number(document.getElementById('iuran-tahun')?.value);
     if (!bln || !Number.isFinite(thn) || thn < 2000 || thn > 2100) {
+      if (!bln) markControlInvalid(blnEl);
       showToast('Bulan dan tahun iuran wajib dipilih.', 'error');
       return false;
     }
@@ -175,8 +183,10 @@ const validateIuranStep = (step) => {
 
 const validateOpsStep = (step) => {
   if (step === 1) {
-    const kat = document.getElementById('ops-kategori')?.value;
+    const katEl = document.getElementById('ops-kategori');
+    const kat = katEl?.value;
     if (!kat || kat === '-') {
+      markControlInvalid(katEl);
       showToast('Pilih kategori transaksi terlebih dahulu.', 'error');
       return false;
     }

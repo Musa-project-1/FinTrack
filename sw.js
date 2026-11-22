@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v288';
+const CACHE_NAME = 'finkas-v289';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -17,7 +17,6 @@ const LOCAL_ASSETS = [
   'css/privacy.css',
   'style.css',
   'src/workspace-boot-theme.js',
-  'css/modules/passbook.css',
   'css/modules/groups-superadmin.css',
   'css/modules/pin-input.css',
   'src/ui/pin-input.js',
@@ -67,6 +66,7 @@ const LOCAL_ASSETS = [
   'src/handlers/attachments.js',
   'src/handlers/cash-report.js',
   'src/ui/save-status.js',
+  'src/ui/i18n.js',
   'src/ui/theme.js',
   'src/ui/workspace.js',
   'src/ui/pagination.js',
@@ -77,24 +77,13 @@ const LOCAL_ASSETS = [
   'src/ui/kasi-stage.js',
   'src/ui/kasi-effects.js',
   'src/ui/guided-tour.js',
-  'css/modules/kasi-mascot.css',
-  'css/modules/guided-tour.css',
-  'css/modules/hybrid-layout.css',
-  'css/modules/hybrid-motion.css',
-  'css/modules/hybrid-settings.css',
-  'css/modules/hybrid-spotlight.css',
   'src/ui/hybrid-motion.js',
   'src/ui/hybrid-chart.js',
-  'css/modules/hybrid-workspace.css',
   'src/core/payment-account.js',
   'src/handlers/payment-account.js',
   'src/handlers/self-pay.js',
   'src/render/receipt.js',
-  'css/modules/self-pay.css',
   'src/ui/bulk-dues.js',
-  'css/modules/bento-dashboard.css',
-  'css/modules/spotlight.css',
-  'css/modules/workspace.css',
   'src/ui/modal.js',
   'src/ui/transaction-form.js',
   'src/render.js',
@@ -195,6 +184,8 @@ self.addEventListener('fetch', (event) => {
         const response = await Promise.race([network, timeout]);
         clearTimeout(timer);
         if (response && response.ok) return response;
+        const exact = await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
+        if (exact) return exact;
         const fallback = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
           (await caches.match('/', { cacheName: CACHE_NAME })) ||
           (await caches.match('offline.html', { cacheName: CACHE_NAME }));

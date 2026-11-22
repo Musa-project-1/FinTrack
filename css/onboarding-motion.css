@@ -144,6 +144,12 @@ html.theme-fading * {
 .hero-content .hero-cta-group { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.52s both; }
 .hero-content .hero-trust-row { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.68s both; }
 
+@supports (animation-delay: calc(sibling-index() * 1s)) {
+  .hero-line-mask .hero-line {
+    animation-delay: calc(0.10s + (sibling-index() - 1) * 0.12s);
+  }
+}
+
 .lp-turn {
   position: absolute;
   pointer-events: none;

@@ -108,7 +108,14 @@ export const initBottomSheetGestures = () => {
         overlay.style.setProperty('transition', instant ? 'none' : 'opacity 0.22s ease-out', 'important');
         sheet.style.setProperty('transform', 'translateY(100%)', 'important');
         fadeSheet('0');
-        const dismiss = () => { closeModal(modalId); cleanup(); };
+        const dismiss = () => {
+          closeModal(modalId);
+          if (overlay.open && typeof overlay.addEventListener === 'function') {
+            overlay.addEventListener('close', cleanup, { once: true });
+          } else {
+            cleanup();
+          }
+        };
         if (instant) dismiss();
         else settleTimer = setTimeout(dismiss, 220);
       } else {
@@ -134,7 +141,7 @@ export const initBottomSheetGestures = () => {
     ].filter(Boolean);
 
     dragZones.forEach((zone) => {
-      zone.style.setProperty('touch-action', zone.classList?.contains('hybrid-sheet-handle') ? 'none' : 'pan-y');
+      zone.style.setProperty('touch-action', 'pan-y');
       zone.addEventListener('pointerdown', onPointerDown);
       zone.addEventListener('pointermove', onPointerMove);
       zone.addEventListener('pointerup', onPointerEnd);

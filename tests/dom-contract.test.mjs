@@ -156,7 +156,7 @@ const MODAL_IDS = [
   'modal-audit-log', 'modal-offline-queue',
   'modal-profil-anggota', 'modal-export', 'modal-menu', 'modal-quickpay', 'modal-login',
   'modal-logout', 'modal-about', 'modal-group-pin', 'modal-groups', 'modal-group-admin',
-  'modal-group-credentials', 'modal-tampilan', 'modal-faq'
+  'modal-group-credentials', 'modal-tampilan', 'modal-faq', 'modal-bayar-anggota', 'modal-struk'
 ];
 
 test('every dialog overlay the plan covers still exists', () => {

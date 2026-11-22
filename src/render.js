@@ -4,12 +4,12 @@
  */
 
 export { renderDashboard, renderDropdowns, renderChart } from './render/dashboard.js';
-export { renderTableTransaksi, loadMoreHistory, populateFilterTahunHistory } from './render/transactions.js';
+export { renderTableTransaksi } from './render/transactions.js';
 export { renderTableRekap, renderIuranMobileCards, toggleIuranCard, populateTahunRekap, renderSkippedMonthsList, markNewlyPaidCells } from './render/rekap.js';
 export { bukaProfilAnggota } from './render/profile.js';
 
 import { populateTahunRekap } from './render/rekap.js';
-import { populateFilterTahunHistory, renderTableTransaksi } from './render/transactions.js';
+import { renderTableTransaksi } from './render/transactions.js';
 import { renderDashboard, renderDropdowns, renderChart } from './render/dashboard.js';
 import { renderTableRekap } from './render/rekap.js';
 import { syncCdrop } from './ui/cdrop.js';
@@ -19,7 +19,6 @@ import { syncCdrop } from './ui/cdrop.js';
  */
 export const renderAll = () => {
   populateTahunRekap();
-  populateFilterTahunHistory();
   renderDashboard();
   renderDropdowns();
   renderTableTransaksi();

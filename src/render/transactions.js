@@ -94,9 +94,3 @@ const renderWorkspaceLedger = (rows, count, members, categories) => {
     </button>`;
   }).join('') : '<p class="hybrid-ledger-empty">Belum ada transaksi yang sesuai filter.</p>';
 };
-
-export const loadMoreHistory = () => {
-  renderTableTransaksi();
-};
-
-export const populateFilterTahunHistory = () => {};

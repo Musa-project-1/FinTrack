@@ -129,8 +129,10 @@
     padding: 1px 0 !important;
   }
 
-  .riwayat-chips-group::-webkit-scrollbar {
-    display: none;
+  @supports not (scrollbar-color: auto) {
+    .riwayat-chips-group::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .riwayat-chips-group .chip-btn {

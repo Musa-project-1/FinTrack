@@ -151,6 +151,27 @@ test('failed navigation uses the app shell; API requests bypass interception', a
   assert.equal(api.pending.length, 0);
 });
 
+test('offline navigation serves exact precached standalone pages before falling back to index.html', async () => {
+  const shell = new Response('shell');
+  const onboarding = new Response('onboarding');
+  const w = worker({
+    fetch: async () => { throw new Error('offline'); },
+    caches: {
+      match: async (key, options) => {
+        if (typeof key === 'object' && new URL(key.url).pathname === '/onboarding.html') {
+          assert.equal(options?.cacheName, cacheName);
+          assert.equal(options?.ignoreSearch, true);
+          return onboarding;
+        }
+        return key === 'index.html' ? shell : undefined;
+      }
+    }
+  });
+  const event = w.dispatch('fetch', request('onboarding.html?utm_source=pwa', 'navigate'));
+  assert.equal(await event.response, onboarding);
+  await event.done();
+});
+
 test('CDN misses cache opaque responses under waitUntil; hits avoid fetch', async () => {
   const opaque = { ok: false, type: 'opaque', clone() { return this; } };
   const w = worker({ fetch: async () => opaque });

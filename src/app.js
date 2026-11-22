@@ -29,7 +29,7 @@ import {
   closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
-  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap, loadMoreHistory
+  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap
 } from "./render.js";
 
 import {
@@ -333,7 +333,6 @@ document.addEventListener('click', (e) => {
 
     /* ── History ──────────────────────────────────── */
     case 'set-history-filter': setHistoryFilter(target.dataset.filter); break;
-    case 'load-more':         loadMoreHistory(); break;
 
     /* ── Export / Print ───────────────────────────── */
     case 'copy-monthly-recap': copyMonthlyRecap(); break;

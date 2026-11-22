@@ -22,6 +22,21 @@ export {
 
 const normalizeGroupId = (groupId) => typeof groupId === 'string' ? groupId.trim() : '';
 
+/** Return counts only, excluding legacy rows without a group. */
+export const countQueuedTransactionsByGroup = async () => {
+  if (typeof indexedDB === 'undefined') return {};
+  try {
+    const counts = new Map();
+    for (const item of await getOfflineItems()) {
+      const gid = normalizeGroupId(item?.payload?.groupId);
+      if (gid) counts.set(gid, (counts.get(gid) || 0) + 1);
+    }
+    return Object.fromEntries(counts);
+  } catch {
+    return {};
+  }
+};
+
 /** Read only the target group's rows and count the remaining rows anonymously. */
 export const getGroupOfflineTransactions = async (groupId = getActiveGroupId()) => {
   const targetGid = normalizeGroupId(groupId || getActiveGroupId());

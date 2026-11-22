@@ -249,6 +249,7 @@ for (const screen of ['groups', 'onboarding']) {
     });
     let source = read(screen === 'groups' ? 'src/handlers/groups.js' : 'src/onboarding.js')
       .replace(/^import[\s\S]*?from ["'][^"']+["'];\s*/gm, '')
+      .replace(/^export \{[^}]*\} from ["'][^"']+["'];/gm, '')
       .replaceAll('export const ', 'const ');
     source += screen === 'groups'
       ? '\npendingGroupId = "GRP-TEST"; globalThis.submit = submitGroupPin;'

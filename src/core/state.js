@@ -341,13 +341,13 @@ export const setAdminEmail = (email) => {
   persistSessionField(ADMIN_EMAIL_KEY, adminUserEmail);
 };
 
-/** Drop the admin session and all group credentials. */
-export const clearAdminSession = () => {
+/** Drop the admin session. Full logout also forgets every member session. */
+export const clearAdminSession = ({ preserveGroupSessions = false } = {}) => {
   setAdminSession('');
   setAdminRole('');
   setAdminEmail('');
   setAdminViewMode('admin');
-  clearAllGroupSessions();
+  if (!preserveGroupSessions) clearAllGroupSessions();
 };
 
 /**

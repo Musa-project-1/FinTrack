@@ -15,6 +15,8 @@ import {
   getActiveGroupId,
   getAdminSession,
   getGroups,
+  getGroupSession,
+  getIsAdminSession,
   getIsSuperAdmin,
   setActiveGroupId,
   setGroups,
@@ -30,6 +32,9 @@ import { apiPost } from "../core/api-client.js";
 import { escapeHtml, showToast } from "../core/utils.js";
 import { openModal, closeModal, switchTab } from "../ui/modal.js";
 import { handleUI, renderAdminUI } from "./auth.js";
+
+import { openGroupPicker, initGroupPickerListeners, updateActiveGroupQueueBadge } from "./group-picker.js";
+export { openGroupPicker, renderGroupPicker, initGroupPickerListeners, updateActiveGroupQueueBadge } from "./group-picker.js";
 
 const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!";
 const MIN_ADMIN_PASSWORD = 6;
@@ -103,6 +108,12 @@ export const requestGroupPin = (id) => {
     return;
   }
 
+  if (getGroupSession(id)) {
+    if (id === getActiveGroupId()) closeModal("modal-groups");
+    else enterGroup(id);
+    return;
+  }
+
   pendingGroupId = id;
   const nameEl = document.getElementById("group-pin-name");
   if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
@@ -142,88 +153,6 @@ export const submitGroupPin = async () => {
   enterGroup(pendingGroupId);
 };
 
-/* ── Group picker ────────────────────────────────────────────────── */
-
-/** Muat daftar grup lalu tampilkan layar pilih grup. */
-export const openGroupPicker = async () => {
-  // Show modal instantly with cached data (or skeleton if empty), then refresh in background
-  renderGroupPicker({ loading: !getGroups().length });
-  openModal("modal-groups");
-  await fetchGroups();
-  renderGroupPicker();
-};
-
-/** Gambar daftar grup ke dalam modal pilih grup. */
-export const renderGroupPicker = ({ loading = false } = {}) => {
-  const box = document.getElementById("group-picker-list");
-  if (!box) return;
-  const list = getGroups();
-  const active = getActiveGroupId();
-
-  const exitBtn = document.getElementById("btn-exit-active-group");
-  if (exitBtn) exitBtn.hidden = !active;
-
-  const countEl = document.getElementById("group-picker-count");
-  if (countEl) {
-    if (loading || !list.length) {
-      countEl.hidden = true;
-    } else {
-      countEl.hidden = false;
-      countEl.textContent = `${list.length} grup`;
-    }
-  }
-
-  if (loading && !list.length) {
-    box.innerHTML = `
-      <div class="group-picker-skeleton" aria-busy="true" aria-label="Memuat daftar grup...">
-        <div class="group-skel-row"></div>
-        <div class="group-skel-row"></div>
-      </div>`;
-    return;
-  }
-
-  if (!list.length) {
-    box.innerHTML = `
-      <div class="group-picker-empty">
-        <span class="group-empty-ico" aria-hidden="true"><i class="ph ph-folders"></i></span>
-        <strong>Belum ada grup kas tersedia</strong>
-        <p>Hubungi pengurus pemilik untuk membuat ruang kas baru.</p>
-      </div>`;
-    return;
-  }
-
-  const isSA = getIsSuperAdmin();
-  box.innerHTML = list.map((g) => {
-    const rawName = g.nama || "?";
-    const safeName = escapeHtml(rawName);
-    const safeId = escapeHtml(g.id);
-    const initial = escapeHtml((Array.from(String(rawName).trim())[0] || '?').toUpperCase());
-    const isActive = g.id === active;
-    const subText = isActive
-      ? "Grup aktif saat ini"
-      : isSA
-        ? "Akses langsung tanpa PIN"
-        : "Ketuk untuk masuk dengan PIN";
-    const trailBadge = isActive
-      ? '<span class="group-status-pill is-active"><span class="group-status-dot" aria-hidden="true"></span><span>Aktif</span></span>'
-      : isSA
-        ? '<span class="group-status-pill is-direct"><i class="ph ph-lightning" aria-hidden="true"></i><span>Instan</span></span>'
-        : '<span class="group-pin-badge" aria-hidden="true"><i class="ph ph-lock-simple"></i><span>PIN</span></span>';
-    return `
-    <button type="button" class="group-item${isActive ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}" role="listitem"${isActive ? ' aria-current="true"' : ""}>
-      <span class="group-item-avatar" aria-hidden="true">${initial}</span>
-      <span class="group-item-meta">
-        <span class="group-item-name">${safeName}</span>
-        <span class="group-item-sub">${subText}</span>
-      </span>
-      <span class="group-item-trail">
-        ${trailBadge}
-        <i class="ph ph-caret-right group-item-chev" aria-hidden="true"></i>
-      </span>
-    </button>`;
-  }).join("");
-};
-
 /* ── Enter / exit ────────────────────────────────────────────────── */
 
 /** Masuk grup setelah PIN lolos. */
@@ -233,8 +162,8 @@ export const enterGroup = (id) => {
   if (!found) return;
 
   // An admin session only covers its own group, so switching groups ends it.
-  if (currentActive && currentActive !== id && !getIsSuperAdmin()) {
-    clearAdminSession();
+  if (currentActive && currentActive !== id && getIsAdminSession() && !getIsSuperAdmin()) {
+    clearAdminSession({ preserveGroupSessions: true });
     handleUI();
     renderAdminUI();
   }
@@ -262,8 +191,8 @@ export const exitGroup = () => {
   if (currentGid) {
     clearGroupSession(currentGid);
   }
-  if (!getIsSuperAdmin()) {
-    clearAdminSession();
+  if (getIsAdminSession() && !getIsSuperAdmin()) {
+    clearAdminSession({ preserveGroupSessions: true });
     handleUI();
     renderAdminUI();
   }
@@ -668,6 +597,7 @@ export const initGroupsUI = (onGroupChanged) => {
   if (savedName) document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(savedName));
 
   if (activeGid) {
+    void updateActiveGroupQueueBadge();
     window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { groupId: activeGid, previousGroupId: "" } }));
   } else {
     const hasSeenOnboarding = localStorage.getItem(ONBOARDING_SEEN_KEY);
@@ -678,6 +608,7 @@ export const initGroupsUI = (onGroupChanged) => {
     openGroupPicker();
   }
 
+  initGroupPickerListeners();
   document.getElementById("form-create-group")?.addEventListener("submit", submitCreateGroup);
   document.getElementById("form-add-superadmin")?.addEventListener("submit", submitAddSuperAdminAction);
   document.getElementById("search-group-admin")?.addEventListener("input", renderGroupAdmin);

@@ -29,10 +29,10 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=298">
+  <link rel="stylesheet" href="style.css?v=299">
 </head>
 <body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">
-  <script src="src/workspace-boot-theme.js?v=298"></script>
+  <script src="src/workspace-boot-theme.js?v=299"></script>
   <div class="bg-stage" id="bg-stage" aria-hidden="true">
     <!-- Mode: aurora (default) -->
     <div class="bg-layer bg-aurora">
@@ -78,6 +78,10 @@
           <span class="workspace-brand"><strong>Finkas</strong><small>Buku Kas Digital</small></span>
         </a>
         <button class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup" aria-label="Pilih Grup"></button>
+        <button type="button" class="group-queue-pill" id="group-queue-badge" data-action="open-offline-queue" hidden title="Antrean transaksi offline" aria-label="Antrean transaksi offline">
+          <i class="ph ph-cloud-arrow-up" aria-hidden="true"></i>
+          <span id="group-queue-badge-count">0</span>
+        </button>
       </div>
 
       <div class="hybrid-topbar-role">
@@ -622,6 +626,7 @@
           <span class="groups-count-pill" id="group-picker-count" hidden>0 grup</span>
         </div>
 
+        <div id="group-picker-offline-summary" class="groups-offline-summary" role="status" aria-live="polite" hidden></div>
         <div id="group-picker-list" class="group-picker-list" role="list"></div>
 
         <div class="groups-pin-tip">
@@ -2932,7 +2937,7 @@
     </button>
   </nav>
 
-  <script type="module" src="src/app.js?v=298"></script>
-  <script src="src/sw-register.js?v=298" defer></script>
+  <script type="module" src="src/app.js?v=299"></script>
+  <script src="src/sw-register.js?v=299" defer></script>
 </body>
 </html>

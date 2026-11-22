@@ -2,8 +2,6 @@ import { NAMA_BULAN } from '../core/config.js';
 import { createDuesLedger } from '../core/dues.js';
 import { getActiveGroupId, getIsAdminView, getState } from '../core/state.js';
 import { formatRp, showToast } from '../core/utils.js';
-import { bukaModalTransaksi } from '../handlers/transactions.js';
-import { switchWorkspace } from './workspace.js';
 
 const cellSelector = '[data-bulk-month]';
 const selected = new Set();
@@ -69,7 +67,7 @@ const selectCell = (cell, toggle) => {
   updateBulkUI();
 };
 
-export const toggleBulkMode = () => {
+export const toggleBulkMode = (switchWorkspace) => {
   if (!getIsAdminView()) return;
   if (active) clearSelection();
   else {
@@ -80,7 +78,7 @@ export const toggleBulkMode = () => {
   updateBulkUI();
 };
 
-export const reviewBulkDues = () => {
+export const reviewBulkDues = (bukaModalTransaksi) => {
   if (!getIsAdminView() || !period || period.group !== getActiveGroupId()) return;
   const { month, year, amount } = period;
   const ledger = createDuesLedger(getState(), { year });

@@ -5,6 +5,7 @@ const paths = {
   'finkas/hybrid-motion': './hybrid-motion.js',
   'finkas/dues-status': './dues-status.js',
   'finkas/pagination': './pagination.js',
+  'finkas/bulk-dues': './bulk-dues.js',
   'finkas/receipt': '../render/receipt.js',
   'finkas/self-pay': '../handlers/self-pay.js'
 };
@@ -12,7 +13,7 @@ const paths = {
 export default defineConfig({
   plugins: [svelte()],
   build: {
-    sourcemap: 'inline',
+    sourcemap: true,
     lib: { entry: 'src/svelte/mount.ts', formats: ['es'], fileName: () => 'svelte-dashboard.js' },
     outDir: 'src/ui',
     emptyOutDir: false,

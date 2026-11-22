@@ -4,3 +4,5 @@ export { default as MemberSpotlight } from './MemberSpotlight.svelte';
 export { default as AdminPriorities } from './AdminPriorities.svelte';
 export { default as HistoryLedger } from './HistoryLedger.svelte';
 export { default as WorkspaceStats } from './WorkspaceStats.svelte';
+export { default as DuesMatrix } from './DuesMatrix.svelte';
+export { default as DuesMobileCards } from './DuesMobileCards.svelte';

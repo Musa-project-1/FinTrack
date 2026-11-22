@@ -1,10 +1,11 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { createDuesLedger } from '../src/core/dues.js';
 import { NAMA_BULAN } from '../src/core/config.js';
 import { setActiveGroupId, setCurrentHistoryFilter, setCurrentRekapYear, setAdminSession, setAdminViewMode, setState } from '../src/core/state.js';
+import * as rekap from '../src/render/rekap.js';
 import * as history from '../src/render/transactions.js';
 import * as stats from '../src/ui/hybrid-chart.js';
 import * as adapter from '../src/ui/spotlight.js';
@@ -77,20 +78,35 @@ test('the shipped ESM shares core and motion dependencies and is available offli
   const js = read(file);
   const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
   assert.deepEqual(new Set(imports), new Set(['../core/config.js', '../core/utils.js', '../core/dues.js', '../core/state.js',
-    './hybrid-motion.js', './dues-status.js', './pagination.js', '../render/receipt.js', '../handlers/self-pay.js']));
-  const inline = js.match(/\/\/# sourceMappingURL=data:application\/json;(?:charset=[^;]+;)?base64,([A-Za-z0-9+/=]+)\s*$/);
-  assert.ok(inline, 'bundle has a trailing inline sourcemap');
-  const map = JSON.parse(Buffer.from(inline[1], 'base64'));
-  for (const file of ['HistoryLedger.svelte', 'WorkspaceStats.svelte', 'history-model.ts',
-    'stats-model.ts', 'history.svelte.ts', 'stats.svelte.ts']) {
+    './hybrid-motion.js', './dues-status.js', './pagination.js', './bulk-dues.js', '../render/receipt.js', '../handlers/self-pay.js']));
+  assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
+  const map = JSON.parse(read(file + '.map'));
+  for (const file of ['GroupOverview.svelte', 'BentoDashboard.svelte', 'MemberSpotlight.svelte',
+    'AdminPriorities.svelte', 'HistoryLedger.svelte', 'WorkspaceStats.svelte', 'DuesMatrix.svelte',
+    'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
+    'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
+    'components.ts', 'mount.ts']) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
   }
   assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
 });
 
+// Svelte caches DOM templates and their realm's node constructors.
+let dom;
+after(() => dom?.window.close());
 function installDom(t, file = 'html/index.template.html') {
-  const { window } = new JSDOM(read(file), { url: 'https://example.test' });
-  t.after(() => window.close());
+  dom ??= new JSDOM('', { url: 'https://example.test' });
+  const { window } = dom;
+  window.document.open();
+  window.document.write(read(file));
+  window.document.close();
+  window.localStorage.clear();
+  if (!('inert' in window.HTMLElement.prototype)) {
+    Object.defineProperty(window.HTMLElement.prototype, 'inert', {
+      get() { return this.hasAttribute('inert'); },
+      set(value) { this.toggleAttribute('inert', value); }
+    });
+  }
   for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent',
     'Option', 'MutationObserver', 'localStorage']) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, name);
@@ -426,4 +442,153 @@ test('stats preserves both cards and updates readout, focus and selection synchr
   assert.equal(measured.has(stationary), false);
   assert.equal(stationary.classList.contains('draw-anim'), false);
   check(5);
+});
+
+function installRekap(t) {
+  const byId = installDom(t);
+  setActiveGroupId('rekap-test');
+  setCurrentRekapYear('2025');
+  setAdminSession('');
+  setState(state);
+  bundle.resetRekapFilter();
+  return { byId, matrix: byId('ui-table-rekap'), cards: byId('iuran-cards-mobile') };
+}
+
+test('rekap adapter filters, counts and resets both mounted views', t => {
+  for (const name of ['initDuesPagination', 'filterDuesStatus', 'markNewlyPaidCells',
+    'renderTableRekap', 'renderIuranMobileCards', 'toggleIuranCard']) assert.equal(rekap[name], bundle[name]);
+  const { byId, matrix, cards } = installRekap(t);
+  const names = () => [...matrix.querySelectorAll('.dues-member-name')].map(el => el.textContent);
+  const filter = key => document.querySelector(`[data-status-filter="${key}"]`);
+  assert.deepEqual(names(), ['Ana', 'Budi', 'Cici', 'Dewi', 'Yuni', 'Zara']);
+  assert.deepEqual(['all', 'unpaid', 'paid'].map(key => filter(key).textContent),
+    ['Semua (6)', 'Nunggak (5)', 'Lunas (1)']);
+  rekap.filterDuesStatus('paid');
+  assert.deepEqual(names(), ['Yuni']);
+  assert.equal(filter('paid').getAttribute('aria-pressed'), 'true');
+  rekap.filterDuesStatus('unpaid');
+  assert.equal(matrix.rows.length, 5);
+  assert.equal(cards.children.length, 5);
+  byId('search-member-rekap-mobile').value = '  zAr ';
+  rekap.renderTableRekap();
+  assert.deepEqual(names(), ['Zara']);
+  assert.equal(filter('all').textContent, 'Semua (1)');
+  byId('search-member-rekap').value = 'missing';
+  rekap.renderTableRekap();
+  assert.equal(matrix.rows[0].cells[0].colSpan, 13);
+  assert.match(cards.textContent, /Tidak ada anggota ditemukan/);
+  cards.querySelector('.btn-reset-rekap-filter').click();
+  assert.equal(filter('all').getAttribute('aria-pressed'), 'true');
+  assert.equal(matrix.rows.length, 6);
+  for (const suffix of ['', '-mobile']) assert.equal(byId('search-member-rekap' + suffix).value, '');
+});
+
+test('matrix and cards share payment attributes and dispatch one settlement after rendering', t => {
+  const { matrix, cards } = installRekap(t);
+  const buttons = (surface, action) => surface.querySelectorAll(`[data-action="${action}"]`);
+  for (const surface of [matrix, cards]) {
+    const pay = surface.querySelector('[data-id="A1"][data-month="4"]');
+    assert.equal(pay.dataset.action, 'open-self-pay');
+    assert.equal(pay.dataset.year, '2025');
+    assert.equal(pay.hasAttribute('data-bulk-month'), false);
+    assert.match(pay.getAttribute('aria-label'), /Zara, Mei 2025: Sebagian/);
+    assert.equal(surface.querySelector('[data-id="A1"][data-month="0"]').dataset.action, 'open-month-receipt');
+  }
+  setAdminSession('rekap-session');
+  setAdminViewMode('admin');
+  let settled = 0;
+  document.addEventListener('finkas:dues-settled', () => {
+    settled++;
+    assert.ok(matrix.querySelector('[data-id="A1"][data-month="0"] .is-newly-paid'));
+  });
+  rekap.markNewlyPaidCells(['A1'], 'Januari', '2025');
+  rekap.renderTableRekap();
+  for (const [surface, action] of [[matrix, 'quickpay'], [cards, 'quickpay-card']]) {
+    const pay = surface.querySelector('[data-anggota="A1"][data-bulk-month="4"]');
+    assert.deepEqual({ ...pay.dataset }, {
+      ...(surface === cards ? { status: 'Sebagian' } : {}), action, anggota: 'A1', bulan: 'Mei',
+      bulkMonth: '4', bulkYear: '2025', bulkRemaining: '6000'
+    });
+    assert.equal(buttons(surface, 'open-self-pay').length, 0);
+    assert.equal(buttons(surface, 'toggle-member-pin').length, 0);
+  }
+  rekap.renderTableRekap();
+  assert.equal(settled, 1);
+  assert.equal(matrix.querySelector('.is-newly-paid'), null);
+  rekap.renderIuranMobileCards([state.anggota[0]], ledger, 'shield', 'A1', false);
+  assert.equal(cards.children.length, 1);
+  assert.ok(cards.querySelector('.is-pinned .self-pin-badge'));
+  assert.ok(cards.querySelector('[data-action="open-self-pay"]'));
+  assert.ok(matrix.querySelector('[data-action="quickpay"]'));
+});
+
+test('matrix arrow keys skip exempt cells and hover highlights a mouse column', t => {
+  const { matrix } = installRekap(t);
+  const cell = (row, month) => matrix.rows[row].querySelector(`[data-col-month="${month}"] button`);
+  const table = matrix.closest('table');
+  const move = (from, key, to) => {
+    from.focus();
+    from.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    assert.equal(document.activeElement, to);
+  };
+  move(cell(0, 0), 'ArrowRight', cell(0, 2));
+  move(cell(0, 2), 'ArrowDown', cell(1, 2));
+  move(cell(1, 2), 'ArrowLeft', cell(1, 0));
+  move(cell(1, 0), 'ArrowUp', cell(0, 0));
+  const over = pointerType => cell(0, 2).dispatchEvent(Object.assign(new Event('pointerover', { bubbles: true }), { pointerType }));
+  over('touch');
+  assert.equal(table.querySelector('.is-col-hover'), null);
+  over('mouse');
+  assert.equal(table.querySelectorAll('.is-col-hover').length, matrix.rows.length + 1);
+  table.dispatchEvent(new Event('pointerleave'));
+  assert.equal(table.querySelector('.is-col-hover'), null);
+});
+
+test('mobile accordion preserves expansion on refresh and allows multiple cards during bulk selection', t => {
+  const { byId, cards } = installRekap(t);
+  const [first, second] = cards.children;
+  const check = (card, open) => {
+    const details = card.querySelector('.iuran-card-details');
+    const button = card.querySelector('[data-action="toggle-card"]');
+    assert.equal(card.classList.contains('expanded'), open);
+    assert.equal(details.hasAttribute('inert'), !open);
+    assert.equal(button.getAttribute('aria-expanded'), String(open));
+    assert.equal(button.getAttribute('aria-controls'), details.id);
+  };
+  check(first, false);
+  rekap.toggleIuranCard(first);
+  check(first, true);
+  rekap.toggleIuranCard(second);
+  check(first, false);
+  check(second, true);
+  rekap.renderTableRekap();
+  check(second, true);
+  byId('workspace-iuran').classList.add('bulk-selecting');
+  rekap.toggleIuranCard(first);
+  check(first, true);
+  check(second, true);
+  rekap.toggleIuranCard(second);
+  check(second, false);
+  check(first, true);
+});
+
+test('dues pagination moves both views together and searching resets the page', t => {
+  const { byId, matrix, cards } = installRekap(t);
+  const anggota = Array.from({ length: 13 }, (_, i) => {
+    const name = 'Member ' + String(i + 1).padStart(2, '0');
+    return { ID_Anggota: String(i), Nama_Anggota: name, Status_Aktif: 'Aktif' };
+  });
+  setState({ ...state, anggota, transaksi: [] });
+  rekap.renderTableRekap();
+  rekap.initDuesPagination();
+  assert.equal(matrix.rows.length, 10);
+  const pager = byId('dues-pagination');
+  pager.querySelector('[data-page-step="1"]').click();
+  assert.equal(matrix.rows.length, 3);
+  assert.equal(cards.children.length, 3);
+  assert.equal(matrix.querySelector('.dues-member-name').textContent, 'Member 11');
+  byId('search-member-rekap').value = 'Member 01';
+  rekap.renderTableRekap();
+  assert.equal(cards.querySelector('.iuran-card-name').textContent, 'Member 01');
+  assert.equal(pager.hidden, true);
 });

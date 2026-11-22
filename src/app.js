@@ -130,8 +130,8 @@ document.addEventListener('click', (e) => {
     case 'remove-group':      removeGroupAction(id); break;
 
     /* ── Navigation / menus ───────────────────────── */
-    case 'bulk-toggle': toggleBulkMode(); break;
-    case 'bulk-review': reviewBulkDues(); break;
+    case 'bulk-toggle': toggleBulkMode(switchWorkspace); break;
+    case 'bulk-review': reviewBulkDues(bukaModalTransaksi); break;
     case 'bento-history': openWorkspaceHistory(target.dataset.filter); break;
     case 'spotlight-month': showSpotlightDetail(Number(target.dataset.index)); break;
     case 'spotlight-unpin': setMemberPin('', true); break;

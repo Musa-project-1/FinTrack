@@ -8,6 +8,7 @@
       "finkas/hybrid-motion": ["./src/ui/hybrid-motion.js"],
       "finkas/dues-status": ["./src/ui/dues-status.js"],
       "finkas/pagination": ["./src/ui/pagination.js"],
+      "finkas/bulk-dues": ["./src/svelte/bulk-dues.d.ts", "./src/ui/bulk-dues.js"],
       "finkas/receipt": ["./src/svelte/receipt.d.ts", "./src/render/receipt.js"],
       "finkas/self-pay": ["./src/svelte/self-pay.d.ts", "./src/handlers/self-pay.js"]
     },

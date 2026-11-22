@@ -4,7 +4,11 @@ import { updateDashboardStore, type DashboardInput } from './store.svelte';
 import { registerSpotlightMount } from './spotlight.svelte';
 import { registerHistoryMount } from './history.svelte';
 import { registerStatsMount } from './stats.svelte';
+import { registerRekapMount } from './rekap.svelte';
 
+export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
+  renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
+export { computeRekapViewModel } from './rekap-model';
 export { initHistoryPagination, renderTableTransaksi, computeHistoryViewModel } from './history.svelte';
 export { renderHybridChart, computeStatsViewModel, selectStatsMonth } from './stats.svelte';
 export { computeDashboardViewModel, updateDashboardStore, setSelectedSparkMonth } from './store.svelte';
@@ -17,6 +21,7 @@ export {
 registerSpotlightMount(mountSvelteDashboard);
 registerHistoryMount(mountSvelteDashboard);
 registerStatsMount(mountSvelteDashboard);
+registerRekapMount(mountSvelteDashboard);
 const mounted = new WeakSet<Element>();
 
 export function mountSvelteDashboard() {
@@ -27,12 +32,15 @@ export function mountSvelteDashboard() {
   const admin = document.getElementById?.('admin-priorities');
   const history = document.getElementById?.('hybrid-ledger-list');
   const stats = document.getElementById?.('workspace-stats');
-  if (![group, bento, member, admin, history, stats].some(el => el?.ownerDocument && !mounted.has(el))) return;
+  const matrix = document.getElementById?.('ui-table-rekap');
+  const cards = document.getElementById?.('iuran-cards-mobile');
+  if (![group, bento, member, admin, history, stats, matrix, cards].some(el => el?.ownerDocument && !mounted.has(el))) return;
   // Rolldown defers component initialization until the browser DOM exists.
   const components: typeof import('./components') = require('./components');
   for (const [target, component] of [
     [group, components.GroupOverview], [bento, components.BentoDashboard], [member, components.MemberSpotlight],
-    [admin, components.AdminPriorities], [history, components.HistoryLedger], [stats, components.WorkspaceStats]
+    [admin, components.AdminPriorities], [history, components.HistoryLedger], [stats, components.WorkspaceStats],
+    [matrix, components.DuesMatrix], [cards, components.DuesMobileCards]
   ] as const) {
     if (!target?.ownerDocument || mounted.has(target)) continue;
     target.replaceChildren();

@@ -1,0 +1,2 @@
+# Keep bundled source text out of Tailwind utility detection.
+/src/ui/svelte-dashboard.js.map

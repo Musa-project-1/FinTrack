@@ -1,6 +1,8 @@
 // Synthetic ledger only. No user storage, sessions, or network.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import { readFileSync } from 'node:fs';
 const realDate = Date;
 globalThis.Date = class extends realDate {
   constructor(...args) { super(...(args.length ? args : ['2026-10-27T12:00:00+07:00'])); }
@@ -13,21 +15,21 @@ after(() => { globalThis.Date = realDate; globalThis.fetch = realFetch; });
 const { setState, setCurrentRekapYear } = await import('../src/core/state.js');
 const { renderTableRekap } = await import('../src/render/rekap.js');
 const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/handlers/export.js');
-function element() {
-  return { children: [], className: '', innerHTML: '', textContent: '', value: '',
-    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    appendChild(child) { this.children.push(child); }, setAttribute() {}, closest() { return null; } };
+const read = path => readFileSync(new URL('../html/' + path, import.meta.url), 'utf8');
+const html = read('index.template.html').replace('<!-- @@INJECT_MODALS@@ -->',
+  () => read('modals/transactions.html') + read('modals/reports.html'));
+const { window } = new JSDOM(html, { url: 'https://example.test', pretendToBeVisual: true });
+for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text',
+  'Comment', 'Event', 'CustomEvent', 'Option', 'MutationObserver', 'navigator', 'requestAnimationFrame']) {
+  Object.defineProperty(globalThis, name, { value: window[name], configurable: true });
 }
-const els = new Map(['ui-table-rekap', 'iuran-cards-mobile', 'modal-export'].map(id => [id, element()]));
-globalThis.document = {
-  dispatchEvent() {}, createDocumentFragment: element, createElement: element,
-  getElementById: id => els.get(id) || null, querySelectorAll: () => []
-};
+after(() => window.close());
+const byId = id => document.getElementById(id);
 let clipboard = '', printed = '';
-Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { async writeText(text) { clipboard = text; } } } });
-globalThis.window = { dispatchEvent() {}, addEventListener() {}, open: () => ({
+window.navigator.clipboard = { async writeText(text) { clipboard = text; } };
+window.open = () => ({
   document: { open() {}, write(html) { printed = html; }, close() {} }, focus() {}, addEventListener() {}, print() {}
-}) };
+});
 const fixture = (amounts) => ({
   anggota: [{ ID_Anggota: 'TEST', Nama_Anggota: 'Anggota Uji', Status_Aktif: 'Aktif', Tanggal_Gabung: '2026-10-01' }],
   kategori: [], kasStart: '10-2026', skippedMonths: [],
@@ -35,15 +37,15 @@ const fixture = (amounts) => ({
 });
 function render(amounts) {
   setCurrentRekapYear('2026'); setState(fixture(amounts));
-  els.get('ui-table-rekap').children = []; renderTableRekap();
-  return els.get('ui-table-rekap').children[0].children[0].children[10];
+  renderTableRekap();
+  return byId('ui-table-rekap').rows[0].cells[10];
 }
 test('Rp5,000 installment is partial in desktop/mobile/annual print and WA; second installment settles', async () => {
   const october = render([5000]);
   assert.doesNotMatch(october.innerHTML, /class="dues-seal\b/, 'Partial payment cannot be LUNAS');
   assert.match(october.innerHTML, /Sebagian/i);
   assert.match(october.innerHTML, /5\.000/, 'The settled amount stays visible for partial payment');
-  assert.match(els.get('iuran-cards-mobile').innerHTML, /Sebagian/i);
+  assert.match(byId('iuran-cards-mobile').innerHTML, /Sebagian/i);
   await createGroupReminderMessage();
   assert.match(clipboard, /5\.000/);
   await copyMonthlyRecap();
@@ -63,34 +65,32 @@ test('matrix and mobile strips distinguish overdue, future, skipped and pre-star
     kasStart: '08-2026',
     skippedMonths: ['09-2026']
   });
-  els.get('ui-table-rekap').children = [];
   renderTableRekap();
-  const row = els.get('ui-table-rekap').children[0].children[0].children;
+  const row = byId('ui-table-rekap').rows[0].cells;
   assert.match(row[7].innerHTML, /data-status="Libur"/, 'July predates the cash ledger');
   assert.match(row[9].innerHTML, /data-status="Libur"/, 'September was skipped');
   assert.match(row[10].innerHTML, /data-status="Belum"/, 'October is due in WIB');
   assert.match(row[11].innerHTML, /data-status="Nanti"/, 'November is in the future');
-  const strip = els.get('iuran-cards-mobile').innerHTML.match(/class="dues-mini-strip"[^>]*>(.*?)<\/div>/s)[1];
+  const strip = byId('iuran-cards-mobile').innerHTML.match(/class="dues-mini-strip"[^>]*>(.*?)<\/div>/s)[1];
   assert.equal((strip.match(/data-status=/g) || []).length, 12);
 });
 
 test('bulk payment form keeps partial member selectable and disables settled or exempt periods', async () => {
   const { renderCheckboxIuran } = await import('../src/ui/modal.js');
-  for (const id of ['iuran-bulan', 'iuran-tahun', 'iuran-nominal', 'count-terpilih', 'summary-count', 'summary-nominal', 'summary-total', 'btn-pilih-semua', 'iuran-checkbox-anggota']) els.set(id, element());
-  els.get('iuran-bulan').value = 'Oktober';
-  els.get('iuran-tahun').value = '2026';
-  els.get('iuran-nominal').value = '5.000';
+  byId('iuran-bulan').value = 'Oktober';
+  byId('iuran-tahun').value = '2026';
+  byId('iuran-nominal').value = '5.000';
   setState(fixture([5000]));
   renderCheckboxIuran();
-  const partial = els.get('iuran-checkbox-anggota').innerHTML;
+  const partial = byId('iuran-checkbox-anggota').innerHTML;
   assert.doesNotMatch(partial, /disabled/, 'a partial payment must remain selectable');
   assert.match(partial, /Sebagian/i);
   assert.match(partial, /5\.000/);
   setState(fixture([5000, 5000]));
   renderCheckboxIuran();
-  assert.match(els.get('iuran-checkbox-anggota').innerHTML, /disabled/);
+  assert.match(byId('iuran-checkbox-anggota').innerHTML, /disabled/);
   setState({ ...fixture([]), skippedMonths: ['10-2026'] });
   renderCheckboxIuran();
-  assert.match(els.get('iuran-checkbox-anggota').innerHTML, /Tidak ditagih/);
-  assert.match(els.get('iuran-checkbox-anggota').innerHTML, /disabled/);
+  assert.match(byId('iuran-checkbox-anggota').innerHTML, /Tidak ditagih/);
+  assert.match(byId('iuran-checkbox-anggota').innerHTML, /disabled/);
 });

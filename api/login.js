@@ -69,16 +69,19 @@ const emailAllowed = (storedEmail, suppliedEmail) =>
 /**
  * Verify a group admin password against the private config, falling back to the
  * legacy location on the group document and upgrading it when it matches.
+ * @param {Record<string, any>|null} [existingGroup]
  * @returns {Promise<{matches: boolean, email: string}>}
  */
-async function verifyGroupAdmin(groupId, password, email, headers) {
+async function verifyGroupAdmin(groupId, password, email, headers, existingGroup = null) {
   const config = await getPrivateConfig(groupId, headers);
   let storedHash = config?.admin_password_hash || '';
   let storedEmail = (config?.admin_email || '').toLowerCase().trim();
   let legacy = false;
 
   if (!storedHash) {
-    const group = await fsGet(groupDoc(groupId), headers);
+    const group = existingGroup && typeof existingGroup === 'object'
+      ? existingGroup
+      : await fsGet(groupDoc(groupId), headers);
     storedHash = group?.admin_password_hash || '';
     storedEmail = storedEmail || (group?.admin_email || '').toLowerCase().trim();
     legacy = Boolean(storedHash);
@@ -157,9 +160,13 @@ export default async function handler(req, res) {
 
     const headers = await requireFirestoreHeaders();
 
+    const group = groupId ? await fsGet(groupDoc(groupId), headers) : null;
+    const groupExists = Boolean(group);
+    const auditGroup = (groupId && groupExists) ? groupId : 'utama';
+
     // ── 1. Group admin ────────────────────────────────────────────────
-    if (groupId) {
-      const groupResult = await verifyGroupAdmin(groupId, password, email, headers);
+    if (groupExists) {
+      const groupResult = await verifyGroupAdmin(groupId, password, email, headers, group);
       if (groupResult.matches) {
         await Promise.all([clearRateLimit(idKey), clearRateLimit(ipKey)]);
         await writeAuditLog(groupId, 'LOGIN_ADMIN', `Login admin grup dari ${ip}`, headers);
@@ -181,7 +188,7 @@ export default async function handler(req, res) {
     // ── 2. Master admin (owner) ───────────────────────────────────────
     if (await verifyMasterPassword(password, headers)) {
       await Promise.all([clearRateLimit(idKey), clearRateLimit(ipKey)]);
-      await writeAuditLog(groupId || 'utama', 'LOGIN_ADMIN', `Login master admin dari ${ip}`, headers);
+      await writeAuditLog(auditGroup, 'LOGIN_ADMIN', `Login master admin dari ${ip}`, headers);
 
       let matchedEmail = '';
       try {
@@ -207,7 +214,7 @@ export default async function handler(req, res) {
           isAdmin: true,
           isSuperAdmin: true,
           role: ROLES.SUPERADMIN,
-          groupId,
+          groupId: groupExists ? groupId : '',
           email: matchedEmail
         }
       });
@@ -215,8 +222,10 @@ export default async function handler(req, res) {
 
     await registerFailedAttempt(ipKey, MAX_ATTEMPTS_IP, LOCK_WINDOW_MS);
     await registerFailedAttempt(idKey, MAX_ATTEMPTS_ID, LOCK_WINDOW_MS);
-    const auditGroup = groupId || 'utama';
-    await writeAuditLog(auditGroup, 'LOGIN_GAGAL', `Percobaan gagal dari ${ip}`, headers);
+    const detail = groupId && !groupExists
+      ? `Percobaan gagal dari ${ip} (grup tidak ditemukan: ${groupId})`
+      : `Percobaan gagal dari ${ip}`;
+    await writeAuditLog(auditGroup, 'LOGIN_GAGAL', detail, headers);
 
     return sendJson(res, 401, { status: false, message: INVALID_CREDENTIALS });
   } catch (error) {

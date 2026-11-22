@@ -248,6 +248,7 @@ export async function uploadAttachment(gid, payload, headers) {
 
   const timestamp = nowIso();
   const proofDoc = {
+    groupId: gid,
     idTransaksi,
     name,
     type: detectedType,
@@ -363,7 +364,7 @@ export async function readAttachment(gid, payload, headers) {
   }
 
   const proof = await fsGet(`${col(gid, PROOFS_COLLECTION)}/${idTransaksi}`, headers);
-  if (!proof) {
+  if (!proof || (proof.groupId && proof.groupId !== gid)) {
     return {
       status: false,
       notFound: true,
@@ -391,7 +392,8 @@ export async function readAttachment(gid, payload, headers) {
  */
 export async function exportAttachments(gid, headers) {
   const docs = await fsListAll(col(gid, PROOFS_COLLECTION), headers);
-  const attachments = docs.map((doc) => {
+  const scoped = docs.filter((doc) => !doc.fields?.groupId || doc.fields.groupId === gid);
+  const attachments = scoped.map((doc) => {
     const f = doc.fields || {};
     return {
       idTransaksi: f.idTransaksi || doc.name.split('/').pop(),

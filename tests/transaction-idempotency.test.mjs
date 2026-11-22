@@ -203,6 +203,7 @@ test('buildReceiptWrite formats Firestore update with exists:false precondition'
   assert.ok(write.update?.name?.includes(`groups/${gid}/${OPERATIONS_COLLECTION}/${opId}`));
 
   const receiptFields = write.update?.fields;
+  assert.equal(receiptFields?.groupId?.stringValue, gid);
   assert.equal(receiptFields?.operationId?.stringValue, opId);
   assert.equal(receiptFields?.fingerprint?.stringValue, fp);
   assert.equal(receiptFields?.action?.stringValue, 'tambahTransaksi');

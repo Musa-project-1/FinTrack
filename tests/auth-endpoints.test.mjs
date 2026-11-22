@@ -1,10 +1,12 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
 
 let rateLimitLocked = false;
 let dynamicFetchMock = null;
+const oauthResponse = mockServiceAccount();
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const target = String(url);
@@ -12,7 +14,7 @@ globalThis.fetch = async (url, opts) => {
     const res = await dynamicFetchMock(target, opts);
     if (res !== undefined) return res;
   }
-  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target.startsWith('https://oauth2.googleapis.com/')) return oauthResponse();
   if (target.includes('/documents/_ratelimit') && rateLimitLocked) {
     return new Response(JSON.stringify({
       fields: {
@@ -24,7 +26,10 @@ globalThis.fetch = async (url, opts) => {
   if (target.includes('/audit_log/')) {
     return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
-  return realFetch(url, opts);
+  if (target.includes('/documents/_ratelimit/')) {
+    return Response.json({}, { status: opts?.method === 'PATCH' ? 200 : 404 });
+  }
+  throw new Error(`Unexpected request: ${target}`);
 };
 
 after(() => { globalThis.fetch = realFetch; });
@@ -291,4 +296,41 @@ test('login as master admin binds whitelisted email to superadmin session', asyn
   } finally {
     dynamicFetchMock = null;
   }
+});
+
+test('missing group rejects PIN access and routes admin login audits to utama', async (t) => {
+  const groupId = 'GRP-GHOST';
+  const password = 'owner-password';
+  const audits = [];
+  dynamicFetchMock = async (url, opts) => {
+    const path = new URL(url).pathname;
+    if (path.endsWith(`/documents/groups/${groupId}`)) return Response.json({}, { status: 404 });
+    if (path.endsWith(`/groups/${groupId}/private/config`)) {
+      return Response.json({ fields: { pin_hash: { stringValue: legacyDigest('1234', `finkas-pin:${groupId}`) } } });
+    }
+    if (path.endsWith('/documents/settings/app_config')) {
+      return Response.json({ fields: { admin_password_hash: { stringValue: legacyDigest(password) } } });
+    }
+    if (path.includes('/audit_log/') && opts?.method === 'PATCH') {
+      audits.push({ path, fields: JSON.parse(opts.body).fields });
+      return Response.json({});
+    }
+  };
+  t.after(() => { dynamicFetchMock = null; });
+  const pin = mockRes();
+  await pinHandler({ method: 'POST', body: { groupId, pin: '4321' } }, pin);
+  assert.equal(pin.statusCode, 404);
+  assert.equal(audits.length, 0);
+
+  const wrong = mockRes();
+  await loginHandler({ method: 'POST', body: { groupId, password: 'wrong' } }, wrong);
+  assert.equal(wrong.statusCode, 401);
+  assert.equal(wrong.body.message, 'Email atau Password Admin salah!');
+  const master = mockRes();
+  await loginHandler({ method: 'POST', body: { groupId, password } }, master);
+  assert.equal(master.statusCode, 200);
+  assert.equal(master.body.data.groupId, '');
+  assert.deepEqual(audits.map(({ fields }) => fields.Aksi.stringValue), ['LOGIN_GAGAL', 'LOGIN_ADMIN']);
+  assert.equal(audits[0].fields.Detail.stringValue, `Percobaan gagal dari unknown (grup tidak ditemukan: ${groupId})`);
+  for (const { path } of audits) assert.match(path, /\/documents\/groups\/utama\/audit_log\//);
 });

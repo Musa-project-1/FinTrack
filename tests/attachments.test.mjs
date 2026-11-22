@@ -265,6 +265,7 @@ test('uploadAttachment stores proof doc and updates Bukti metadata atomically', 
   const proofDoc = mockDb.docs.get(`groups/${GID_A}/transaction_proofs/${TRX_ID}`);
   assert.ok(proofDoc, 'proof document must exist');
   assert.equal(proofDoc.idTransaksi, TRX_ID);
+  assert.equal(proofDoc.groupId, GID_A);
   assert.equal(proofDoc.base64, base64);
 
   const txDoc = mockDb.docs.get(`groups/${GID_A}/transaksi/${TRX_ID}`);

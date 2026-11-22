@@ -363,7 +363,8 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
 
     const anggota = memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || ''));
     const kategori = categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || ''));
-    const attachments = proofDocs.map((d) => {
+    const belongsToGroup = (doc) => !doc.fields?.groupId || doc.fields.groupId === gid;
+    const attachments = proofDocs.filter(belongsToGroup).map((d) => {
       const f = d.fields || {};
       return {
         idTransaksi: f.idTransaksi || d.name.split('/').pop(),
@@ -375,7 +376,7 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
       };
     }).sort((a, b) => (a.idTransaksi || '').localeCompare(b.idTransaksi || ''));
 
-    const operations = operationDocs.map((d) => {
+    const operations = operationDocs.filter(belongsToGroup).map((d) => {
       const f = d.fields || {};
       return {
         operationId: f.operationId || d.name.split('/').pop(),
@@ -456,12 +457,18 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
  * @param {object} headers
  */
 export async function restoreSnapshot(gid, payload, headers) {
-  const sourceGid = cleanText(payload?.sourceGroupId || payload?.data?.group?.id || payload?.data?.groupId, 40);
+  const rawData = payload?.data || payload;
+  const explicitSourceGid = cleanText(payload?.sourceGroupId || rawData?.group?.id || rawData?.groupId, 40);
+  const embeddedGids = [rawData?.anggota, rawData?.kategori, rawData?.transaksi]
+    .flatMap((records) => Array.isArray(records) ? records.map((r) => cleanText(r?.groupId, 40)) : []);
+  const sourceGid = explicitSourceGid && explicitSourceGid !== gid
+    ? explicitSourceGid
+    : embeddedGids.find((id) => id && id !== gid) || explicitSourceGid || embeddedGids.find(Boolean);
   if (sourceGid && sourceGid !== gid && !payload?.confirmCrossGroup && !payload?.allowCrossGroup) {
     return fail(`Snapshot berasal dari grup "${sourceGid}", bukan grup tujuan "${gid}". Konfirmasi pemulihan lintas grup diperlukan.`);
   }
 
-  const validated = validateSnapshot(payload?.data || payload);
+  const validated = validateSnapshot(rawData);
   if (!validated.valid) {
     return fail(validated.error);
   }
@@ -534,6 +541,7 @@ export async function restoreSnapshot(gid, payload, headers) {
         update: {
           name: memberName(gid, PROOFS_COLLECTION, att.idTransaksi),
           fields: encodeFields({
+            groupId: gid,
             idTransaksi: att.idTransaksi,
             name: att.name,
             type: att.type,
@@ -555,6 +563,7 @@ export async function restoreSnapshot(gid, payload, headers) {
         update: {
           name: memberName(gid, OPERATIONS_COLLECTION, op.operationId),
           fields: encodeFields({
+            groupId: gid,
             operationId: op.operationId,
             fingerprint: op.fingerprint,
             action: op.action,

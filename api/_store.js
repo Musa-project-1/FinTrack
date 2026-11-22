@@ -114,10 +114,15 @@ export const nowIso = () => new Date().toISOString();
  * caller's operation, but it is always logged.
  */
 export async function writeAuditLog(gid, aksi, detail, headers) {
+  if (!isValidGroupId(gid)) {
+    console.error('[finkas] Audit log skipped for invalid groupId:', gid, aksi);
+    return;
+  }
   try {
     const id = newId('LOG');
     await fsPatch(col(gid, AUDIT_COLLECTION) + `/${id}`, {
       ID_Log: id,
+      groupId: gid,
       Timestamp: nowIso(),
       Aksi: aksi,
       Detail: String(detail || '').slice(0, 500)

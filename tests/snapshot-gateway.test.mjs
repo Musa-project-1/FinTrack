@@ -2,6 +2,10 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { SnapshotFirestore, successful, request, setupLedger, proofFile, PNG } from './helpers/snapshot-firestore.mjs';
 
+const { writeAuditLog } = await import('../api/_store.js');
+const { readAuditLog } = await import('../api/_group-read.js');
+const { getOperationReceipt } = await import('../api/_transaction-idempotency.js');
+
 const db = new SnapshotFirestore();
 const originalFetch = globalThis.fetch;
 globalThis.fetch = (...args) => db.fetch(...args);
@@ -36,6 +40,10 @@ test('gateway snapshot roundtrip preserves installments, exact proof bytes, sett
   });
   db.reset(gid); // Disaster: only the independently provisioned group/session survives.
   await successful(gid, { action: 'restoreSnapshot', sourceGroupId: gid, data: backup.data });
+  assert.equal(db.docs.get(`groups/${gid}/transaction_proofs/${id}`).groupId, gid);
+  for (const { operationId } of backup.data.operations) {
+    assert.equal(db.docs.get(`groups/${gid}/operations/${operationId}`).groupId, gid);
+  }
   assert.deepEqual((await successful(gid, { action: 'exportSnapshot' })).data.snapshot.data, backup.data);
   assert.deepEqual((await successful(gid, { action: 'readAttachment', idTransaksi: id })).data, backup.data.attachments[0]);
   await successful(gid, first);
@@ -222,4 +230,54 @@ test('uploadAttachment uses atomic updateMask with exists:true to prevent orphan
 
   // Ensure NO proof doc was created in Firestore
   assert.equal(db.docs.has(`groups/${gid}/transaction_proofs/TRX-NONEXISTENT`), false);
+});
+
+test('embedded foreign group IDs require confirmation even after matching source metadata', async () => {
+  const gid = db.reset();
+  for (const collection of ['anggota', 'kategori', 'transaksi']) {
+    const data = { anggota: [], kategori: [], transaksi: [], [collection]: [{ groupId: gid }, { groupId: 'GRP-OTHER' }] };
+    for (const sourceGroupId of [undefined, gid]) {
+      const res = await request(gid, { action: 'restoreSnapshot', sourceGroupId, data });
+      assert.equal(res.statusCode, 400);
+      assert.match(res.body.message, /GRP-OTHER.*Konfirmasi pemulihan lintas grup diperlukan/);
+    }
+  }
+});
+
+test('audit writes require a valid group ID and audit reads retain only local and legacy records', async () => {
+  const gid = db.reset();
+  await writeAuditLog('invalid/group', 'INVALID', 'detail', {});
+  assert.equal(db.events.length, 0);
+  await writeAuditLog(gid, 'LOCAL', 'detail', {});
+  db.docs.set(`groups/${gid}/audit_log/legacy`, { Aksi: 'LEGACY' });
+  db.docs.set(`groups/${gid}/audit_log/foreign`, { Aksi: 'FOREIGN', groupId: 'GRP-OTHER' });
+  const log = await readAuditLog(gid, {});
+  assert.deepEqual(log.map((entry) => entry.Aksi), ['LOCAL', 'LEGACY']);
+  assert.equal(log[0].groupId, gid);
+});
+
+test('proof moves stamp legacy proofs and scoped reads ignore foreign proofs and receipts', async () => {
+  const gid = db.reset();
+  const form = await setupLedger(gid);
+  const row = await successful(gid, { action: 'tambahTransaksi', dataForm: form });
+  const id = row.data.ID_Transaksi;
+  await successful(gid, { action: 'uploadAttachment', idTransaksi: id, file: proofFile });
+  const prefix = `groups/${gid}/transaction_proofs/`;
+  delete db.docs.get(prefix + id).groupId;
+  const edit = await successful(gid, { action: 'editTransaksi', idTransaksi: id, dataForm: { ...form, bulanIuran: 'April' } });
+  const movedId = edit.data.idTransaksi;
+  assert.notEqual(movedId, id);
+  const proof = db.docs.get(prefix + movedId);
+  assert.equal(proof.groupId, gid);
+  proof.groupId = 'GRP-OTHER';
+  assert.equal((await request(gid, { action: 'readAttachment', idTransaksi: movedId })).statusCode, 404);
+  assert.deepEqual((await successful(gid, { action: 'exportAttachments' })).data.attachments, []);
+  db.docs.set(`groups/${gid}/operations/op-foreign`, { groupId: 'GRP-OTHER' });
+  assert.equal(await getOperationReceipt(gid, 'op-foreign', {}), null);
+  const { snapshot } = (await successful(gid, { action: 'exportSnapshot' })).data;
+  assert.deepEqual(snapshot.data.operations, []);
+  assert.deepEqual(snapshot.data.attachments, []);
+  const rejectedMove = await request(gid, { action: 'editTransaksi', idTransaksi: movedId, dataForm: form });
+  assert.equal(rejectedMove.statusCode, 400);
+  assert.equal(db.docs.get(prefix + movedId).groupId, 'GRP-OTHER');
 });

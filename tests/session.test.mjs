@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { signRawSession } from './helpers/signed-session.mjs';
 
 // The signing secret must be set before the module resolves it.
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
@@ -212,4 +213,27 @@ test('a failed attempt after the window elapsed starts the count over', () => {
   assert.equal(later.count, 1);
   assert.equal(later.locked, false);
   assert.equal(later.since, 1_000_000 + windowMs);
+});
+
+test('verifySession rejects invalid group claims and timestamps on signed tokens', () => {
+  for (const role of [ROLES.MEMBER, ROLES.GROUP_ADMIN]) {
+    for (const gid of ['', '   ', 42, undefined]) {
+      assert.equal(verifySession(signRawSession(JSON.stringify({ role, gid, exp: 9999999999 }))), null);
+    }
+  }
+  for (const claims of ['"exp":1e999', '"exp":9999999999,"iat":1e999', '"exp":9999999999,"iat":"100"']) {
+    assert.equal(verifySession(signRawSession(`{"role":"member","gid":"${GROUP}",${claims}}`)), null);
+  }
+});
+
+test('live group checks require an issue time after revocation and matching ownership for every role', () => {
+  for (const allowed of [canReadGroup, canWriteGroup]) {
+    const admin = { role: ROLES.GROUP_ADMIN, gid: GROUP };
+    assert.equal(allowed(admin, GROUP, { revokedAfter: 0 }), false);
+    assert.equal(allowed({ ...admin, iat: 0 }, GROUP, { revokedAfter: 0 }), true);
+    const owner = { role: ROLES.SUPERADMIN, email: 'owner@example.com' };
+    for (const session of [admin, owner]) {
+      assert.equal(allowed(session, GROUP, { groupId: 'GRP-OTHER' }, [owner.email]), false);
+    }
+  }
 });

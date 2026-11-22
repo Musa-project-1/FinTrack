@@ -110,8 +110,9 @@ export default async function handler(req, res) {
 
       const headers = await requireFirestoreHeaders();
       const groupInfo = await fsGet(groupDoc(groupId), headers);
-      // Session revocation: the caller passed the cheap authz above, so a failure
-      // now can only mean the token predates a PIN/credential change (revokedAfter).
+      if (!groupInfo) {
+        return sendJson(res, 404, { status: false, message: 'Grup tidak ditemukan.' });
+      }
       if (!canReadGroup(session, groupId, groupInfo, superadminEmails) ||
           (SUPERADMIN_READ_ACTIONS.includes(action) &&
             (session.role !== ROLES.SUPERADMIN || !canWriteGroup(session, groupId, groupInfo, superadminEmails))) ||
@@ -160,8 +161,9 @@ export default async function handler(req, res) {
       }
       const headers = await requireFirestoreHeaders();
       const groupInfo = await fsGet(groupDoc(groupId), headers);
-      // Revocation: passed the cheap admin check but fails with the live group
-      // doc ⇒ the token was issued before a credential change.
+      if (!groupInfo) {
+        return sendJson(res, 404, { status: false, message: 'Grup tidak ditemukan.' });
+      }
       if (!canWriteGroup(session, groupId, groupInfo, superadminEmails)) {
         return unauthorized(res, 'Sesi sudah tidak berlaku setelah perubahan kredensial. Silakan masuk kembali.');
       }

@@ -475,9 +475,13 @@ export async function editTransaction(gid, payload, headers) {
 
     // Atomically move proof document if target changed ID and proof exists
     const existingProof = await fsGet(`${col(gid, PROOFS_COLLECTION)}/${idTarget}`, headers);
+    if (existingProof?.groupId && existingProof.groupId !== gid) {
+      return fail('Bukti transaksi tidak ditemukan.');
+    }
     if (existingProof) {
       const movedProof = {
         ...existingProof,
+        groupId: gid,
         idTransaksi: targetId
       };
       writes.push({

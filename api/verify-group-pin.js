@@ -78,15 +78,17 @@ export default async function handler(req, res) {
     }
 
     const headers = await requireFirestoreHeaders();
-    const config = await getPrivateConfig(groupId, headers);
+    const [group, config] = await Promise.all([
+      fsGet(groupDoc(groupId), headers),
+      getPrivateConfig(groupId, headers)
+    ]);
+    if (!group) {
+      return sendJson(res, 404, { status: false, message: 'Grup tidak ditemukan.' });
+    }
     const storedPin = config?.pin_hash || '';
 
     // Legacy groups stored the hash on the group document itself; migrate on use.
-    let legacyStored = '';
-    if (!storedPin) {
-      const group = await fsGet(groupDoc(groupId), headers);
-      legacyStored = group?.pin_hash || '';
-    }
+    const legacyStored = !storedPin ? (group?.pin_hash || '') : '';
 
     const candidate = storedPin || legacyStored;
 

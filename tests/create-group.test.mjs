@@ -1,11 +1,13 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 const WHITELIST = ['owner@example.com'];
+const oauthResponse = mockServiceAccount();
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const target = String(url);
-  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target === 'https://oauth2.googleapis.com/token') return oauthResponse();
   if (target.includes('/documents/settings/app_config')) {
     return new Response(JSON.stringify({
       fields: {
@@ -21,7 +23,7 @@ globalThis.fetch = async (url, opts) => {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  return realFetch(url, opts);
+  throw new Error(`Unexpected request: ${target}`);
 };
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';

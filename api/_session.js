@@ -105,9 +105,13 @@ export function verifySession(token) {
   } catch (err) {
     return null;
   }
-  if (!payload || typeof payload.exp !== 'number') return null;
+  if (!payload || typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) return null;
   if (payload.exp <= Math.floor(Date.now() / 1000)) return null;
   if (!Object.values(ROLES).includes(payload.role)) return null;
+
+  if (payload.iat !== undefined && (typeof payload.iat !== 'number' || !Number.isFinite(payload.iat))) return null;
+  if ((payload.role === ROLES.MEMBER || payload.role === ROLES.GROUP_ADMIN) &&
+      (typeof payload.gid !== 'string' || !payload.gid.trim())) return null;
 
   return payload;
 }
@@ -118,6 +122,17 @@ export function verifySession(token) {
  */
 export const readSession = (body) => verifySession(String(body?.sessionToken || '').trim());
 
+function matchesGroupInfo(session, groupId, groupInfo) {
+  if (groupInfo?.groupId && String(groupInfo.groupId).trim() !== groupId) return false;
+  const revokedAfter = groupInfo?.revokedAfter;
+  if (session.role === ROLES.SUPERADMIN || revokedAfter == null || revokedAfter === '') return true;
+  const revokedSec = typeof revokedAfter === 'number'
+    ? revokedAfter
+    : Math.floor(new Date(revokedAfter).getTime() / 1000);
+  return !Number.isFinite(revokedSec) ||
+    (typeof session.iat === 'number' && Number.isFinite(session.iat) && session.iat >= revokedSec);
+}
+
 /**
  * True when the session may read the given group's data.
  * Supports server-side revocation if groupInfo.revokedAfter is present.
@@ -127,24 +142,17 @@ export const readSession = (body) => verifySession(String(body?.sessionToken || 
  * callers that have not loaded the whitelist yet.
  * @param {ReturnType<typeof verifySession>} session
  * @param {string} groupId
- * @param {{revokedAfter?: number|string}|null} [groupInfo]
+ * @param {{groupId?: string, revokedAfter?: number|string}|null} [groupInfo]
  * @param {string[]|null} [superadminEmails]
  */
 export const canReadGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
-  if (!session) return false;
+  if (!session || !matchesGroupInfo(session, groupId, groupInfo)) return false;
   if (session.role === ROLES.SUPERADMIN) {
     if (!superadminEmails) return true;
     const email = String(session.email || '').toLowerCase().trim();
     return Boolean(email) && superadminEmails.includes(email);
   }
-  if (!groupId || session.gid !== groupId) return false;
-  if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
-    const revokedSec = typeof groupInfo.revokedAfter === 'number'
-      ? groupInfo.revokedAfter
-      : Math.floor(new Date(groupInfo.revokedAfter).getTime() / 1000);
-    if (session.iat < revokedSec) return false;
-  }
-  return true;
+  return Boolean(groupId) && session.gid === groupId;
 };
 
 /**
@@ -152,24 +160,17 @@ export const canReadGroup = (session, groupId, groupInfo = null, superadminEmail
  * Supports server-side revocation if groupInfo.revokedAfter is present.
  * @param {ReturnType<typeof verifySession>} session
  * @param {string} groupId
- * @param {{revokedAfter?: number|string}|null} [groupInfo]
+ * @param {{groupId?: string, revokedAfter?: number|string}|null} [groupInfo]
  * @param {string[]|null} [superadminEmails] See canReadGroup.
  */
 export const canWriteGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
-  if (!session) return false;
+  if (!session || !matchesGroupInfo(session, groupId, groupInfo)) return false;
   if (session.role === ROLES.SUPERADMIN) {
     if (!superadminEmails) return true;
     const email = String(session.email || '').toLowerCase().trim();
     return Boolean(email) && superadminEmails.includes(email);
   }
-  if (session.role !== ROLES.GROUP_ADMIN || !groupId || session.gid !== groupId) return false;
-  if (groupInfo?.revokedAfter && typeof session.iat === 'number') {
-    const revokedSec = typeof groupInfo.revokedAfter === 'number'
-      ? groupInfo.revokedAfter
-      : Math.floor(new Date(groupInfo.revokedAfter).getTime() / 1000);
-    if (session.iat < revokedSec) return false;
-  }
-  return true;
+  return session.role === ROLES.GROUP_ADMIN && Boolean(groupId) && session.gid === groupId;
 };
 
 /* ── Secret hashing (scrypt) ─────────────────────────────────────── */

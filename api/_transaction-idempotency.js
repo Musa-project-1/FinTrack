@@ -73,7 +73,12 @@ export function transactionIdForOperation(gid, operationId, index = null) {
 export async function getOperationReceipt(gid, operationId, headers) {
   if (!isValidOperationId(operationId)) return null;
   try {
-    return await fsGet(operationDoc(gid, operationId), headers);
+    const receipt = await fsGet(operationDoc(gid, operationId), headers);
+    if (receipt?.groupId && receipt.groupId !== gid) {
+      console.error('[finkas] getOperationReceipt groupId mismatch:', gid, operationId, receipt.groupId);
+      return null;
+    }
+    return receipt;
   } catch (err) {
     console.error('[finkas] getOperationReceipt failed:', gid, operationId, err?.message);
     throw err;
@@ -91,6 +96,7 @@ export async function getOperationReceipt(gid, operationId, headers) {
  */
 export function buildReceiptWrite(gid, operationId, fingerprint, action, response) {
   const receiptDoc = {
+    groupId: gid,
     operationId,
     fingerprint,
     action,

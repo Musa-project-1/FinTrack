@@ -57,6 +57,7 @@ export async function readAuditLog(gid, headers) {
   const docs = await fsListAll(col(gid, 'audit_log'), headers, 3, true);
   return docs
     .map((doc) => doc.fields || {})
-    .sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime())
+    .filter((entry) => !entry.groupId || entry.groupId === gid)
+    .sort(byTimestampDesc)
     .slice(0, 100);
 }

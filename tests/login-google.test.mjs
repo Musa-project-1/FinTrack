@@ -1,17 +1,19 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 // Firestore is stubbed, not contacted. The whitelist below is the only one the
 // handler can see, so a session for any other email is provably revoked.
 const WHITELIST = ['owner@example.com'];
 let googleTokeninfoMock = null;
+const oauthResponse = mockServiceAccount();
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const target = String(url);
   if (target.includes('/tokeninfo') && googleTokeninfoMock) {
     return googleTokeninfoMock(target, opts);
   }
-  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target === 'https://oauth2.googleapis.com/token') return oauthResponse();
   if (target.includes('/documents/settings/app_config')) {
     return new Response(JSON.stringify({
       fields: {
@@ -24,7 +26,7 @@ globalThis.fetch = async (url, opts) => {
   if (target.includes('/documents/groups/utama/audit_log')) {
     return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
-  return realFetch(url);
+  throw new Error(`Unexpected request: ${target}`);
 };
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';

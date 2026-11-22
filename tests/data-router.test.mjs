@@ -1,5 +1,7 @@
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { signRawSession } from './helpers/signed-session.mjs';
+import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
 
@@ -138,11 +140,7 @@ test('data gateway allows a member to call checkUpdate on its own group', async 
       since: '2026-01-01T00:00:00.000Z'
     }
   }, res);
-  // Passes authorization (a member may read its group). Without a live service
-  // account the Firestore read then fails with 500 — but never 401/403, proving
-  // checkUpdate is routed as a member-readable action.
-  assert.notEqual(res.statusCode, 401);
-  assert.notEqual(res.statusCode, 403);
+  assert.equal(res.statusCode, 200);
 });
 
 test('data gateway rejects checkUpdate from a member of a different group with 403', async () => {
@@ -186,10 +184,11 @@ test('checkReadRateLimit starts a fresh window after it elapses', () => {
 // The whitelist lives in Firestore. Stubbing that one document makes the
 // revocation decision deterministic without touching a real database.
 const SA_WHITELIST = ['owner@example.com'];
+const oauthResponse = mockServiceAccount();
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const target = String(url);
-  if (target.startsWith('https://oauth2.googleapis.com/')) return realFetch(url, opts);
+  if (target.startsWith('https://oauth2.googleapis.com/')) return oauthResponse();
   if (target.includes('/documents/settings/app_config')) {
     return new Response(JSON.stringify({
       fields: {
@@ -199,7 +198,22 @@ globalThis.fetch = async (url, opts) => {
       }
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
-  if (target.includes(`/documents/groups/${GID_A}/audit_log`)) {
+  const path = new URL(target).pathname.split('/documents/')[1];
+  const method = opts?.method || 'GET';
+  if (method === 'PATCH' && (path === `groups/${GID_A}` || path.includes('/audit_log/'))) {
+    return Response.json({});
+  }
+  if (method === 'GET' && path === `groups/${GID_A}`) {
+    return Response.json({ fields: { nama: { stringValue: 'Grup Test A' }, groupId: { stringValue: GID_A } } });
+  }
+  if (method === 'GET' && path === 'groups/GRP-GHOST') return Response.json({}, { status: 404 });
+  if (method === 'GET' && path === 'groups/GRP-REVOKED') {
+    return Response.json({ fields: { revokedAfter: { integerValue: String(Math.floor(Date.now() / 1000) + 60) } } });
+  }
+  if (method === 'GET' && path === 'groups/GRP-MISMATCH') {
+    return Response.json({ fields: { groupId: { stringValue: 'GRP-OTHER' } } });
+  }
+  if (method === 'GET' && path === `groups/${GID_A}/audit_log`) {
     return new Response(JSON.stringify({
       documents: [{
         fields: {
@@ -210,8 +224,9 @@ globalThis.fetch = async (url, opts) => {
       }]
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
-  return realFetch(url, opts);
+  throw new Error(`Unexpected request: ${method} ${path}`);
 };
+after(() => { globalThis.fetch = realFetch; });
 
 test('data gateway rejects a revoked superadmin writing to a group', async () => {
   const token = signSession(
@@ -296,4 +311,27 @@ test('data gateway allows a whitelisted superadmin reading audit log', async () 
   assert.equal(res.body.status, true);
   assert.equal(Array.isArray(res.body.data?.log), true);
   assert.equal(res.body.data.log.length, 1);
+});
+
+test('whitelisted superadmins cannot read or write a missing or mismatched group', async () => {
+  const sessionToken = signSession({ role: ROLES.SUPERADMIN, email: SA_WHITELIST[0] }, GROUP_SESSION_TTL);
+  for (const [groupId, expected] of [['GRP-GHOST', 404], ['GRP-MISMATCH', 401]]) {
+    for (const action of ['read', 'audit', 'checkUpdate', 'catatAktivitas']) {
+      const res = mockRes();
+      await handler({ method: 'POST', body: { groupId, sessionToken, action, aksi: 'LOGOUT_ADMIN' } }, res);
+      assert.equal(res.statusCode, expected, action);
+    }
+  }
+});
+
+test('revocation rejects stale and undated group sessions for reads and writes', async () => {
+  const groupId = 'GRP-REVOKED';
+  for (const iat of [Math.floor(Date.now() / 1000), undefined]) {
+    const sessionToken = signRawSession(JSON.stringify({ role: ROLES.GROUP_ADMIN, gid: groupId, exp: 9999999999, iat }));
+    for (const action of ['checkUpdate', 'catatAktivitas']) {
+      const res = mockRes();
+      await handler({ method: 'POST', body: { action, groupId, sessionToken } }, res);
+      assert.equal(res.statusCode, 401);
+    }
+  }
 });

@@ -72,7 +72,7 @@ export const validateYearMonth = (yearMonth) => {
 export const parseJakartaTimestamp = (timestamp) => {
   if (timestamp === undefined || timestamp === null || timestamp === '') return null;
 
-  let d = null;
+  let d;
 
   if (timestamp instanceof Date) {
     if (Number.isNaN(timestamp.getTime())) return null;
@@ -160,8 +160,8 @@ export const parseTimestamp = parseJakartaTimestamp;
  * Enforces stable integer money (no fractions) and unambiguous dates.
  * Returns { valid: true, nominal, flow, parsed, id } or { valid: false, reason, id }.
  *
- * @param {object} t
- * @returns {{ valid: boolean, nominal?: number, flow?: 'Masuk'|'Keluar', parsed?: object, reason?: string, id: string }}
+ * @param {Omit<import('../types/finkas.d.ts').Transaksi, 'Nominal'> & {Nominal: string|number}} t
+ * @returns {{ valid: true, nominal: number, flow: 'Masuk'|'Keluar', parsed: NonNullable<ReturnType<typeof parseJakartaTimestamp>>, id: string}|{valid: false, reason: string, id: string }}
  */
 export const validateTransaction = (t) => {
   const id = t?.ID_Transaksi || '(tanpa-id)';
@@ -203,14 +203,10 @@ export const validateTransaction = (t) => {
 /**
  * Build monthly cash report for a given group state and YYYY-MM period.
  *
- * @param {object} state
- * @param {Array<object>} state.transaksi
- * @param {Array<object>} [state.anggota]
- * @param {Array<object>} [state.kategori]
+ * @param {Pick<import('../types/finkas.d.ts').AppState, 'transaksi'> & Partial<Pick<import('../types/finkas.d.ts').AppState, 'anggota'|'kategori'>>} state
  * @param {string} yearMonth Target month in "YYYY-MM" format.
  * @param {object} [options]
  * @param {boolean} [options.strict=false] Throw Error if invalid transaction encountered.
- * @returns {object} Monthly cash report.
  */
 export const buildMonthlyCashReport = (state, yearMonth, options = {}) => {
   const { year, month, yearMonth: targetYearMonth } = validateYearMonth(yearMonth);
@@ -349,7 +345,7 @@ export const escapeCsvFormula = (value, isNumeric = false) => {
  * Format a monthly cash report into CSV format (with UTF-8 BOM).
  * Compatible with Indonesian Excel locale (; separator).
  *
- * @param {object} report
+ * @param {ReturnType<typeof buildMonthlyCashReport>} report
  * @param {string} [separator=';']
  * @param {object} [options]
  * @param {boolean} [options.strict=false] Throw error if report.hasErrors
@@ -430,7 +426,7 @@ export const formatReportToCSV = (report, separator = ';', options = {}) => {
 /**
  * Format a monthly cash report into a clean, printable HTML document.
  *
- * @param {object} report
+ * @param {ReturnType<typeof buildMonthlyCashReport>} report
  * @param {object} [options]
  * @param {string} [options.groupName='']
  * @returns {string} HTML string.
@@ -568,7 +564,7 @@ export const formatReportToHTML = (report, options = {}) => {
  * Scan all transactions to discover all distinct YYYY-MM periods present,
  * sorted descending (newest first).
  *
- * @param {object} state
+ * @param {Pick<import('../types/finkas.d.ts').AppState, 'transaksi'>} state
  * @returns {string[]}
  */
 export const getAvailableReportMonths = (state) => {

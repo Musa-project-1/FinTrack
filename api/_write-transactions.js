@@ -54,7 +54,7 @@ import {
 
 export async function addTransaction(gid, payload, headers) {
   const input = parseTransactionInput(payload?.dataForm);
-  if (input.error) return fail(input.error);
+  if ('error' in input) return fail(input.error);
 
   const rawOpId = payload?.operationId ?? payload?.dataForm?.operationId;
   const parsedOp = parseOperationId(rawOpId);
@@ -168,7 +168,7 @@ export async function addAtomicBulk(gid, listTrx, operationId, headers) {
   for (let i = 0; i < listTrx.length; i += 1) {
     const raw = listTrx[i];
     const input = parseTransactionInput({ tipeArus: 'Masuk', ...raw });
-    if (input.error) return fail(`Baris #${i + 1}: ${input.error}`);
+    if ('error' in input) return fail(`Baris #${i + 1}: ${input.error}`);
     if (input.idAnggota === '-') continue;
     parsed.push(input);
   }
@@ -298,7 +298,7 @@ export async function addBulkTransactions(gid, payload, headers) {
   const parsed = [];
   for (const raw of listTrx) {
     const input = parseTransactionInput({ tipeArus: 'Masuk', ...raw });
-    if (input.error) return fail(input.error);
+    if ('error' in input) return fail(input.error);
     if (input.idAnggota === '-') continue;
     const rowOpId = cleanText(raw?.operationId, 128);
     if (rowOpId && isValidOperationId(rowOpId)) {
@@ -363,14 +363,12 @@ export async function addBulkTransactions(gid, payload, headers) {
   );
 
   let insertedCount = 0;
-  let hasRejection = false;
   for (let i = 0; i < writeResults.length; i += 1) {
     const r = writeResults[i];
     if (r.status === 'fulfilled' && r.value.ok) {
       insertedCount += 1;
     } else {
       if (r.status === 'rejected') {
-        hasRejection = true;
         console.error('[finkas] addBulkTransactions row write failed:', accepted[i].idAnggota, r.reason?.message);
       }
       skipped.push(accepted[i].idAnggota);
@@ -378,18 +376,7 @@ export async function addBulkTransactions(gid, payload, headers) {
   }
 
   await writeAuditLog(gid, 'TAMBAH_IURAN_MASSAL', `${insertedCount} iuran dicatat, ${skipped.length} dilewati`, headers);
-  const response = ok(`${insertedCount} transaksi massal berhasil disimpan.`, { inserted: insertedCount, skipped });
-
-  if (!hasRejection && operationId && fingerprint) {
-    try {
-      const receiptWrite = buildReceiptWrite(gid, operationId, fingerprint, 'tambahIuranMassal', response);
-      await fsCommit([receiptWrite], headers);
-    } catch (err) {
-      // Precondition failure on receipt write indicates concurrent completion
-    }
-  }
-
-  return response;
+  return ok(`${insertedCount} transaksi massal berhasil disimpan.`, { inserted: insertedCount, skipped });
 }
 
 export async function editTransaction(gid, payload, headers) {
@@ -397,12 +384,13 @@ export async function editTransaction(gid, payload, headers) {
   if (!idTarget || !isValidDocId(idTarget)) return fail('ID transaksi tidak valid.');
 
   const input = parseTransactionInput(payload?.dataForm);
-  if (input.error) return fail(input.error);
+  if ('error' in input) return fail(input.error);
 
   const rawOpId = payload?.operationId ?? payload?.dataForm?.operationId;
   const parsedOp = parseOperationId(rawOpId);
   if (parsedOp.error) return fail(parsedOp.error);
   const operationId = parsedOp.id;
+  /** @type {string|null} */
   let fingerprint = null;
 
   if (operationId) {
@@ -474,6 +462,7 @@ export async function editTransaction(gid, payload, headers) {
 
     const targetDocName = docName(col(gid, TRANSACTIONS_COLLECTION), targetId);
     const oldDocName = docName(col(gid, TRANSACTIONS_COLLECTION), idTarget);
+    /** @type {import('./_sa.js').FirestoreWrite[]} */
     const writes = [
       {
         update: { name: targetDocName, fields: encodeFields(doc) },
@@ -539,6 +528,7 @@ export async function editTransaction(gid, payload, headers) {
       fieldPaths.push('Timestamp');
     }
 
+    /** @type {import('./_sa.js').FirestoreWrite[]} */
     const writes = [
       {
         update: {
@@ -597,6 +587,7 @@ export async function deleteDocument(gid, payload, headers) {
   const parsedOp = parseOperationId(rawOpId);
   if (parsedOp.error) return fail(parsedOp.error);
   const operationId = parsedOp.id;
+  /** @type {string|null} */
   let fingerprint = null;
 
   if (operationId && collection === TRANSACTIONS_COLLECTION) {
@@ -634,6 +625,7 @@ export async function deleteDocument(gid, payload, headers) {
   const response = ok(`Data ${id} berhasil dihapus secara permanen.`);
 
   if (collection === TRANSACTIONS_COLLECTION) {
+    /** @type {import('./_sa.js').FirestoreWrite[]} */
     const writes = [
       {
         delete: docName(col(gid, collection), id),

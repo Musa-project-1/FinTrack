@@ -68,7 +68,8 @@ export const handleNominalInput = (el) => {
  * @returns {number} The raw numeric value.
  */
 export const getRawNominal = (id) => {
-  const val = document.getElementById(id).value;
+  const input = /** @type {HTMLInputElement|null} */ (document.getElementById(id));
+  const val = input?.value || '';
   return parseInt(val.replace(/[^0-9]/g, '')) || 0;
 };
 
@@ -140,7 +141,7 @@ const syncToastPopoverState = (container) => {
  * Show a floating toast notification.
  * @param {string} message - Message text.
  * @param {'success'|'error'|'warning'|'info'} [type='success'] - Toast type.
- * @param {object} [options] - Additional options (title, badge, icon, duration).
+ * @param {{title?: string, badge?: string, icon?: string, duration?: number}} [options] - Additional options (title, badge, icon, duration).
  */
 export const showToast = (message, type = 'success', options = {}) => {
   const container = document.getElementById('toast-container');
@@ -225,6 +226,7 @@ export const showToast = (message, type = 'success', options = {}) => {
 
   toast.append(iconWrap, body, closeBtn, progress);
 
+  /** @type {ReturnType<typeof setTimeout>|null} */
   let timer = null;
   let removed = false;
   const removeToast = () => {
@@ -263,7 +265,7 @@ export const showToast = (message, type = 'success', options = {}) => {
 
   toast.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (e.target.closest('.toast-close-btn, a, button')) return;
+    if (e.target instanceof Element && e.target.closest('.toast-close-btn, a, button')) return;
     startX = e.clientX;
     startY = e.clientY;
     currentX = e.clientX;
@@ -483,7 +485,7 @@ export const calculateMemberRekapProgress = (
 /**
  * Calculate total income contributions for a member, excluding outgoing rows.
  *
- * @param {Array<object>} transactions
+ * @param {Array<import('../types/finkas.d.ts').Transaksi>} transactions
  * @param {string} memberId
  * @returns {number}
  */
@@ -498,7 +500,7 @@ export const calculateMemberContribution = (transactions, memberId) => {
  * Calculate compliance metric over an identical population of active members
  * and identical window of months.
  *
- * @param {Array<object>} memberStatus Array of { ang, paidTotal, expectedTotal, arrears }
+ * @param {Array<{expectedTotal: number, paidTotal: number}>} memberStatus Array of { ang, paidTotal, expectedTotal, arrears }
  * @returns {{totalExpected: number, totalCollected: number, healthPct: number}}
  */
 export const calculateCompliance = (memberStatus) => {
@@ -568,7 +570,7 @@ export const isMonthOwedByGroup = (monthIndex, year, kasStart, fallbackYear, fal
 /**
  * First day of the month a member joined, or null when no/invalid join date.
  * Day-of-month is discarded so a mid-month join still owes that whole month.
- * @param {string} joinDateIso
+ * @param {string} [joinDateIso]
  * @returns {Date|null}
  */
 export const memberJoinFirstOfMonth = (joinDateIso) => {

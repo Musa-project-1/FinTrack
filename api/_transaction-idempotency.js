@@ -52,6 +52,7 @@ export function computeRequestFingerprint(action, normalizedData) {
  *
  * @param {string} gid
  * @param {string} operationId
+ * @param {number|null} [index]
  * @returns {string} E.g. 'TRX-1A2B3C4D5E6F7890'
  */
 export function transactionIdForOperation(gid, operationId, index = null) {
@@ -68,7 +69,6 @@ export function transactionIdForOperation(gid, operationId, index = null) {
  * @param {string} gid
  * @param {string} operationId
  * @param {object} headers
- * @returns {Promise<object|null>}
  */
 export async function getOperationReceipt(gid, operationId, headers) {
   if (!isValidOperationId(operationId)) return null;
@@ -87,8 +87,7 @@ export async function getOperationReceipt(gid, operationId, headers) {
  * @param {string} operationId
  * @param {string} fingerprint
  * @param {string} action
- * @param {object} response
- * @returns {object} Firestore write object for fsCommit
+ * @param {{status: boolean, message: string, data?: object|null}} response
  */
 export function buildReceiptWrite(gid, operationId, fingerprint, action, response) {
   const receiptDoc = {
@@ -113,7 +112,7 @@ export function buildReceiptWrite(gid, operationId, fingerprint, action, respons
 /**
  * Convert a decoded Firestore receipt doc into a standard API response.
  *
- * @param {object} receipt
+ * @param {{responseStatus?: boolean, responseMessage?: string, responseData?: object|null}} receipt
  * @returns {{status: boolean, message: string, data: object|null}}
  */
 export function receiptToResponse(receipt) {

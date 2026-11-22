@@ -24,7 +24,7 @@ let serviceAccountLoaded = false;
 /**
  * Resolve the service account from the environment (raw JSON or base64) or,
  * for local development only, from `.service-account.local.json`.
- * @returns {object|null}
+ * @returns {{client_email: string, private_key: string}|null}
  */
 export function getServiceAccount() {
   if (serviceAccountLoaded) return serviceAccountCache;
@@ -72,7 +72,7 @@ let cachedTokenExpiresAt = 0;
 
 /**
  * Exchange a signed JWT for a Google OAuth2 access token scoped to Datastore.
- * @param {object} serviceAccount
+ * @param {{client_email: string, private_key: string}|null} serviceAccount
  * @returns {Promise<string|null>}
  */
 export async function getGoogleAccessToken(serviceAccount) {
@@ -222,9 +222,7 @@ export const resourceName = (docPath) =>
  */
 const firestoreError = (message, status, body) => {
   const error = new Error(body ? `${message} ${body}` : message);
-  error.status = status;
-  error.body = body;
-  return error;
+  return Object.assign(error, { status, body });
 };
 
 /**
@@ -242,7 +240,7 @@ const docUrl = (docPath, query = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 
 /**
  * Read a single document.
- * @returns {Promise<object|null>} Decoded fields, or null when absent.
+ * @returns {Promise<Record<string, any>|null>} Decoded fields, or null when absent.
  */
 export async function fsGet(docPath, headers) {
   const res = await fetch(docUrl(docPath), { headers });
@@ -285,7 +283,9 @@ export async function fsDelete(docPath, headers) {
   return true;
 }
 
-/** Execute an atomic batch of writes. */
+/** @typedef {({update: { name: string, fields: object }, updateMask?: { fieldPaths: string[] }} | {delete: string}) & {currentDocument?: {exists: boolean}}} FirestoreWrite */
+
+/** Execute an atomic batch of writes. @param {FirestoreWrite[]} writes */
 export async function fsCommit(writes, headers) {
   const res = await fetch(`${FIRESTORE_BASE}:commit`, {
     method: 'POST',
@@ -336,7 +336,7 @@ export async function fsCreateIfAbsent(docPath, data, headers) {
 
 /**
  * List every document name in a collection, following pagination.
- * @returns {Promise<Array<{name: string, fields: object}>>}
+ * @returns {Promise<Array<{name: string, fields: Record<string, any>}>>}
  */
 export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = false) {
   const docs = [];

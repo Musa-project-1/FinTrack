@@ -394,7 +394,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   if (boot.workspaceGroup !== group || boot.workspaceState === 'unavailable') boot.workspaceState = 'loading';
   boot.workspaceGroup = group;
   if (isLoading) return false;
-  const hasCache = loadCache();
+  const hasCache = loadCache(group);
   if (hasCache) {
     renderAll();
     boot.workspaceState = 'ready';
@@ -407,7 +407,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
 
   isLoading = true;
   try {
-    const resJSON = await fetchInitialData();
+    const resJSON = await fetchInitialData(group);
     if (getActiveGroupId() !== group) return false;
     if (resJSON && resJSON.status) {
       setState({
@@ -418,7 +418,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
         kasStart: resJSON.data.settings?.kasStart || '',
         paymentAccount: resJSON.data.settings?.paymentAccount || null
       });
-      saveCache();
+      saveCache(group);
       notifySynced(resJSON.data?.updatedAt, resJSON.data?.groupId || localStorage.getItem(GROUP_OPEN_KEY));
       setSyncBadge('is-clean');
       renderAll();

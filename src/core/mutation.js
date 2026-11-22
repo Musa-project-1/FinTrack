@@ -56,11 +56,9 @@ export const generateTempId = (prefix = 'TRX') => {
 };
 
 /**
- * Deliver a mutation payload to the backend, falling back to the offline
- * IndexedDB queue if offline or if the backend request fails to deliver.
+ * Stamp the payload and its form with the same operation id.
  *
- * @param {object} payload Must carry an 'action' property.
- * @returns {Promise<{delivered: boolean, result: object|null}>}
+ * @param {{action: string, groupId?: string, operationId?: string, dataForm?: object}} payload
  */
 export const stampMutation = (payload) => {
   if (!payload || typeof payload !== 'object') return payload;

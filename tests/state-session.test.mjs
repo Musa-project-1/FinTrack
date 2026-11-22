@@ -20,8 +20,43 @@ const makeStorage = () => {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-const { ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, ADMIN_VIEW_MODE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
+const { CACHE_KEY, ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, ADMIN_VIEW_MODE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
 const state = await import('../src/core/state.js');
+
+const { resolveGroupId, dataRequest } = await import('../src/core/api-client.js');
+
+test('resolving an unscoped payload with no active group returns an empty id', () => {
+  state.setActiveGroupId('');
+  assert.equal(resolveGroupId({}), '');
+});
+
+test('an authenticated request without a group fails before fetch', async (t) => {
+  state.setActiveGroupId('');
+  const fetch = t.mock.method(globalThis, 'fetch', () => { throw new Error('unexpected request'); });
+  assert.deepEqual(await dataRequest({ action: 'read' }), {
+    status: false, httpStatus: 400, unauthorized: true, message: 'ID grup wajib diisi.'
+  });
+  assert.equal(fetch.mock.callCount(), 0);
+});
+
+test('explicit cache operations use the requested group while another is active', () => {
+  state.setActiveGroupId('GRP-OTHER');
+  state.setState({ kasStart: '03-2026' });
+  assert.equal(state.saveCache('GRP-EXPLICIT'), true);
+  assert.equal(state.getStorageStatus().groupId, 'GRP-EXPLICIT');
+  assert.equal(JSON.parse(localStorage.getItem(`${CACHE_KEY}:GRP-EXPLICIT`)).kasStart, '03-2026');
+  assert.equal(localStorage.getItem(`${CACHE_KEY}:GRP-OTHER`), null);
+  state.setState({ kasStart: '' });
+  assert.equal(state.loadCache('GRP-EXPLICIT'), true);
+  assert.equal(state.getStorageStatus().groupId, 'GRP-EXPLICIT');
+  assert.equal(state.getState().kasStart, '03-2026');
+  assert.equal(state.getActiveGroupId(), 'GRP-OTHER');
+  assert.equal(state.saveCache(''), false);
+  assert.equal(state.getStorageStatus().state, 'failed');
+  assert.equal(state.loadCache(''), false);
+  assert.equal(state.getStorageStatus().state, 'unknown');
+  assert.equal(localStorage.getItem(`${CACHE_KEY}:`), null);
+});
 
 /* ── Group sessions ──────────────────────────────────────────────── */
 

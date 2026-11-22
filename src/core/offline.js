@@ -70,7 +70,7 @@ export const deleteOfflineTransaction = async (id) => {
 /**
  * Queue a payload for later sync. Stempel groupId agar replay tidak
  * nyasar ke grup lain bila user pindah grup sebelum online.
- * @param {object} payload
+ * @param {{groupId?: string}} payload
  */
 export const queueOfflinePayload = async (payload) => {
   const targetGid = payload.groupId || getActiveGroupId();
@@ -96,7 +96,7 @@ export const queueOfflinePayload = async (payload) => {
  * Queued transactions must NEVER be dropped when the session expires; they remain in IDB
  * until the user re-authenticates.
  *
- * @param {object|null} resJSON
+ * @param {{status: boolean, unauthorized?: boolean, httpStatus?: number, message?: string, data?: {duplicate?: boolean}|null}|null} resJSON
  * @returns {boolean}
  */
 export const isAuthExpired = (resJSON) => {
@@ -115,7 +115,7 @@ export const isAuthExpired = (resJSON) => {
  * Check whether a backend response represents a transient server/network error
  * that should be kept in the offline queue and retried safely (e.g. 5xx, 429 quota).
  *
- * @param {object|null} resJSON
+ * @param {{status: boolean, unauthorized?: boolean, httpStatus?: number, message?: string, data?: {duplicate?: boolean}|null}|null} resJSON
  * @returns {boolean}
  */
 export const isRetryableServerError = (resJSON) => {
@@ -135,7 +135,7 @@ export const isRetryableServerError = (resJSON) => {
  * Determine the outcome of a single queued item sync response.
  * Exported so offline sync decision logic can be tested directly without IndexedDB.
  *
- * @param {object|null} resJSON
+ * @param {{status: boolean, unauthorized?: boolean, httpStatus?: number, message?: string, data?: {duplicate?: boolean}|null}|null} resJSON
  * @returns {'unreachable' | 'unauthorized' | 'success' | 'duplicate' | 'rejected'}
  */
 export const classifySyncResponse = (resJSON) => {
@@ -156,6 +156,7 @@ export const classifySyncResponse = (resJSON) => {
 export const isUnsyncedTempId = (id) => typeof id === 'string' && /-TEMP-/.test(id);
 
 /** Active replay promise to prevent concurrent replay races. */
+/** @type {Promise<void>|null} */
 let activeReplayPromise = null;
 
 /**
@@ -227,9 +228,9 @@ export const syncOfflineTransactions = (onSuccess) => {
           }
           await emitQueueStatus(replayGroup, 'sending');
         } else {
-          console.warn('[finkas] Offline sync item rejected by server:', item.id, resJSON.message);
+          console.warn('[finkas] Offline sync item rejected by server:', item.id, resJSON?.message);
           await deleteOfflineItem(item.id);
-          showToast(`Item antrean dibatalkan server: ${resJSON.message || 'Data tidak valid'}`, 'warning');
+          showToast(`Item antrean dibatalkan server: ${resJSON?.message || 'Data tidak valid'}`, 'warning');
           await emitQueueStatus(replayGroup, 'sending');
         }
       }

@@ -22,6 +22,9 @@ export {
   logoutAdminApi
 } from './api-auth.js';
 
+/** @typedef {Pick<import('../types/finkas.d.ts').AppState, 'anggota'|'kategori'|'transaksi'> & {settings: import('../types/finkas.d.ts').GroupSettings, updatedAt?: string|null, readMarker?: string}} GroupData */
+/** @template T @typedef {import('./api-client.js').ApiResponse<T>|null} ResponseFor */
+
 const EMPTY_DATA = { anggota: [], kategori: [], transaksi: [], settings: { skippedMonths: [], kasStart: '' } };
 
 /** Back-off window after the database reports a quota error. */
@@ -34,8 +37,8 @@ const isQuotaError = (message) => /kuota|quota|429/i.test(String(message || ''))
  * Fetch all data for a specific group or active group.
  * Group-scoped and captures conservative marker before the request.
  *
- * @param {string} [targetGroupId] Optional explicit group ID
- * @returns {Promise<{status: boolean, httpStatus: number, groupId: string|null, readMarker: string|null, data?: object, message: string, unauthorized?: boolean}>}
+ * @param {string} targetGroupId
+ * @returns {Promise<{status: boolean, httpStatus: number, groupId: string|null, readMarker: string|null, data: GroupData|null, message: string, unauthorized?: boolean}>}
  */
 export const fetchInitialData = async (targetGroupId) => {
   try {
@@ -68,6 +71,7 @@ export const fetchInitialData = async (targetGroupId) => {
     // the read are never cleared by a later completion timestamp.
     const readStartedAt = new Date().toISOString();
 
+    /** @type {ResponseFor<Partial<GroupData>>} */
     const res = await dataRequest({ action: 'read', payload: { groupId } });
     if (!res) {
       return {
@@ -133,14 +137,15 @@ export const fetchInitialData = async (targetGroupId) => {
  * Returns `null` when the request never reached the server (offline), which
  * callers treat as "queue this payload and retry".
  *
- * @param {object} payload Must carry an `action` matching a server write action.
- * @returns {Promise<{status: boolean, message: string, data: object|null, httpStatus?: number}|null>}
+ * @param {{action: string, groupId?: string, [key: string]: unknown}} payload Must carry an `action` matching a server write action.
+ * @returns {Promise<{status: boolean, message?: string, data?: object|null, httpStatus?: number}|null>}
  */
 export const postToBackend = async (payload) => {
   if (!payload || typeof payload !== 'object' || !payload.action) {
     return { status: false, httpStatus: 400, message: 'Payload tidak valid.', data: null };
   }
 
+  /** @type {ResponseFor<object>} */
   const res = await dataRequest({ action: payload.action, payload, needsWrite: true });
   if (!res) return null;
   if (res.status && typeof window !== 'undefined') {
@@ -161,11 +166,14 @@ export const postToBackend = async (payload) => {
 };
 
 /**
- * Fetch the audit trail for the active group.
+ * Fetch the audit trail for the selected group.
+ * @param {string} [targetGroupId]
  * @returns {Promise<{status: boolean, data: {log: Array}, message?: string}>}
  */
-export const fetchAuditLogApi = async () => {
-  const res = await dataRequest({ action: 'audit', payload: { groupId: getActiveGroupId() } });
+export const fetchAuditLogApi = async (targetGroupId) => {
+  const groupId = targetGroupId || getActiveGroupId();
+  /** @type {ResponseFor<{log: object[]}>} */
+  const res = await dataRequest({ action: 'audit', groupId, payload: { groupId } });
   if (!res) return { status: false, message: 'Tidak dapat terhubung ke server.', data: { log: [] } };
   if (!res.status) return { status: false, message: res.message, data: { log: [] } };
   return { status: true, data: { log: res.data?.log || [] } };
@@ -173,9 +181,10 @@ export const fetchAuditLogApi = async () => {
 
 /**
  * Fetch the public group directory.
- * @returns {Promise<Array<{id: string, nama: string, dibuat: string}>>}
+ * @returns {Promise<Array<{id: string, nama: string, dibuat?: string}>>}
  */
 export const fetchGroupsApi = async () => {
+  /** @type {ResponseFor<{groups: {id: string, nama: string, dibuat?: string}[]}>} */
   const res = await dataRequest({ action: 'groups', requiresAuth: false });
   if (!res || !res.status) return [];
   return res.data?.groups || [];
@@ -185,13 +194,14 @@ export const fetchGroupsApi = async () => {
  * Lightweight update check — costs exactly 1 Firestore read.
  * Returns whether the server has newer data than the client's last sync.
  * @param {string} since ISO timestamp of the client's last successful sync
- * @param {string} [targetGroupId] Optional target group ID
+ * @param {string} targetGroupId
  * @returns {Promise<{hasUpdate: boolean, updatedAt: string|null, httpStatus?: number}>}
  */
 export const checkGroupUpdate = async (since, targetGroupId) => {
   try {
     const groupId = targetGroupId || getActiveGroupId();
     if (!groupId) return { hasUpdate: false, updatedAt: null, httpStatus: 200 };
+    /** @type {ResponseFor<{hasUpdate: boolean, updatedAt: string|null}>} */
     const res = await dataRequest({ action: 'checkUpdate', payload: { groupId, since } });
     if (!res || !res.status) return { hasUpdate: false, updatedAt: null, httpStatus: res?.httpStatus || 0 };
     return { hasUpdate: Boolean(res.data?.hasUpdate), updatedAt: res.data?.updatedAt || null, httpStatus: res.httpStatus || 200 };

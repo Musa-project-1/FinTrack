@@ -155,7 +155,7 @@ export async function listGroups(headers) {
     .map((doc) => {
       const fields = doc.fields || {};
       return {
-        id: doc.name.split('/').pop(),
+        id: doc.name.slice(doc.name.lastIndexOf('/') + 1),
         nama: fields.nama || 'Grup'
       };
     });
@@ -163,7 +163,7 @@ export async function listGroups(headers) {
 
 /**
  * Read the credential document for a group.
- * @returns {Promise<object|null>}
+ * @returns {Promise<{admin_email?: string, admin_password_hash?: string, pin_hash?: string}|null>}
  */
 export async function getPrivateConfig(gid, headers) {
   return fsGet(privateDoc(gid), headers);

@@ -17,8 +17,8 @@ export const openOfflineDB = () => {
       return reject(new Error('IndexedDB is not supported in this environment.'));
     }
     const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       if (!db.objectStoreNames.contains(OFFLINE_STORE_NAME)) {
         db.createObjectStore(OFFLINE_STORE_NAME, { keyPath: 'id', autoIncrement: true });
       }
@@ -31,7 +31,7 @@ export const openOfflineDB = () => {
 /**
  * Add a payload item to the offline IndexedDB store.
  * @param {object} item
- * @returns {Promise<number>} Auto-generated store key.
+ * @returns {Promise<IDBValidKey>} Key assigned to the stored item.
  */
 export const addOfflineItem = async (item) => {
   const db = await openOfflineDB();

@@ -18,9 +18,12 @@ import {
   setGroupSession
 } from './state.js';
 
+/** @typedef {{sessionToken: string, role?: string, email?: string, groupId?: string}} LoginData */
+/** @typedef {import('./api-client.js').ApiResponse<LoginData>} LoginResponse */
+
 /**
  * Store the session returned by a successful login.
- * @param {object} data Server response payload.
+ * @param {LoginData} data Server response payload.
  * @param {string} [fallbackGroupId]
  */
 const applySession = (data, fallbackGroupId = '') => {
@@ -40,7 +43,7 @@ const applySession = (data, fallbackGroupId = '') => {
  * @param {string} email
  * @param {string} password
  * @param {string} [groupId]
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @returns {Promise<{status: boolean, message?: string, data?: LoginData|null}>}
  */
 export const loginAdminApi = async (email, password, groupId = '') => {
   const trimmedPassword = String(password || '').trim();
@@ -48,6 +51,7 @@ export const loginAdminApi = async (email, password, groupId = '') => {
     return { status: false, message: 'Password tidak boleh kosong.', data: null };
   }
 
+  /** @type {LoginResponse|null} */
   const res = await apiPost(API.LOGIN, {
     email: String(email || '').trim().toLowerCase(),
     password: trimmedPassword,
@@ -64,7 +68,7 @@ export const loginAdminApi = async (email, password, groupId = '') => {
 /**
  * Log in as the Super Admin using a Google token (ID token or OAuth2 access token).
  * @param {string} idToken
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @returns {Promise<{status: boolean, message?: string, data?: LoginData|null}>}
  */
 export const loginGoogleSuperAdminApi = async (idToken) => {
   const token = String(idToken || '').trim();
@@ -72,6 +76,7 @@ export const loginGoogleSuperAdminApi = async (idToken) => {
     return { status: false, message: 'Token otentikasi Google diperlukan.', data: null };
   }
 
+  /** @type {LoginResponse|null} */
   const res = await apiPost(API.LOGIN_GOOGLE, {
     action: 'login',
     idToken: token,
@@ -87,9 +92,10 @@ export const loginGoogleSuperAdminApi = async (idToken) => {
 
 /**
  * List the Super Admin emails.
- * @returns {Promise<{status: boolean, data?: Array, message?: string}>}
+ * @returns {Promise<{status: boolean, data?: Array<{email: string, isPrimary: boolean}>|null, message?: string}>}
  */
 export const fetchSuperAdminsApi = async () => {
+  /** @type {import('./api-client.js').ApiResponse<{email: string, isPrimary: boolean}[]>|null} */
   const res = await apiPost(API.LOGIN_GOOGLE, { action: 'list', sessionToken: getAdminSession() });
   if (!res) return { status: false, message: 'Tidak dapat terhubung ke server.' };
   return res;

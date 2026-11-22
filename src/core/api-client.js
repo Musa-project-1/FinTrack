@@ -6,8 +6,13 @@
  * token (see core/state.js) and the server decides what it is allowed to do.
  */
 
-import { API, DEFAULT_GROUP_ID } from './config.js';
+import { API } from './config.js';
 import { getActiveGroupId, clearGroupSession, resolveSessionToken } from './state.js';
+
+/**
+ * @template T
+ * @typedef {{ status: boolean, httpStatus: number, message?: string, data?: T|null, unauthorized?: boolean, updatedAt?: string }} ApiResponse
+ */
 
 /** Audit events the client is allowed to record (everything else is server-side). */
 const CLIENT_AUDIT_ACTIONS = new Set([
@@ -19,11 +24,11 @@ const CLIENT_AUDIT_ACTIONS = new Set([
 
 /**
  * Group owning a payload, falling back to the active group.
- * @param {object} [payload]
+ * @param {{groupId?: string}} [payload]
  * @returns {string}
  */
 export const resolveGroupId = (payload) =>
-  (payload && payload.groupId) || getActiveGroupId() || DEFAULT_GROUP_ID;
+  (payload && payload.groupId) || getActiveGroupId() || '';
 
 /**
  * POST JSON to a Finkas endpoint.
@@ -32,9 +37,10 @@ export const resolveGroupId = (payload) =>
  * which callers treat as "queue and retry". Any HTTP response — including an
  * error — resolves to the parsed body with the status attached.
  *
+ * @template T
  * @param {string} endpoint
  * @param {object} body
- * @returns {Promise<object|null>}
+ * @returns {Promise<ApiResponse<T>|null>}
  */
 export const apiPost = async (endpoint, body) => {
   try {
@@ -58,21 +64,27 @@ export const apiPost = async (endpoint, body) => {
 /**
  * Call the data gateway for a group.
  *
+ * @template T
  * @param {object} options
  * @param {string} options.action Server action name ('read', 'audit', a write action…).
- * @param {object} [options.payload] Extra fields merged into the request body.
+ * @param {string} [options.groupId] Explicit group for this request.
+ * @param {{groupId?: string, [key: string]: unknown}} [options.payload] Extra fields merged into the request body.
  * @param {boolean} [options.needsWrite] Require the admin session rather than the group session.
  * @param {boolean} [options.requiresAuth] Set false for public actions (e.g. the group directory).
- * @returns {Promise<object|null>}
+ * @returns {Promise<ApiResponse<T>|null>}
  */
-export const dataRequest = async ({ action, payload = {}, needsWrite = false, requiresAuth = true }) => {
-  const groupId = resolveGroupId(payload);
+export const dataRequest = async ({ action, groupId: explicitGroupId, payload = {}, needsWrite = false, requiresAuth = true }) => {
+  const groupId = explicitGroupId || resolveGroupId(payload);
+  if (requiresAuth && !groupId) {
+    return { status: false, httpStatus: 400, unauthorized: true, message: 'ID grup wajib diisi.' };
+  }
   const sessionToken = requiresAuth ? resolveSessionToken(groupId, needsWrite) : '';
 
   if (requiresAuth && !sessionToken) {
     return { status: false, httpStatus: 401, unauthorized: true, message: 'Sesi tidak ditemukan. Silakan masuk kembali.' };
   }
 
+  /** @type {ApiResponse<T>|null} */
   const result = await apiPost(API.DATA, { ...payload, action, groupId, sessionToken });
   if (!result) return null;
 

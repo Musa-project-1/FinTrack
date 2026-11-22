@@ -37,8 +37,12 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/pdf'
 ]);
 
-const ok = (message, data = null) => ({ status: true, message, data });
+/** @template T @param {string} message @param {T} data */
+const ok = (message, data) => ({ status: true, message, data });
 const fail = (message, data = null) => ({ status: false, message, data });
+
+/** @typedef {{base64?: string, data?: string, size?: number, type?: string, mimeType?: string, name?: string, filename?: string}} ProofInput */
+/** @typedef {ProofInput & {idTransaksi?: string, file?: ProofInput, dataForm?: {idTransaksi?: string, file?: ProofInput}}} ProofRequest */
 
 const cleanText = (val, max = 100) => String(val || '').trim().slice(0, max);
 
@@ -99,7 +103,7 @@ export function detectFileSignature(buffer) {
 /**
  * Sanitize a filename to avoid path traversal and invalid characters.
  *
- * @param {string} rawName
+ * @param {string|undefined} rawName
  * @param {string} idTransaksi
  * @param {string} detectedType
  * @returns {string}
@@ -127,8 +131,8 @@ export function sanitizeFileName(rawName, idTransaksi, detectedType) {
 /**
  * Validate attachment input payload, canonical base64, size and signature.
  *
- * @param {object} payload
- * @returns {{valid: boolean, error?: string, idTransaksi?: string, name?: string, detectedType?: string, size?: number, base64?: string, buffer?: Buffer}}
+ * @param {ProofRequest} payload
+ * @returns {{valid: false, error: string}|{valid: true, idTransaksi: string, name: string, detectedType: string, size: number, base64: string, buffer: Buffer}}
  */
 export function validateAttachmentInput(payload) {
   const idTransaksi = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
@@ -225,9 +229,9 @@ export function validateAttachmentInput(payload) {
  * Upload or replace a transaction proof document and update Bukti metadata atomically.
  *
  * @param {string} gid
- * @param {object} payload
+ * @param {ProofRequest} payload
  * @param {object} headers
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
  */
 export async function uploadAttachment(gid, payload, headers) {
   const check = validateAttachmentInput(payload);
@@ -297,9 +301,9 @@ export async function uploadAttachment(gid, payload, headers) {
  * Delete a transaction proof document and clear Bukti metadata atomically.
  *
  * @param {string} gid
- * @param {object} payload
+ * @param {ProofRequest} payload
  * @param {object} headers
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
  */
 export async function deleteAttachment(gid, payload, headers) {
   const idTransaksi = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
@@ -348,9 +352,9 @@ export async function deleteAttachment(gid, payload, headers) {
  * Read the proof document for a single transaction.
  *
  * @param {string} gid
- * @param {object} payload
+ * @param {ProofRequest} payload
  * @param {object} headers
- * @returns {Promise<{status: boolean, message: string, data?: object, notFound?: boolean}>}
+ * @returns {Promise<{status: boolean, message: string, data?: object|null, notFound?: boolean}>}
  */
 export async function readAttachment(gid, payload, headers) {
   const idTransaksi = cleanText(payload?.idTransaksi, 40);

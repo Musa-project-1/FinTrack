@@ -56,18 +56,22 @@ const getOrCreateGroupSyncState = (groupId) => {
 };
 
 /** Active group id associated with the last sync listener registration. */
+/** @type {string|null} */
 let lastSyncedGroupId = null;
 
 /** Timer id for the heartbeat interval. */
+/** @type {ReturnType<typeof setInterval>|null} */
 let heartbeatTimer = null;
 
 /** Timestamp of last visibility check (throttle guard). */
 let lastVisibilityCheck = 0;
 
 /** Timer id for the initial check delay. */
+/** @type {ReturnType<typeof setTimeout>|null} */
 let initialTimer = null;
 
 /** Registered callback — called with boolean when update status changes. */
+/** @type {((hasUpdate: boolean) => void)|null} */
 let onUpdateChange = null;
 
 /* ── BroadcastChannel (same-browser, cross-tab) ──────────────────── */
@@ -134,7 +138,7 @@ function handleMutationSuccess(e) {
 if (typeof window !== 'undefined') {
   window.addEventListener('finkas:mutation-success', handleMutationSuccess);
   window.addEventListener('finkas:group-changed', (e) => {
-    const newGroup = e?.detail?.groupId || getActiveGroupId();
+    const newGroup = e.detail?.groupId || getActiveGroupId();
     lastSyncedGroupId = newGroup;
     const s = getOrCreateGroupSyncState(newGroup);
     onUpdateChange?.(s.hasRemoteUpdate);
@@ -273,7 +277,7 @@ export const getLastConfirmedWriteAt = () => getSyncStatus().lastConfirmedWriteA
 
 /**
  * Initialize sync listeners. Call once from app.js after group is opened.
- * @param {function(boolean): void} [onChange] Called with true = has update, false = up to date
+ * @param {(hasUpdate: boolean) => void} [onChange] Called with true = has update, false = up to date
  */
 export const initSync = (onChange) => {
   onUpdateChange = onChange || null;
@@ -344,7 +348,7 @@ export const setSyncBadge = (state) => {
     labelText = `Data sinkron · Diperbarui ${wib} WIB — klik untuk muat ulang`;
   }
   SYNC_BTNS.forEach((id) => {
-    const btn = document.getElementById(id);
+    const btn = /** @type {HTMLButtonElement|null} */ (document.getElementById(id));
     if (!btn) return;
     btn.classList.remove('is-clean', 'has-update', 'is-syncing');
     btn.classList.add(SYNC_STATES[state] ? state : 'is-clean');

@@ -19,7 +19,7 @@ import {
   DEFAULT_GROUP_ID
 } from './config.js';
 
-/** @typedef {{ anggota: Array, kategori: Array, transaksi: Array, skippedMonths: string[], kasStart: string }} AppState */
+/** @typedef {import('../types/finkas.d.ts').AppState} AppState */
 
 /** @type {AppState} */
 const state = {
@@ -63,13 +63,15 @@ export const getActiveGroupId = () => activeGroupId;
 
 /* ── Storage Status Tracking ─────────────────────────────────────── */
 
+/** @type {{ groupId: string, state: string, operation: string|null, error: string|null }} */
 let storageStatus = { groupId: activeGroupId, state: 'unknown', operation: null, error: null };
 
 /** Snapshot of the last actual cache operation, never a tiny capacity probe. */
 export const getStorageStatus = () => ({ ...storageStatus });
 
-export function publishStorageStatus(status, operation, error = null) {
-  storageStatus = { groupId: activeGroupId, state: status, operation, error: error?.message || null };
+/** @param {Error|null} [error] */
+export function publishStorageStatus(status, operation, error = null, groupId = activeGroupId) {
+  storageStatus = { groupId, state: status, operation, error: error?.message || null };
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('finkas:storage-status', { detail: getStorageStatus() }));
   }
@@ -107,7 +109,7 @@ export const getState = () => state;
 
 /**
  * Push a single transaction into state (optimistic UI).
- * @param {object} trx
+ * @param {import('../types/finkas.d.ts').Transaksi} trx
  */
 export const addTransaction = (trx) => {
   state.transaksi.push(trx);
@@ -154,30 +156,38 @@ export const getGroupName = (id) => groups.find((g) => g.id === id)?.nama || id;
 
 /* ── Cache ───────────────────────────────────────────────────────── */
 
-/** Save the current ledger; false means this snapshot was not persisted. */
-export const saveCache = () => {
+/** Save the current ledger; false means this snapshot was not persisted. @param {string} [targetGroupId] */
+export const saveCache = (targetGroupId = getActiveGroupId()) => {
+  if (!targetGroupId) {
+    publishStorageStatus('failed', 'save', new Error('ID grup aktif belum dipilih.'));
+    return false;
+  }
   try {
     const storage = getLocalStorage();
     if (!storage) throw new Error('Penyimpanan perangkat tidak tersedia.');
-    storage.setItem(`${CACHE_KEY}:${getActiveGroupId()}`, JSON.stringify(state));
-    publishStorageStatus('saved', 'save');
+    storage.setItem(`${CACHE_KEY}:${targetGroupId}`, JSON.stringify(state));
+    publishStorageStatus('saved', 'save', null, targetGroupId);
     return true;
   } catch (err) {
-    publishStorageStatus('failed', 'save', err);
+    publishStorageStatus('failed', 'save', err, targetGroupId);
     console.warn('[finkas] Cache write failed:', err?.message);
     return false;
   }
 };
 
-/** Load an actual ledger snapshot; missing or invalid data is never "saved". */
-export const loadCache = () => {
+/** Load an actual ledger snapshot; missing or invalid data is never "saved". @param {string} [targetGroupId] */
+export const loadCache = (targetGroupId = getActiveGroupId()) => {
+  if (!targetGroupId) {
+    publishStorageStatus('unknown', 'load');
+    return false;
+  }
   try {
     const storage = getLocalStorage();
     if (!storage) throw new Error('Penyimpanan perangkat tidak tersedia.');
-    const cached = storage.getItem(`${CACHE_KEY}:${getActiveGroupId()}`)
-      || (getActiveGroupId() === DEFAULT_GROUP_ID ? storage.getItem(CACHE_KEY) : null);
+    const cached = storage.getItem(`${CACHE_KEY}:${targetGroupId}`)
+      || (targetGroupId === DEFAULT_GROUP_ID ? storage.getItem(CACHE_KEY) : null);
     if (!cached) {
-      publishStorageStatus('unknown', 'load');
+      publishStorageStatus('unknown', 'load', null, targetGroupId);
       return false;
     }
     const data = JSON.parse(cached);
@@ -185,10 +195,10 @@ export const loadCache = () => {
       throw new Error('Cache pembukuan tidak valid.');
     }
     setState({ ...data, skippedMonths: data.skippedMonths || [], kasStart: data.kasStart || '', paymentAccount: data.paymentAccount || null });
-    publishStorageStatus('saved', 'load');
+    publishStorageStatus('saved', 'load', null, targetGroupId);
     return true;
   } catch (err) {
-    publishStorageStatus('failed', 'load', err);
+    publishStorageStatus('failed', 'load', err, targetGroupId);
     console.warn('[finkas] Cache load failed:', err?.message);
     return false;
   }

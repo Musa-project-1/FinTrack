@@ -112,11 +112,17 @@ async function getDocInTx(docPath, headers, transaction) {
 
 /* ── Validation ─────────────────────────────────────────────────── */
 
+/** Legacy backups can supply camelCase entity fields until restore normalizes them.
+ * @typedef {Omit<import('../src/types/finkas.d.ts').SnapshotData, 'anggota'|'kategori'|'transaksi'> & {
+ *   anggota: Record<string, unknown>[], kategori: Record<string, unknown>[], transaksi: Record<string, unknown>[]
+ * }} ValidatedSnapshot
+ */
+
 /**
  * Validate full snapshot data shape, limits and record integrity before writing.
  *
- * @param {object} raw
- * @returns {{valid: boolean, error?: string, data?: object}}
+ * @param {Record<string, unknown> & {data?: Record<string, unknown>}} raw
+ * @returns {{valid: false, error: string} | {valid: true, data: ValidatedSnapshot}}
  */
 export function validateSnapshot(raw) {
   if (!raw || typeof raw !== 'object') {
@@ -212,7 +218,7 @@ export function validateSnapshot(raw) {
   const seenTrx = new Set();
   for (const t of transaksi) {
     const parsed = parseTransactionInput(t);
-    if (parsed.error) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
+    if ('error' in parsed) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
     const id = cleanText(t?.ID_Transaksi ?? t?.idTransaksi, 40);
     if (!id || !isValidDocId(id)) {
       return { valid: false, error: `Snapshot mengandung ID_Transaksi tidak valid: ${id}` };
@@ -328,8 +334,8 @@ export function validateSnapshot(raw) {
  * Export an atomic point-in-time snapshot of a group's full ledger and proofs.
  *
  * @param {string} gid
- * @param {object} headers
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @param {object} payloadOrHeaders
+ * @param {object} [maybeHeaders]
  */
 export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
   const headers = maybeHeaders !== undefined ? maybeHeaders : payloadOrHeaders;
@@ -405,6 +411,7 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
     const kasStart = settings?.kasStart || '';
     const gname = groupDocInfo?.nama || gid;
 
+    /** @type {import('../src/types/finkas.d.ts').SnapshotEnvelope} */
     const snapshot = {
       app: 'Finkas',
       version: 2,
@@ -445,7 +452,7 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
  * Restore a full database snapshot into a group.
  *
  * @param {string} gid Target group id
- * @param {object} payload { data, sourceGroupId?, confirmCrossGroup? }
+ * @param {Record<string, unknown> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }} payload
  * @param {object} headers
  */
 export async function restoreSnapshot(gid, payload, headers) {
@@ -480,6 +487,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   await upsertThenPrune(MEMBERS_COLLECTION, anggotaIds, () =>
     anggota.map((a) => {
       const id = cleanText(a.ID_Anggota ?? a.idAnggota, 40);
+      const status = a.Status_Aktif ?? a.statusAktif;
       anggotaIds.add(id);
       return {
         update: {
@@ -488,7 +496,7 @@ export async function restoreSnapshot(gid, payload, headers) {
             ID_Anggota: id,
             Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
             Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
-            Status_Aktif: STATUSES.includes(a.Status_Aktif ?? a.statusAktif) ? (a.Status_Aktif ?? a.statusAktif) : 'Aktif',
+            Status_Aktif: typeof status === 'string' && STATUSES.includes(status) ? status : 'Aktif',
             Tanggal_Gabung: cleanText(a.Tanggal_Gabung ?? a.tanggalGabung, 30),
             groupId: gid
           })

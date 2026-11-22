@@ -23,6 +23,7 @@ const RATE_LIMIT_COLLECTION = '_ratelimit';
 
 /* ── Signing secret ──────────────────────────────────────────────── */
 
+/** @type {string|null} */
 let sessionSecretCache = null;
 
 /**
@@ -81,7 +82,7 @@ export function signSession(claims, ttlSeconds) {
 /**
  * Verify a signed session token.
  * @param {string} token
- * @returns {{role: string, gid: string, email: string, exp: number}|null}
+ * @returns {{role: string, gid: string, email: string, exp: number, iat?: number}|null}
  */
 export function verifySession(token) {
   if (typeof token !== 'string' || !token.includes('.')) return null;
@@ -113,7 +114,7 @@ export function verifySession(token) {
 
 /**
  * Resolve the caller's session from a request body.
- * @param {object} body
+ * @param {{sessionToken?: string}} body
  */
 export const readSession = (body) => verifySession(String(body?.sessionToken || '').trim());
 
@@ -124,9 +125,9 @@ export const readSession = (body) => verifySession(String(body?.sessionToken || 
  * When `superadminEmails` is given, a superadmin session is trusted only while
  * its email is still on that list. Omitting it keeps the role-only check, for
  * callers that have not loaded the whitelist yet.
- * @param {object|null} session
+ * @param {ReturnType<typeof verifySession>} session
  * @param {string} groupId
- * @param {object|null} [groupInfo]
+ * @param {{revokedAfter?: number|string}|null} [groupInfo]
  * @param {string[]|null} [superadminEmails]
  */
 export const canReadGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
@@ -149,9 +150,9 @@ export const canReadGroup = (session, groupId, groupInfo = null, superadminEmail
 /**
  * True when the session may mutate the given group's data.
  * Supports server-side revocation if groupInfo.revokedAfter is present.
- * @param {object|null} session
+ * @param {ReturnType<typeof verifySession>} session
  * @param {string} groupId
- * @param {object|null} [groupInfo]
+ * @param {{revokedAfter?: number|string}|null} [groupInfo]
  * @param {string[]|null} [superadminEmails] See canReadGroup.
  */
 export const canWriteGroup = (session, groupId, groupInfo = null, superadminEmails = null) => {
@@ -266,7 +267,7 @@ const rateLimitKey = (key) =>
 export function nextFailedAttempt(existing, now, maxAttempts, windowMs) {
   const since = Number(existing?.since) || 0;
   const open = since > 0 && now < since + windowMs;
-  const count = (open ? Number(existing.count) || 0 : 0) + 1;
+  const count = (open ? Number(existing?.count) || 0 : 0) + 1;
   const locked = count >= maxAttempts;
   return {
     count,

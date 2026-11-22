@@ -25,7 +25,7 @@ export async function readTransactions(gid, headers) {
  * Load the full dataset for one group.
  * @param {string} gid
  * @param {object} headers Authorized Firestore headers.
- * @returns {Promise<{anggota: Array, kategori: Array, transaksi: Array, settings: {skippedMonths: string[]}}>}
+ * @returns {Promise<{anggota: Array, kategori: Array, transaksi: Array, updatedAt?: string, settings: import('../src/types/finkas.d.ts').GroupSettings}>}
  */
 export async function readGroupData(gid, headers) {
   const [memberDocs, categoryDocs, transactionDocs, settings] = await Promise.all([

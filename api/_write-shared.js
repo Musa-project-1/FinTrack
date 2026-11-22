@@ -11,6 +11,7 @@ export const ARUS = ['Masuk', 'Keluar'];
 export const STATUSES = ['Aktif', 'Nonaktif'];
 
 export const fail = (message) => ({ status: false, message, data: null });
+/** @param {string} message @param {object|null} [data] */
 export const ok = (message, data = null) => ({ status: true, message, data });
 
 export const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
@@ -41,7 +42,7 @@ export const parseTimestamp = (value) => {
 /**
  * Validate the shared transaction payload shape.
  * @returns {{nominal: number, tipeArus: string, idKategori: string, idAnggota: string,
- *            bulanIuran: string, tahunIuran: string, keterangan: string}|{error: string}}
+ *            bulanIuran: string, tahunIuran: string, keterangan: string, timestamp: string|null, operationId?: string}|{error: string}}
  */
 export function parseTransactionInput(dataForm) {
   const nominal = Number(dataForm?.nominal ?? dataForm?.Nominal);
@@ -68,6 +69,7 @@ export function parseTransactionInput(dataForm) {
 
 /**
  * Find an existing iuran payment matching the member and period.
+ * @param {string|null} [excludeId]
  * Exported so the de-duplication rule can be tested directly.
  */
 export const findDuplicateIuran = (transactions, input, excludeId = null) =>

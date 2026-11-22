@@ -10,10 +10,14 @@ const billingFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jaka
 /** The billing calendar is WIB, independent of the device timezone. */
 export const billingPeriod = (date = new Date()) => {
   const parts = billingFormatter.formatToParts(date);
-  return { year: Number(parts.find(p => p.type === 'year').value), monthIndex: Number(parts.find(p => p.type === 'month').value) - 1 };
+  return { year: Number(parts.find(p => p.type === 'year')?.value), monthIndex: Number(parts.find(p => p.type === 'month')?.value) - 1 };
 };
 
-/** Index nominal, never transaction presence. Non-dues income does not settle dues. */
+/** Index nominal, never transaction presence. Non-dues income does not settle dues.
+ * @param {import('../types/finkas.d.ts').AppState} state
+ * @param {{now?: Date, year?: number|string, monthlyFee?: number}} [options]
+ * @returns {import('../types/finkas.d.ts').DuesLedger}
+ */
 export const createDuesLedger = (state, { now = new Date(), year, monthlyFee = DEFAULT_MONTHLY_FEE } = {}) => {
   if (!Number.isSafeInteger(monthlyFee) || monthlyFee <= 0) throw new Error('Tarif iuran tidak valid.');
   const paid = new Map();
@@ -30,6 +34,7 @@ export const createDuesLedger = (state, { now = new Date(), year, monthlyFee = D
   const current = billingPeriod(now);
   const last = ordinal(current.monthIndex, current.year);
   const skips = new Set(state.skippedMonths || []);
+  /** @type {import('../types/finkas.d.ts').DuesLedger['getMonth']} */
   const getMonth = (member, monthIndex, periodYear) => {
     const total = paid.get(keyFor(member.ID_Anggota, monthIndex, periodYear)) || 0;
     let join = -Infinity;

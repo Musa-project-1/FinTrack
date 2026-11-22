@@ -1,12 +1,13 @@
 /**
  * Pre-flight verification for Finkas.
  *
- * Four checks that have all silently broken in the past:
+ * Five checks that have all silently broken in the past:
  *   1. Every .js/.mjs file under src/ and api/ parses.
  *   2. The service worker's precache list matches the modules that actually
  *      exist (a missing entry works online and 404s offline).
  *   3. index.html is not older than the html/ fragments it is assembled from.
  *   4. style.css is not older than the css/ modules it is built from.
+ *   5. TypeScript checks the core and API modules.
  *
  * Run with: npm run verify
  */
@@ -170,6 +171,16 @@ if (!fs.existsSync(STYLE_PATH)) {
   );
 }
 
+try {
+  execFileSync(process.execPath, [path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit'], {
+    cwd: ROOT,
+    stdio: 'pipe'
+  });
+} catch (err) {
+  const detail = String(err.stdout || err.stderr || err.message || '').trim().split('\n').slice(0, 12).join('\n');
+  failures.push(`typecheck: tsc --noEmit\n${detail}`);
+}
+
 /* ── Report ──────────────────────────────────────────────────────── */
 
 if (failures.length) {
@@ -178,4 +189,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html and style.css are current.`);
+console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html and style.css are current, TypeScript passed.`);

@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "verify": "node scripts/verify.mjs",
     "test": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
     "check": "npm run verify && npm test",
@@ -16,6 +17,8 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.0.0",
-    "tailwindcss": "^4.0.0"
+    "@types/node": "^26.6.6",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^7.0.2"
   }
 }

@@ -55,11 +55,12 @@ export const createPagination = (id, label, render) => {
 
   const init = () => {
     const pager = document.getElementById(id);
-    const input = pager?.querySelector('[data-page-number]');
+    const input = /** @type {HTMLInputElement | null | undefined} */ (pager?.querySelector('[data-page-number]'));
     if (!pager || !input) return;
 
     pager.addEventListener('click', (event) => {
-      const targetBtn = event.target.closest('[data-page-target]');
+      if (!(event.target instanceof Element)) return;
+      const targetBtn = /** @type {HTMLButtonElement | null} */ (event.target.closest('[data-page-target]'));
       if (targetBtn) {
         const next = Number(targetBtn.dataset.pageTarget);
         if (Number.isInteger(next) && next !== page) {
@@ -69,12 +70,13 @@ export const createPagination = (id, label, render) => {
         return;
       }
 
-      const stepBtn = event.target.closest('[data-page-step]');
+      const stepBtn = /** @type {HTMLButtonElement | null} */ (event.target.closest('[data-page-step]'));
       if (!stepBtn || stepBtn.disabled) return;
       page += Number(stepBtn.dataset.pageStep);
       render();
       if (stepBtn.disabled && !pager.hidden) {
-        pager.querySelector('[data-page-target].is-active')?.focus({ preventScroll: true });
+        const active = /** @type {HTMLButtonElement | null} */ (pager.querySelector('[data-page-target].is-active'));
+        active?.focus({ preventScroll: true });
       }
     });
 
@@ -106,13 +108,13 @@ export const createPagination = (id, label, render) => {
     page = Math.max(1, Math.min(pageCount, Number.isInteger(page) ? page : 1));
     const start = (page - 1) * PAGE_SIZE;
     const pager = document.getElementById(id);
-    const input = pager?.querySelector('[data-page-number]');
+    const input = /** @type {HTMLInputElement | null | undefined} */ (pager?.querySelector('[data-page-number]'));
 
-    if (input) {
+    if (pager && input) {
       pager.hidden = pageCount < 2;
-      input.max = pageCount;
-      input.value = page;
-      const jumpForm = pager.querySelector('.dues-page-jump');
+      input.max = String(pageCount);
+      input.value = String(page);
+      const jumpForm = /** @type {HTMLFormElement | null} */ (pager.querySelector('.dues-page-jump'));
       if (jumpForm) jumpForm.hidden = pageCount <= 7;
       const totalEl = pager.querySelector('[data-page-total]');
       if (totalEl) totalEl.textContent = `/ ${pageCount}`;
@@ -124,8 +126,8 @@ export const createPagination = (id, label, render) => {
         label
       );
       renderPageList(pager.querySelector('[data-page-list]'), page, pageCount);
-      const prevBtn = pager.querySelector('[data-page-step="-1"]');
-      const nextBtn = pager.querySelector('[data-page-step="1"]');
+      const prevBtn = /** @type {HTMLButtonElement | null} */ (pager.querySelector('[data-page-step="-1"]'));
+      const nextBtn = /** @type {HTMLButtonElement | null} */ (pager.querySelector('[data-page-step="1"]'));
       if (prevBtn) prevBtn.disabled = page === 1;
       if (nextBtn) nextBtn.disabled = page === pageCount;
     }

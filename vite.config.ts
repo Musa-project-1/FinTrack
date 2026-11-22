@@ -4,6 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 const paths = {
   'finkas/hybrid-motion': './hybrid-motion.js',
   'finkas/dues-status': './dues-status.js',
+  'finkas/pagination': './pagination.js',
   'finkas/receipt': '../render/receipt.js',
   'finkas/self-pay': '../handlers/self-pay.js'
 };
@@ -11,6 +12,7 @@ const paths = {
 export default defineConfig({
   plugins: [svelte()],
   build: {
+    sourcemap: 'inline',
     lib: { entry: 'src/svelte/mount.ts', formats: ['es'], fileName: () => 'svelte-dashboard.js' },
     outDir: 'src/ui',
     emptyOutDir: false,

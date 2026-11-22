@@ -4,7 +4,9 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { createDuesLedger } from '../src/core/dues.js';
 import { NAMA_BULAN } from '../src/core/config.js';
-import { setActiveGroupId, setAdminSession, setAdminViewMode, setState } from '../src/core/state.js';
+import { setActiveGroupId, setCurrentHistoryFilter, setCurrentRekapYear, setAdminSession, setAdminViewMode, setState } from '../src/core/state.js';
+import * as history from '../src/render/transactions.js';
+import * as stats from '../src/ui/hybrid-chart.js';
 import * as adapter from '../src/ui/spotlight.js';
 import * as bundle from '../src/ui/svelte-dashboard.js';
 import { formatRp } from '../src/core/utils.js';
@@ -75,14 +77,21 @@ test('the shipped ESM shares core and motion dependencies and is available offli
   const js = read(file);
   const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
   assert.deepEqual(new Set(imports), new Set(['../core/config.js', '../core/utils.js', '../core/dues.js', '../core/state.js',
-    './hybrid-motion.js', './dues-status.js', '../render/receipt.js', '../handlers/self-pay.js']));
+    './hybrid-motion.js', './dues-status.js', './pagination.js', '../render/receipt.js', '../handlers/self-pay.js']));
+  const inline = js.match(/\/\/# sourceMappingURL=data:application\/json;(?:charset=[^;]+;)?base64,([A-Za-z0-9+/=]+)\s*$/);
+  assert.ok(inline, 'bundle has a trailing inline sourcemap');
+  const map = JSON.parse(Buffer.from(inline[1], 'base64'));
+  for (const file of ['HistoryLedger.svelte', 'WorkspaceStats.svelte', 'history-model.ts',
+    'stats-model.ts', 'history.svelte.ts', 'stats.svelte.ts']) {
+    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
+  }
   assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
 });
 
 function installDom(t, file = 'html/index.template.html') {
   const { window } = new JSDOM(read(file), { url: 'https://example.test' });
   t.after(() => window.close());
-  for (const name of ['window', 'document', 'Element', 'HTMLElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent',
+  for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent',
     'Option', 'MutationObserver', 'localStorage']) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, name);
     Object.defineProperty(globalThis, name, { value: window[name], configurable: true });
@@ -273,4 +282,148 @@ test('pin controls, monthly details, keyboard focus and admin arrears update syn
   assert.deepEqual({ ...first.dataset }, { action: 'quickpay-card', anggota: 'A6', bulan: 'Mei', year: '2025' });
   assert.equal(first.getAttribute('aria-label'), 'Lunasi iuran Mei untuk Ana');
   assert.equal(first.previousElementSibling.title, 'Sisa ' + formatRp(10000));
+});
+
+const stage3 = {
+  anggota: [state.anggota[0]], kasStart: '01-2025', skippedMonths: [],
+  kategori: [{ ID_Kategori: 'sup', Nama_Kategori: 'Alat' }],
+  transaksi: [
+    ...NAMA_BULAN.map((_, i) => payment('A1', i, 10000)),
+    { ...trx('2025-05-31T17:00Z', 3000, 'Keluar'), ID_Transaksi: 'X1', ID_Kategori: 'sup', Keterangan: '  Kertas  ' },
+    { ...trx('2025-06-02', 1000, 'Keluar'), ID_Transaksi: 'X2', ID_Anggota: '-', ID_Kategori: 'unknown' },
+    { ...trx('2024-01-01', 500, 'Masuk'), ID_Transaksi: 'opening' }
+  ]
+};
+
+test('history searches all ledger fields before counting flows and applying chips', () => {
+  const view = (filter, searchQuery = '') => bundle.computeHistoryViewModel(stage3, { filter, searchQuery, isAdmin: true });
+  const all = view('semua');
+  assert.deepEqual(all.flowCounts, { semua: 15, masuk: 13, keluar: 2 });
+  assert.deepEqual(all.filteredTrx.slice(0, 2).map(t => t.ID_Transaksi), ['X2', 'X1']);
+  for (const [filter, count] of [['masuk', 13], ['keluar', 2], ['iuran', 12], ['operasional', 3]]) {
+    assert.equal(view(filter).filteredTrx.length, count);
+  }
+  for (const [term, count] of [['ZARA', 12], ['KERTAS', 1], ['aLAt', 1], ['MEI', 1], ['2025', 12], ['x2', 1]]) {
+    assert.equal(view('semua', term).filteredTrx.length, count);
+  }
+  assert.deepEqual(view('masuk', 'kertas').flowCounts, { semua: 1, masuk: 0, keluar: 1 });
+  assert.equal(all.hint, 'Koreksi / Struk');
+  assert.equal(history.renderTableTransaksi, bundle.renderTableTransaksi);
+  assert.equal(history.initHistoryPagination, bundle.initHistoryPagination);
+});
+
+test('history mounts into the ledger list and shares page, search, and role updates', t => {
+  const byId = installDom(t);
+  setState(stage3);
+  setAdminSession('');
+  setCurrentHistoryFilter('semua');
+  const panel = byId('workspace-history');
+  const list = byId('hybrid-ledger-list');
+  const search = byId('workspace-search-history');
+  const pager = byId('history-pagination');
+  history.initHistoryPagination();
+  history.renderTableTransaksi();
+  assert.equal(list.querySelector('.ledger-row'), null);
+  panel.hidden = false;
+  history.renderTableTransaksi();
+  assert.deepEqual([...document.querySelectorAll('.workspace-history-tools [data-filter]')].map(b => b.textContent),
+    ['Semua (15)', 'Masuk (13)', 'Keluar (2)']);
+  assert.equal(byId('hybrid-ledger-count').textContent, 'Menampilkan 15 transaksi');
+  assert.equal(list.querySelectorAll('.ledger-row[data-action="open-receipt"]').length, 10);
+  assert.equal(list.querySelector('[data-id="X1"] .ledger-title').title, 'Kertas');
+  assert.equal(list.querySelector('[data-id="X2"] .ledger-title').title, 'Operasional');
+  assert.equal(list.querySelector('[data-id="X1"] .ledger-amt').textContent, '−' + formatRp(3000));
+  pager.querySelector('[data-page-step="1"]').click();
+  assert.equal(list.querySelectorAll('.ledger-row').length, 5);
+  search.value = 'ZaRa';
+  history.renderTableTransaksi();
+  assert.equal(list.querySelectorAll('.ledger-row').length, 10);
+  assert.equal(list.querySelector('.ledger-title').textContent, 'Iuran Januari · Zara');
+  assert.equal(list.querySelector('.ledger-action-hint').textContent, 'Lihat Struk');
+  setAdminSession('history-session');
+  setAdminViewMode('admin');
+  history.renderTableTransaksi();
+  assert.equal(list.querySelector('.ledger-action-hint').textContent, 'Koreksi / Struk');
+  setCurrentHistoryFilter('keluar');
+  history.renderTableTransaksi();
+  assert.equal(list.querySelector('.hybrid-ledger-empty').textContent, 'Belum ada transaksi yang sesuai filter.');
+  assert.equal(pager.hidden, true);
+  assert.equal(document.querySelector('.workspace-history-tools [data-filter="masuk"]').textContent, 'Masuk (12)');
+});
+
+test('stats model includes WIB monthly totals, opening balance, compliance and expense shares', () => {
+  const vm = bundle.computeStatsViewModel(stage3, { activeYear: 2025, selectedMonth: 4 });
+  assert.deepEqual(vm.gridLines.map(g => g.y), [18, 84, 150, 216]);
+  assert.equal(vm.months.length, 12);
+  assert.equal(vm.months[0].runText, formatRp(500));
+  assert.equal(vm.months[4].inText, formatRp(120000));
+  assert.equal(vm.months[5].outText, formatRp(4000));
+  assert.equal(vm.months[11].runText, formatRp(116500));
+  assert.equal(vm.curvePath.match(/ C /g).length, 11);
+  assert.deepEqual(vm.breakdownRows.map(r => [r.label, r.width, r.metricText]), [
+    ['Kepatuhan Iuran Grup', 100, '100%'], ['Alat', 75, '−' + formatRp(3000) + ' (75%)'],
+    ['unknown', 25, '−' + formatRp(1000) + ' (25%)']
+  ]);
+  assert.equal(stats.renderHybridChart, bundle.renderHybridChart);
+});
+
+test('stats preserves both cards and updates readout, focus and selection synchronously', t => {
+  const byId = installDom(t);
+  const panel = byId('workspace-stats');
+  const contract = () => [...panel.querySelectorAll('*')].map(el => [
+    el.tagName, el.parentElement.tagName, [...el.attributes].map(a => [a.name, a.value]).sort()
+  ]);
+  const original = contract();
+  mountSvelteDashboard();
+  assert.deepEqual(contract(), original);
+  setCurrentRekapYear(2025);
+  stats.renderHybridChart(stage3); // JSDOM has no getTotalLength().
+  const svg = byId('hybrid-cashflow');
+  for (const cls of ['chart-bar-in', 'chart-bar-out', 'chart-dot', 'chart-hit-rect']) {
+    assert.equal(svg.querySelectorAll('.' + cls).length, 12);
+  }
+  const hits = [...svg.querySelectorAll('.chart-hit-rect')];
+  const path = svg.querySelector('path');
+  assert.match(path.getAttribute('d'), /^M .* C /);
+  const check = index => {
+    assert.equal(byId('hybrid-chart-readout').querySelector('strong').textContent, NAMA_BULAN[index] + ' 2025');
+    assert.equal(svg.querySelector('[aria-pressed="true"]'), hits[index]);
+    assert.equal(svg.querySelector('.chart-dot.is-selected').getAttribute('r'), '5.5');
+  };
+  check(11);
+  hits[5].dispatchEvent(new Event('click', { bubbles: true }));
+  check(5);
+  for (const [from, key, to] of [[5, 'Home', 0], [0, 'ArrowLeft', 11], [11, 'ArrowRight', 0], [0, 'End', 11]]) {
+    hits[from].dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true }));
+    check(to);
+    assert.equal(document.activeElement, hits[to]);
+  }
+  assert.equal(svg.querySelector('path'), path);
+  assert.deepEqual([...panel.querySelectorAll('.breakdown-fill')].map(el => el.style.width), ['100%', '75%', '25%']);
+  assert.equal(panel.querySelector('.breakdown-fill.paid').style.width, '100%');
+  const proto = Object.getPrototypeOf(path);
+  const measured = new WeakSet();
+  proto.getTotalLength = function () { measured.add(this); return 42; };
+  t.after(() => { delete proto.getTotalLength; });
+  let reduceMotion = false;
+  const originalMedia = Object.getOwnPropertyDescriptor(globalThis, 'matchMedia');
+  Object.defineProperty(globalThis, 'matchMedia', { configurable: true, value: () => ({ matches: reduceMotion }) });
+  t.after(() => {
+    if (originalMedia) Object.defineProperty(globalThis, 'matchMedia', originalMedia);
+    else delete globalThis.matchMedia;
+  });
+
+  stats.renderHybridChart(stage3);
+  const animated = svg.querySelector('path');
+  assert.notEqual(animated, path);
+  assert.ok(measured.has(animated) && animated.classList.contains('draw-anim'));
+  measured.delete(animated);
+  bundle.selectStatsMonth(5);
+  assert.equal(measured.has(animated), false);
+  reduceMotion = true;
+  stats.renderHybridChart(stage3);
+  const stationary = svg.querySelector('path');
+  assert.equal(measured.has(stationary), false);
+  assert.equal(stationary.classList.contains('draw-anim'), false);
+  check(5);
 });

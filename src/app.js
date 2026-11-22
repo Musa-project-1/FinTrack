@@ -8,14 +8,14 @@
  */
 
 import {
-  setState, saveCache, loadCache, getIsAdminView, setCurrentRekapYear, getState, getActiveGroupId
+  setState, saveCache, loadCache, getIsAdminView, getState, getActiveGroupId
 } from "./core/state.js";
 import { fetchInitialData } from "./core/api.js";
-import { showToast, setConnectionStatus, isOnline, handleNominalInput } from "./core/utils.js";
+import { showToast, setConnectionStatus, isOnline } from "./core/utils.js";
 import { syncOfflineTransactions, deleteOfflineTransaction, getOfflineTransactions } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
-import { initSync, destroySync, notifySynced } from "./core/sync.js";
+import { initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from "./core/sync.js";
 import {
   applyTheme, watchSystemTheme, toggleTheme, setTheme, setPalette, applyHeaderStatsPreference,
   applyDensityPreference, applyAccentPreference, applyNumberFontPreference,
@@ -23,13 +23,11 @@ import {
   applyLanguagePreference, setLanguage
 } from "./ui/theme.js";
 import {
-  openModal, closeModal, switchTab,
-  filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,
-  renderCheckboxIuran, filterAnggotaIuran, closeMobileMenu,
+  openModal, closeModal, switchTab, updateCounterIuran, closeMobileMenu,
   closeHeaderDropdown, closeConfirmDialog, executeConfirmAction
 } from "./ui/modal.js";
 import {
-  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableTransaksi, renderTableRekap
+  renderAll, renderChart, bukaProfilAnggota, toggleIuranCard, renderTableRekap
 } from "./render.js";
 
 import {
@@ -38,7 +36,7 @@ import {
 import {
   setBottomNavActive, closeActiveModal, setHistoryFilter, setupRekapSearchListener,
   openTampilanModal, openDuesLegend, setIndicatorStyle, setPrivacyMode, setCurrencyFormat, applyPrivacyMode,
-  openCommandHubModal, setupMenuSearchListener
+  openCommandHubModal, setupMenuSearchListener, initAppFormAndInputListeners
 } from "./handlers/navigation.js";
 import {
   openQuickPaySheet, submitQuickPay, bukaModalTransaksi, submitIuran,
@@ -65,7 +63,7 @@ import { copyReceipt, initReceipt, openReceipt, openMonthReceipt, downloadReceip
 import { initAttachmentControls } from "./handlers/attachments.js";
 import { initSaveStatus } from "./ui/save-status.js";
 import { exportJSONBackup, restoreJSONBackup } from "./handlers/backup.js";
-import { initCustomDropdowns, syncCdrop } from "./ui/cdrop.js";
+import { initCustomDropdowns } from "./ui/cdrop.js";
 import { initTransactionModalControls } from "./ui/transaction-form.js";
 import { initMonthPickers } from "./ui/mpick.js";
 import { initDatePickers } from "./ui/dpick.js";
@@ -86,40 +84,6 @@ import {
 } from "./handlers/groups.js";
 
 let isLoading = false;
-
-/* ── Sync badge helpers ──────────────────────────────────────────── */
-
-const SYNC_BTNS = ['btn-sync-rekap', 'btn-sync-rekap-mobile'];
-
-const SYNC_STATES = {
-  'has-update': { text: 'Data Baru', label: 'Ada data baru — klik untuk muat ulang' },
-  'is-syncing': { text: 'Memuat…', label: 'Sedang memuat data...' },
-  'is-clean':   { text: 'Sinkron', label: 'Data sinkron — klik untuk muat ulang' }
-};
-
-const setSyncBadge = (state) => {
-  const cfg = SYNC_STATES[state] || SYNC_STATES['is-clean'];
-  const syncing = state === 'is-syncing';
-  let labelText = cfg.label;
-  if (!state || state === 'is-clean') {
-    const wib = new Date().toLocaleTimeString('id-ID', {
-      timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit'
-    });
-    labelText = `Data sinkron · Diperbarui ${wib} WIB — klik untuk muat ulang`;
-  }
-  SYNC_BTNS.forEach((id) => {
-    const btn = document.getElementById(id);
-    if (!btn) return;
-    btn.classList.remove('is-clean', 'has-update', 'is-syncing');
-    btn.classList.add(SYNC_STATES[state] ? state : 'is-clean');
-    btn.disabled = syncing;
-    btn.setAttribute('aria-busy', syncing ? 'true' : 'false');
-    btn.title = labelText;
-    btn.setAttribute('aria-label', labelText);
-    const labelEl = btn.querySelector('.sync-rekap-label');
-    if (labelEl) labelEl.textContent = cfg.text;
-  });
-};
 
 /* ══════════════════════════════════════════════════════════════════
    Cross-module event mediator
@@ -363,39 +327,9 @@ document.addEventListener('click', (e) => {
     case 'cancel-confirm-action': closeConfirmDialog(); break;
 
     /* ── Sync rekap badge ─────────────────────────── */
-    case 'sync-rekap-data': {
-      if (isLoading) return;
-      setSyncBadge('is-syncing');
-      const prevTrx = [...(getState().transaksi || [])];
-      const prevAnggotaCount = (getState().anggota || []).length;
-      initApp(true, true).then((ok) => {
-        if (!ok) {
-          setSyncBadge('has-update');
-          return;
-        }
-        setSyncBadge('is-clean');
-        const nextTrx = getState().transaksi || [];
-        const nextAnggotaCount = (getState().anggota || []).length;
-        const prevIds = new Set(prevTrx.map((t) => t.ID_Transaksi));
-        const newTrx = nextTrx.filter((t) => !prevIds.has(t.ID_Transaksi));
-        const nextIds = new Set(nextTrx.map((t) => t.ID_Transaksi));
-        const deletedTrx = prevTrx.filter((t) => !nextIds.has(t.ID_Transaksi));
-        const diffAnggota = nextAnggotaCount - prevAnggotaCount;
-
-        const changes = [];
-        if (newTrx.length > 0) changes.push(`+${newTrx.length} transaksi baru`);
-        if (deletedTrx.length > 0) changes.push(`${deletedTrx.length} transaksi dihapus`);
-        if (diffAnggota > 0) changes.push(`+${diffAnggota} anggota baru`);
-        if (diffAnggota < 0) changes.push(`${Math.abs(diffAnggota)} anggota dihapus`);
-
-        if (changes.length > 0) {
-          showToast(`Sinkron berhasil: ${changes.join(', ')}.`, 'success');
-        } else {
-          showToast('Data sudah yang paling baru.', 'info');
-        }
-      });
+    case 'sync-rekap-data':
+      runManualSyncRekap(initApp, () => isLoading);
       break;
-    }
 
     /* ── Offline sync ─────────────────────────────── */
     case 'sync-now':          syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
@@ -440,32 +374,6 @@ document.addEventListener('keydown', (e) => {
 /* Close mobile menu on resize */
 window.addEventListener('resize', () => {
   if (window.innerWidth > 768) closeMobileMenu();
-});
-
-/* ── Form submit handlers ──────────────────────────────────────── */
-document.getElementById('modal-login')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  submitLoginAdmin(e);
-}, true);
-
-document.getElementById('modal-transaksi')?.querySelector('#tab-iuran form')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  submitIuran(e);
-});
-
-document.getElementById('modal-transaksi')?.querySelector('#tab-operasional form')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  submitOperasional(e);
-});
-
-document.getElementById('modal-edit-transaksi')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  submitEditTransaksi(e);
-});
-
-document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  submitQuickPay(e);
 });
 
 /* ══════════════════════════════════════════════════════════════════
@@ -653,89 +561,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
   if (activeGaId) initAnalytics(activeGaId);
 
-  /* ── Input listeners ─────────────────────────────────────────── */
-
-  [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
-    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openCommandHubModal(); });
-  });
-
-  const iuranNominal = document.getElementById('iuran-nominal');
-  if (iuranNominal) iuranNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterIuran(); });
-
-  const opsNominal = document.getElementById('ops-nominal');
-  if (opsNominal) opsNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterOps(); });
-
-  const qpNominal = document.getElementById('qp-nominal');
-  if (qpNominal) qpNominal.addEventListener('input', function () { handleNominalInput(this); });
-
-  const editNominal = document.getElementById('edit-nominal');
-  if (editNominal) editNominal.addEventListener('input', function () { handleNominalInput(this); });
-
-  const iuranBulan = document.getElementById('iuran-bulan');
-  if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
-
-  const iuranTahun = document.getElementById('iuran-tahun');
-  if (iuranTahun) {
-    iuranTahun.addEventListener('input', function () {
-      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
-      renderCheckboxIuran();
-    });
-  }
-
-  const opsTipe = document.getElementById('ops-tipe');
-  if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); syncCdrop('ops-kategori'); updateCounterOps(); });
-
-  const editTipe = document.getElementById('edit-tipe');
-  if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
-
-  const historySearches = ['workspace-search-history'].map((id) => document.getElementById(id)).filter(Boolean);
-  let trxSearchTimer;
-  for (const input of historySearches) input.addEventListener('input', () => {
-    for (const other of historySearches) if (other !== input) other.value = input.value;
-    clearTimeout(trxSearchTimer);
-    trxSearchTimer = setTimeout(renderTableTransaksi, 150);
-  });
-
-  const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
-  if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('input', filterAnggotaIuran);
-
-  const btnPilihSemua = document.getElementById('btn-pilih-semua');
-  if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
-
-  const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
-  const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
-  [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
-    sel.addEventListener('change', (e) => {
-      setCurrentRekapYear(e.target.value);
-      if (tahunRekapSelect) tahunRekapSelect.value = e.target.value;
-      if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = e.target.value;
-      syncCdrop('ui-tahun-rekap-select');
-      syncCdrop('ui-tahun-rekap-select-mobile');
-      renderTableRekap();
-      renderTableTransaksi();
-    });
-  });
-
-  const formTambahAnggota = document.getElementById('form-tambah-anggota');
-  if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);
-
-  const formTambahKategori = document.getElementById('form-tambah-kategori');
-  if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
-
-  const formEditMasterAnggota = document.getElementById('form-edit-master-anggota');
-  if (formEditMasterAnggota) formEditMasterAnggota.addEventListener('submit', submitEditMasterAnggota);
-
-  const inputRestore = document.getElementById('input-restore-json');
-  if (inputRestore) inputRestore.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      restoreJSONBackup(e.target.files[0]);
-      e.target.value = '';
-    }
-  });
-
-  /* Keep the group picker reachable once the session can no longer read the group. */
-  window.addEventListener('finkas:group-changed', () => {
-    renderMasterAnggotaTable();
-    renderMasterKategoriTable();
+  initAppFormAndInputListeners({
+    submitLoginAdmin,
+    submitIuran,
+    submitOperasional,
+    submitEditTransaksi,
+    submitQuickPay,
+    submitTambahAnggota,
+    submitTambahKategori,
+    submitEditMasterAnggota,
+    restoreJSONBackup,
+    renderMasterAnggotaTable,
+    renderMasterKategoriTable
   });
 });

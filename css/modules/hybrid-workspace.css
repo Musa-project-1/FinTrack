@@ -19,8 +19,10 @@
   border-bottom: 0;
 }
 
-.ledger-row:hover {
-  background: color-mix(in oklab, var(--surface-2) 65%, var(--surface));
+@media (hover: hover) and (pointer: fine) {
+  .ledger-row:hover {
+    background: color-mix(in oklab, var(--surface-2) 65%, var(--surface));
+  }
 }
 
 .ledger-type-icon {
@@ -107,169 +109,6 @@
   font-weight: 600;
 }
 
-/* Tab 3: Kesehatan & Grafik Kas */
-.analytics-grid {
-  display: grid;
-  grid-template-columns: 1.45fr 1fr;
-  gap: 14px;
-}
-
-.chart-card {
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.chart-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.chart-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.015em;
-}
-
-.chart-figure {
-  margin: 0;
-}
-
-.chart-stage {
-  position: relative;
-  width: 100%;
-}
-
-.chart-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  overflow: visible;
-}
-
-.chart-bar-in,
-.chart-bar-out {
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  animation: bar-grow 420ms var(--hybrid-ease-spring) backwards;
-  animation-delay: calc(var(--bar-i, 0) * 35ms);
-}
-
-@keyframes bar-grow {
-  from { transform: scaleY(0.02); opacity: 0.3; }
-  to { transform: scaleY(1); opacity: 1; }
-}
-
-.chart-curve-path {
-  fill: none;
-  stroke: var(--hybrid-paid);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.chart-curve-path.draw-anim {
-  animation: curve-draw 520ms var(--hybrid-ease-out) forwards;
-}
-
-@keyframes curve-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-.chart-tooltip-box {
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12.5px;
-}
-
-.chart-hit-rect {
-  fill: transparent;
-  cursor: pointer;
-}
-
-.chart-hit-rect:hover,
-.chart-hit-rect:focus-visible {
-  fill: color-mix(in oklab, var(--hybrid-paid) 10%, transparent);
-}
-
-.chart-hit-rect.is-selected {
-  fill: color-mix(in oklab, var(--hybrid-paid) 12%, transparent);
-}
-
-.chart-dot {
-  transition: r 180ms var(--hybrid-ease-out), fill 180ms ease, stroke-width 180ms ease;
-}
-
-.chart-dot.is-selected {
-  fill: var(--hybrid-paid);
-  stroke: var(--surface);
-  stroke-width: 2.5;
-}
-
-.chart-axis-x.is-selected {
-  fill: var(--text-main);
-}
-
-.breakdown-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.breakdown-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.breakdown-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.breakdown-track {
-  height: 8px;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
-  overflow: hidden;
-}
-
-.breakdown-fill {
-  height: 100%;
-  border-radius: var(--r-pill);
-  background: var(--hybrid-outflow, #64748B);
-  transform-origin: left center;
-  animation: fill-scale 420ms var(--hybrid-ease-out) backwards;
-}
-
-.breakdown-fill.paid {
-  background: var(--hybrid-paid);
-}
-
-.bd-pct-paid {
-  color: var(--income-strong);
-}
-
-@keyframes fill-scale {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
 #workspace-iuran #section-rekap {
   margin: 0;
   padding: 0;
@@ -344,8 +183,10 @@ body[data-canvas="clean"] #workspace-iuran #section-rekap { background: var(--su
 #section-rekap .table-matriks tbody td.is-col-hover {
   background: color-mix(in oklab, var(--surface-2) 65%, var(--surface));
 }
-#section-rekap .table-matriks tbody tr:hover th:not(.is-pinned),
-#section-rekap .table-matriks tbody tr:hover td { background: color-mix(in oklab, var(--surface-2) 52%, var(--surface)); }
+@media (hover: hover) and (pointer: fine) {
+  #section-rekap .table-matriks tbody tr:hover th:not(.is-pinned),
+  #section-rekap .table-matriks tbody tr:hover td { background: color-mix(in oklab, var(--surface-2) 52%, var(--surface)); }
+}
 #section-rekap .table-matriks tbody tr:last-child :is(td, th) { border-bottom: 0; }
 
 #section-rekap .dues-person { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -378,6 +219,11 @@ body[data-canvas="clean"] #workspace-iuran #section-rekap { background: var(--su
   width: 54px; min-height: 36px; height: 36px; padding: 0; margin: 0 auto;
   border-radius: 8px; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: normal;
   transition: transform 150ms var(--hybrid-ease-spring), background-color 160ms ease, border-color 160ms ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #section-rekap .table-matriks .matrix-dues-button:active:not(:disabled) {
+    transform: scale(0.96);
+  }
 }
 #section-rekap .table-matriks .dues-seal,
 #section-rekap .table-matriks .dues-month-status {
@@ -570,8 +416,10 @@ body.arrears-tone-red #section-rekap .table-matriks .dues-month-status[data-stat
 .matrix-mobile-chip.amber { background: var(--member-amber-soft, var(--warning-bg)); color: var(--member-amber-ink, var(--warning)); }
 #section-rekap .iuran-cards-container { padding: 14px; }
 #section-rekap .iuran-member-card { margin: 0 0 12px; }
+#section-rekap .iuran-card-main-info { min-width: 0; flex: 1; }
 #section-rekap .iuran-card-name {
   min-height: 0; padding: 0; display: inline-flex; align-items: center; gap: 6px;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--font-sans); font-size: 14.5px; font-weight: 700; line-height: 1.26; letter-spacing: -0.015em;
 }
 #section-rekap .iuran-card-name:hover { color: var(--text-main); text-decoration: none; }

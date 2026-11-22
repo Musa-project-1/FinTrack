@@ -1,6 +1,12 @@
 import { getActiveIndicatorStyle, renderLunasHtml, renderMiniStamp, renderPassbookEmblem, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
-import { setCurrentHistoryFilter } from "../core/state.js";
-import { openModal, closeModal, getActiveModalId, switchTab } from "../ui/modal.js";
+import { setCurrentHistoryFilter, setCurrentRekapYear } from "../core/state.js";
+import { handleNominalInput } from "../core/utils.js";
+import { syncCdrop } from "../ui/cdrop.js";
+import {
+  openModal, closeModal, getActiveModalId, switchTab,
+  filterKategori, updateCounterOps, updateCounterIuran,
+  pilihSemuaIuran, renderCheckboxIuran, filterAnggotaIuran
+} from "../ui/modal.js";
 import { renderAll, renderTableTransaksi, renderTableRekap } from "../render.js";
 
 /* ── Bottom nav helpers ────────────────────────────────────────── */
@@ -270,6 +276,137 @@ export const setupMenuSearchListener = () => {
         target.click();
       }
     }
+  });
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   APP FORM & INPUT LISTENER WIRING
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Bind application form submit handlers, header menu triggers, and ledger filters.
+ * @param {object} callbacks
+ */
+export const initAppFormAndInputListeners = ({
+  submitLoginAdmin,
+  submitIuran,
+  submitOperasional,
+  submitEditTransaksi,
+  submitQuickPay,
+  submitTambahAnggota,
+  submitTambahKategori,
+  submitEditMasterAnggota,
+  restoreJSONBackup,
+  renderMasterAnggotaTable,
+  renderMasterKategoriTable
+}) => {
+  document.getElementById('modal-login')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitLoginAdmin(e);
+  }, true);
+
+  document.getElementById('modal-transaksi')?.querySelector('#tab-iuran form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitIuran(e);
+  });
+
+  document.getElementById('modal-transaksi')?.querySelector('#tab-operasional form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitOperasional(e);
+  });
+
+  document.getElementById('modal-edit-transaksi')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitEditTransaksi(e);
+  });
+
+  document.getElementById('form-quickpay')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitQuickPay(e);
+  });
+
+  [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openCommandHubModal(); });
+  });
+
+  const iuranNominal = document.getElementById('iuran-nominal');
+  if (iuranNominal) iuranNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterIuran(); });
+
+  const opsNominal = document.getElementById('ops-nominal');
+  if (opsNominal) opsNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterOps(); });
+
+  const qpNominal = document.getElementById('qp-nominal');
+  if (qpNominal) qpNominal.addEventListener('input', function () { handleNominalInput(this); });
+
+  const editNominal = document.getElementById('edit-nominal');
+  if (editNominal) editNominal.addEventListener('input', function () { handleNominalInput(this); });
+
+  const iuranBulan = document.getElementById('iuran-bulan');
+  if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
+
+  const iuranTahun = document.getElementById('iuran-tahun');
+  if (iuranTahun) {
+    iuranTahun.addEventListener('input', function () {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+      renderCheckboxIuran();
+    });
+  }
+
+  const opsTipe = document.getElementById('ops-tipe');
+  if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); syncCdrop('ops-kategori'); updateCounterOps(); });
+
+  const editTipe = document.getElementById('edit-tipe');
+  if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
+
+  const historySearches = ['workspace-search-history'].map((id) => document.getElementById(id)).filter(Boolean);
+  let trxSearchTimer;
+  for (const input of historySearches) input.addEventListener('input', () => {
+    for (const other of historySearches) if (other !== input) other.value = input.value;
+    clearTimeout(trxSearchTimer);
+    trxSearchTimer = setTimeout(renderTableTransaksi, 150);
+  });
+
+  const searchAnggotaIuran = document.getElementById('search-anggota-iuran');
+  if (searchAnggotaIuran) searchAnggotaIuran.addEventListener('input', filterAnggotaIuran);
+
+  const btnPilihSemua = document.getElementById('btn-pilih-semua');
+  if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
+
+  const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
+  const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
+  [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      setCurrentRekapYear(e.target.value);
+      if (tahunRekapSelect) tahunRekapSelect.value = e.target.value;
+      if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = e.target.value;
+      syncCdrop('ui-tahun-rekap-select');
+      syncCdrop('ui-tahun-rekap-select-mobile');
+      renderTableRekap();
+      renderTableTransaksi();
+    });
+  });
+
+  const formTambahAnggota = document.getElementById('form-tambah-anggota');
+  if (formTambahAnggota) formTambahAnggota.addEventListener('submit', submitTambahAnggota);
+
+  const formTambahKategori = document.getElementById('form-tambah-kategori');
+  if (formTambahKategori) formTambahKategori.addEventListener('submit', submitTambahKategori);
+
+  const formEditMasterAnggota = document.getElementById('form-edit-master-anggota');
+  if (formEditMasterAnggota) formEditMasterAnggota.addEventListener('submit', submitEditMasterAnggota);
+
+  const inputRestore = document.getElementById('input-restore-json');
+  if (inputRestore) inputRestore.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      restoreJSONBackup(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
+
+  /* Keep the group picker reachable once the session can no longer read the group. */
+  window.addEventListener('finkas:group-changed', () => {
+    renderMasterAnggotaTable();
+    renderMasterKategoriTable();
   });
 };
 

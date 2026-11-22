@@ -69,7 +69,9 @@ const fillReceipt = (receipt) => {
 };
 
 export const copyReceipt = async () => {
-  const receipt = getReceiptData(document.getElementById('receipt-print').dataset.id);
+  const id = document.getElementById('receipt-print')?.dataset?.id;
+  if (!id) return;
+  const receipt = getReceiptData(id);
   if (!receipt) return;
   const text = [receipt.group, receipt.transaction.ID_Transaksi, receipt.dateLabel, receipt.transaction.Tipe_Arus, receipt.amount, ...receipt.rows.map(([label, value]) => `${label}: ${value}`), receipt.footer].join('\n');
   try {

@@ -4,6 +4,20 @@
 
 html {
   scrollbar-gutter: stable;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+[role="button"],
+.btn,
+.chip-btn,
+.mobile-nav-btn,
+.matrix-dues-button,
+.mini-month-pill {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {

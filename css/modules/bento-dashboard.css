@@ -206,5 +206,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bento-compliance-fill { transition: none; }
+  .bento-compliance-fill,
+  #bento-spark-guide,
+  #bento-spark-marker {
+    transition: none;
+  }
 }

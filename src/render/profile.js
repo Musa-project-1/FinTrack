@@ -13,7 +13,7 @@ const stampKind = {
 
 export const copyPassbook = async () => {
   const text = ['p-nama-anggota', 'passbook-meta', 'p-total-kontribusi', 'passbook-paid-chip', 'passbook-unpaid-chip']
-    .map((id) => document.getElementById(id)).filter((element) => !element.hidden)
+    .map((id) => document.getElementById(id)).filter((element) => element && !element.hidden)
     .map((element) => element.id === 'p-total-kontribusi' ? `Total kontribusi: ${element.dataset.fullValue}` : element.textContent)
     .join('\n');
   const dialog = document.getElementById('modal-profil-anggota');
@@ -21,13 +21,13 @@ export const copyPassbook = async () => {
     await navigator.clipboard.writeText(text);
     showToast('Ringkasan Buku Iuran disalin.');
   } catch {
-    const existing = dialog.querySelector('.passbook-copy-field');
+    const existing = dialog?.querySelector('.passbook-copy-field');
     const field = existing || document.createElement('textarea');
     field.className = 'passbook-copy-field form-control';
     field.readOnly = true;
     field.value = text;
     field.setAttribute('aria-label', 'Ringkasan Buku Iuran untuk disalin');
-    if (!existing) dialog.querySelector('.dlg-body').append(field);
+    if (!existing) dialog?.querySelector('.dlg-body')?.append(field);
     field.select();
     showToast('Ringkasan dipilih. Gunakan perintah Salin di perangkatmu.', 'info');
   }

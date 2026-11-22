@@ -132,6 +132,7 @@ const initMatrixColumnHover = (table) => {
     }
   };
   table.addEventListener('pointerover', (ev) => {
+    if (ev.pointerType && ev.pointerType !== 'mouse') return;
     const cell = ev.target?.closest?.('[data-col-month]');
     setHoverCol(cell ? cell.getAttribute('data-col-month') : null);
   });
@@ -225,7 +226,7 @@ export const renderTableRekap = () => {
       const tdNama = document.createElement('th');
       tdNama.scope = 'row';
       tdNama.className = ang.ID_Anggota === pinned ? 'dues-name is-pinned' : 'dues-name';
-      tdNama.innerHTML = `<div class="dues-person"><button type="button" class="clickable-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}"><span class="dues-member-row"><span class="dues-member-name">${escapeHtml(ang.Nama_Anggota)}</span>${ang.ID_Anggota === pinned ? '<span class="self-pin-badge">Saya</span>' : ''}</span><span class="dues-member-sub">${escapeHtml(subText)}</span></button>${admin ? '' : pinButton(ang, pinned)}</div>`;
+      tdNama.innerHTML = `<div class="dues-person"><button type="button" class="clickable-name" data-action="profil" data-id="${escapeHtml(ang.ID_Anggota)}"><span class="dues-member-row"><span class="dues-member-name" title="${escapeHtml(ang.Nama_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</span>${ang.ID_Anggota === pinned ? '<span class="self-pin-badge">Saya</span>' : ''}</span><span class="dues-member-sub">${escapeHtml(subText)}</span></button>${admin ? '' : pinButton(ang, pinned)}</div>`;
       tr.appendChild(tdNama);
 
       NAMA_BULAN.forEach((bulan, idx) => {
@@ -354,7 +355,7 @@ export const renderIuranMobileCards = (
       <article class="iuran-member-card${ang.ID_Anggota === pinned ? ' is-pinned' : ''}${expanded ? ' expanded' : ''}">
         <div class="iuran-card-header">
           <div class="iuran-card-main-info">
-            <button type="button" class="iuran-card-name" data-action="profil" data-id="${id}">${name}${ang.ID_Anggota === pinned ? '<span class="self-pin-badge">Saya</span>' : ''}</button>
+            <button type="button" class="iuran-card-name" data-action="profil" data-id="${id}" title="${name}">${name}${ang.ID_Anggota === pinned ? '<span class="self-pin-badge">Saya</span>' : ''}</button>
             <div class="iuran-progress-subtext">${summary}</div>
           </div>
           <span class="matrix-mobile-chip ${arrears ? 'amber' : 'paid'}">${arrears ? `${arrears} Nunggak` : `${paid}/${count} Lunas`}</span>

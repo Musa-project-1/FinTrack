@@ -9,9 +9,12 @@ import {
   addBulkTransactions,
   addTransaction,
   editTransaction,
+  deleteDocument,
+  WRITE_HANDLERS,
   validateSnapshot,
   restoreSnapshot
 } from '../api/_group-write.js';
+import { createDuesLedger } from '../src/core/dues.js';
 import {
   calculateMemberContribution,
   calculateMemberRekapProgress,
@@ -365,7 +368,7 @@ test('E2E lifecycle: from zero setup through mutations, disaster backup, and res
     const preMembers = memDb.getAllAsJsObjects(`groups/${GID}/anggota`);
     const preCategories = memDb.getAllAsJsObjects(`groups/${GID}/kategori`);
     const preTransactions = memDb.getAllAsJsObjects(`groups/${GID}/transaksi`);
-    const preSettings = decodeFields(memDb.docs.get(`groups/${GID}/settings`));
+    const preSettings = decodeFields(memDb.docs.get(`groups/${GID}/settings/app_config`));
 
     // Calculate baseline balances
     const preTotalMasuk = preTransactions
@@ -404,6 +407,7 @@ test('E2E lifecycle: from zero setup through mutations, disaster backup, and res
       kategori: preCategories,
       transaksi: preTransactions,
       skippedMonths: preSettings.skippedMonths || [],
+      kasStart: preSettings.kasStart || '',
       settings: preSettings
     };
 
@@ -422,7 +426,7 @@ test('E2E lifecycle: from zero setup through mutations, disaster backup, and res
     const postMembers = memDb.getAllAsJsObjects(`groups/${GID}/anggota`);
     const postCategories = memDb.getAllAsJsObjects(`groups/${GID}/kategori`);
     const postTransactions = memDb.getAllAsJsObjects(`groups/${GID}/transaksi`);
-    const postSettings = decodeFields(memDb.docs.get(`groups/${GID}/settings`));
+    const postSettings = decodeFields(memDb.docs.get(`groups/${GID}/settings/app_config`));
 
     // 1. Master Data Count Invariant
     assert.equal(postMembers.length, preMembers.length, 'Member count must match exactly');
@@ -474,6 +478,152 @@ test('E2E lifecycle: from zero setup through mutations, disaster backup, and res
         );
       }
     }
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('E2E lifecycle: partial dues installment, transaction deletion, and compliance parity across disaster restore', async () => {
+  const memDb = new MemoryFirestore();
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
+
+  const GID = 'GRP-LIFECYCLE-PARTIAL';
+  const HEADERS = { Authorization: 'Bearer mock-token' };
+  const NOW = new Date('2026-06-15T12:00:00Z');
+  const FEE = 20000;
+
+  try {
+    await setKasStart(GID, { kasStart: '01-2026' }, HEADERS);
+    await changeSkippedMonth(GID, { month: '04-2026' }, HEADERS, true);
+
+    const katIuran = await addCategory(GID, { nama: 'Iuran Wajib', tipe: 'Masuk' }, HEADERS);
+    const katOps = await addCategory(GID, { nama: 'Operasional', tipe: 'Keluar' }, HEADERS);
+    const angSiti = await addMember(GID, { nama: '🌟 Siti Aminah' }, HEADERS);
+    const angBudi = await addMember(GID, { nama: 'Budi' }, HEADERS);
+
+    const katIuranId = katIuran.data.ID_Kategori;
+    const katOpsId = katOps.data.ID_Kategori;
+    const sitiId = angSiti.data.ID_Anggota;
+    const budiId = angBudi.data.ID_Anggota;
+
+    // 1. Partial payment on Jan (10k of 20k) remains partial ('Sebagian')
+    const p1 = await addTransaction(GID, {
+      operationId: 'cicilan-siti-jan-1',
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: katIuranId, idAnggota: sitiId,
+        nominal: 10000, bulanIuran: 'Januari', tahunIuran: '2026', keterangan: 'Cicilan 1 Jan'
+      }
+    }, HEADERS);
+    assert.equal(p1.status, true);
+
+    // 2. Two partial installments on Feb (10k + 10k) sum to Lunas (20k)
+    const p2a = await addTransaction(GID, {
+      operationId: 'cicilan-siti-feb-1',
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: katIuranId, idAnggota: sitiId,
+        nominal: 10000, bulanIuran: 'Februari', tahunIuran: '2026', keterangan: 'Cicilan 1 Feb'
+      }
+    }, HEADERS);
+    const p2b = await addTransaction(GID, {
+      operationId: 'cicilan-siti-feb-2',
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: katIuranId, idAnggota: sitiId,
+        nominal: 10000, bulanIuran: 'Februari', tahunIuran: '2026', keterangan: 'Pelunasan Feb'
+      }
+    }, HEADERS);
+    assert.equal(p2a.status, true);
+    assert.equal(p2b.status, true);
+
+    // 3. Budi pays Maret in full (20k)
+    const pBudi = await addTransaction(GID, {
+      operationId: 'iuran-budi-mar-1',
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: katIuranId, idAnggota: budiId,
+        nominal: 20000, bulanIuran: 'Maret', tahunIuran: '2026', keterangan: 'Iuran Mar Budi'
+      }
+    }, HEADERS);
+    assert.equal(pBudi.status, true);
+
+    // 4. Add two expenses, then permanently delete the wrong one
+    const expKeep = await addTransaction(GID, {
+      operationId: 'ops-keep-1',
+      dataForm: { tipeArus: 'Keluar', idKategori: katOpsId, nominal: 15000, keterangan: 'ATK' }
+    }, HEADERS);
+    const expDel = await addTransaction(GID, {
+      operationId: 'ops-del-1',
+      dataForm: { tipeArus: 'Keluar', idKategori: katOpsId, nominal: 35000, keterangan: 'Salah Input' }
+    }, HEADERS);
+    assert.equal(expKeep.status, true);
+    assert.equal(expDel.status, true);
+
+    const delRes = await WRITE_HANDLERS.hapusTransaksi(GID, { idTransaksi: expDel.data.ID_Transaksi }, HEADERS);
+    assert.equal(delRes.status, true);
+    const verifyDel = await deleteDocument(GID, { targetCollection: 'transaksi', id: expDel.data.ID_Transaksi }, HEADERS);
+    assert.equal(verifyDel.status, false);
+
+    // Pre-disaster ledger & balance baseline
+    const preState = {
+      anggota: memDb.getAllAsJsObjects(`groups/${GID}/anggota`),
+      kategori: memDb.getAllAsJsObjects(`groups/${GID}/kategori`),
+      transaksi: memDb.getAllAsJsObjects(`groups/${GID}/transaksi`),
+      ...decodeFields(memDb.docs.get(`groups/${GID}/settings/app_config`))
+    };
+    const preLedger = createDuesLedger(preState, { now: NOW, year: 2026, monthlyFee: FEE });
+    const preCompliance = calculateCompliance(preLedger.members);
+    const preTotalMasuk = preState.transaksi.filter((t) => t.Tipe_Arus === 'Masuk').reduce((s, t) => s + Number(t.Nominal || 0), 0);
+    const preTotalKeluar = preState.transaksi.filter((t) => t.Tipe_Arus === 'Keluar').reduce((s, t) => s + Number(t.Nominal || 0), 0);
+
+    assert.equal(preTotalMasuk, 50000);
+    assert.equal(preTotalKeluar, 15000);
+    assert.equal(preLedger.getMonth({ ID_Anggota: sitiId }, 0, 2026).status, 'partial');
+    assert.equal(preLedger.getMonth({ ID_Anggota: sitiId }, 1, 2026).status, 'paid');
+    assert.equal(preLedger.getMonth({ ID_Anggota: sitiId }, 3, 2026).status, 'exempt');
+    assert.equal(preState.transaksi.some((t) => t.ID_Transaksi === expDel.data.ID_Transaksi), false);
+
+    // Disaster wipe & restore
+    const snapshot = {
+      version: '1.0',
+      exportedAt: NOW.toISOString(),
+      group: { id: GID, nama: 'Grup Partial & Delete' },
+      anggota: preState.anggota,
+      kategori: preState.kategori,
+      transaksi: preState.transaksi,
+      skippedMonths: preState.skippedMonths || [],
+      kasStart: preState.kasStart || '',
+      settings: { kasStart: preState.kasStart, skippedMonths: preState.skippedMonths || [] }
+    };
+    assert.equal(validateSnapshot(snapshot).valid, true);
+    memDb.docs.clear();
+    const resRestore = await restoreSnapshot(GID, { data: snapshot }, HEADERS);
+    assert.equal(resRestore.status, true);
+
+    // Post-restore zero-drift assertions
+    const postState = {
+      anggota: memDb.getAllAsJsObjects(`groups/${GID}/anggota`),
+      kategori: memDb.getAllAsJsObjects(`groups/${GID}/kategori`),
+      transaksi: memDb.getAllAsJsObjects(`groups/${GID}/transaksi`),
+      ...decodeFields(memDb.docs.get(`groups/${GID}/settings/app_config`))
+    };
+    const postLedger = createDuesLedger(postState, { now: NOW, year: 2026, monthlyFee: FEE });
+    const postCompliance = calculateCompliance(postLedger.members);
+    const postTotalMasuk = postState.transaksi.filter((t) => t.Tipe_Arus === 'Masuk').reduce((s, t) => s + Number(t.Nominal || 0), 0);
+    const postTotalKeluar = postState.transaksi.filter((t) => t.Tipe_Arus === 'Keluar').reduce((s, t) => s + Number(t.Nominal || 0), 0);
+
+    assert.equal(postTotalMasuk, preTotalMasuk);
+    assert.equal(postTotalKeluar, preTotalKeluar);
+    assert.equal(postTotalMasuk - postTotalKeluar, 35000);
+    assert.equal(postCompliance.totalExpected, preCompliance.totalExpected);
+    assert.equal(postCompliance.totalCollected, preCompliance.totalCollected);
+    assert.equal(postCompliance.healthPct, preCompliance.healthPct);
+    assert.equal(postLedger.unpaidCount, preLedger.unpaidCount);
+    assert.equal(postLedger.arrears, preLedger.arrears);
+    assert.equal(postLedger.getMonth({ ID_Anggota: sitiId }, 0, 2026).status, 'partial');
+    assert.equal(postLedger.getMonth({ ID_Anggota: sitiId }, 1, 2026).status, 'paid');
+    assert.equal(calculateMemberContribution(postState.transaksi, sitiId), 30000);
+    assert.equal(calculateMemberContribution(postState.transaksi, budiId), 20000);
+    assert.equal(postState.transaksi.some((t) => t.ID_Transaksi === expDel.data.ID_Transaksi), false);
+    assert.equal(calculateMemberRekapProgress(budiId, {}, postState.skippedMonths, '2026', ['Januari']).totalOwedMonths, 1);
   } finally {
     globalThis.fetch = realFetch;
   }

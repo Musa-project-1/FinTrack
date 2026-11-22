@@ -529,9 +529,23 @@ body.dark-mode .member-spotlight-wrap select.form-control { background-image: no
   .dues-pin-btn { width: 44px; height: 44px; }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  #spotlight-card .mini-month-pill:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  #spotlight-card, #spotlight-card .mini-month-pill { animation: none; }
-  #spotlight-card .ring-progress, #spotlight-card .mini-month-pill { transition: none; }
+  #spotlight-card,
+  #spotlight-card .mini-month-pill {
+    animation: none;
+  }
+  #spotlight-card .ring-progress,
+  #spotlight-card .mini-month-pill,
+  .dues-pin-btn,
+  .spotlight-detail-cta {
+    transition: none;
+  }
 }
 
 #spotlight-card .spotlight-actions .btn { font-size: 12px; font-weight: 700; }

@@ -18,8 +18,8 @@
  */
 
 import { checkGroupUpdate } from './api.js';
-import { isOnline } from './utils.js';
-import { getActiveGroupId } from './state.js';
+import { isOnline, showToast } from './utils.js';
+import { getActiveGroupId, getState } from './state.js';
 
 /* ── Constants ───────────────────────────────────────────────────── */
 
@@ -317,4 +317,80 @@ export const notifySynced = (isoTimestamp, groupId) => {
   if (!targetGroup) return;
 
   markUpToDate(targetGroup, isoTimestamp || null);
+};
+
+/* ── Sync badge & manual rekap reconciliation ───────────────────── */
+
+const SYNC_BTNS = ['btn-sync-rekap', 'btn-sync-rekap-mobile'];
+
+const SYNC_STATES = {
+  'has-update': { text: 'Data Baru', label: 'Ada data baru — klik untuk muat ulang' },
+  'is-syncing': { text: 'Memuat…', label: 'Sedang memuat data...' },
+  'is-clean':   { text: 'Sinkron', label: 'Data sinkron — klik untuk muat ulang' }
+};
+
+/**
+ * Update the sync badge state and WIB timestamp across desktop and mobile controls.
+ * @param {'has-update' | 'is-syncing' | 'is-clean'} state
+ */
+export const setSyncBadge = (state) => {
+  const cfg = SYNC_STATES[state] || SYNC_STATES['is-clean'];
+  const syncing = state === 'is-syncing';
+  let labelText = cfg.label;
+  if (!state || state === 'is-clean') {
+    const wib = new Date().toLocaleTimeString('id-ID', {
+      timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit'
+    });
+    labelText = `Data sinkron · Diperbarui ${wib} WIB — klik untuk muat ulang`;
+  }
+  SYNC_BTNS.forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.remove('is-clean', 'has-update', 'is-syncing');
+    btn.classList.add(SYNC_STATES[state] ? state : 'is-clean');
+    btn.disabled = syncing;
+    btn.setAttribute('aria-busy', syncing ? 'true' : 'false');
+    btn.title = labelText;
+    btn.setAttribute('aria-label', labelText);
+    const labelEl = btn.querySelector('.sync-rekap-label');
+    if (labelEl) labelEl.textContent = cfg.text;
+  });
+};
+
+/**
+ * Trigger a user-initiated remote refresh and summarize record deltas.
+ * @param {(forceRemote?: boolean, isUserInitiated?: boolean) => Promise<boolean>} initApp
+ * @param {() => boolean} [isBusyFn]
+ */
+export const runManualSyncRekap = (initApp, isBusyFn) => {
+  if (isBusyFn?.()) return;
+  setSyncBadge('is-syncing');
+  const prevTrx = [...(getState().transaksi || [])];
+  const prevAnggotaCount = (getState().anggota || []).length;
+  initApp(true, true).then((ok) => {
+    if (!ok) {
+      setSyncBadge('has-update');
+      return;
+    }
+    setSyncBadge('is-clean');
+    const nextTrx = getState().transaksi || [];
+    const nextAnggotaCount = (getState().anggota || []).length;
+    const prevIds = new Set(prevTrx.map((t) => t.ID_Transaksi));
+    const newTrx = nextTrx.filter((t) => !prevIds.has(t.ID_Transaksi));
+    const nextIds = new Set(nextTrx.map((t) => t.ID_Transaksi));
+    const deletedTrx = prevTrx.filter((t) => !nextIds.has(t.ID_Transaksi));
+    const diffAnggota = nextAnggotaCount - prevAnggotaCount;
+
+    const changes = [];
+    if (newTrx.length > 0) changes.push(`+${newTrx.length} transaksi baru`);
+    if (deletedTrx.length > 0) changes.push(`${deletedTrx.length} transaksi dihapus`);
+    if (diffAnggota > 0) changes.push(`+${diffAnggota} anggota baru`);
+    if (diffAnggota < 0) changes.push(`${Math.abs(diffAnggota)} anggota dihapus`);
+
+    if (changes.length > 0) {
+      showToast(`Sinkron berhasil: ${changes.join(', ')}.`, 'success');
+    } else {
+      showToast('Data sudah yang paling baru.', 'info');
+    }
+  });
 };

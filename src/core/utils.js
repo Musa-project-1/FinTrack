@@ -355,8 +355,14 @@ export const setConnectionStatus = (isOnline) => {
   });
 };
 
+const toGraphemes = (str) => (
+  typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+    ? Array.from(new Intl.Segmenter().segment(str), (s) => s.segment)
+    : Array.from(str)
+);
+
 /**
- * Get initials from a full name (1-2 characters).
+ * Get initials from a full name (1-2 grapheme characters).
  * @param {string} name
  * @returns {string}
  */
@@ -365,8 +371,10 @@ export const getInitials = (name) => {
   const clean = name.replace(/['"“”‘’]/g, '').trim();
   const parts = clean.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts.length === 1) return toGraphemes(parts[0]).slice(0, 2).join('').toUpperCase();
+  const first = toGraphemes(parts[0])[0] || '';
+  const second = toGraphemes(parts[1])[0] || '';
+  return (first + second).toUpperCase() || '?';
 };
 
 /**

@@ -197,7 +197,7 @@ export const renderGroupPicker = ({ loading = false } = {}) => {
     const rawName = g.nama || "?";
     const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
-    const initial = escapeHtml(rawName.charAt(0).toUpperCase());
+    const initial = escapeHtml((Array.from(String(rawName).trim())[0] || '?').toUpperCase());
     const isActive = g.id === active;
     const subText = isActive
       ? "Grup aktif saat ini"
@@ -436,7 +436,7 @@ export const renderGroupAdmin = () => {
     const safeName = escapeHtml(rawName);
     const safeId = escapeHtml(g.id);
     const isActive = g.id === activeId;
-    const initial = escapeHtml(rawName.charAt(0).toUpperCase());
+    const initial = escapeHtml((Array.from(String(rawName).trim())[0] || '?').toUpperCase());
     return `
     <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}" role="listitem">
       <div class="group-card-main">

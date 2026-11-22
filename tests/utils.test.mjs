@@ -34,9 +34,13 @@ test('formatRp safely handles zero, null, and large numbers', () => {
   assert.ok(large.includes('25.000.000'), `Expected formatted 25.000.000, got: ${large}`);
 });
 
-test('getInitials extracts initials accurately', () => {
+test('getInitials extracts initials accurately including grapheme clusters', () => {
   assert.equal(getInitials('Musa Bakhtiar'), 'MB');
   assert.equal(getInitials('Ahmad'), 'AH');
+  assert.equal(getInitials('J'), 'J');
+  assert.equal(getInitials('🌟 Siti'), '🌟S');
+  assert.equal(getInitials('🕌'), '🕌');
+  assert.equal(getInitials('Aleksandra Wiśniewska Kowalczyk'), 'AW');
   assert.equal(getInitials(''), '?');
   assert.equal(getInitials(null), '?');
 });

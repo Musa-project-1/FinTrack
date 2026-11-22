@@ -85,7 +85,7 @@ const renderWorkspaceLedger = (rows, count, members, categories) => {
     return `<button type="button" class="ledger-row" data-action="open-receipt" data-id="${escapeHtml(trx.ID_Transaksi)}">
       <span class="ledger-type-icon ${flow}" aria-hidden="true"><i class="ph ${inflow ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
       <span class="ledger-main">
-        <span class="ledger-title">${escapeHtml(title)}</span>
+        <span class="ledger-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
         <span class="ledger-meta"><span class="mono">${escapeHtml(label)}</span>
           <span class="cat-tag">${escapeHtml(category)}</span><span class="ledger-id">${escapeHtml(trx.ID_Transaksi)}</span></span>
       </span>

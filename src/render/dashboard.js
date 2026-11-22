@@ -1,10 +1,10 @@
 import { renderHybridChart } from '../ui/hybrid-chart.js';
-import { animateHybridAmount, enterHybridOverview } from '../ui/hybrid-motion.js';
-import { NAMA_BULAN, GROUP_START_YEAR, GROUP_START_MONTH } from "../core/config.js";
+import { enterHybridOverview } from '../ui/hybrid-motion.js';
+import { NAMA_BULAN } from "../core/config.js";
 import { getState } from "../core/state.js";
-import { formatDisplayRp, escapeHtml, parseKasStart } from "../core/utils.js";
+import { escapeHtml } from "../core/utils.js";
 import { billingPeriod, createDuesLedger } from "../core/dues.js";
-import { renderBento } from "../ui/bento-dashboard.js";
+import { syncSvelteDashboard } from "../ui/svelte-dashboard.js";
 import { renderSpotlight } from "../ui/spotlight.js";
 import { filterKategori } from "../ui/modal.js";
 
@@ -24,41 +24,17 @@ export const renderDashboard = () => {
       expenses.set(trx.ID_Kategori, (expenses.get(trx.ID_Kategori) || 0) + nom);
     }
   });
-  const saldo = tMasuk - tKeluar;
-  const saldoFormatted = formatDisplayRp(saldo);
-
-  const elMasuk = document.getElementById('ui-masuk');
-  const elKeluar = document.getElementById('ui-keluar');
-  const elSaldo = document.getElementById('ui-saldo');
-
-  const firstRender = document.body?.dataset?.workspaceState === 'loading';
-  animateHybridAmount(elMasuk, tMasuk, { from: firstRender ? 0 : undefined });
-  animateHybridAmount(elKeluar, tKeluar, { from: firstRender ? 0 : undefined });
-  animateHybridAmount(elSaldo, saldo, { from: firstRender ? 0 : undefined });
-
+  const current = billingPeriod();
+  const ledger = createDuesLedger(state, { year: current.year });
+  syncSvelteDashboard({
+    state, ledger, current, deposits, expenses, totalMasuk: tMasuk, totalKeluar: tKeluar,
+    groupName: document.getElementById('app-group-name')?.textContent?.trim() || '',
+    firstRender: document.body?.dataset?.workspaceState === 'loading'
+  });
   if (document.getElementById('bento-spark-month')) {
-    elSaldo?.style.setProperty('--amount-length', saldoFormatted.length);
-    const current = billingPeriod();
-    const ledger = createDuesLedger(state, { year: current.year });
-    renderBento(state, ledger, current, deposits, expenses);
     renderSpotlight(ledger, current);
-    renderGroupOverview(state, ledger);
     enterHybridOverview();
   }
-};
-
-const renderGroupOverview = (state, ledger) => {
-  const section = document.getElementById('group-overview');
-  const groupName = document.getElementById('app-group-name')?.textContent.trim();
-  if (!section || !groupName) return;
-  const start = parseKasStart(state.kasStart);
-  const startLabel = start ? `${NAMA_BULAN[start.monthIndex]} ${start.year}` :
-    `${NAMA_BULAN[GROUP_START_MONTH - 1]} ${GROUP_START_YEAR}`;
-  document.getElementById('group-overview-name').textContent = groupName;
-  document.getElementById('group-overview-fee').textContent = `Iuran ${formatDisplayRp(ledger.monthlyFee)}/bln`;
-  document.getElementById('group-overview-members').textContent = `${ledger.members.length} anggota aktif`;
-  document.getElementById('group-overview-start').textContent = `Awal kas: ${startLabel}`;
-  section.hidden = false;
 };
 
 /* ── Dropdown population ───────────────────────────────────────── */

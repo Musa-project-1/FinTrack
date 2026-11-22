@@ -35,19 +35,18 @@ export const formatCompactRp = (angka) => {
   return formatRp(num);
 };
 
-/**
- * Format currency according to user appearance preferences (compact vs full).
- * @param {number} angka
- * @returns {string}
- */
-export const formatDisplayRp = (angka) => {
+/** Select the saved formatter once for a dashboard render. */
+export const getDisplayRpFormatter = () => {
   try {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('finkas_currency_format') === 'compact') {
-      return formatCompactRp(angka);
+      return formatCompactRp;
     }
   } catch (_) {}
-  return formatRp(angka);
+  return formatRp;
 };
+
+/** @param {number} angka */
+export const formatDisplayRp = (angka) => getDisplayRpFormatter()(angka);
 
 /**
  * Format live currency input: strips non-digits, formats with thousand separators.

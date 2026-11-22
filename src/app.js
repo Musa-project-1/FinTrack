@@ -471,11 +471,13 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   }
 };
 
+// Mount into the parsed template before startup listeners inspect the cards.
+initBento();
+
 window.addEventListener('DOMContentLoaded', async () => {
   initWorkspace();
   initDuesPagination();
   initHistoryPagination();
-  initBento();
   initHybridMotion();
   initKasi();
   initGuidedTour();

@@ -13,12 +13,12 @@ export const enterHybridOverview = () => {
   const overview = JSON.stringify([group, getIsAdminView()]);
   if (overview === lastOverview || reducedMotion() || typeof requestAnimationFrame !== 'function') return;
   lastOverview = overview;
-  const items = [...document.querySelectorAll('[data-cascade]')];
+  const items = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-cascade]'));
   items.forEach((item) => item.classList.remove('cascade-enter'));
   requestAnimationFrame(() => {
     items.forEach((item) => {
       if (!item.getClientRects().length) return;
-      item.style.setProperty('--cascade-i', item.dataset.cascade);
+      item.style.setProperty('--cascade-i', item.dataset.cascade ?? '0');
       item.classList.add('cascade-enter');
       const onEnd = (event) => {
         if (event.target === item && event.animationName === 'cascade-spring') {
@@ -31,6 +31,11 @@ export const enterHybridOverview = () => {
   });
 };
 
+/**
+ * @param {HTMLElement | null} node
+ * @param {number} amount
+ * @param {{ format?: (value: number) => string, from?: number }} options
+ */
 export const animateHybridAmount = (node, amount, { format = formatDisplayRp, from } = {}) => {
   if (!node) return;
   const prefix = node.dataset?.amountPrefix || '';
@@ -85,9 +90,15 @@ export const runHybridThemeWipe = (apply, event, trigger) => {
   transition.finished.then(finish, finish);
 };
 
+const initializedCards = new WeakSet();
+
 export const initHybridMotion = () => {
-  const pointer = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-  document.querySelectorAll('.hybrid-card').forEach((card) => {
+  const pointer = window.matchMedia?.('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+  if (!pointer) return;
+  const cards = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.hybrid-card'));
+  cards.forEach((card) => {
+    if (initializedCards.has(card)) return;
+    initializedCards.add(card);
     const tilt = card.matches('.bento-balance, #spotlight-card');
     let frame;
     card.addEventListener('pointermove', (event) => {

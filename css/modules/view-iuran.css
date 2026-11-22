@@ -299,17 +299,17 @@ body:not(.admin-mode) .dues-mobile-actions { grid-template-columns: repeat(2, mi
   max-width: none;
   height: 46px;
   min-height: 46px;
-  padding: 0 4px;
+  padding: 4px;
   gap: 4px;
   justify-content: center;
   font-size: clamp(10px, 3.2vw, 12px);
   white-space: nowrap;
 }
 
-#section-rekap .dues-mobile-actions > .year-pill { padding-block: 0; }
+#section-rekap .dues-mobile-actions > .year-pill { padding-block: 4px; }
 #section-rekap .dues-mobile-actions .year-pill label { display: none; }
 @media (min-width: 375px) {
-  #section-rekap .dues-mobile-actions .year-pill label { display: inline; font-size: 9px; letter-spacing: 0; }
+  #section-rekap .dues-mobile-actions .year-pill label { display: inline; font-size: 11px; letter-spacing: 0; }
 }
 #section-rekap .dues-mobile-actions .year-pill .cdrop { flex: 1; min-width: 0; }
 #section-rekap .dues-mobile-actions .year-pill .cdrop-btn { width: 100%; height: 44px; min-height: 44px; justify-content: center; }

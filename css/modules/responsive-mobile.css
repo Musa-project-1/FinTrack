@@ -157,7 +157,7 @@ body { padding: 6px 0 100px 0; }
   
   .year-pill {
     font-size: 12px;
-    padding: 0 12px;
+    padding: 4px 12px;
     height: 40px;
   }
 
@@ -216,7 +216,7 @@ body { padding: 6px 0 100px 0; }
     width: auto;
     max-width: none;
     height: 40px;
-    padding: 0 10px;
+    padding: 4px 10px;
     gap: 4px;
     display: inline-flex;
     align-items: center;

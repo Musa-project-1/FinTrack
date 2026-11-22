@@ -280,7 +280,7 @@ body[data-canvas="clean"] #workspace-iuran #section-rekap { background: var(--su
 #section-rekap .table-header { min-height: 0; padding: 12px 18px; margin: 0; border-bottom: 1px solid var(--border); }
 #section-rekap .table-header-left { min-width: 0; gap: 8px; }
 #section-rekap .table-header-controls { gap: 8px; }
-#section-rekap .matrix-legend { padding: 0; border: 0; gap: 12px; }
+#section-rekap .matrix-legend { padding: 0; border: 0; border-top: 0; gap: 12px; }
 #section-rekap .matrix-legend span { gap: 6px; font-size: 12px; font-weight: 600; }
 #section-rekap .matrix-legend span::before { width: 10px; height: 10px; border-radius: 4px; }
 #section-rekap .matrix-legend [data-status="Nanti"]::before { border: 1.5px dashed var(--border-strong); background: transparent; }

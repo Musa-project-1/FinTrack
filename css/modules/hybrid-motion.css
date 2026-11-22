@@ -10,7 +10,7 @@ body[data-canvas] {
   --hybrid-ink: var(--text-main);
   --hybrid-canvas: var(--bg-color);
   --hybrid-ease-out: cubic-bezier(.22, 1, .36, 1);
-  --hybrid-ease-spring: cubic-bezier(.34, 1.36, .64, 1);
+  --hybrid-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --hybrid-glow: color-mix(in oklab, var(--hybrid-spot) 9%, transparent);
   --hybrid-outline: color-mix(in oklab, var(--hybrid-spot) 30%, transparent);
   --hybrid-card-shadow: 0 1px 2px color-mix(in oklab, var(--text-main) 5%, transparent),

@@ -440,7 +440,7 @@
   }
 
   #modal-groups .groups-sheet-footer {
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px;
   }
 
   #modal-groups .groups-footer-btn {

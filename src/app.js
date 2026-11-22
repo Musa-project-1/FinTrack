@@ -100,6 +100,13 @@ const SYNC_STATES = {
 const setSyncBadge = (state) => {
   const cfg = SYNC_STATES[state] || SYNC_STATES['is-clean'];
   const syncing = state === 'is-syncing';
+  let labelText = cfg.label;
+  if (!state || state === 'is-clean') {
+    const wib = new Date().toLocaleTimeString('id-ID', {
+      timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit'
+    });
+    labelText = `Data sinkron · Diperbarui ${wib} WIB — klik untuk muat ulang`;
+  }
   SYNC_BTNS.forEach((id) => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -107,8 +114,8 @@ const setSyncBadge = (state) => {
     btn.classList.add(SYNC_STATES[state] ? state : 'is-clean');
     btn.disabled = syncing;
     btn.setAttribute('aria-busy', syncing ? 'true' : 'false');
-    btn.title = cfg.label;
-    btn.setAttribute('aria-label', cfg.label);
+    btn.title = labelText;
+    btn.setAttribute('aria-label', labelText);
     const labelEl = btn.querySelector('.sync-rekap-label');
     if (labelEl) labelEl.textContent = cfg.text;
   });
@@ -544,7 +551,15 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   } finally {
     isLoading = false;
     if (getActiveGroupId() !== group) void initApp(true);
-    else if (boot.workspaceState !== 'ready') boot.workspaceState = 'unavailable';
+    else if (boot.workspaceState !== 'ready') {
+      boot.workspaceState = 'unavailable';
+      const errMsg = document.querySelector('.workspace-startup-error p');
+      if (errMsg) {
+        errMsg.textContent = isOnline()
+          ? 'Buku kas belum bisa dimuat dari server. Periksa koneksi lalu tekan Coba Lagi.'
+          : 'Perangkat sedang offline dan belum ada data kas tersimpan. Sambungkan internet lalu tekan Coba Lagi.';
+      }
+    }
   }
 };
 

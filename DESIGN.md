@@ -1,95 +1,102 @@
 ---
-version: alpha
-name: Finkas Ocean Ledger
-description: "Trust-first fintech and tactile cashbook system combining Paper Ocean light mode (#e9edf2) and Navy Ocean dark mode (#08131d) with NerdWallet-inspired 1px hairline ledger matrices, Mercury-inspired tabular balance cards, and Oura-inspired editorial serif headers (Fraunces + Inter + JetBrains Mono)."
+version: 2.0
+name: Finkas Hybrid Kinetic
+description: "Trust-first community cashbook & dues ledger combining Hybrid Kinetic translucent cards (20px radii, soft elevation), 4 switchable color harmonies (cobalt default, terracotta, charcoal, indigo), self-hosted Plus Jakarta Sans + JetBrains Mono typography, role-asymmetric spotlights, and a tactile 13-column dues matrix."
 
 colors:
-  primary: "#0052ff"
-  primary-hover: "#0040c9"
+  primary: "#0047e0"
+  primary-hover: "#0039b8"
+  primary-ocean: "#0052ff"
   accent-seafoam: "#60a5fa"
-  accent-ink-dark: "#041026"
-  on-primary: "#ffffff"
-  canvas: "#f3f6fb"
-  surface: "#ffffff"
-  surface-2: "#eaf0f8"
-  surface-3: "#dbe5f3"
-  border-hairline: "#cbd8ea"
-  border-strong: "#9fb6d4"
-  ink: "#061b31"
-  ink-muted: "#425466"
-  ink-faint: "#334659"
-  dark-canvas: "#070d19"
-  dark-surface: "#0e172a"
-  dark-surface-2: "#16223b"
-  dark-ink: "#f0f6fc"
-  dark-ink-muted: "#94a9c9"
-  income: "#047857"
+  accent-ink-dark: "#051229"
+  on-primary: "#f8fafe"
+  canvas: "#f4f7fb"
+  canvas-ocean: "#f3f6fb"
+  surface: "#fafcfe"
+  surface-ocean: "#ffffff"
+  surface-2: "#ebf1f8"
+  surface-3: "#dce6f2"
+  border-hairline: "#d5e0ee"
+  border-strong: "#b4c6df"
+  ink: "#0b1526"
+  ink-muted: "#4b5c74"
+  ink-faint: "#52637a"
+  dark-canvas: "#080d16"
+  dark-surface: "#101726"
+  dark-surface-2: "#172136"
+  dark-ink: "#eef4fc"
+  dark-ink-muted: "#93a6c4"
+  income: "#0284c7"
+  income-strong: "#0369a1"
   danger: "#be123c"
-  warning: "#92400e"
+  warning: "#b45309"
 
 typography:
   display-hero:
-    fontFamily: Fraunces
-    fontSize: 40px
-    fontWeight: 600
-    lineHeight: 1.15
-    letterSpacing: "-0.8px"
-  table-title:
-    fontFamily: Fraunces
-    fontSize: 22px
-    fontWeight: 600
-    lineHeight: 1.25
-    letterSpacing: "-0.3px"
-  balance-hero:
-    fontFamily: JetBrains Mono
+    fontFamily: "Plus Jakarta Sans"
     fontSize: 32px
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: "-0.6px"
+    fontWeight: 800
+    lineHeight: 1.1
+    letterSpacing: "-0.03em"
+  table-title:
+    fontFamily: "Plus Jakarta Sans"
+    fontSize: 22px
+    fontWeight: 800
+    lineHeight: 1.25
+    letterSpacing: "-0.025em"
+  balance-hero:
+    fontFamily: "Plus Jakarta Sans"
+    fontSize: 32px
+    fontWeight: 800
+    lineHeight: 1.08
+    letterSpacing: "-0.03em"
     fontFeature: "tnum"
   ledger-stamp:
-    fontFamily: JetBrains Mono
+    fontFamily: "JetBrains Mono"
     fontSize: 11px
     fontWeight: 700
     lineHeight: 1.0
-    letterSpacing: "0.6px"
+    letterSpacing: "0.04em"
     fontFeature: "tnum"
   heading-section:
-    fontFamily: Inter
+    fontFamily: "Plus Jakarta Sans"
     fontSize: 18px
-    fontWeight: 600
+    fontWeight: 700
     lineHeight: 1.35
-    letterSpacing: "-0.2px"
+    letterSpacing: "-0.02em"
   body:
-    fontFamily: Inter
+    fontFamily: "Plus Jakarta Sans"
     fontSize: 14px
-    fontWeight: 400
+    fontWeight: 500
     lineHeight: 1.5
     letterSpacing: "0px"
   body-medium:
-    fontFamily: Inter
-    fontSize: 14px
-    fontWeight: 500
+    fontFamily: "Plus Jakarta Sans"
+    fontSize: 13px
+    fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "0px"
   button:
-    fontFamily: Inter
+    fontFamily: "Plus Jakarta Sans"
     fontSize: 13px
-    fontWeight: 600
+    fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "0px"
   caption:
-    fontFamily: Inter
+    fontFamily: "Plus Jakarta Sans"
     fontSize: 12px
-    fontWeight: 500
+    fontWeight: 600
     lineHeight: 1.35
-    letterSpacing: "0.2px"
+    letterSpacing: "0px"
 
 rounded:
   xs: 4px
   sm: 6px
   md: 8px
   lg: 10px
+  xl: 12px
+  2xl: 14px
+  card: 20px
   pill: 999px
 
 spacing:
@@ -107,38 +114,38 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     typography: "{typography.button}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.xl}"
     padding: 10px 16px
   button-primary-hover:
     backgroundColor: "{colors.primary-hover}"
     textColor: "{colors.on-primary}"
     typography: "{typography.button}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.xl}"
     padding: 10px 16px
   button-dark-accent:
     backgroundColor: "{colors.accent-seafoam}"
     textColor: "{colors.accent-ink-dark}"
     typography: "{typography.button}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.xl}"
     padding: 10px 16px
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     typography: "{typography.button}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.xl}"
     padding: 10px 16px
   button-danger:
     backgroundColor: "{colors.danger}"
     textColor: "{colors.on-primary}"
     typography: "{typography.button}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.xl}"
     padding: 10px 16px
   ledger-card:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     typography: "{typography.body}"
-    rounded: "{rounded.lg}"
-    padding: 24px
+    rounded: "{rounded.card}"
+    padding: 20px
   ledger-table-header:
     backgroundColor: "{colors.surface-2}"
     textColor: "{colors.ink-muted}"
@@ -173,8 +180,8 @@ components:
     backgroundColor: "{colors.dark-surface}"
     textColor: "{colors.dark-ink}"
     typography: "{typography.balance-hero}"
-    rounded: "{rounded.lg}"
-    padding: 24px
+    rounded: "{rounded.card}"
+    padding: 20px
   dark-panel-elevated:
     backgroundColor: "{colors.dark-surface-2}"
     textColor: "{colors.dark-ink-muted}"
@@ -185,7 +192,7 @@ components:
     backgroundColor: "{colors.dark-canvas}"
     textColor: "{colors.dark-ink}"
     typography: "{typography.display-hero}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.card}"
     padding: 32px
   stamp-paid:
     backgroundColor: "{colors.income}"
@@ -203,63 +210,62 @@ components:
 
 ## Overview
 
-Finkas uses the **Ocean Ledger (Blue Edition)** design system (`css/modules/tokens.css`), synthesizing three reference architectures from `awesome-design-md`:
+Finkas uses the **Hybrid Kinetic** design system (`css/modules/tokens.css`, `css/modules/hybrid-layout.css`, `css/modules/hybrid-workspace.css`, `css/modules/bento-dashboard.css`), combining translucent card surfaces with crisp `1px solid var(--border)` hairlines, tabular financial precision, and playful community touches:
 
-1. **Coinbase (`coinbase.md`) — Trust-First Action Blue:** Primary interactive accent in saturated Coinbase Blue (`#0052ff` light / `#3b82f6` dark) over cool alabaster-blue (`#f3f6fb`) and midnight navy (`#070d19`) canvases.
-2. **Stripe (`stripe.md`) — Deep Navy Ink & Atmospheric Elevation:** Deep navy typography (`#061b31`), tabular-numeral hero balances (`#ui-saldo`), and subtle navy-tinted card elevation (`--shadow-card`).
-3. **Oura (`oura.md`) — Editorial Serif Anchors:** High-contrast `Fraunces` serif titles anchor major ledger sections (`.table-title`) against `Inter` UI controls and `JetBrains Mono` financial figures.
+1. **Four Color Harmonies (`data-palette`):** Default **`cobalt`** (`#0047e0` / `#f4f7fb` light, `#60a5fa` / `#080d16` dark), plus user-selectable **`terracotta`**, **`charcoal`**, and **`indigo`**, built over the `:root` Ocean Ledger fallback (`#0052ff` / `#f3f6fb`).
+2. **Three Canvas Stages (`data-canvas`):** **`aurora`** (default ambient glow orbs in `#bg-stage`), **`topo`** (contour waves), **`paper`** (ledger dot grid), and **`clean`** (flat surface).
+3. **Self-Hosted Editorial & Tabular Typography (`css/modules/typography.css`):** `Plus Jakarta Sans` (`500–800`) drives all UI labels, display titles, and container-scaled Bento hero balances (`#ui-saldo`), while `JetBrains Mono` (`500–700`, `tabular-nums`) anchors matrix stamps, IDs, keyboard hints, and ledger amounts.
 
 ## Colors
 
-- **Cool Alabaster Light Mode (`:root`):**
-  - `--bg-color`: `{colors.canvas}` (`#f3f6fb`) — eye-comfort cool alabaster canvas.
-  - `--surface` / `--surface-2` / `--surface-3`: `{colors.surface}` (`#ffffff`), `{colors.surface-2}` (`#eaf0f8`), `{colors.surface-3}` (`#dbe5f3`).
-  - `--border` / `--border-strong`: `{colors.border-hairline}` (`#cbd8ea`) and `{colors.border-strong}` (`#9fb6d4`).
-  - `--text-main` / `--text-muted` / `--text-faint`: `{colors.ink}` (`#061b31`), `{colors.ink-muted}` (`#425466`), `{colors.ink-faint}` (`#334659`).
-- **Twilight Midnight Dark Mode (`body.dark-mode`):**
-  - `--bg-color`: `{colors.dark-canvas}` (`#070d19`) — midnight navy canvas.
-  - `--surface` / `--surface-2`: `{colors.dark-surface}` (`#0e172a`), `{colors.dark-surface-2}` (`#16223b`).
-  - `--text-main` / `--text-muted`: `{colors.dark-ink}` (`#f0f6fc`), `{colors.dark-ink-muted}` (`#94a9c9`).
-- **Single Brand Accent & Ledger Semantics:**
-  - Primary Action Blue (`{colors.primary}` `#0052ff` / `#0040c9` light, `{colors.accent-seafoam}` `#60a5fa` / `#3b82f6` dark, default `data-accent="cyan"`) is reserved for primary actions, active states, focus rings, and top card accent bars.
-  - Inflow / Paid (`+`): `{colors.income}` (`#047857` / `#059669` light, `#34d399` dark).
-  - Outflow (`-`): Always uses `--text-main` (`{colors.ink}`) prefixed with `"−"`, never red text.
-  - Destructive (`{colors.danger}` `#be123c`) is strictly for delete/logout actions; Overdue (`{colors.warning}` `#92400e` / `#b45309`) is strictly for late dues.
+- **Default Cobalt Light Mode (`body[data-palette="cobalt"]`):**
+  - `--bg-color`: `#F4F7FB` · `--surface`: `#FAFCFE` · `--surface-2`: `#EBF1F8` · `--surface-3`: `#DCE6F2`
+  - `--border`: `#D5E0EE` · `--border-strong`: `#B4C6DF`
+  - `--text-main`: `#0B1526` · `--text-muted`: `#4B5C74` · `--text-faint`: `#52637A` (`>= 5.0:1` WCAG AA on `--surface-2`)
+  - `--accent`: `#0047E0` · `--accent-strong`: `#0039B8` · `--income`: `#0284C7`
+- **Default Cobalt Dark Mode (`body[data-palette="cobalt"].dark-mode`):**
+  - `--bg-color`: `#080D16` · `--surface`: `#101726` · `--surface-2`: `#172136` · `--surface-3`: `#202E4A`
+  - `--text-main`: `#EEF4FC` · `--text-muted`: `#93A6C4` · `--text-faint`: `#788CAE`
+  - `--accent`: `#60A5FA` · `--accent-strong`: `#93C5FD` · `--income`: `#38BDF8`
+- **Additional Palettes:** `terracotta` (`#C84628` / `#FAF8F6`), `charcoal` (`#181A20` / `#F7F7F9`), and `indigo` (`#4338CA` / `#F6F6FB`) in `css/modules/tokens.css`.
+- **Ledger Semantics:**
+  - Inflow (`+`): `--income` (`+Rp`).
+  - Outflow (`-`): Always uses `--text-main` prefixed with a true minus (`−Rp`), never red text.
+  - Destructive (`--danger` `#be123c`): Reserved for delete/logout actions; Overdue (`--warning` `#b45309`): Reserved for priority arrears accents.
 
 ## Typography
 
-- **Display & Module Titles (`Fraunces`):** Used on `.table-title` ("Status Iuran") and landing page hero headlines (`{typography.display-hero}`, `{typography.table-title}`).
-- **Numeric & Ledger Figures (`JetBrains Mono`):** Mandatory `font-variant-numeric: tabular-nums` (`tnum`) on `#ui-saldo` (`{typography.balance-hero}`), cashflow inflows/outflows, month column headers (`JAN`–`DES`), and the rotated `PAID` stamp (`{typography.ledger-stamp}`).
-- **UI & Body (`Inter`):** Weights `400`, `500`, `600`, `700` (`display=optional`) for member names, form inputs, filter pills, and action buttons (`{typography.body}`, `{typography.button}`).
+- **Primary UI & Display (`--font-sans`):** `'Plus Jakarta Sans'` for headers, cards, modal titles, controls, and container-responsive `.bento-amount` / `.bento-money` figures (`tnum` enabled).
+- **Monospace Data (`--font-mono`):** `'JetBrains Mono'` with mandatory `font-variant-numeric: tabular-nums` (`tnum`) for matrix `PAID` stamps, `.ledger-amt`, `.master-id-pill`, `.audit-time`, `.workspace-kbd-hint`, and `#bento-spark-value`.
+- **Minimum Readability Floor:** Functional labels, status badges, and compact action pills maintain `>= 11px` font size (`11px`–`12px` minimum).
 
-## Layout
+## Layout & Workspace
 
-- **Spacing Scale:** 4px base unit (`--sp-1: 4px` up to `--sp-18: 72px`, modal padding `24px`).
-- **Matrix Table Invariant (`Status Iuran`):** Strictly **13 columns** (1 `Nama Anggota` column + 12 calendar months `JAN` through `DES`) in a continuous scrollable ledger with zero pagination controls.
-- **Responsive Modal Split:** `.riwayat-split-body` and `.split-transaction-body` use a 2-column split only at `>= 860px` and collapse to a single-column stack below `860px`. `#modal-kelola-master` is always a 1-column vertical stack.
-- **Header & Navigation:** Desktop header keeps `flex-wrap: nowrap` with stats pills (`body.header-stats-active`). Below `768px`, primary actions move to the Mobile Bottom Nav.
+- **Spacing & Container Scale:** 4px base unit (`--sp-1: 4px` up to `--sp-18: 72px`, modal padding `24px`).
+- **3-Card Bento Dashboard:** `#bento-balance` (hero balance + 12-month scrubbable sparkline + annual compliance bar), `#bento-inflow`, and `#bento-outflow` drill-down cards.
+- **Role-Asymmetric Spotlight:** Non-admin members see `#member-spotlight` ("Pantau Iuran Saya" with inline month status preview & action CTA); admins see `#admin-priorities` ("Tunggakan Prioritas" + contextual `Pilih Banyak`).
+- **Tabbed Workspace (`#workspace-iuran`, `#workspace-history`, `#workspace-stats`):**
+  - `Status Iuran` preserves the **13-column** matrix (`Anggota` + `Jan`–`Des`) paired with compact `.dues-pagination` controls (`#dues-pagination`).
+  - `Riwayat Arus Kas` renders chronological ledger cards paired with `.dues-pagination` (`#history-pagination`) and the slide-over `#modal-struk` digital receipt drawer.
+- **Responsive Modals & Bottom Sheets:** Native `<dialog class="modal-overlay hybrid-dialog">` elements convert into swipeable bottom sheets (`touch-action: pan-y`) at `<= 768px`.
 
-## Elevation & Depth
+## Elevation & Shapes
 
-- **Zero Card Blur Shadow:** `--shadow-card`, `--shadow-sm`, and `--shadow-md` are `none`. Surface hierarchy is established solely by surface contrast (`--surface` vs `--surface-2`) and `1px solid var(--border)` hairlines.
-- **Floating Exception (`--shadow-pop`):** Only true floating layers (modals, `.cdrop-list` dropdowns, bottom sheets, toasts) receive `--shadow-pop` (`0 12px 32px -8px rgba(14, 36, 55, 0.22)` in light mode, `0 16px 40px -8px rgba(0, 0, 0, 0.65)` in dark mode).
-
-## Shapes
-
-- **Tactile Precision Radii:** `--r-xs: 4px` (stamps, table cells), `--r-sm: 6px` (inputs, inner controls), `--r-md: 8px` (buttons, dropdown panels), `--r-lg: 10px` (ledger cards, modals), `--r-pill: 999px` (header filter pills, year selector).
-- **Physical Paid Stamp (`.style-paid`):** Rotated `-3deg` to `-4deg` with a `1.5px solid var(--accent)` border and monospace `PAID` label instead of a generic rounded pill badge.
+- **Hybrid Card Elevation (`--shadow-card`):** `0 12px 30px -8px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03)` paired with `color-mix(in oklab, var(--surface) 90%, transparent)` and `1px solid var(--border)`.
+- **Floating Layer Elevation (`--shadow-pop`):** `0 16px 36px -8px rgba(0, 0, 0, 0.16), 0 4px 10px -2px rgba(0, 0, 0, 0.06)` on modals, `.cdrop-list`, `.dpick-pop`, bottom sheets, and toasts.
+- **Border Radii:** Major `.hybrid-card` containers (`.bento-kpi`, `.spotlight`, `#section-rekap`, `#workspace-history > .modal-content`, `#workspace-stats > .modal-content`) use `20px`; controls and inputs use `10px–14px` (`--r-lg` to `14px`); pills and badges use `999px` (`--r-pill`); table cells and stamps use `4px–6px` (`--r-xs`/`--r-sm`).
 
 ## Components
 
-- **Buttons (`button-primary`, `button-secondary`, `button-danger`):** Press feedback uses restrained `scale(0.97)` (`100ms` press, `180ms cubic-bezier(0.32, 0.72, 0, 1)` release). Never apply `translateY(-2px)` hover lift. Disabled or busy states (`[aria-disabled="true"]`, `[aria-busy="true"]`) suppress all hover and active transforms.
-- **Custom Dropdowns (`.cdrop`):** Toggled via `aria-hidden` (never the `hidden` attribute) so CSS opacity/transform transitions (`150ms`) run smoothly. `.cdrop-btn:focus-visible` uses an explicit `2px solid var(--accent)` outline with `2px` offset.
-- **Modals:** Overlay fades `200ms` open / `180ms` close; dialog content scales `0.97 -> 1` with `translateY(8px -> 0)` over `220ms cubic-bezier(0.16, 1, 0.3, 1)`.
+- **Buttons:** Tactile press uses restrained `scale(0.97)` (`100ms` press, `180ms cubic-bezier(0.32, 0.72, 0, 1)` release). Disabled/busy states suppress transforms.
+- **Custom Controls (`.cdrop`, `.mpick`, `.dpick`):** Enhanced via `src/ui/control-a11y.js` to keep native `<select>`/`<input>` constraint validation, `aria-invalid`, and keyboard interactions intact.
+- **Command Hub (`#modal-menu`):** Triggered via `#btn-header-menu`, `.workspace-jump`, or `Ctrl+K` / `Cmd+K` shortcut, focusing `#search-nav-menu` on desktop viewports.
+- **Kasi Mascot (`#kasi-dock`):** Interactive cash-cat companion perched cleanly across dashboard ledges with radial quick actions (`Elus`, `Koin`, `Ikan`, `Salto`, `Trik`, `Panduan`).
 
 ## Do's and Don'ts
 
 - **Do** reference canonical CSS variables from `css/modules/tokens.css` (`var(--surface)`, `var(--surface-2)`, `var(--surface-3)`, `var(--border)`, `var(--accent)`).
 - **Do** keep `css/onboarding.css` (`--lp-*` tokens) strictly isolated from `css/input.css` and `style.css` (Guardrail G1/G2).
-- **Do** run `npm run build:css && npm run build:html && npm run check` after any UI or stylesheet change.
+- **Do** run `npm run build && npm run verify && npm test` after any UI or stylesheet change.
 - **Don't** invent non-existent token names such as `var(--surface-card)` or `var(--surface-hover)`.
-- **Don't** add summary/percentage columns or pagination footers to the 13-column `Status Iuran` matrix table.
 - **Don't** color expense amounts red; expenses use `var(--text-main)` with a leading minus sign (`−`).

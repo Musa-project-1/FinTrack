@@ -25,7 +25,7 @@
   align-items: center;
   gap: 10px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 4px 12px;
   border-radius: 12px;
   background: var(--surface-2);
   border: 1.5px solid var(--border);
@@ -459,7 +459,7 @@
   }
 
   #modal-menu .command-hub-footer {
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px;
   }
 
   #modal-menu .command-kbd-pill,

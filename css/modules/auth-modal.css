@@ -240,7 +240,7 @@
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 1px 7px;
+  padding: 3px 8px;
   line-height: 1.4;
 }
 
@@ -254,7 +254,7 @@
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
   border-radius: 6px;
-  padding: 1px 7px;
+  padding: 3px 8px;
   line-height: 1.4;
 }
 
@@ -514,7 +514,7 @@
   }
 
   #modal-login .auth-sheet-footer {
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px;
   }
 
   #modal-login .auth-sheet-footer .auth-cancel-link {

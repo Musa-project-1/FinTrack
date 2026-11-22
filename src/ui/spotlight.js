@@ -96,7 +96,7 @@ const renderPriorities = (card, ledger, current) => {
     <li>
       <span title="Sisa ${escapeHtml(formatDisplayRp(month.remaining))}">${escapeHtml(ang.Nama_Anggota)}</span>
       <button type="button" class="btn" data-action="quickpay-card" data-anggota="${escapeHtml(ang.ID_Anggota)}"
-        data-bulan="${monthName}" data-year="${year}" aria-label="Lunasi ${escapeHtml(ang.Nama_Anggota)}">Lunasi ${monthName.slice(0, 3)}</button>
+        data-bulan="${monthName}" data-year="${year}" aria-label="Lunasi iuran ${escapeHtml(monthName)} untuk ${escapeHtml(ang.Nama_Anggota)}">Lunasi ${monthName.slice(0, 3)}</button>
     </li>`).join('');
 };
 
@@ -116,10 +116,22 @@ export const renderSpotlight = (ledger, current) => {
   if (!member.hidden && selectedMonth !== undefined) showSpotlightDetail(selectedMonth, ledger, current, false);
 };
 
-export const showSpotlightDetail = (index, ledger = createDuesLedger(getState(), { year: billingPeriod().year }), current = billingPeriod(), openPayment = true) => {
+const appendSpotlightCta = (output, label, onClick) => {
+  if (typeof document.createElement !== 'function') return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'spotlight-detail-cta';
+  btn.textContent = label;
+  btn.addEventListener('click', onClick);
+  output.append(' ', btn);
+};
+
+export const showSpotlightDetail = (index, ledger = createDuesLedger(getState(), { year: billingPeriod().year }), current = billingPeriod(), openPayment) => {
   const member = ledger.members.find(({ ang }) => ang.ID_Anggota === pinnedMember);
   const output = document.getElementById('spotlight-detail');
   if (!member || !output || getIsAdminView()) return;
+  const isRepeatClick = openPayment === undefined && selectedMonth === index;
+  const shouldOpen = openPayment === true || isRepeatClick;
   if (index !== 'pay') selectedMonth = index;
   document.querySelectorAll('[data-action="spotlight-month"]').forEach((button) => {
     button.setAttribute('aria-pressed', String(Number(button.dataset.index) === index));
@@ -139,10 +151,14 @@ export const showSpotlightDetail = (index, ledger = createDuesLedger(getState(),
   const month = ledger.getMonth(member.ang, index, current.year);
   output.replaceChildren(`${NAMA_BULAN[index]} ${current.year} · ${getDuesDisplayStatus(month)}`);
   if (month.paid) output.append(' · Setoran ', nominal(month.paid));
-  if (openPayment && month.status === 'paid') openMonthReceipt(member.ang.ID_Anggota, index, current.year);
+  if (month.status === 'paid') {
+    appendSpotlightCta(output, 'Lihat Struk →', () => openMonthReceipt(member.ang.ID_Anggota, index, current.year));
+    if (shouldOpen) openMonthReceipt(member.ang.ID_Anggota, index, current.year);
+  }
   if (month.owed && month.remaining) {
     output.append(' · Sisa ', nominal(month.remaining));
-    if (openPayment) openSelfPay(member.ang.ID_Anggota, index, current.year);
+    appendSpotlightCta(output, 'Bayar Bulan Ini →', () => openSelfPay(member.ang.ID_Anggota, index, current.year));
+    if (shouldOpen) openSelfPay(member.ang.ID_Anggota, index, current.year);
   }
   output.hidden = false;
 };
@@ -188,4 +204,16 @@ export const initSpotlight = () => {
   for (const id of ['spotlight-picker', 'spotlight-swap-select']) {
     document.getElementById(id)?.addEventListener('change', (event) => setMemberPin(event.target.value, true));
   }
+  const months = document.getElementById('spotlight-months');
+  months?.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    const pill = event.target?.closest?.('.mini-month-pill');
+    if (!pill) return;
+    const pills = Array.from(months.querySelectorAll('.mini-month-pill:not(:disabled)'));
+    const idx = pills.indexOf(pill);
+    if (idx < 0 || !pills.length) return;
+    event.preventDefault();
+    const delta = event.key === 'ArrowRight' ? 1 : -1;
+    pills[(idx + delta + pills.length) % pills.length]?.focus();
+  });
 };

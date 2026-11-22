@@ -93,6 +93,30 @@ const pinButton = (person, pinned) => {
 
 /* ── Matrix dues table (rekap) ─────────────────────────────────── */
 
+const hasActiveRekapFilter = () => {
+  const desktop = document.getElementById('search-member-rekap')?.value || '';
+  const mobile = document.getElementById('search-member-rekap-mobile')?.value || '';
+  return statusFilter !== 'all' || Boolean((desktop || mobile).trim());
+};
+
+const emptyRekapHtml = () => (hasActiveRekapFilter()
+  ? 'Tidak ada anggota ditemukan. <button type="button" class="btn btn-secondary btn-reset-rekap-filter">Reset Filter</button>'
+  : 'Tidak ada anggota ditemukan.');
+
+const bindFilterReset = (el) => {
+  if (!el || el.dataset?.resetBound || typeof el.addEventListener !== 'function') return;
+  if (el.dataset) el.dataset.resetBound = '1';
+  el.addEventListener('click', (ev) => {
+    if (!ev.target?.closest?.('.btn-reset-rekap-filter')) return;
+    for (const id of ['search-member-rekap', 'search-member-rekap-mobile']) {
+      const input = document.getElementById(id);
+      if (input) input.value = '';
+    }
+    statusFilter = 'all';
+    renderTableRekap();
+  });
+};
+
 const initMatrixColumnHover = (table) => {
   if (!table || table.dataset?.colHoverBound || typeof table.addEventListener !== 'function') return;
   table.dataset.colHoverBound = '1';
@@ -112,6 +136,28 @@ const initMatrixColumnHover = (table) => {
     setHoverCol(cell ? cell.getAttribute('data-col-month') : null);
   });
   table.addEventListener('pointerleave', () => setHoverCol(null));
+  table.addEventListener('keydown', (ev) => {
+    const btn = ev.target?.closest?.('.matrix-dues-button');
+    if (!btn || !['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(ev.key)) return;
+    const row = btn.closest('tr');
+    if (!row) return;
+    ev.preventDefault();
+    if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') {
+      const rowBtns = Array.from(row.querySelectorAll('.matrix-dues-button:not(:disabled)'));
+      const pos = rowBtns.indexOf(btn);
+      if (pos >= 0) rowBtns[pos + (ev.key === 'ArrowRight' ? 1 : -1)]?.focus();
+      return;
+    }
+    const col = btn.closest('td')?.getAttribute('data-col-month');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    const rowIdx = rows.indexOf(row);
+    const delta = ev.key === 'ArrowDown' ? 1 : -1;
+    for (let i = rowIdx + delta; i >= 0 && i < rows.length; i += delta) {
+      const target = (col && rows[i].querySelector(`td[data-col-month="${col}"] .matrix-dues-button:not(:disabled)`)) ||
+        rows[i].querySelector('.matrix-dues-button:not(:disabled)');
+      if (target) { target.focus(); break; }
+    }
+  });
 };
 
 export const renderTableRekap = () => {
@@ -165,8 +211,9 @@ export const renderTableRekap = () => {
   const pageMembers = duesPagination.paginate(filteredAnggota,
     JSON.stringify([getActiveGroupId(), currentRekapYear, statusFilter, searchVal]));
 
+  bindFilterReset(tbody);
   if (pageMembers.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="13" class="td-muted-center">Tidak ada anggota ditemukan.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="13" class="td-muted-center">${emptyRekapHtml()}</td></tr>`;
   } else {
     pageMembers.forEach((ang) => {
       const tr = document.createElement('tr');
@@ -249,8 +296,9 @@ export const renderIuranMobileCards = (
 ) => {
   const container = document.getElementById('iuran-cards-mobile');
   if (!container) return;
+  bindFilterReset(container);
   if (!members?.length) {
-    container.innerHTML = '<div class="iuran-cards-empty">Tidak ada anggota ditemukan.</div>';
+    container.innerHTML = `<div class="iuran-cards-empty">${emptyRekapHtml()}</div>`;
     return;
   }
 

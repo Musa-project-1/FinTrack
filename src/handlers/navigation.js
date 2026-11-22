@@ -216,11 +216,24 @@ export const openCommandHubModal = () => {
   prepareCommandHubModal();
   openModal('modal-menu');
   syncNavGroupVisibility();
+  const isDesktop = typeof window !== 'undefined' &&
+    window.innerWidth >= 768 &&
+    !(typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches);
+  if (isDesktop) document.getElementById('search-nav-menu')?.focus?.();
 };
 
 export const setupMenuSearchListener = () => {
   const searchInput = document.getElementById('search-nav-menu');
-  if (!searchInput) return;
+  if (!searchInput || searchInput.dataset?.navBound === '1') return;
+  if (searchInput.dataset) searchInput.dataset.navBound = '1';
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      if (getActiveModalId() === 'modal-menu') closeModal('modal-menu');
+      else openCommandHubModal();
+    }
+  });
 
   document.addEventListener('finkas:modal-opened', (e) => {
     if (e.detail?.id === 'modal-menu') prepareCommandHubModal();

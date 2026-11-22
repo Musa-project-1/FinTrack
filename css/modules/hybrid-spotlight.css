@@ -412,7 +412,26 @@ body[data-palette="indigo"].dark-mode :is(.member-spotlight-wrap, #section-rekap
   background: var(--surface-2);
   color: var(--text-main);
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: 12px;
+}
+
+.spotlight-detail-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 8px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--accent-border);
+  background: var(--accent-tint);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.spotlight-detail-cta:hover {
+  background: color-mix(in oklab, var(--accent-tint) 75%, var(--surface));
 }
 
 .mini-stamp-ico {

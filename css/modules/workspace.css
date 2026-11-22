@@ -114,12 +114,16 @@ html[data-role="admin"] .role-switcher-track .workspace-glider {
   color: var(--text-main);
 }
 
-.role-switcher-btn[aria-selected="true"] {
+.role-switcher-btn[aria-selected="true"],
+.role-switcher-btn[aria-selected="true"]:hover {
   color: var(--surface);
+  background: var(--text-main);
 }
 
-html[data-role="admin"] .role-switcher-btn[aria-selected="true"] {
+html[data-role="admin"] .role-switcher-btn[aria-selected="true"],
+html[data-role="admin"] .role-switcher-btn[aria-selected="true"]:hover {
   color: var(--nav-on-brand, #ffffff);
+  background: var(--accent-strong);
 }
 
 .role-switcher-btn:focus-visible {
@@ -239,7 +243,7 @@ html[data-role="admin"] .role-switcher-btn[aria-selected="true"] {
 }
 .workspace-kbd-hint {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 2px 5px;
   border-radius: 5px;

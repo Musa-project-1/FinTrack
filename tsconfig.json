@@ -4,7 +4,12 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "paths": { "finkas/hybrid-motion": ["./src/ui/hybrid-motion.js"] },
+    "paths": {
+      "finkas/hybrid-motion": ["./src/ui/hybrid-motion.js"],
+      "finkas/dues-status": ["./src/ui/dues-status.js"],
+      "finkas/receipt": ["./src/svelte/receipt.d.ts", "./src/render/receipt.js"],
+      "finkas/self-pay": ["./src/svelte/self-pay.d.ts", "./src/handlers/self-pay.js"]
+    },
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
@@ -14,5 +19,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/types/**/*.d.ts", "src/core/**/*.js", "api/**/*.js", "src/svelte/**/*.ts"]
+  "include": ["src/types/**/*.d.ts", "src/core/**/*.js", "api/**/*.js", "src/svelte/**/*.ts", "src/svelte/**/*.svelte"]
 }

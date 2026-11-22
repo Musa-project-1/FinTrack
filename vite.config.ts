@@ -1,6 +1,13 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
+const paths = {
+  'finkas/hybrid-motion': './hybrid-motion.js',
+  'finkas/dues-status': './dues-status.js',
+  'finkas/receipt': '../render/receipt.js',
+  'finkas/self-pay': '../handlers/self-pay.js'
+};
+
 export default defineConfig({
   plugins: [svelte()],
   build: {
@@ -9,8 +16,8 @@ export default defineConfig({
     emptyOutDir: false,
     minify: true,
     rolldownOptions: {
-      external: id => id.startsWith('../core/') || id === 'finkas/hybrid-motion',
-      output: { paths: { 'finkas/hybrid-motion': './hybrid-motion.js' }, minify: true }
+      external: id => id.startsWith('../core/') || Object.hasOwn(paths, id),
+      output: { paths, minify: true }
     }
   }
 });

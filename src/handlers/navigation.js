@@ -3,7 +3,7 @@ import { setCurrentHistoryFilter, setCurrentRekapYear } from "../core/state.js";
 import { handleNominalInput } from "../core/utils.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
-  openModal, closeModal, getActiveModalId, switchTab,
+  openModal, closeModal, closeGroupScopedModals, getActiveModalId, switchTab,
   filterKategori, updateCounterOps, updateCounterIuran,
   pilihSemuaIuran, renderCheckboxIuran, filterAnggotaIuran
 } from "../ui/modal.js";
@@ -44,6 +44,29 @@ export const setHistoryFilter = (filter) => {
    ══════════════════════════════════════════════════════════════════ */
 
 let rekapSearchTimer = null;
+let trxSearchTimer = null;
+
+export const resetGroupScopedUI = () => {
+  clearTimeout(rekapSearchTimer);
+  rekapSearchTimer = null;
+  clearTimeout(trxSearchTimer);
+  trxSearchTimer = null;
+  for (const id of ['search-member-rekap', 'search-member-rekap-mobile', 'workspace-search-history',
+    'search-anggota-iuran', 'master-search-anggota', 'audit-search-input']) {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  }
+  for (const button of document.querySelectorAll('[data-action="set-history-filter"]')) {
+    const active = button.dataset.filter === 'semua';
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+  for (const button of document.querySelectorAll('[data-status-filter]')) {
+    button.setAttribute('aria-pressed', String(button.dataset.statusFilter === 'all'));
+  }
+  closeGroupScopedModals();
+};
+
 export const setupRekapSearchListener = () => {
   const inputs = [
     document.getElementById('search-member-rekap'),
@@ -359,7 +382,6 @@ export const initAppFormAndInputListeners = ({
   if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
 
   const historySearches = ['workspace-search-history'].map((id) => document.getElementById(id)).filter(Boolean);
-  let trxSearchTimer;
   for (const input of historySearches) input.addEventListener('input', () => {
     for (const other of historySearches) if (other !== input) other.value = input.value;
     clearTimeout(trxSearchTimer);
@@ -405,6 +427,7 @@ export const initAppFormAndInputListeners = ({
 
   /* Keep the group picker reachable once the session can no longer read the group. */
   window.addEventListener('finkas:group-changed', () => {
+    resetGroupScopedUI();
     renderMasterAnggotaTable();
     renderMasterKategoriTable();
   });

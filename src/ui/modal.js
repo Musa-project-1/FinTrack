@@ -99,10 +99,14 @@ export const openModal = (id) => {
 };
 
 /** Close a modal and synchronously synchronize application state. */
-export const closeModal = (id) => {
+export const closeModal = (id, immediate = false) => {
   const el = document.getElementById(id);
   if (!el) return;
-  if (el.open && el.classList.contains('dues-dialog') &&
+  if (immediate && duesExitAnimations.has(el)) {
+    duesExitAnimations.delete(el);
+    el.removeAttribute('data-dues-closing');
+  }
+  if (!immediate && el.open && el.classList.contains('dues-dialog') &&
       !(globalThis.CSS?.supports('overlay: auto') && globalThis.CSS.supports('transition-behavior: allow-discrete'))) {
     if (el.hasAttribute('data-dues-closing')) return;
     el.setAttribute('data-dues-closing', '');
@@ -127,6 +131,18 @@ export const closeModal = (id) => {
 
 /* ── Unified Database Confirmation Dialog ────────────────────────── */
 let pendingConfirmAction = null;
+
+const GLOBAL_SAFE_MODALS = new Set([
+  'modal-groups', 'modal-group-pin', 'modal-group-admin', 'modal-group-credentials',
+  'modal-login', 'modal-logout', 'modal-tampilan', 'modal-about', 'modal-faq', 'modal-menu'
+]);
+
+export const closeGroupScopedModals = () => {
+  pendingConfirmAction = null;
+  for (const el of [...activeModalStack]) {
+    if (el.id && !GLOBAL_SAFE_MODALS.has(el.id)) closeModal(el.id, true);
+  }
+};
 
 /**
  * Buka dialog konfirmasi aksi database.

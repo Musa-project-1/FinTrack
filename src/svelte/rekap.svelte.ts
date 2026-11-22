@@ -18,10 +18,19 @@ export const initDuesPagination = duesPagination.init;
 const searchIds = ['search-member-rekap', 'search-member-rekap-mobile'];
 
 const initialView = { year: '', isAdmin: false, stampStyle: 'seal', hasActiveFilter: false };
-export const rekapStore = $state({
+const initialRekapState = () => ({
   ...initialView, rows: [] as RekapMemberRowVM[], mobileRows: [] as RekapMemberRowVM[],
   mobile: { ...initialView }, expandedIds: [] as string[]
 });
+export const rekapStore = $state(initialRekapState());
+
+export function resetRekapGroupState() {
+  statusFilter = 'all';
+  newlyPaidCells.clear();
+  expandedIds.clear();
+  Object.assign(rekapStore, initialRekapState());
+}
+
 let mountDashboard: () => void;
 export function registerRekapMount(mount: () => void) { mountDashboard = mount; }
 

@@ -9,13 +9,21 @@ import type { DuesLedger } from '../types/finkas';
 import { computeSpotlightViewModel, detailFor, type DetailCta, type Period } from './spotlight-model';
 
 export { computeSpotlightViewModel };
-export const spotlightStore: ReturnType<typeof computeSpotlightViewModel> = $state({
+const initialSpotlightState = (): ReturnType<typeof computeSpotlightViewModel> => ({
   memberHidden: true, adminHidden: true, members: [], hasPinned: false, pinnedId: '',
   memberName: '', memberCode: '', settled: 0, total: 0, percent: 0, arrearsCount: 0,
   arrearsText: '', showPaidChip: false, summaryText: '', payLabel: 'Bayar Iuran', stampStyle: 'seal',
   selectedMonthIndex: undefined, months: [], detail: null, priorityTitle: 'Tunggakan Prioritas',
   priorityPeriod: '', priorityItems: []
 });
+export const spotlightStore = $state(initialSpotlightState());
+
+export function resetSpotlightGroupState() {
+  selectedMonth = undefined;
+  lastGroup = undefined;
+  pinnedMember = null;
+  Object.assign(spotlightStore, initialSpotlightState());
+}
 
 let selectedMonth: number | undefined;
 let lastGroup: string | null | undefined;

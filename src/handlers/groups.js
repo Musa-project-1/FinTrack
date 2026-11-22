@@ -239,7 +239,6 @@ export const enterGroup = (id) => {
     renderAdminUI();
   }
 
-  setActiveGroupId(id);
   try {
     localStorage.setItem(GROUP_OPEN_KEY, "1");
     localStorage.setItem(ACTIVE_GROUP_NAME_KEY, found.nama);
@@ -251,7 +250,10 @@ export const enterGroup = (id) => {
   closeModal("modal-group-pin");
   const nameEl = document.getElementById("app-group-name");
   if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
-  window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id } }));
+  setActiveGroupId(id);
+  if (currentActive === id) {
+    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { groupId: id, previousGroupId: currentActive } }));
+  }
 };
 
 /** Keluar dari grup aktif. */
@@ -265,7 +267,8 @@ export const exitGroup = () => {
     handleUI();
     renderAdminUI();
   }
-  setActiveGroupId("");
+  const nameEl = document.getElementById("app-group-name");
+  if (nameEl) nameEl.textContent = "Finkas";
   document.body.dataset.workspaceState = "idle";
   delete document.body.dataset.workspaceGroup;
   try {
@@ -274,6 +277,7 @@ export const exitGroup = () => {
   } catch (err) {
     console.warn("[finkas] Cannot clear group state:", err?.message);
   }
+  setActiveGroupId("");
   openGroupPicker();
 };
 
@@ -664,7 +668,7 @@ export const initGroupsUI = (onGroupChanged) => {
   if (savedName) document.getElementById("app-group-name")?.replaceChildren(document.createTextNode(savedName));
 
   if (activeGid) {
-    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { id: activeGid } }));
+    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { groupId: activeGid, previousGroupId: "" } }));
   } else {
     const hasSeenOnboarding = localStorage.getItem(ONBOARDING_SEEN_KEY);
     if (!hasSeenOnboarding) {

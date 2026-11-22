@@ -552,19 +552,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (btn) btn.style.display = 'flex';
   });
 
-  initGroupsUI(() => {
-    // On every group change: reset the freshness signal and re-arm the sync
-    // listeners for the newly active group, then pull its data.
-    destroySync();
-    initSync((hasUpdate) => setSyncBadge(hasUpdate ? 'has-update' : 'is-clean'));
-    initApp(true);
-  });
-
-  if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
-
-  const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
-  if (activeGaId) initAnalytics(activeGaId);
-
   initAppFormAndInputListeners({
     submitLoginAdmin,
     submitIuran,
@@ -578,4 +565,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     renderMasterAnggotaTable,
     renderMasterKategoriTable
   });
+
+  initGroupsUI(() => {
+    // On every group change: reset the freshness signal and re-arm the sync
+    // listeners for the newly active group, then pull its data.
+    destroySync();
+    initSync((hasUpdate) => setSyncBadge(hasUpdate ? 'has-update' : 'is-clean'));
+    initApp(true);
+  });
+
+  if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
+
+  const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
+  if (activeGaId) initAnalytics(activeGaId);
 });

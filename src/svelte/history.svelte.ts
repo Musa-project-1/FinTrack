@@ -10,6 +10,12 @@ export const historyStore = $state<{ rows: HistoryRowVM[] }>({ rows: [] });
 let mountHistory: () => void;
 export function registerHistoryMount(mountFn: () => void) { mountHistory = mountFn; }
 
+export function resetHistoryGroupState() {
+  historyStore.rows = [];
+  const count = globalThis.document?.getElementById?.('hybrid-ledger-count');
+  if (count) count.textContent = 'Menampilkan 0 transaksi';
+}
+
 export function renderTableTransaksi() {
   const doc = globalThis.document;
   const workspace = doc?.getElementById?.('workspace-history');

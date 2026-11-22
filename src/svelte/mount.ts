@@ -1,10 +1,10 @@
 import { flushSync, mount } from 'svelte';
 import { initHybridMotion } from 'finkas/hybrid-motion';
-import { updateDashboardStore, type DashboardInput } from './store.svelte';
-import { registerSpotlightMount } from './spotlight.svelte';
-import { registerHistoryMount } from './history.svelte';
-import { registerStatsMount } from './stats.svelte';
-import { registerRekapMount } from './rekap.svelte';
+import { resetDashboardGroupState, updateDashboardStore, type DashboardInput } from './store.svelte';
+import { resetSpotlightGroupState, registerSpotlightMount } from './spotlight.svelte';
+import { resetHistoryGroupState, registerHistoryMount } from './history.svelte';
+import { resetStatsGroupState, registerStatsMount } from './stats.svelte';
+import { resetRekapGroupState, registerRekapMount } from './rekap.svelte';
 
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
   renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
@@ -24,7 +24,33 @@ registerStatsMount(mountSvelteDashboard);
 registerRekapMount(mountSvelteDashboard);
 const mounted = new WeakSet<Element>();
 
+const listeningWindows = new WeakSet<object>();
+const mountedDocuments = new WeakSet<Document>();
+
+export function resetSvelteGroupViewState() {
+  resetDashboardGroupState();
+  resetSpotlightGroupState();
+  resetHistoryGroupState();
+  resetStatsGroupState();
+  resetRekapGroupState();
+  const doc = globalThis.document;
+  for (const id of ['group-overview', 'member-spotlight', 'admin-priorities']) {
+    const section = doc?.getElementById?.(id);
+    if (section) section.hidden = true;
+  }
+  if (mountedDocuments.has(doc)) flushSync();
+}
+
+function listenForGroupChanges() {
+  const win = globalThis.window;
+  if (!win?.addEventListener || listeningWindows.has(win)) return;
+  win.addEventListener('finkas:group-changed', resetSvelteGroupViewState);
+  listeningWindows.add(win);
+}
+listenForGroupChanges();
+
 export function mountSvelteDashboard() {
+  listenForGroupChanges();
   if (typeof document === 'undefined' || typeof Element === 'undefined' || typeof document.createElementNS !== 'function') return;
   const group = document.getElementById?.('group-overview');
   const bento = document.querySelector?.('.bento-dashboard');
@@ -46,6 +72,7 @@ export function mountSvelteDashboard() {
     target.replaceChildren();
     mount(component, { target });
     mounted.add(target);
+    mountedDocuments.add(target.ownerDocument);
   }
   initHybridMotion();
 }

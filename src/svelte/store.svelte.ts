@@ -72,13 +72,18 @@ export function computeDashboardViewModel(
 }
 
 export type DashboardViewModel = ReturnType<typeof computeDashboardViewModel>;
-export const dashboardStore: DashboardViewModel = $state({
+const initialDashboardState = (): DashboardViewModel => ({
   saldo: 0, totalMasuk: 0, totalKeluar: 0, saldoLength: 4, format: formatRp,
   depositsCount: 0, largestExpenseCategory: '', largestExpenseAmount: 0,
   monthlyFee: 0, activeMembersCount: 0, kasStartLabel: '', groupName: '',
   compliancePercent: 0, hasDueTarget: false, sparkSeries: [], sparkPoints: [],
   sparkLinePath: '', sparkAreaPath: '', selectedMonthIndex: 11, firstRender: true, visible: false
 });
+export const dashboardStore = $state(initialDashboardState());
+
+export function resetDashboardGroupState() {
+  Object.assign(dashboardStore, initialDashboardState());
+}
 
 export function updateDashboardStore({ state, ledger, current, deposits, expenses, groupName, firstRender, totalMasuk, totalKeluar }: DashboardInput) {
   const totals = totalMasuk !== undefined && totalKeluar !== undefined ? { totalMasuk, totalKeluar } : undefined;

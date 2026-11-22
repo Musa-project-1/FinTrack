@@ -11,8 +11,16 @@ let mountStats: () => void;
 export function registerStatsMount(mountFn: () => void) { mountStats = mountFn; }
 
 type StatsStore = ReturnType<typeof computeStatsViewModel> & { ready: boolean; revision: number };
-export const statsStore = $state<StatsStore>({ ready: false, revision: 0, activeYear: 0,
+const initialStatsState = (): StatsStore => ({ ready: false, revision: 0, activeYear: 0,
   selectedMonth: 0, gridLines: [], months: [], curvePath: '', breakdownRows: [] });
+export const statsStore = $state(initialStatsState());
+
+export function resetStatsGroupState() {
+  selectedMonth = null;
+  selectedYear = null;
+  renderRevision = 0;
+  Object.assign(statsStore, initialStatsState());
+}
 
 export function selectStatsMonth(index: number) {
   if (!Number.isFinite(index)) return;

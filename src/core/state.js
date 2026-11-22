@@ -21,15 +21,18 @@ import {
 
 /** @typedef {import('../types/finkas.d.ts').AppState} AppState */
 
-/** @type {AppState} */
-const state = {
+/** @returns {AppState} */
+const emptyLedger = () => ({
   anggota: [],
   kategori: [],
   transaksi: [],
   skippedMonths: [],
   kasStart: '',
   paymentAccount: null
-};
+});
+
+/** @type {AppState} */
+const state = emptyLedger();
 
 /** Safe access to localStorage across browser and test environments. */
 const getLocalStorage = () => {
@@ -131,7 +134,9 @@ export const setActiveGroupId = (id) => {
     console.warn('[finkas] Cannot persist active group:', err?.message);
   }
   if (previousGroupId !== activeGroupId) {
-    state.paymentAccount = null;
+    Object.assign(state, emptyLedger());
+    currentRekapYear = String(billingPeriod().year);
+    currentHistoryFilter = 'semua';
     // The in-memory ledger still needs to be loaded for the newly selected group.
     publishStorageStatus('unknown', 'group-change');
     if (typeof window !== 'undefined') {

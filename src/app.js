@@ -12,7 +12,7 @@ import {
 } from "./core/state.js";
 import { fetchInitialData } from "./core/api.js";
 import { showToast, setConnectionStatus, isOnline } from "./core/utils.js";
-import { syncOfflineTransactions, deleteOfflineTransaction, getOfflineTransactions } from "./core/offline.js";
+import { syncOfflineTransactions, deleteOfflineTransaction, countQueuedTransactions } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
 import { initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from "./core/sync.js";
@@ -336,7 +336,9 @@ document.addEventListener('click', (e) => {
     case 'refresh-offline':   renderOfflineQueueList(); break;
     case 'delete-offline-item': {
       const itemId = parseInt(target.getAttribute('data-item-id'), 10);
-      deleteOfflineTransaction(itemId).then(() => { renderOfflineQueueList(); });
+      const groupId = getActiveGroupId();
+      if (!groupId?.trim()) break;
+      deleteOfflineTransaction(itemId, groupId).then(() => { renderOfflineQueueList(); });
       break;
     }
   }
@@ -514,19 +516,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   initRoleSwitcher();
   initGestures();
 
+  window.addEventListener('finkas:group-changed', () => {
+    if (document.getElementById('modal-offline-queue')?.classList.contains('active')) renderOfflineQueueList();
+  });
+
   let hasBeenOffline = false;
 
   window.addEventListener('online', async () => {
     if (!hasBeenOffline) return;
     hasBeenOffline = false;
-    try {
-      const queued = await getOfflineTransactions();
-      if (queued && queued.length > 0) {
-        showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
-        syncOfflineTransactions(() => { initApp(); renderChart(); });
-      }
-    } catch {
-      // safe fallback without spurious toast
+    const groupId = getActiveGroupId();
+    const pendingCount = await countQueuedTransactions(groupId);
+    if (pendingCount > 0 && groupId === getActiveGroupId()) {
+      showToast('Koneksi kembali. Menyinkronkan transaksi offline...', 'success');
       syncOfflineTransactions(() => { initApp(); renderChart(); });
     }
   });

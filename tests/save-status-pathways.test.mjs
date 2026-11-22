@@ -1,4 +1,5 @@
 import { test, beforeEach, afterEach } from 'node:test';
+import { installMockIndexedDB } from './helpers/mock-indexeddb.mjs';
 import assert from 'node:assert/strict';
 
 // Synthetic browser environment: storage, DOM, IndexedDB and BroadcastChannel
@@ -60,44 +61,6 @@ const element = {
 };
 document.getElementById = (id) => id === 'ui-save-status' ? element : null;
 
-// Mock in-memory IndexedDB for offline store
-let idbItems = [];
-let nextId = 1;
-globalThis.indexedDB = {
-  open: () => {
-    const req = {
-      result: {
-        transaction: () => ({
-          objectStore: () => ({
-            add: (item) => {
-              const id = nextId++;
-              const stored = { ...item, id };
-              idbItems.push(stored);
-              const r = { result: id };
-              setTimeout(() => r.onsuccess?.({ target: r }), 0);
-              return r;
-            },
-            getAll: () => {
-              const r = { result: idbItems.map((x) => ({ ...x })) };
-              setTimeout(() => r.onsuccess?.({ target: r }), 0);
-              return r;
-            },
-            delete: (id) => {
-              const idx = idbItems.findIndex((x) => x.id === id);
-              if (idx !== -1) idbItems.splice(idx, 1);
-              const r = { result: undefined };
-              setTimeout(() => r.onsuccess?.({ target: r }), 0);
-              return r;
-            }
-          })
-        })
-      }
-    };
-    setTimeout(() => req.onsuccess?.({ target: req }), 0);
-    return req;
-  }
-};
-
 const state = await import('../src/core/state.js');
 const ui = await import('../src/ui/save-status.js');
 const sync = await import('../src/core/sync.js');
@@ -115,8 +78,7 @@ let testGroupCounter = 0;
 beforeEach(() => {
   storageFails = false;
   storage.clear();
-  idbItems = [];
-  nextId = 1;
+  installMockIndexedDB();
   window.navigator.onLine = true;
   document.visibilityState = 'visible';
   testGroupCounter += 1;

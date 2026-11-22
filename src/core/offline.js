@@ -20,20 +20,36 @@ export {
   getOfflineItems as getOfflineTransactions
 };
 
+const normalizeGroupId = (groupId) => typeof groupId === 'string' ? groupId.trim() : '';
+
+/** Read only the target group's rows and count the remaining rows anonymously. */
+export const getGroupOfflineTransactions = async (groupId = getActiveGroupId()) => {
+  const targetGid = normalizeGroupId(groupId || getActiveGroupId());
+  const rows = await getOfflineItems();
+  /** @type {any[]} */
+  const items = [];
+  let otherGroupCount = 0;
+  let unscopedCount = 0;
+  for (const item of Array.isArray(rows) ? rows : []) {
+    const gid = normalizeGroupId(item?.payload?.groupId);
+    if (!gid) unscopedCount++;
+    else if (gid === targetGid) items.push(item);
+    else otherGroupCount++;
+  }
+  return { groupId: targetGid, items, otherGroupCount, unscopedCount };
+};
+
 /**
  * Count queued items in IndexedDB belonging to a group.
  * @param {string} [groupId]
  * @returns {Promise<number>}
  */
-export const countQueuedTransactions = async (groupId) => {
+export const countQueuedTransactions = async (groupId = getActiveGroupId()) => {
+  const targetGid = normalizeGroupId(groupId || getActiveGroupId());
+  if (!targetGid) return 0;
   try {
-    const targetGid = groupId || getActiveGroupId();
-    const items = await getOfflineItems();
-    if (!Array.isArray(items)) return 0;
-    return items.filter((item) => {
-      const itemGid = item.payload?.groupId || getActiveGroupId();
-      return itemGid === targetGid;
-    }).length;
+    const { items } = await getGroupOfflineTransactions(targetGid);
+    return items.length;
   } catch (err) {
     console.warn('[finkas] countQueuedTransactions error:', err?.message);
     return 0;
@@ -47,7 +63,7 @@ export const countQueuedTransactions = async (groupId) => {
  * @returns {Promise<number>}
  */
 export const emitQueueStatus = async (groupId, queueState = 'idle') => {
-  const targetGid = groupId || getActiveGroupId();
+  const targetGid = normalizeGroupId(groupId || getActiveGroupId());
   const pendingCount = await countQueuedTransactions(targetGid);
   if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
     window.dispatchEvent(new CustomEvent('finkas:queue-changed', {
@@ -60,11 +76,18 @@ export const emitQueueStatus = async (groupId, queueState = 'idle') => {
 /**
  * Delete a single queued item and notify listeners of updated count.
  * @param {number} id
- * @returns {Promise<void>}
+ * @param {string} [expectedGroupId]
+ * @returns {Promise<boolean>}
  */
-export const deleteOfflineTransaction = async (id) => {
+export const deleteOfflineTransaction = async (id, expectedGroupId = '') => {
+  const guardGid = normalizeGroupId(expectedGroupId);
+  if (guardGid) {
+    const { items } = await getGroupOfflineTransactions(guardGid);
+    if (!items.some((item) => item.id === id)) return false;
+  }
   await deleteOfflineItem(id);
-  await emitQueueStatus(getActiveGroupId(), 'idle');
+  await emitQueueStatus(guardGid || getActiveGroupId(), 'idle');
+  return true;
 };
 
 /**
@@ -73,7 +96,8 @@ export const deleteOfflineTransaction = async (id) => {
  * @param {{groupId?: string}} payload
  */
 export const queueOfflinePayload = async (payload) => {
-  const targetGid = payload.groupId || getActiveGroupId();
+  const targetGid = normalizeGroupId(payload?.groupId || getActiveGroupId());
+  if (!targetGid) throw new Error('ID grup aktif belum dipilih untuk antrean offline.');
   const queuedPayload = {
     payload: { ...payload, groupId: targetGid },
     queuedAt: new Date().toISOString()
@@ -171,90 +195,91 @@ export const syncOfflineTransactions = (onSuccess) => {
     return activeReplayPromise;
   }
 
+  const replayGroup = normalizeGroupId(getActiveGroupId());
+  if (!replayGroup) return Promise.resolve();
+
   activeReplayPromise = (async () => {
-    const replayGroup = getActiveGroupId();
+    let switchedGroup = false;
+    const markSwitched = () => { switchedGroup = true; };
+    const stillSameGroup = () => !switchedGroup && normalizeGroupId(getActiveGroupId()) === replayGroup;
+    if (typeof window !== 'undefined') window.addEventListener('finkas:group-changed', markSwitched);
+    let successCount = 0;
+    let duplicateCount = 0;
+    let skippedUnscoped = 0;
+    let skippedOtherGroup = 0;
     try {
-      const initialCount = await countQueuedTransactions(replayGroup);
-      if (initialCount > 0) {
+      const queued = await getOfflineItems();
+      if (queued.some((item) => normalizeGroupId(item?.payload?.groupId) === replayGroup)) {
         await emitQueueStatus(replayGroup, 'sending');
       }
 
-      const queued = await getOfflineItems();
-      if (!queued.length) {
-        await emitQueueStatus(replayGroup, 'idle');
-        return;
-      }
-
-      let successCount = 0;
-      let duplicateCount = 0;
-      let skippedOtherGroup = 0;
-
       for (const item of queued) {
-        const currentActive = getActiveGroupId();
-        // If user switched group during replay, halt replay of the previous group
-        if (currentActive !== replayGroup) {
+        if (!stillSameGroup()) {
+          switchedGroup = true;
           console.warn('[finkas] Active group switched during replay, halting obsolete replay');
           break;
         }
 
-        const itemGid = item.payload?.groupId || replayGroup;
+        const itemGid = normalizeGroupId(item?.payload?.groupId);
+        if (!itemGid) {
+          skippedUnscoped++;
+          continue;
+        }
         if (itemGid !== replayGroup) {
           skippedOtherGroup += 1;
           continue;
         }
 
-        const payloadToSend = { ...item.payload };
+        const payloadToSend = { ...item.payload, groupId: replayGroup };
         delete payloadToSend.queuedAt;
 
         const resJSON = await postToBackend(payloadToSend);
+        if (!stillSameGroup()) switchedGroup = true;
         const outcome = classifySyncResponse(resJSON);
 
         if (outcome === 'unreachable' || outcome === 'unauthorized') {
+          if (switchedGroup) return;
           if (outcome === 'unauthorized') {
             showToast('Sesi berakhir. Masuk kembali untuk melanjutkan pengiriman.', 'warning');
           } else {
             showToast('Tidak dapat menyinkronkan transaksi tertunda saat ini.', 'error');
           }
-          await emitQueueStatus(replayGroup, 'idle');
           return;
         }
 
-        if (outcome === 'success' || outcome === 'duplicate') {
-          await deleteOfflineItem(item.id);
-          if (outcome === 'duplicate') {
-            duplicateCount += 1;
-          } else {
-            successCount += 1;
-          }
-          await emitQueueStatus(replayGroup, 'sending');
-        } else {
-          console.warn('[finkas] Offline sync item rejected by server:', item.id, resJSON?.message);
-          await deleteOfflineItem(item.id);
+        await deleteOfflineItem(item.id);
+        if (outcome === 'success') successCount++;
+        else if (outcome === 'duplicate') duplicateCount++;
+        else if (stillSameGroup()) {
           showToast(`Item antrean dibatalkan server: ${resJSON?.message || 'Data tidak valid'}`, 'warning');
-          await emitQueueStatus(replayGroup, 'sending');
         }
-      }
-
-      await emitQueueStatus(getActiveGroupId(), 'idle');
-
-      if (successCount > 0 || duplicateCount > 0) {
-        logAuditEvent('OFFLINE_SYNC', `Rekonsiliasi: ${successCount} tersimpan, ${duplicateCount} duplikat dilewati`);
-        const msg = duplicateCount > 0
-          ? `Sinkronisasi selesai: ${successCount} transaksi dicatat, ${duplicateCount} dilewati (sudah lunas).`
-          : `Terkirim ${successCount} transaksi tertunda.`;
-        showToast(skippedOtherGroup > 0 ? `${msg} ${skippedOtherGroup} antrean grup lain menunggu.` : msg, 'success');
-        if (onSuccess) onSuccess();
-      } else if (skippedOtherGroup > 0) {
-        showToast(`${skippedOtherGroup} antrean milik grup lain – pindah grup untuk mengirim.`, 'info');
+        await emitQueueStatus(replayGroup, 'sending');
       }
     } catch (error) {
       console.error('Sync offline transactions failed', error);
-      showToast('Gagal menyinkronkan transaksi tertunda.', 'error');
-      await emitQueueStatus(getActiveGroupId(), 'idle');
+      if (stillSameGroup()) showToast('Gagal menyinkronkan transaksi tertunda.', 'error');
+      return;
     } finally {
-      activeReplayPromise = null;
+      await emitQueueStatus(replayGroup, 'idle');
+      if (!stillSameGroup()) await emitQueueStatus(getActiveGroupId(), 'idle');
+      if (typeof window !== 'undefined') window.removeEventListener('finkas:group-changed', markSwitched);
     }
-  })();
+
+    if (!stillSameGroup()) return;
+    if (successCount > 0 || duplicateCount > 0) {
+      logAuditEvent('OFFLINE_SYNC', `Rekonsiliasi: ${successCount} tersimpan, ${duplicateCount} duplikat dilewati`);
+      const msg = duplicateCount > 0
+        ? `Sinkronisasi selesai: ${successCount} transaksi dicatat, ${duplicateCount} dilewati (sudah lunas).`
+        : `Terkirim ${successCount} transaksi tertunda.`;
+      showToast(skippedOtherGroup > 0 ? `${msg} ${skippedOtherGroup} antrean grup lain menunggu.` : msg, 'success');
+      if (onSuccess) onSuccess();
+    } else if (skippedOtherGroup > 0) {
+      showToast(`${skippedOtherGroup} antrean milik grup lain – pindah grup untuk mengirim.`, 'info');
+    }
+    if (!successCount && !duplicateCount && skippedUnscoped) {
+      showToast(`${skippedUnscoped} antrean lama tanpa ID grup dilewati demi isolasi data.`, 'warning');
+    }
+  })().finally(() => { activeReplayPromise = null; });
 
   return activeReplayPromise;
 };

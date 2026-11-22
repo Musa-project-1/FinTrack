@@ -1,4 +1,5 @@
-import { getOfflineTransactions } from "../core/offline.js";
+import { getGroupOfflineTransactions } from "../core/offline.js";
+import { getActiveGroupId } from "../core/state.js";
 import { formatRp, escapeHtml } from "../core/utils.js";
 import { openModal } from "../ui/modal.js";
 
@@ -33,34 +34,37 @@ const syncQueueStatusUI = (count) => {
   if (syncBtn) syncBtn.disabled = count === 0;
 };
 
+let latestRender = 0;
+
 /** Render pending offline mutations inside #offline-queue-list. */
 export const renderOfflineQueueList = async () => {
   const container = document.getElementById('offline-queue-list');
   if (!container) return;
 
+  const renderId = ++latestRender;
   const refreshBtn = document.getElementById('btn-refresh-offline');
   if (refreshBtn) {
     refreshBtn.disabled = true;
     refreshBtn.classList.add('is-loading');
   }
 
-  container.innerHTML = '';
+  container.replaceChildren();
+  syncQueueStatusUI(0);
   try {
-    const queued = await getOfflineTransactions();
-    const list = Array.isArray(queued) ? queued : [];
-    syncQueueStatusUI(list.length);
+    const { groupId, items, otherGroupCount, unscopedCount } = await getGroupOfflineTransactions(getActiveGroupId());
+    if (renderId !== latestRender || groupId !== getActiveGroupId().trim()) return;
+    syncQueueStatusUI(items.length);
 
-    if (list.length === 0) {
+    if (!items.length) {
       container.innerHTML = `
         <div class="queue-empty">
           <span class="queue-empty-ico"><i class="ph-fill ph-check-circle" aria-hidden="true"></i></span>
           <div><strong>Semua tersinkron</strong><p>Tidak ada transaksi tertunda.</p></div>
         </div>
       `;
-      return;
     }
 
-    list.reverse().forEach((item) => {
+    items.reverse().forEach((item) => {
       const card = document.createElement('div');
       card.className = 'pending-item';
       const t = new Date(item.queuedAt).toLocaleString('id-ID', {
@@ -75,7 +79,6 @@ export const renderOfflineQueueList = async () => {
         || item.payload?.nama
         || item.payload?.month
         || '-';
-      const itemGid = item.payload?.groupId || '-';
       const amountBadge = nominal > 0
         ? `<span class="pending-card-amount">${formatRp(nominal)}</span>`
         : '';
@@ -87,7 +90,7 @@ export const renderOfflineQueueList = async () => {
               <span class="queue-action-pill is-${tone}"><i class="ph ${icon}" aria-hidden="true"></i> ${escapeHtml(label)}</span>
               ${amountBadge}
             </div>
-            <div class="pending-card-time">${escapeHtml(t)} · <span class="queue-gid-tag">${escapeHtml(itemGid)}</span></div>
+            <div class="pending-card-time">${escapeHtml(t)} · <span class="queue-gid-tag">${escapeHtml(groupId)}</span></div>
             <div class="pending-card-payload">${escapeHtml(summary)}</div>
           </div>
           <div class="flex-align-gap">
@@ -99,7 +102,23 @@ export const renderOfflineQueueList = async () => {
       `;
       container.appendChild(card);
     });
+    if (otherGroupCount || unscopedCount) {
+      const notice = document.createElement('div');
+      notice.className = 'queue-empty';
+      if (otherGroupCount) {
+        const message = document.createElement('p');
+        message.textContent = `${otherGroupCount} antrean milik grup lain menunggu — pindah ke grup tersebut untuk mengirim.`;
+        notice.append(message);
+      }
+      if (unscopedCount) {
+        const message = document.createElement('p');
+        message.textContent = `${unscopedCount} antrean lama tanpa ID grup dilewati demi isolasi data.`;
+        notice.append(message);
+      }
+      container.append(notice);
+    }
   } catch (err) {
+    if (renderId !== latestRender) return;
     syncQueueStatusUI(0);
     container.innerHTML = `
       <div class="queue-error">
@@ -108,7 +127,7 @@ export const renderOfflineQueueList = async () => {
       </div>
     `;
   } finally {
-    if (refreshBtn) {
+    if (refreshBtn && renderId === latestRender) {
       refreshBtn.disabled = false;
       refreshBtn.classList.remove('is-loading');
     }
@@ -117,6 +136,7 @@ export const renderOfflineQueueList = async () => {
 
 /** Open the Offline Transaction Queue modal and load pending entries. */
 export const openOfflineQueueModal = async () => {
-  await renderOfflineQueueList();
+  const rendered = renderOfflineQueueList();
   openModal('modal-offline-queue');
+  await rendered;
 };

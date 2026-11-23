@@ -16,8 +16,8 @@ const {
   validateSnapshot,
   restoreSnapshot,
   WRITE_HANDLERS
-} = await import('../api/_group-write.js');
-const { newId, iuranId } = await import('../api/_store.js');
+} = await import('../api/_group-write.ts');
+const { newId, iuranId } = await import('../api/_store.ts');
 
 const GID = 'GRP-AAAA';
 /** Rejections happen before Firestore is touched, so headers are never read. */

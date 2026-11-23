@@ -9,11 +9,11 @@ process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
   client_email: 'synthetic@example.invalid',
   private_key: generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' })
 });
-const { WRITE_HANDLERS } = await import('../../api/_group-write.js');
-const { ATTACHMENT_WRITE_HANDLERS, readAttachment } = await import('../../api/_attachments.js');
-const { readGroupData } = await import('../../api/_group-read.js');
-const { ROLES, signSession, GROUP_SESSION_TTL } = await import('../../api/_session.js');
-const { FIRESTORE_BASE, resourceName } = await import('../../api/_sa.js');
+const { WRITE_HANDLERS } = await import('../../api/_group-write.ts');
+const { ATTACHMENT_WRITE_HANDLERS, readAttachment } = await import('../../api/_attachments.ts');
+const { readGroupData } = await import('../../api/_group-read.ts');
+const { ROLES, signSession, GROUP_SESSION_TTL } = await import('../../api/_session.ts');
+const { FIRESTORE_BASE, resourceName } = await import('../../api/_sa.ts');
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status });
 let nextGroup = 0;
 

@@ -188,8 +188,10 @@ export interface ApiRequest {
   socket?: { remoteAddress?: string };
 }
 
-export interface ApiResponse {
-  status(code: number): ApiResponse;
+export type ApiResponse = VercelResponse | Pick<import('node:http').ServerResponse, 'statusCode' | 'setHeader' | 'end'>;
+
+interface VercelResponse {
+  status(code: number): VercelResponse;
   json(payload: unknown): ApiResponse | void;
   setHeader(name: string, value: string | string[]): void;
   end?(chunk?: unknown): void;

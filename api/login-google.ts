@@ -12,68 +12,38 @@
  * Every mutating action requires a valid, non-expired Super Admin session.
  * There is no `NODE_ENV` bypass and no body-supplied `isSuperAdmin` shortcut.
  */
-import { fsPatch, requireFirestoreHeaders } from './_sa.js';
-import { APP_CONFIG_DOC, readSuperadminEmails, writeAuditLog } from './_store.js';
+import { parseBody, sendJson, type JsonBody } from './_http.ts';
+import type { ApiHandlerResult, ApiRequest, ApiResponse, FirestoreHeaders, SessionClaims } from '../src/types/finkas.d.ts';
+import { fsPatch, requireFirestoreHeaders } from './_sa.ts';
+import { APP_CONFIG_DOC, readSuperadminEmails, writeAuditLog } from './_store.ts';
 import {
   ROLES,
   SUPERADMIN_SESSION_TTL,
   clientIp,
   readSession,
   signSession
-} from './_session.js';
+} from './_session.ts';
 
 const PRIMARY_OWNER = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
 
-/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
-/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
-/** @typedef {Record<string, any>} JsonBody */
-/** @typedef {Record<string, string>} FsHeaders */
-
-/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
-const sendJson = (res, status, payload) => {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(status).json(payload);
-};
-
-/** @param {ApiRequest} req @returns {JsonBody} */
-const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return /** @type {JsonBody} */ (req.body);
-  if (typeof req.body === 'string') {
-    try {
-      return JSON.parse(req.body);
-    } catch (err) {
-      return {};
-    }
-  }
-  return {};
-};
 
 /* ── Superadmin whitelist helpers ─────────────────────────────────── */
 
-/**
- * Persist the superadmin email list.
- * @param {string[]} list
- * @param {FsHeaders} headers
- */
-async function saveSuperadminList(list, headers) {
+/** Persist the superadmin email list. */
+async function saveSuperadminList(list: string[], headers: FirestoreHeaders) {
   await fsPatch(APP_CONFIG_DOC, { superadmin_emails: list }, headers, ['superadmin_emails']);
 }
 
 /* ── Require a valid Super Admin session ─────────────────────────── */
 
-/**
- * Verify a live Super Admin session whose email is STILL on the whitelist.
+/** Verify a live Super Admin session whose email is STILL on the whitelist.
  *
  * A signature and a role are not enough: `remove` only edits the email list,
  * so a session minted before that removal stays cryptographically valid for
  * its whole TTL (30 days). Re-checking the email here is what makes a
  * revocation take effect. The check runs before any Firestore call, so a
- * removed admin is refused even when the database is unreachable.
- * @param {JsonBody} body
- * @param {FsHeaders} headers
- * @returns {Promise<{session: import('../src/types/finkas.d.ts').SessionClaims, emails: string[]}|null>}
- */
-const requireSuperAdmin = async (body, headers) => {
+ * removed admin is refused even when the database is unreachable. */
+const requireSuperAdmin = async (body: JsonBody, headers: FirestoreHeaders): Promise<{session: SessionClaims, emails: string[]}|null> => {
   const session = readSession(body);
   if (!session || session.role !== ROLES.SUPERADMIN) return null;
 
@@ -88,8 +58,7 @@ const requireSuperAdmin = async (body, headers) => {
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
-/** @param {JsonBody} body @param {FsHeaders} headers @param {string} ip */
-async function loginWithGoogle(body, headers, ip) {
+async function loginWithGoogle(body: JsonBody, headers: FirestoreHeaders, ip: string) {
   const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
   if (!rawToken) {
     return { code: 400, payload: { status: false, message: 'Token otentikasi Google diperlukan.' } };
@@ -164,8 +133,7 @@ async function loginWithGoogle(body, headers, ip) {
   };
 }
 
-/** @param {string[]} emails */
-async function listSuperAdmins(emails) {
+async function listSuperAdmins(emails: string[]) {
   return {
     code: 200,
     payload: {
@@ -175,8 +143,7 @@ async function listSuperAdmins(emails) {
   };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers @param {string[]} emails */
-async function addSuperAdmin(body, headers, emails) {
+async function addSuperAdmin(body: JsonBody, headers: FirestoreHeaders, emails: string[]) {
   const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
   if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
     return { code: 400, payload: { status: false, message: 'Format email tidak valid.' } };
@@ -193,8 +160,7 @@ async function addSuperAdmin(body, headers, emails) {
   return { code: 200, payload: { status: true, message: `Email ${newEmail} berhasil ditambahkan sebagai Super Admin.`, data: updated } };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers @param {string[]} emails */
-async function removeSuperAdmin(body, headers, emails) {
+async function removeSuperAdmin(body: JsonBody, headers: FirestoreHeaders, emails: string[]) {
   const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
   if (PRIMARY_OWNER && removeEmail === PRIMARY_OWNER) {
     return { code: 400, payload: { status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' } };
@@ -211,8 +177,7 @@ async function removeSuperAdmin(body, headers, emails) {
   return { code: 200, payload: { status: true, message: `Akses Super Admin untuk ${removeEmail} telah dicabut.`, data: updated } };
 }
 
-/** @type {Record<string, (body: JsonBody, headers: FsHeaders, emails: string[]) => Promise<import('../src/types/finkas.d.ts').ApiHandlerResult>>} */
-const GUARDED_ACTIONS = {
+const GUARDED_ACTIONS: Record<string, (body: JsonBody, headers: FirestoreHeaders, emails: string[]) => Promise<ApiHandlerResult>> = {
   list: (_body, _headers, emails) => listSuperAdmins(emails),
   add: addSuperAdmin,
   remove: removeSuperAdmin
@@ -220,8 +185,7 @@ const GUARDED_ACTIONS = {
 
 /* ── Handler ─────────────────────────────────────────────────────── */
 
-/** @param {ApiRequest} req @param {ApiResponse} res */
-export default async function handler(req, res) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }

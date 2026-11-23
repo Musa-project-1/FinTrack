@@ -10,7 +10,9 @@
  *
  * Allowed file formats: JPEG, PNG, WebP, PDF up to 512 KiB.
  */
+import type { FirestoreHeaders } from '../src/types/finkas.d.ts';
 import { Buffer } from 'node:buffer';
+import type { GroupWriteHandler } from './_group-write.ts';
 import path from 'node:path';
 import {
   docName,
@@ -18,14 +20,14 @@ import {
   fsCommit,
   fsGet,
   fsListAll
-} from './_sa.js';
+} from './_sa.ts';
 import {
   TRANSACTIONS_COLLECTION,
   col,
   isValidDocId,
   nowIso,
   writeAuditLog
-} from './_store.js';
+} from './_store.ts';
 
 export const PROOFS_COLLECTION = 'transaction_proofs';
 export const MAX_ATTACHMENT_BYTES = 512 * 1024; // 524,288 bytes (512 KiB)
@@ -37,24 +39,40 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/pdf'
 ]);
 
-/** @template T @param {string} message @param {T} data */
-const ok = (message, data) => ({ status: true, message, data });
-/** @param {string} message @param {object | null} [data] */
-const fail = (message, data = null) => ({ status: false, message, data });
+const ok = <T>(message: string, data: T) => ({ status: true, message, data });
+const fail = (message: string, data: object | null = null) => ({ status: false, message, data });
 
-/** @typedef {{base64?: string, data?: string, size?: number, type?: string, mimeType?: string, name?: string, filename?: string}} ProofInput */
-/** @typedef {ProofInput & {idTransaksi?: string, file?: ProofInput, dataForm?: {idTransaksi?: string, file?: ProofInput}}} ProofRequest */
+interface ProofInput {
+  base64?: string;
+  data?: string;
+  size?: number;
+  type?: string;
+  mimeType?: string;
+  name?: string;
+  filename?: string;
+}
+interface ProofRequest extends ProofInput {
+  idTransaksi?: string;
+  file?: ProofInput;
+  dataForm?: { idTransaksi?: string, file?: ProofInput };
+}
 
-/** @param {unknown} val */
-const cleanText = (val, max = 100) => String(val || '').trim().slice(0, max);
+type AttachmentValidation =
+  | { valid: false, error: string }
+  | {
+      valid: true;
+      idTransaksi: string;
+      name: string;
+      detectedType: string;
+      size: number;
+      base64: string;
+      buffer: Buffer;
+    };
 
-/**
- * Validate binary file signature (magic bytes) to prevent extension spoofing.
- *
- * @param {Buffer} buffer
- * @returns {'image/jpeg'|'image/png'|'image/webp'|'application/pdf'|null}
- */
-export function detectFileSignature(buffer) {
+const cleanText = (val: unknown, max = 100) => String(val || '').trim().slice(0, max);
+
+/** Validate binary file signature (magic bytes) to prevent extension spoofing. */
+export function detectFileSignature(buffer: Buffer): 'image/jpeg'|'image/png'|'image/webp'|'application/pdf'|null {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) return null;
 
   // JPEG: starts with FF D8 FF
@@ -102,18 +120,10 @@ export function detectFileSignature(buffer) {
   return null;
 }
 
-/**
- * Sanitize a filename to avoid path traversal and invalid characters.
- *
- * @param {string|undefined} rawName
- * @param {string} idTransaksi
- * @param {string} detectedType
- * @returns {string}
- */
-export function sanitizeFileName(rawName, idTransaksi, detectedType) {
+/** Sanitize a filename to avoid path traversal and invalid characters. */
+export function sanitizeFileName(rawName: string|undefined, idTransaksi: string, detectedType: string): string {
   const base = path.basename(String(rawName || '').replace(/[\\/\0]/g, '_')).trim();
-  /** @type {Record<string, string>} */
-  const extMap = {
+  const extMap: Record<string, string> = {
     'image/jpeg': '.jpg',
     'image/png': '.png',
     'image/webp': '.webp',
@@ -131,13 +141,8 @@ export function sanitizeFileName(rawName, idTransaksi, detectedType) {
   return sanitized;
 }
 
-/**
- * Validate attachment input payload, canonical base64, size and signature.
- *
- * @param {ProofRequest} payload
- * @returns {{valid: false, error: string}|{valid: true, idTransaksi: string, name: string, detectedType: string, size: number, base64: string, buffer: Buffer}}
- */
-export function validateAttachmentInput(payload) {
+/** Validate attachment input payload, canonical base64, size and signature. */
+export function validateAttachmentInput(payload: ProofRequest): AttachmentValidation {
   const idTransaksi = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
   if (!idTransaksi || !isValidDocId(idTransaksi)) {
     return { valid: false, error: 'ID transaksi tidak valid.' };
@@ -228,15 +233,8 @@ export function validateAttachmentInput(payload) {
 
 /* ── Write Handlers ──────────────────────────────────────────────── */
 
-/**
- * Upload or replace a transaction proof document and update Bukti metadata atomically.
- *
- * @param {string} gid
- * @param {ProofRequest} payload
- * @param {Record<string, string>} headers
- * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
- */
-export async function uploadAttachment(gid, payload, headers) {
+/** Upload or replace a transaction proof document and update Bukti metadata atomically. */
+export async function uploadAttachment(gid: string, payload: ProofRequest, headers: FirestoreHeaders) {
   const check = validateAttachmentInput(payload);
   if (!check.valid) return fail(check.error);
 
@@ -301,15 +299,8 @@ export async function uploadAttachment(gid, payload, headers) {
   });
 }
 
-/**
- * Delete a transaction proof document and clear Bukti metadata atomically.
- *
- * @param {string} gid
- * @param {ProofRequest} payload
- * @param {Record<string, string>} headers
- * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
- */
-export async function deleteAttachment(gid, payload, headers) {
+/** Delete a transaction proof document and clear Bukti metadata atomically. */
+export async function deleteAttachment(gid: string, payload: ProofRequest, headers: FirestoreHeaders) {
   const idTransaksi = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
   if (!idTransaksi || !isValidDocId(idTransaksi)) {
     return fail('ID transaksi tidak valid.');
@@ -352,15 +343,8 @@ export async function deleteAttachment(gid, payload, headers) {
 
 /* ── Read Handlers ───────────────────────────────────────────────── */
 
-/**
- * Read the proof document for a single transaction.
- *
- * @param {string} gid
- * @param {ProofRequest} payload
- * @param {Record<string, string>} headers
- * @returns {Promise<{status: boolean, message: string, data?: object|null, notFound?: boolean}>}
- */
-export async function readAttachment(gid, payload, headers) {
+/** Read the proof document for a single transaction. */
+export async function readAttachment(gid: string, payload: ProofRequest, headers: FirestoreHeaders): Promise<{status: boolean, message: string, data?: object|null, notFound?: boolean}> {
   const idTransaksi = cleanText(payload?.idTransaksi, 40);
   if (!idTransaksi || !isValidDocId(idTransaksi)) {
     return fail('ID transaksi tidak valid.');
@@ -385,15 +369,9 @@ export async function readAttachment(gid, payload, headers) {
   });
 }
 
-/**
- * Export all attachments for a group (Admin only).
- * Returns list {idTransaksi, name, type, size, base64}.
- *
- * @param {string} gid
- * @param {Record<string, string>} headers
- * @returns {Promise<{status: boolean, message: string, data: {attachments: Array<object>}}>}
- */
-export async function exportAttachments(gid, headers) {
+/** Export all attachments for a group (Admin only).
+ * Returns list {idTransaksi, name, type, size, base64}. */
+export async function exportAttachments(gid: string, headers: FirestoreHeaders) {
   const docs = await fsListAll(col(gid, PROOFS_COLLECTION), headers);
   const scoped = docs.filter((doc) => !doc.fields?.groupId || doc.fields.groupId === gid);
   const attachments = scoped.map((doc) => {
@@ -413,8 +391,7 @@ export async function exportAttachments(gid, headers) {
   });
 }
 
-/** @type {Record<string, (gid: string, payload: Record<string, any>, headers: Record<string, string>) => Promise<{status: boolean, message: string, data?: unknown, updatedAt?: string}>>} */
-export const ATTACHMENT_WRITE_HANDLERS = {
+export const ATTACHMENT_WRITE_HANDLERS: Record<string, GroupWriteHandler> = {
   uploadAttachment,
   deleteAttachment
 };

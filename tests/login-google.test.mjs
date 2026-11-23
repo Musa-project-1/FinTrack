@@ -33,8 +33,8 @@ process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-12345
 
 after(() => { globalThis.fetch = realFetch; });
 
-const handler = (await import('../api/login-google.js')).default;
-const { ROLES, signSession, SUPERADMIN_SESSION_TTL } = await import('../api/_session.js');
+const handler = (await import('../api/login-google.ts')).default;
+const { ROLES, signSession, SUPERADMIN_SESSION_TTL } = await import('../api/_session.ts');
 
 const REVOKED = 'revoked@example.com';
 

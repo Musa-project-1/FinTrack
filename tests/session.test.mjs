@@ -18,7 +18,7 @@ const {
   verifyHashedSecret,
   clientIp,
   nextFailedAttempt
-} = await import('../api/_session.js');
+} = await import('../api/_session.ts');
 
 const GROUP = 'GRP-AAAA';
 

@@ -2,9 +2,9 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { SnapshotFirestore, successful, request, setupLedger, proofFile, PNG } from './helpers/snapshot-firestore.mjs';
 
-const { writeAuditLog } = await import('../api/_store.js');
-const { readAuditLog } = await import('../api/_group-read.js');
-const { getOperationReceipt } = await import('../api/_transaction-idempotency.js');
+const { writeAuditLog } = await import('../api/_store.ts');
+const { readAuditLog } = await import('../api/_group-read.ts');
+const { getOperationReceipt } = await import('../api/_transaction-idempotency.ts');
 
 const db = new SnapshotFirestore();
 const originalFetch = globalThis.fetch;

@@ -5,8 +5,8 @@ import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
 
-import handler from '../api/data.js';
-import { ROLES, signSession, GROUP_SESSION_TTL, checkReadRateLimit } from '../api/_session.js';
+import handler from '../api/data.ts';
+import { ROLES, signSession, GROUP_SESSION_TTL, checkReadRateLimit } from '../api/_session.ts';
 
 const GID_A = 'GRP-TESTA';
 const GID_B = 'GRP-TESTB';

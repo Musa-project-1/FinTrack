@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const { encodeValue, decodeValue, encodeFields, decodeFields } = await import('../api/_sa.js');
+const { encodeValue, decodeValue, encodeFields, decodeFields } = await import('../api/_sa.ts');
 
 /* ── Scalars ─────────────────────────────────────────────────────── */
 

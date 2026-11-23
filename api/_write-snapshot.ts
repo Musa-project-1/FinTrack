@@ -1,4 +1,3 @@
-import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/payment-account.js';
 /**
  * Full-database snapshot validation, atomic export and restore for a group.
  *
@@ -9,6 +8,9 @@ import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/pay
  * Export uses a Firestore read-only transaction when available to ensure an
  * atomic, point-in-time consistent snapshot across all collections.
  */
+import type { Anggota, FirestoreDoc, FirestoreHeaders, Kategori, SnapshotData, SnapshotEnvelope, Transaksi } from '../src/types/finkas.d.ts';
+import type { FirestoreWrite } from './_sa.ts';
+import { normalizePaymentAccount, validatePaymentAccount } from '../src/svelte/core/payment-account.ts';
 import {
   FIRESTORE_BASE,
   decodeFields,
@@ -16,7 +18,7 @@ import {
   fsCommit,
   fsListAll,
   fsPatch
-} from './_sa.js';
+} from './_sa.ts';
 import {
   CATEGORIES_COLLECTION,
   MEMBERS_COLLECTION,
@@ -28,7 +30,7 @@ import {
   nowIso,
   settingsDoc,
   writeAuditLog
-} from './_store.js';
+} from './_store.ts';
 import {
   ARUS,
   SKIPPED_MONTH_RE,
@@ -38,21 +40,19 @@ import {
   fail,
   ok,
   parseTransactionInput
-} from './_write-shared.js';
+} from './_write-shared.ts';
 import {
   PROOFS_COLLECTION,
   validateAttachmentInput
-} from './_attachments.js';
+} from './_attachments.ts';
 import {
   OPERATIONS_COLLECTION,
   isValidOperationId
-} from './_transaction-idempotency.js';
+} from './_transaction-idempotency.ts';
 
 /* ── Read-only Transaction Helpers ───────────────────────────────── */
 
-/** @typedef {Record<string, string>} FsHeaders */
-/** @param {FsHeaders} headers */
-async function beginReadOnlyTx(headers) {
+async function beginReadOnlyTx(headers: FirestoreHeaders) {
   try {
     const res = await fetch(`${FIRESTORE_BASE}:beginTransaction`, {
       method: 'POST',
@@ -67,8 +67,7 @@ async function beginReadOnlyTx(headers) {
   }
 }
 
-/** @param {FsHeaders} headers @param {string | null} transaction */
-async function rollbackTx(headers, transaction) {
+async function rollbackTx(headers: FirestoreHeaders, transaction: string | null) {
   if (!transaction) return;
   try {
     await fetch(`${FIRESTORE_BASE}:rollback`, {
@@ -81,10 +80,8 @@ async function rollbackTx(headers, transaction) {
   }
 }
 
-/** @param {string} colPath @param {FsHeaders} headers @param {string | null} transaction */
-async function listAllInTx(colPath, headers, transaction) {
-  /** @type {Array<{name: string, fields: Record<string, any>}>} */
-  const docs = [];
+async function listAllInTx(colPath: string, headers: FirestoreHeaders, transaction: string | null) {
+  const docs: Array<{name: string, fields: Record<string, any>}> = [];
   let pageToken = '';
   for (let page = 0; page < 40; page += 1) {
     const txParam = transaction ? `&transaction=${encodeURIComponent(transaction)}` : '';
@@ -95,7 +92,7 @@ async function listAllInTx(colPath, headers, transaction) {
       throw new Error(`Gagal membaca koleksi (${res.status}): ${colPath}`);
     }
     const json = await res.json();
-    (json.documents || []).forEach((/** @type {import('../src/types/finkas.d.ts').FirestoreDoc} */ doc) => {
+    (json.documents || []).forEach((doc: FirestoreDoc) => {
       docs.push({ name: doc.name || '', fields: decodeFields(doc.fields) });
     });
     pageToken = json.nextPageToken || '';
@@ -104,8 +101,7 @@ async function listAllInTx(colPath, headers, transaction) {
   return docs;
 }
 
-/** @param {string} docPath @param {FsHeaders} headers @param {string | null} transaction */
-async function getDocInTx(docPath, headers, transaction) {
+async function getDocInTx(docPath: string, headers: FirestoreHeaders, transaction: string | null) {
   const txParam = transaction ? `?transaction=${encodeURIComponent(transaction)}` : '';
   const res = await fetch(`${FIRESTORE_BASE}/${docPath}${txParam}`, { headers });
   if (res.status === 404) return null;
@@ -118,19 +114,13 @@ async function getDocInTx(docPath, headers, transaction) {
 
 /* ── Validation ─────────────────────────────────────────────────── */
 
-/** Legacy backups can supply camelCase entity fields until restore normalizes them.
- * @typedef {Omit<import('../src/types/finkas.d.ts').SnapshotData, 'anggota'|'kategori'|'transaksi'> & {
- *   anggota: Record<string, unknown>[], kategori: Record<string, unknown>[], transaksi: Record<string, unknown>[]
- * }} ValidatedSnapshot
- */
+/** Legacy backups can supply camelCase entity fields until restore normalizes them. */
+type ValidatedSnapshot = Omit<SnapshotData, 'anggota'|'kategori'|'transaksi'> & {
+  anggota: Record<string, unknown>[], kategori: Record<string, unknown>[], transaksi: Record<string, unknown>[]
+};
 
-/**
- * Validate full snapshot data shape, limits and record integrity before writing.
- *
- * @param {Record<string, unknown> & {data?: Record<string, unknown>}} raw
- * @returns {{valid: false, error: string} | {valid: true, data: ValidatedSnapshot}}
- */
-export function validateSnapshot(raw) {
+/** Validate full snapshot data shape, limits and record integrity before writing. */
+export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<string, unknown>}): {valid: false, error: string} | {valid: true, data: ValidatedSnapshot} {
   if (!raw || typeof raw !== 'object') {
     return { valid: false, error: 'Format snapshot tidak valid.' };
   }
@@ -192,10 +182,10 @@ export function validateSnapshot(raw) {
   const paymentAccount = data.paymentAccount == null ? undefined : normalizePaymentAccount(data.paymentAccount);
 
   const skippedMonths = Array.isArray(rawSkipped)
-    ? rawSkipped.filter((/** @type {string} */ m) => SKIPPED_MONTH_RE.test(m))
+    ? rawSkipped.filter((m: string) => SKIPPED_MONTH_RE.test(m))
     : [];
 
-  const seenMember = new Set();
+  const seenMember = new Set<string>();
   for (const a of anggota) {
     const id = cleanText(a?.ID_Anggota ?? a?.idAnggota, 40);
     const nama = cleanText(a?.Nama_Anggota ?? a?.namaAnggota, 80);
@@ -208,7 +198,7 @@ export function validateSnapshot(raw) {
     seenMember.add(id);
   }
 
-  const seenKat = new Set();
+  const seenKat = new Set<string>();
   for (const k of kategori) {
     const id = cleanText(k?.ID_Kategori ?? k?.idKategori, 40);
     const tipe = k?.Tipe ?? k?.tipe;
@@ -221,7 +211,7 @@ export function validateSnapshot(raw) {
     seenKat.add(id);
   }
 
-  const seenTrx = new Set();
+  const seenTrx = new Set<string>();
   for (const t of transaksi) {
     const parsed = parseTransactionInput(t);
     if ('error' in parsed) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
@@ -235,8 +225,8 @@ export function validateSnapshot(raw) {
     seenTrx.add(id);
   }
 
-  const seenProof = new Set();
-  const validAttachments = [];
+  const seenProof = new Set<string>();
+  const validAttachments: SnapshotData['attachments'] = [];
   for (const att of rawAttachments) {
     if (!att || typeof att !== 'object') {
       return { valid: false, error: 'Data lampiran di snapshot tidak valid.' };
@@ -268,8 +258,8 @@ export function validateSnapshot(raw) {
     });
   }
 
-  const seenOp = new Set();
-  const validOperations = [];
+  const seenOp = new Set<string>();
+  const validOperations: SnapshotData['operations'] = [];
   for (const op of rawOperations) {
     if (!op || typeof op !== 'object') {
       return { valid: false, error: 'Data operasi di snapshot tidak valid.' };
@@ -336,15 +326,9 @@ export function validateSnapshot(raw) {
 
 /* ── Export Snapshot ─────────────────────────────────────────────── */
 
-/**
- * Export an atomic point-in-time snapshot of a group's full ledger and proofs.
- *
- * @param {string} gid
- * @param {Record<string, any>} payloadOrHeaders
- * @param {FsHeaders} [maybeHeaders]
- */
-export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
-  const headers = /** @type {FsHeaders} */ (maybeHeaders !== undefined ? maybeHeaders : payloadOrHeaders);
+/** Export an atomic point-in-time snapshot of a group's full ledger and proofs. */
+export async function exportSnapshot(gid: string, payloadOrHeaders: Record<string, any>, maybeHeaders?: FirestoreHeaders) {
+  const headers: FirestoreHeaders = maybeHeaders ?? payloadOrHeaders;
   const transaction = await beginReadOnlyTx(headers);
   const consistency = transaction ? 'firestore-read-only-transaction' : 'best-effort-read';
 
@@ -367,10 +351,9 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
       getDocInTx(groupDoc(gid), headers, transaction)
     ]);
 
-    const anggota = /** @type {import('../src/types/finkas.d.ts').Anggota[]} */ (memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || '')));
-    const kategori = /** @type {import('../src/types/finkas.d.ts').Kategori[]} */ (categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || '')));
-    /** @param {{name: string, fields: Record<string, any>}} doc */
-    const belongsToGroup = (doc) => !doc.fields?.groupId || doc.fields.groupId === gid;
+    const anggota = (memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || '')) as Anggota[]);
+    const kategori = (categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || '')) as Kategori[]);
+    const belongsToGroup = (doc: {name: string, fields: Record<string, any>}) => !doc.fields?.groupId || doc.fields.groupId === gid;
     const attachments = proofDocs.filter(belongsToGroup).map((d) => {
       const f = d.fields || {};
       return {
@@ -398,9 +381,8 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
     }).sort((a, b) => (a.operationId || '').localeCompare(b.operationId || ''));
 
     const proofMap = new Map(attachments.map((a) => [a.idTransaksi, a]));
-    const transaksi = /** @type {import('../src/types/finkas.d.ts').Transaksi[]} */ (transactionDocs.map((d) => {
-      /** @type {Record<string, any>} */
-      const f = { ...d.fields };
+    const transaksi = (transactionDocs.map((d) => {
+      const f: Record<string, any> = { ...d.fields };
       const idTrx = f.ID_Transaksi || d.name.split('/').pop();
       const att = proofMap.get(idTrx);
       if (att) {
@@ -414,15 +396,14 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
         delete f.Bukti;
       }
       return f;
-    }).sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime()));
+    }).sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime()) as Transaksi[]);
 
-    const s = /** @type {Record<string, any> | null} */ (settings);
+    const s = settings;
     const skippedMonths = Array.isArray(s?.skippedMonths) ? s.skippedMonths : [];
     const kasStart = s?.kasStart || '';
     const gname = groupDocInfo?.nama || gid;
 
-    /** @type {import('../src/types/finkas.d.ts').SnapshotEnvelope} */
-    const snapshot = {
+    const snapshot: SnapshotEnvelope = {
       app: 'Finkas',
       version: 2,
       exportedAt: nowIso(),
@@ -458,14 +439,8 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
 
 /* ── Restore Snapshot ────────────────────────────────────────────── */
 
-/**
- * Restore a full database snapshot into a group.
- *
- * @param {string} gid Target group id
- * @param {Record<string, any> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }} payload
- * @param {FsHeaders} headers
- */
-export async function restoreSnapshot(gid, payload, headers) {
+/** Restore a full database snapshot into a group. */
+export async function restoreSnapshot(gid: string, payload: Record<string, any> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }, headers: FirestoreHeaders) {
   const rawData = payload?.data || payload;
   const explicitSourceGid = cleanText(payload?.sourceGroupId || rawData?.group?.id || rawData?.groupId, 40);
   const embeddedGids = [rawData?.anggota, rawData?.kategori, rawData?.transaksi]
@@ -484,11 +459,9 @@ export async function restoreSnapshot(gid, payload, headers) {
 
   const { anggota, kategori, transaksi, skippedMonths, kasStart, paymentAccount, attachments, operations } = validated.data;
   const timestamp = nowIso();
-  /** @param {{name?: string}} doc */
-  const idOf = (doc) => String(doc.name || '').split('/').pop() || '';
+  const idOf = (doc: {name?: string}) => String(doc.name || '').split('/').pop() || '';
 
-  /** @param {string} collName @param {Set<string>} keptIds @param {() => Array<import('./_sa.js').FirestoreWrite>} buildWrites */
-  const upsertThenPrune = async (collName, keptIds, buildWrites) => {
+  const upsertThenPrune = async (collName: string, keptIds: Set<string>, buildWrites: () => Array<FirestoreWrite>) => {
     const writes = buildWrites();
     for (let i = 0; i < writes.length; i += 400) {
       await fsCommit(writes.slice(i, i + 400), headers);
@@ -501,7 +474,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   };
 
   // 1. Anggota
-  const anggotaIds = new Set();
+  const anggotaIds = new Set<string>();
   await upsertThenPrune(MEMBERS_COLLECTION, anggotaIds, () =>
     anggota.map((a) => {
       const id = cleanText(a.ID_Anggota ?? a.idAnggota, 40);
@@ -524,7 +497,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // 2. Kategori
-  const kategoriIds = new Set();
+  const kategoriIds = new Set<string>();
   await upsertThenPrune(CATEGORIES_COLLECTION, kategoriIds, () =>
     kategori.map((k) => {
       const id = cleanText(k.ID_Kategori ?? k.idKategori, 40);
@@ -544,7 +517,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // 3. Bukti Lampiran (upserted before transactions so proofs always exist when referenced)
-  const attachmentIds = new Set();
+  const attachmentIds = new Set<string>();
   await upsertThenPrune(PROOFS_COLLECTION, attachmentIds, () =>
     attachments.map((att) => {
       attachmentIds.add(att.idTransaksi);
@@ -566,7 +539,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // 4. Operation Receipts (create/delete retry idempotency preserved)
-  const operationIds = new Set();
+  const operationIds = new Set<string>();
   await upsertThenPrune(OPERATIONS_COLLECTION, operationIds, () =>
     operations.map((op) => {
       operationIds.add(op.operationId);
@@ -590,13 +563,12 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // 5. Transaksi
-  const transaksiIds = new Set();
+  const transaksiIds = new Set<string>();
   await upsertThenPrune(TRANSACTIONS_COLLECTION, transaksiIds, () =>
     transaksi.map((t) => {
       const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40);
       transaksiIds.add(idTrx);
-      /** @type {Record<string, any>} */
-      const fields = {
+      const fields: Record<string, any> = {
         ID_Transaksi: idTrx,
         Timestamp: cleanText(t.Timestamp ?? t.timestamp, 30) || timestamp,
         Tipe_Arus: t.Tipe_Arus ?? t.tipeArus,
@@ -621,8 +593,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // Restoring a cash ledger across groups must retain the target group's transfer account.
-  /** @type {Record<string, any>} */
-  const settings = { skippedMonths, kasStart: kasStart || '' };
+  const settings: Record<string, any> = { skippedMonths, kasStart: kasStart || '' };
   if (paymentAccount && sourceGid === gid) settings.paymentAccount = paymentAccount;
   await fsPatch(settingsDoc(gid), settings, headers, Object.keys(settings));
 

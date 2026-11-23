@@ -1,7 +1,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { encodeFields, decodeFields } from '../api/_sa.js';
+import { encodeFields, decodeFields } from '../api/_sa.ts';
 import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
@@ -151,10 +151,10 @@ const {
   readAttachment,
   exportAttachments,
   MAX_ATTACHMENT_BYTES
-} = await import('../api/_attachments.js');
+} = await import('../api/_attachments.ts');
 
-const handler = (await import('../api/data.js')).default;
-const { ROLES, signSession, GROUP_SESSION_TTL } = await import('../api/_session.js');
+const handler = (await import('../api/data.ts')).default;
+const { ROLES, signSession, GROUP_SESSION_TTL } = await import('../api/_session.ts');
 
 const GID_A = 'GRP-ALPHA';
 const GID_B = 'GRP-BETA';

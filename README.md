@@ -31,11 +31,11 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 
 | Aspek | Implementasi |
 |---|---|
-| Sesi & Token | Token HMAC bertanda tangan dengan TTL dan pencabutan sisi server (`revokedAfter`) lewat `api/_session.js` |
+| Sesi & Token | Token HMAC bertanda tangan dengan TTL dan pencabutan sisi server (`revokedAfter`) lewat `api/_session.ts` |
 | Kredensial | Password pengurus, password master, dan PIN grup di-hash dengan `scrypt` (`groups/{gid}/private/config`, `settings/app_config`) |
-| Google Super Admin | Verifikasi token Google OAuth terhadap whitelist email server-only (`api/login-google.js`) |
+| Google Super Admin | Verifikasi token Google OAuth terhadap whitelist email server-only (`api/login-google.ts`) |
 | Pembatasan Percobaan | Rate limiter sisi server di Firestore per grup & per IP (`_ratelimit`) |
-| Idempotensi & Integritas | Entropi ID `>= 64-bit`, `fsCreateIfAbsent` untuk cegah duplikat iuran, serta receipt atomik per `operationId` (`api/_transaction-idempotency.js`) |
+| Idempotensi & Integritas | Entropi ID `>= 64-bit`, `fsCreateIfAbsent` untuk cegah duplikat iuran, serta receipt atomik per `operationId` (`api/_transaction-idempotency.ts`) |
 | Proteksi Klien & HTTP | Sanitasi formula CSV (`=`, `+`, `-`, `@`, `\t`, `\r`), zero `.innerHTML` di handler/renderer/form, plus CSP, HSTS, dan `X-Frame-Options: DENY` di `vercel.json` |
 
 ---

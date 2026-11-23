@@ -21,9 +21,9 @@
 
 | Peran | Jalur Autentikasi | Ruang Lingkup & Kemampuan |
 |---|---|---|
-| **Member (Anggota)** | Verifikasi PIN 4 angka grup (`api/verify-group-pin.js`) | Melihat dashboard, riwayat transaksi, matriks iuran 12 bulan, statistik grafik, menyematkan profil pribadi (**Spotlight**), membuka struk transaksi, mengunduh bukti, melihat **Self-Pay** & konfirmasi WhatsApp bendahara. Tidak dapat mengubah data. |
-| **Group Admin (Bendahara/Pengurus)** | Login email + kata sandi pengurus grup (`api/login.js`) | Semua hak baca grup + mencatat transaksi iuran/operasional, QuickPay, edit/hapus transaksi, unggah/hapus bukti lampiran (`<= 512 KiB`), kelola anggota/kategori/bulan libur/**Kas Start**/rekening kas, backup/restore **Snapshot** JSON, kirim ulang **Sync Queue**, serta toggle mode pratinjau **Anggota** (`adminViewMode`). |
-| **Super Admin (Pemilik Platform)** | Login kata sandi master (`api/login.js`) atau Google OAuth whitelist (`api/login-google.js`) | Semua hak Admin di semua grup + membuat/mengganti nama/mereset PIN/menghapus grup (`api/create-group.js`), kelola daftar email whitelist Super Admin, kelola kredensial admin grup, dan membaca **Audit Log** global/grup. |
+| **Member (Anggota)** | Verifikasi PIN 4 angka grup (`api/verify-group-pin.ts`) | Melihat dashboard, riwayat transaksi, matriks iuran 12 bulan, statistik grafik, menyematkan profil pribadi (**Spotlight**), membuka struk transaksi, mengunduh bukti, melihat **Self-Pay** & konfirmasi WhatsApp bendahara. Tidak dapat mengubah data. |
+| **Group Admin (Bendahara/Pengurus)** | Login email + kata sandi pengurus grup (`api/login.ts`) | Semua hak baca grup + mencatat transaksi iuran/operasional, QuickPay, edit/hapus transaksi, unggah/hapus bukti lampiran (`<= 512 KiB`), kelola anggota/kategori/bulan libur/**Kas Start**/rekening kas, backup/restore **Snapshot** JSON, kirim ulang **Sync Queue**, serta toggle mode pratinjau **Anggota** (`adminViewMode`). |
+| **Super Admin (Pemilik Platform)** | Login kata sandi master (`api/login.ts`) atau Google OAuth whitelist (`api/login-google.ts`) | Semua hak Admin di semua grup + membuat/mengganti nama/mereset PIN/menghapus grup (`api/create-group.ts`), kelola daftar email whitelist Super Admin, kelola kredensial admin grup, dan membaca **Audit Log** global/grup. |
 
 ---
 
@@ -50,7 +50,7 @@
   - *Tab Operasional:* pencatatan pemasukan/pengeluaran non-iuran dengan opsi kaitkan anggota dan tanggal kalender.
 - **QuickPay Sheet (`QuickPayPresets.svelte`, `src/handlers/quickpay.js`):** Pembayaran cepat satu anggota + satu bulan langsung dari sel matriks/profil dengan chip nominal cepat (*Lunasi* / *Lunasi Sisa* dan *50%*).
 - **Edit Transaksi & Saldo Delta (`updateEditDelta`):** Mengubah tipe arus, nominal, anggota, kategori, periode, atau tanggal dengan pratinjau selisih saldo sebelum disimpan dan deteksi konflik iuran atomik (`excludeId`).
-- **Bukti Lampiran (`api/_attachments.js`, `src/handlers/attachments.js`):** Unggah, baca, unduh Blob asli, dan hapus bukti JPEG/PNG/WebP/PDF tervalidasi tanda tangan file maks **512 KiB**.
+- **Bukti Lampiran (`api/_attachments.ts`, `src/handlers/attachments.js`):** Unggah, baca, unduh Blob asli, dan hapus bukti JPEG/PNG/WebP/PDF tervalidasi tanda tangan file maks **512 KiB**.
 
 ### 3.5 Laporan Kas Bulanan, Riwayat, Ekspor & Struk
 - **Laporan Kas Bulanan WIB (`api/` + `src/core/cash-report.js`, `CashReportAlert.svelte`, `CashReportRows.svelte`):** Menghitung *Saldo Awal*, *Pemasukan*, *Pengeluaran*, dan *Saldo Akhir* murni berdasarkan tanggal kalender `Asia/Jakarta` (mematuhi 7 invarian akuntansi). Jika ditemukan baris invalid/korup, tampilkan banner peringatan (`CashReportAlert`) dan blokir ekspor PDF/CSV demi integritas pembukuan.
@@ -59,7 +59,7 @@
 ### 3.6 Master Data, Audit Log, Snapshot & Offline Engine
 - **Master Data (`MasterAnggotaRows.svelte`, `MasterKategoriRows.svelte`, `SkippedMonthsList.svelte`):** CRUD anggota (nama, WhatsApp, status Aktif/Nonaktif), kategori Masuk/Keluar, aturan **Kas Start**, bulan libur, serta rekening kas grup.
 - **Audit Log (`AuditLogRows.svelte`):** Riwayat terfilter kategori (*Transaksi*, *Data Master*, *Keamanan & Akses*, *Grup & Backup*) khusus Super Admin.
-- **Snapshot JSON v2 (`api/_write-snapshot.js`):** Ekspor cadangan penuh terstruktur dan restore terkontrol (validasi sebelum hapus/tulis).
+- **Snapshot JSON v2 (`api/_write-snapshot.ts`):** Ekspor cadangan penuh terstruktur dan restore terkontrol (validasi sebelum hapus/tulis).
 - **Antrean Offline (`src/core/offline-store.js`, `OfflineQueueList.svelte`):** Mutasi offline disimpan di IndexedDB (`finkas-offline-db`) beserta `groupId` dan `operationId` idempoten agar replay ulang tidak menggandakan baris transaksi di server.
 
 ---
@@ -68,9 +68,9 @@
 
 | Aspek | Ketentuan Sistem |
 |---|---|
-| **Isolasi Database** | `firestore.rules` menolak 100% akses langsung klien (`allow read, write: if false`). Semua akses via API server dengan Service Account (`api/_sa.js`). |
+| **Isolasi Database** | `firestore.rules` menolak 100% akses langsung klien (`allow read, write: if false`). Semua akses via API server dengan Service Account (`api/_sa.ts`). |
 | **Autentikasi & Anti-Bruteforce** | Hash kata sandi/PIN dengan `scrypt` (`crypto.randomInt` untuk generator kredensial), token sesi bertanda tangan HMAC dengan TTL & pencabutan (`revokedAfter`), serta rate limiter Firestore per grup & per IP (`_ratelimit`). |
-| **Integritas & Idempotensi Mutasi** | Setiap penulisan mutasi menyertakan `operationId` unik & fingerprinting payload (`api/_transaction-idempotency.js`) dalam batch atomik `fsCommit` + `fsCreateIfAbsent` untuk mencegah duplikat iuran. |
+| **Integritas & Idempotensi Mutasi** | Setiap penulisan mutasi menyertakan `operationId` unik & fingerprinting payload (`api/_transaction-idempotency.ts`) dalam batch atomik `fsCommit` + `fsCreateIfAbsent` untuk mencegah duplikat iuran. |
 | **Keamanan XSS & Header HTTP** | Rendering HTML bebas string interpolasi berisiko (`0` `.innerHTML`/`.outerHTML` di `handlers/`, `render/`, `pages/onboarding.js`, `transaction-form.js`); `vercel.json` menerapkan CSP ketat, HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, dan `Referrer-Policy`. |
 | **Arsitektur & Pemeliharaan** | Batas ketat `< 750` baris per file sumber authored, full TypeScript static checking (`checkJs: true`, `strictNullChecks: true`), sinkronisasi precache Service Worker 100% terverifikasi (`scripts/verify.mjs`). |
 

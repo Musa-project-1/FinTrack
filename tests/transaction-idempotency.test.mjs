@@ -8,10 +8,10 @@ import {
   buildReceiptWrite,
   receiptToResponse,
   OPERATIONS_COLLECTION
-} from '../api/_transaction-idempotency.js';
-import { addTransaction, editTransaction, deleteDocument, addBulkTransactions } from '../api/_write-transactions.js';
-import { readTransactions, readGroupData } from '../api/_group-read.js';
-import { decodeFields } from '../api/_sa.js';
+} from '../api/_transaction-idempotency.ts';
+import { addTransaction, editTransaction, deleteDocument, addBulkTransactions } from '../api/_write-transactions.ts';
+import { readTransactions, readGroupData } from '../api/_group-read.ts';
+import { decodeFields } from '../api/_sa.ts';
 
 class MemoryFirestore {
   constructor(projectId = 'finkas-kas') {

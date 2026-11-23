@@ -13,6 +13,7 @@
       "finkas/receipt": ["./src/svelte/render/receipt.ts"],
       "finkas/self-pay": ["./src/svelte/handlers/self-pay.ts"]
     },
+    "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
@@ -27,7 +28,7 @@
     "src/**/*.js",
     "src/ui/svelte-dashboard.d.ts",
     "src/ui/svelte-onboarding.d.ts",
-    "api/**/*.js",
+    "api/**/*.ts",
     "src/svelte/**/*.ts",
     "src/svelte/**/*.svelte"
   ],

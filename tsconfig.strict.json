@@ -6,7 +6,7 @@
   "include": [
     "src/types/**/*.d.ts",
     "src/core/**/*.js",
-    "api/**/*.js",
+    "api/**/*.ts",
     "src/svelte/**/*.ts",
     "src/svelte/**/*.svelte"
   ]

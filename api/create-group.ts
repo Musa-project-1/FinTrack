@@ -6,8 +6,10 @@
  * Generated credentials are returned exactly once so the operator can hand them
  * to the new group admin; they are never stored in the clear.
  */
+import { parseBody, sendJson, type JsonBody } from './_http.ts';
+import type { ApiRequest, ApiResponse, FirestoreHeaders } from '../src/types/finkas.d.ts';
 import crypto from 'node:crypto';
-import { fsGet, fsPatch, requireFirestoreHeaders } from './_sa.js';
+import { fsGet, fsPatch, requireFirestoreHeaders } from './_sa.ts';
 import {
   deleteGroupTree,
   groupDoc,
@@ -19,8 +21,8 @@ import {
   setPrivateConfig,
   settingsDoc,
   writeAuditLog
-} from './_store.js';
-import { ROLES, hashSecret, readSession } from './_session.js';
+} from './_store.ts';
+import { ROLES, hashSecret, readSession } from './_session.ts';
 
 const MAX_GROUP_NAME = 60;
 const MIN_ADMIN_PASSWORD = 6;
@@ -28,29 +30,6 @@ const GENERATED_PASSWORD_LENGTH = 10;
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!';
 const RESERVED_GROUP_IDS = new Set(['utama']);
 
-/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
-/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
-/** @typedef {Record<string, any>} JsonBody */
-/** @typedef {Record<string, string>} FsHeaders */
-
-/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
-const sendJson = (res, status, payload) => {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(status).json(payload);
-};
-
-/** @param {ApiRequest} req @returns {JsonBody} */
-const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return /** @type {JsonBody} */ (req.body);
-  if (typeof req.body === 'string') {
-    try {
-      return JSON.parse(req.body);
-    } catch (err) {
-      return {};
-    }
-  }
-  return {};
-};
 
 /** Cryptographically random admin password for a new group (unbiased). */
 const generatePassword = (length = GENERATED_PASSWORD_LENGTH) => {
@@ -61,18 +40,14 @@ const generatePassword = (length = GENERATED_PASSWORD_LENGTH) => {
   return res;
 };
 
-/** @param {unknown} value */
-const cleanName = (value) => String(value ?? '').trim().slice(0, MAX_GROUP_NAME);
-/** @param {unknown} value */
-const cleanPin = (value) => String(value ?? '').replace(/\D/g, '').slice(0, 4);
+const cleanName = (value: unknown) => String(value ?? '').trim().slice(0, MAX_GROUP_NAME);
+const cleanPin = (value: unknown) => String(value ?? '').replace(/\D/g, '').slice(0, 4);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** @param {unknown} email */
-const isValidEmail = (email) => EMAIL_RE.test(String(email || '').trim());
+const isValidEmail = (email: unknown) => EMAIL_RE.test(String(email || '').trim());
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
-/** @param {JsonBody} body @param {FsHeaders} headers */
-async function createGroup(body, headers) {
+async function createGroup(body: JsonBody, headers: FirestoreHeaders) {
   const nama = cleanName(body?.nama);
   const pin = cleanPin(body?.pin);
   const adminEmail = String(body?.adminEmail || '').trim().toLowerCase();
@@ -114,8 +89,7 @@ async function createGroup(body, headers) {
   };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers */
-async function setAdminCredential(body, headers) {
+async function setAdminCredential(body: JsonBody, headers: FirestoreHeaders) {
   const groupId = String(body?.groupId || '').trim();
   const adminEmail = String(body?.adminEmail || '').trim().toLowerCase();
   const adminPassword = String(body?.adminPassword || '').trim();
@@ -149,8 +123,7 @@ async function setAdminCredential(body, headers) {
   return { status: true, message: 'Kredensial Admin Grup berhasil diperbarui!' };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers */
-async function setGroupPin(body, headers) {
+async function setGroupPin(body: JsonBody, headers: FirestoreHeaders) {
   const groupId = String(body?.groupId || '').trim();
   const pin = cleanPin(body?.pin);
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
@@ -172,8 +145,7 @@ async function setGroupPin(body, headers) {
   return { status: true, message: 'PIN grup diperbarui.' };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers */
-async function renameGroup(body, headers) {
+async function renameGroup(body: JsonBody, headers: FirestoreHeaders) {
   const groupId = String(body?.groupId || '').trim();
   const nama = cleanName(body?.nama);
   if (!isValidGroupId(groupId)) return { status: false, message: 'ID grup tidak valid.' };
@@ -187,8 +159,7 @@ async function renameGroup(body, headers) {
   return { status: true, message: `Nama grup diubah menjadi "${nama}".` };
 }
 
-/** @param {JsonBody} body @param {FsHeaders} headers */
-async function removeGroup(body, headers) {
+async function removeGroup(body: JsonBody, headers: FirestoreHeaders) {
   const groupId = String(body?.groupId || '').trim();
   if (!isValidGroupId(groupId) || RESERVED_GROUP_IDS.has(groupId)) {
     return { status: false, message: 'Grup ini tidak boleh dihapus.' };
@@ -208,8 +179,7 @@ async function removeGroup(body, headers) {
   }
 }
 
-/** @type {Record<string, (body: JsonBody, headers: FsHeaders) => Promise<{status: boolean, message: string, data?: unknown}>>} */
-const ACTIONS = {
+const ACTIONS: Record<string, (body: JsonBody, headers: FirestoreHeaders) => Promise<{status: boolean, message: string, data?: unknown}>> = {
   create: createGroup,
   'set-admin-credential': setAdminCredential,
   'set-pin': setGroupPin,
@@ -217,8 +187,7 @@ const ACTIONS = {
   remove: removeGroup
 };
 
-/** @param {ApiRequest} req @param {ApiResponse} res */
-export default async function handler(req, res) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }

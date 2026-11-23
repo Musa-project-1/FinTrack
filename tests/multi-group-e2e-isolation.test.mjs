@@ -7,12 +7,12 @@ import { installMockIndexedDB } from './helpers/mock-indexeddb.mjs';
 import { signRawSession } from './helpers/signed-session.mjs';
 
 // The adapter configures the synthetic project before the gateway modules initialize.
-const { default: manage } = await import('../api/create-group.js');
-const { default: verifyPin } = await import('../api/verify-group-pin.js');
-const { default: login } = await import('../api/login.js');
-const { default: data } = await import('../api/data.js');
-const { APP_CONFIG_DOC, groupDoc } = await import('../api/_store.js');
-const { ROLES, hashSecret, signSession } = await import('../api/_session.js');
+const { default: manage } = await import('../api/create-group.ts');
+const { default: verifyPin } = await import('../api/verify-group-pin.ts');
+const { default: login } = await import('../api/login.ts');
+const { default: data } = await import('../api/data.ts');
+const { APP_CONFIG_DOC, groupDoc } = await import('../api/_store.ts');
+const { ROLES, hashSecret, signSession } = await import('../api/_session.ts');
 
 const A = 'GRP-ALPHA';
 const B = 'GRP-BETA';

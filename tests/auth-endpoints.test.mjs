@@ -34,9 +34,9 @@ globalThis.fetch = async (url, opts) => {
 
 after(() => { globalThis.fetch = realFetch; });
 
-const loginHandler = (await import('../api/login.js')).default;
-const pinHandler = (await import('../api/verify-group-pin.js')).default;
-const { legacyDigest, verifySession } = await import('../api/_session.js');
+const loginHandler = (await import('../api/login.ts')).default;
+const pinHandler = (await import('../api/verify-group-pin.ts')).default;
+const { legacyDigest, verifySession } = await import('../api/_session.ts');
 
 const mockRes = () => ({
   statusCode: 200,

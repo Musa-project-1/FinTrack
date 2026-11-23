@@ -2,7 +2,7 @@
  * Pre-flight verification for Finkas.
  *
  * Five checks that have all silently broken in the past:
- *   1. Every .js/.mjs file under src/ and api/ parses.
+ *   1. JavaScript under src/ and scripts/ and TypeScript under api/ parse.
  *   2. The service worker's precache list matches the modules that actually
  *      exist (a missing entry works online and 404s offline).
  *   3. index.html is not older than the html/ fragments it is assembled from.
@@ -17,7 +17,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const MODULE_DIRS = ['src', 'api'];
+const MODULE_DIRS = ['src', 'scripts'];
 const SW_PATH = path.join(ROOT, 'sw.js');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 const HTML_DIR = path.join(ROOT, 'html');
@@ -53,8 +53,8 @@ const rel = (abs) => path.relative(ROOT, abs).split(path.sep).join('/');
 const moduleFiles = MODULE_DIRS.flatMap((dir) =>
   collectFiles(path.join(ROOT, dir), /\.(js|mjs)$/)
 );
-const scriptsFiles = collectFiles(path.join(ROOT, 'scripts'), /\.(mjs|js)$/);
-const filesToCheck = [...moduleFiles, ...scriptsFiles];
+const apiFiles = collectFiles(path.join(ROOT, 'api'), /\.ts$/);
+const filesToCheck = [...moduleFiles, ...apiFiles];
 
 for (const file of filesToCheck) {
   try {

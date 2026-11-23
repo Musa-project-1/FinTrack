@@ -4,21 +4,19 @@
  * Provides receipt tracking in Firestore (groups/{gid}/operations/{operationId})
  * committed in the same atomic `fsCommit` batch as the transaction ledger rows.
  */
+import type { FirestoreHeaders } from '../src/types/finkas.d.ts';
 import crypto from 'node:crypto';
-import { col, nowIso } from './_store.js';
-import { docName, fsGet, encodeFields } from './_sa.js';
+import { col, nowIso } from './_store.ts';
+import { docName, fsGet, encodeFields } from './_sa.ts';
 
 export const OPERATIONS_COLLECTION = 'operations';
 
-/** @param {string} gid @param {string} opId */
-export const operationDoc = (gid, opId) => `${col(gid, OPERATIONS_COLLECTION)}/${opId}`;
+export const operationDoc = (gid: string, opId: string) => `${col(gid, OPERATIONS_COLLECTION)}/${opId}`;
 
-/** @param {unknown} opId */
-export const isValidOperationId = (opId) =>
+export const isValidOperationId = (opId: unknown) =>
   typeof opId === 'string' && /^[A-Za-z0-9_-]{8,128}$/.test(opId);
 
-/** @param {unknown} raw */
-export function parseOperationId(raw) {
+export function parseOperationId(raw: unknown) {
   if (raw === undefined || raw === null || raw === '') return { id: null };
   if (typeof raw !== 'string') return { error: 'ID operasi harus berupa teks.' };
   if (raw.length > 128) return { error: 'ID operasi melebihi batas 128 karakter.' };
@@ -27,20 +25,14 @@ export function parseOperationId(raw) {
   return { id: cleaned };
 }
 
-/**
- * Compute a deterministic SHA-256 fingerprint from the action and normalized data.
- * Sorts object keys recursively to guarantee order-invariance.
- *
- * @param {string} action
- * @param {object} normalizedData
- * @returns {string} 64-char hex SHA-256 digest
- */
-export function computeRequestFingerprint(action, normalizedData) {
+/** Compute a deterministic SHA-256 fingerprint from the action and normalized data.
+ * Sorts object keys recursively to guarantee order-invariance. */
+export function computeRequestFingerprint(action: string, normalizedData: object): string {
   const canonicalJson = JSON.stringify({ action, data: normalizedData }, (key, value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       return Object.keys(value)
         .sort()
-        .reduce((/** @type {Record<string, unknown>} */ sorted, k) => {
+        .reduce((sorted: Record<string, unknown>, k) => {
           sorted[k] = value[k];
           return sorted;
         }, {});
@@ -50,15 +42,8 @@ export function computeRequestFingerprint(action, normalizedData) {
   return crypto.createHash('sha256').update(canonicalJson).digest('hex');
 }
 
-/**
- * Generate a deterministic transaction document ID derived from group and operation ID.
- *
- * @param {string} gid
- * @param {string} operationId
- * @param {number|null} [index]
- * @returns {string} E.g. 'TRX-1A2B3C4D5E6F7890'
- */
-export function transactionIdForOperation(gid, operationId, index = null) {
+/** Generate a deterministic transaction document ID derived from group and operation ID. */
+export function transactionIdForOperation(gid: string, operationId: string, index: number|null = null): string {
   const seed = index === null || index === undefined
     ? `${gid}:${operationId}`
     : `${gid}:${operationId}:${index}`;
@@ -66,14 +51,8 @@ export function transactionIdForOperation(gid, operationId, index = null) {
   return `TRX-${hash}`;
 }
 
-/**
- * Retrieve an existing operation receipt from Firestore.
- *
- * @param {string} gid
- * @param {string} operationId
- * @param {Record<string, string>} headers
- */
-export async function getOperationReceipt(gid, operationId, headers) {
+/** Retrieve an existing operation receipt from Firestore. */
+export async function getOperationReceipt(gid: string, operationId: string, headers: FirestoreHeaders) {
   if (!isValidOperationId(operationId)) return null;
   try {
     const receipt = await fsGet(operationDoc(gid, operationId), headers);
@@ -88,16 +67,8 @@ export async function getOperationReceipt(gid, operationId, headers) {
   }
 }
 
-/**
- * Build a Firestore atomic commit write for the operation receipt with exists:false precondition.
- *
- * @param {string} gid
- * @param {string} operationId
- * @param {string} fingerprint
- * @param {string} action
- * @param {{status: boolean, message: string, data?: object|null}} response
- */
-export function buildReceiptWrite(gid, operationId, fingerprint, action, response) {
+/** Build a Firestore atomic commit write for the operation receipt with exists:false precondition. */
+export function buildReceiptWrite(gid: string, operationId: string, fingerprint: string, action: string, response: {status: boolean, message: string, data?: object|null}) {
   const receiptDoc = {
     groupId: gid,
     operationId,
@@ -118,13 +89,8 @@ export function buildReceiptWrite(gid, operationId, fingerprint, action, respons
   };
 }
 
-/**
- * Convert a decoded Firestore receipt doc into a standard API response.
- *
- * @param {{responseStatus?: boolean, responseMessage?: string, responseData?: object|null}} receipt
- * @returns {{status: boolean, message: string, data: object|null}}
- */
-export function receiptToResponse(receipt) {
+/** Convert a decoded Firestore receipt doc into a standard API response. */
+export function receiptToResponse(receipt: {responseStatus?: boolean, responseMessage?: string, responseData?: object|null}): {status: boolean, message: string, data: object|null} {
   return {
     status: receipt.responseStatus !== false,
     message: receipt.responseMessage || 'Transaksi disimpan.',

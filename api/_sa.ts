@@ -5,6 +5,7 @@
  * Every privileged data operation goes through this module. The client never
  * talks to Firestore directly (see firestore.rules — all direct access is denied).
  */
+import type { FirestoreDoc, FirestoreHeaders, FirestoreValue } from '../src/types/finkas.d.ts';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,21 +14,22 @@ export const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
 export const FIRESTORE_BASE =
   `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-/** URL-safe base64 encoding without padding. @param {string | Buffer} input */
-export const base64UrlEncode = (input) => Buffer.from(input).toString('base64url');
+/** URL-safe base64 encoding without padding. */
+export const base64UrlEncode = (input: string | Buffer) => Buffer.from(input).toString('base64url');
 
 /* ── Service account ─────────────────────────────────────────────── */
 
-/** @type {{client_email: string, private_key: string}|null} */
-let serviceAccountCache = null;
+interface ServiceAccount {
+  client_email: string;
+  private_key: string;
+}
+
+let serviceAccountCache: ServiceAccount | null = null;
 let serviceAccountLoaded = false;
 
-/**
- * Resolve the service account from the environment (raw JSON or base64) or,
- * for local development only, from `.service-account.local.json`.
- * @returns {{client_email: string, private_key: string}|null}
- */
-export function getServiceAccount() {
+/** Resolve the service account from the environment (raw JSON or base64) or,
+ * for local development only, from `.service-account.local.json`. */
+export function getServiceAccount(): ServiceAccount | null {
   if (serviceAccountLoaded) return serviceAccountCache;
   serviceAccountLoaded = true;
 
@@ -68,16 +70,11 @@ export const hasServiceAccount = () => {
 
 /* ── OAuth2 access token (cached across warm invocations) ─────────── */
 
-/** @type {string | null} */
-let cachedToken = null;
+let cachedToken: string | null = null;
 let cachedTokenExpiresAt = 0;
 
-/**
- * Exchange a signed JWT for a Google OAuth2 access token scoped to Datastore.
- * @param {{client_email: string, private_key: string}|null} serviceAccount
- * @returns {Promise<string|null>}
- */
-export async function getGoogleAccessToken(serviceAccount) {
+/** Exchange a signed JWT for a Google OAuth2 access token scoped to Datastore. */
+export async function getGoogleAccessToken(serviceAccount: ServiceAccount | null): Promise<string|null> {
   if (!serviceAccount?.client_email || !serviceAccount?.private_key) return null;
 
   const now = Math.floor(Date.now() / 1000);
@@ -127,13 +124,8 @@ export async function requireFirestoreHeaders() {
 
 /* ── Constant-time comparison ────────────────────────────────────── */
 
-/**
- * Timing-safe string comparison.
- * @param {string} a
- * @param {string} b
- * @returns {boolean}
- */
-export function constantTimeEqual(a, b) {
+/** Timing-safe string comparison. */
+export function constantTimeEqual(a: string, b: string): boolean {
   const left = Buffer.from(String(a ?? ''), 'utf8');
   const right = Buffer.from(String(b ?? ''), 'utf8');
   if (left.length !== right.length) return false;
@@ -147,13 +139,9 @@ export function constantTimeEqual(a, b) {
 
 /* ── Firestore value encoding/decoding ───────────────────────────── */
 
-/**
- * Decode a single Firestore typed value into a plain JS value.
- * Recursive, so nested arrays and maps round-trip correctly.
- * @param {Record<string, any> | null | undefined} value
- * @returns {unknown}
- */
-export function decodeValue(value) {
+/** Decode a single Firestore typed value into a plain JS value.
+ * Recursive, so nested arrays and maps round-trip correctly. */
+export function decodeValue(value: Record<string, any> | null | undefined): unknown {
   if (!value || typeof value !== 'object') return null;
   if ('stringValue' in value) return value.stringValue;
   if ('integerValue' in value) return Number(value.integerValue);
@@ -168,18 +156,17 @@ export function decodeValue(value) {
   return null;
 }
 
-/** Decode a Firestore `fields` object into a plain JS object. @param {Record<string, any> | null | undefined} fields @returns {Record<string, any>} */
-export function decodeFields(fields) {
-  /** @type {Record<string, any>} */
-  const out = {};
+/** Decode a Firestore `fields` object into a plain JS object. */
+export function decodeFields(fields: Record<string, any> | null | undefined): Record<string, any> {
+  const out: Record<string, any> = {};
   Object.entries(fields || {}).forEach(([key, value]) => {
     out[key] = decodeValue(value);
   });
   return out;
 }
 
-/** Encode a plain JS value into a Firestore typed value. @param {unknown} value @returns {import('../src/types/finkas.d.ts').FirestoreValue} */
-export function encodeValue(value) {
+/** Encode a plain JS value into a Firestore typed value. */
+export function encodeValue(value: unknown): FirestoreValue {
   if (value === null || value === undefined) return { nullValue: null };
   if (typeof value === 'boolean') return { booleanValue: value };
   if (typeof value === 'number') {
@@ -189,15 +176,14 @@ export function encodeValue(value) {
     return { arrayValue: { values: value.map(encodeValue) } };
   }
   if (typeof value === 'object') {
-    return { mapValue: { fields: encodeFields(/** @type {Record<string, unknown>} */ (value)) } };
+    return { mapValue: { fields: encodeFields(value) } };
   }
   return { stringValue: String(value) };
 }
 
-/** Encode a plain JS object into a Firestore `fields` object. @param {Record<string, unknown> | object | null | undefined} obj @returns {Record<string, import('../src/types/finkas.d.ts').FirestoreValue>} */
-export function encodeFields(obj) {
-  /** @type {Record<string, import('../src/types/finkas.d.ts').FirestoreValue>} */
-  const fields = {};
+/** Encode a plain JS object into a Firestore `fields` object. */
+export function encodeFields(obj: object | null | undefined): Record<string, FirestoreValue> {
+  const fields: Record<string, FirestoreValue> = {};
   Object.entries(obj || {}).forEach(([key, value]) => {
     fields[key] = encodeValue(value);
   });
@@ -206,52 +192,31 @@ export function encodeFields(obj) {
 
 /* ── Firestore REST document operations ──────────────────────────── */
 
-/**
- * Fully-qualified resource name for a document path.
- * @param {string} docPath e.g. `groups/{gid}/anggota/{id}`
- * @returns {string}
- */
-export const resourceName = (docPath) =>
+/** Fully-qualified resource name for a document path. */
+export const resourceName = (docPath: string): string =>
   `projects/${PROJECT_ID}/databases/(default)/documents/${docPath}`;
 
-/**
- * Build an error carrying the HTTP status and Firestore's own error body.
+/** Build an error carrying the HTTP status and Firestore's own error body.
  *
  * The body is what separates a rejected write precondition — a normal,
  * expected outcome — from a real infrastructure fault, and a status code alone
- * cannot tell them apart.
- *
- * @param {string} message
- * @param {number} status
- * @param {string} body
- * @returns {Error}
- */
-const firestoreError = (message, status, body) => {
+ * cannot tell them apart. */
+const firestoreError = (message: string, status: number, body: string): Error => {
   const error = new Error(body ? `${message} ${body}` : message);
   return Object.assign(error, { status, body });
 };
 
-/**
- * True when a Firestore failure is a write precondition rejection rather than
- * an infrastructure error. `fsCreateIfAbsent` relies on this.
- * @param {Error & {body?: string}} error
- * @returns {boolean}
- */
-export const isPreconditionFailure = (error) =>
+/** True when a Firestore failure is a write precondition rejection rather than
+ * an infrastructure error. `fsCreateIfAbsent` relies on this. */
+export const isPreconditionFailure = (error: Error & {body?: string}): boolean =>
   /FAILED_PRECONDITION|ALREADY_EXISTS|already exists/i.test(
     `${error?.body || ''} ${error?.message || ''}`
   );
 
-/** @param {string} docPath @param {string} [query] */
-const docUrl = (docPath, query = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
+const docUrl = (docPath: string, query: string = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 
-/**
- * Read a single document.
- * @param {string} docPath
- * @param {Record<string, string>} headers
- * @returns {Promise<Record<string, any>|null>} Decoded fields, or null when absent.
- */
-export async function fsGet(docPath, headers) {
+/** Read a single document. */
+export async function fsGet(docPath: string, headers: FirestoreHeaders): Promise<Record<string, any>|null> {
   const res = await fetch(docUrl(docPath), { headers });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -262,14 +227,8 @@ export async function fsGet(docPath, headers) {
   return decodeFields(json.fields);
 }
 
-/**
- * Create or merge a document.
- * @param {string} docPath
- * @param {object} data
- * @param {Record<string, string>} headers
- * @param {string[]} [updateMask] When present, only these fields are written.
- */
-export async function fsPatch(docPath, data, headers, updateMask) {
+/** Create or merge a document. */
+export async function fsPatch(docPath: string, data: object, headers: FirestoreHeaders, updateMask?: string[]) {
   const query = (updateMask || []).map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
   const res = await fetch(docUrl(docPath, query ? `?${query}` : ''), {
     method: 'PATCH',
@@ -283,8 +242,8 @@ export async function fsPatch(docPath, data, headers, updateMask) {
   return true;
 }
 
-/** Delete a document. Idempotent. @param {string} docPath @param {Record<string, string>} headers */
-export async function fsDelete(docPath, headers) {
+/** Delete a document. Idempotent. */
+export async function fsDelete(docPath: string, headers: FirestoreHeaders) {
   const res = await fetch(docUrl(docPath), { method: 'DELETE', headers });
   if (!res.ok && res.status !== 404) {
     console.error('[finkas] fsDelete failed:', docPath, res.status);
@@ -293,10 +252,13 @@ export async function fsDelete(docPath, headers) {
   return true;
 }
 
-/** @typedef {({update: { name: string, fields: object }, updateMask?: { fieldPaths: string[] }} | {delete: string}) & {currentDocument?: {exists: boolean}}} FirestoreWrite */
+export type FirestoreWrite = (
+  | { update: { name: string, fields: object }, updateMask?: { fieldPaths: string[] } }
+  | { delete: string }
+) & { currentDocument?: { exists: boolean } };
 
-/** Execute an atomic batch of writes. @param {FirestoreWrite[]} writes @param {Record<string, string>} headers */
-export async function fsCommit(writes, headers) {
+/** Execute an atomic batch of writes. */
+export async function fsCommit(writes: FirestoreWrite[], headers: FirestoreHeaders) {
   const res = await fetch(`${FIRESTORE_BASE}:commit`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
@@ -310,20 +272,13 @@ export async function fsCommit(writes, headers) {
   return true;
 }
 
-/**
- * Write a document only when it does not already exist.
+/** Write a document only when it does not already exist.
  *
  * Firestore evaluates the precondition atomically inside the commit, so unlike
  * a read-then-write duplicate check this cannot be raced by a second serverless
  * invocation — two concurrent submissions of the same dues payment resolve to
- * one document and one "already recorded" response.
- *
- * @param {string} docPath
- * @param {object} data
- * @param {object} headers
- * @returns {Promise<boolean>} true when written, false when it already existed.
- */
-export async function fsCreateIfAbsent(docPath, data, headers) {
+ * one document and one "already recorded" response. */
+export async function fsCreateIfAbsent(docPath: string, data: object, headers: FirestoreHeaders): Promise<boolean> {
   const res = await fetch(`${FIRESTORE_BASE}:commit`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
@@ -344,17 +299,9 @@ export async function fsCreateIfAbsent(docPath, data, headers) {
   throw error;
 }
 
-/**
- * List every document name in a collection, following pagination.
- * @param {string} colPath
- * @param {Record<string, string>} headers
- * @param {number} [maxPages]
- * @param {boolean} [allowPartial]
- * @returns {Promise<Array<{name: string, fields: Record<string, any>}>>}
- */
-export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = false) {
-  /** @type {Array<{name: string, fields: Record<string, any>}>} */
-  const docs = [];
+/** List every document name in a collection, following pagination. */
+export async function fsListAll(colPath: string, headers: FirestoreHeaders, maxPages: number = 40, allowPartial: boolean = false): Promise<Array<{name: string, fields: Record<string, any>}>> {
+  const docs: Array<{name: string, fields: Record<string, any>}> = [];
   let pageToken = '';
   for (let page = 0; page < maxPages; page += 1) {
     const query = `?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
@@ -364,7 +311,7 @@ export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = 
       throw new Error(`Gagal membaca koleksi (${res.status}).`);
     }
     const json = await res.json();
-    (json.documents || []).forEach((/** @type {import('../src/types/finkas.d.ts').FirestoreDoc} */ doc) => {
+    (json.documents || []).forEach((doc: FirestoreDoc) => {
       docs.push({ name: doc.name || '', fields: decodeFields(doc.fields) });
     });
     pageToken = json.nextPageToken || '';
@@ -380,5 +327,5 @@ export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = 
   return docs;
 }
 
-/** Build a Firestore document name for a collection path + id. @param {string} colPath @param {string} id */
-export const docName = (colPath, id) => resourceName(`${colPath}/${id}`);
+/** Build a Firestore document name for a collection path + id. */
+export const docName = (colPath: string, id: string) => resourceName(`${colPath}/${id}`);

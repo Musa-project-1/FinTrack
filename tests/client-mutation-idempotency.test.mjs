@@ -108,7 +108,7 @@ const { setAdminSession, setActiveGroupId } = await import('../src/core/state.js
 setAdminSession('mock-admin-token-12345');
 setActiveGroupId('GRP-TEST-1');
 
-const { isValidOperationId } = await import('../api/_transaction-idempotency.js');
+const { isValidOperationId } = await import('../api/_transaction-idempotency.ts');
 
 test('generateOperationId creates unique, high-entropy (>=128 bit) operation IDs', () => {
   const id1 = generateOperationId();

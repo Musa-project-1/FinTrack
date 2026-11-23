@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { restoreSnapshot } from '../api/_group-write.js';
+import { restoreSnapshot } from '../api/_group-write.ts';
 
 const GID = 'GRP-AAAA';
 

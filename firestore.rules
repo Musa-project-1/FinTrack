@@ -3,7 +3,7 @@ rules_version = '2';
 // Finkas — Firestore security rules.
 //
 // The web client never talks to Firestore directly. Every read and write goes
-// through the serverless functions in /api (see api/data.js), which use the
+// through the serverless functions in /api (see api/data.ts), which use the
 // Google service account and therefore bypass these rules entirely.
 //
 // Denying all client access closes the previous model where:

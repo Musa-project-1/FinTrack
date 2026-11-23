@@ -1,3 +1,4 @@
+import type { ArusTipe } from '../src/types/finkas.d.ts';
 /**
  * Shared validation helpers and constants for a single group's write handlers.
  *
@@ -10,30 +11,21 @@ export const SKIPPED_MONTH_RE = /^(0[1-9]|1[0-2])-\d{4}$/;
 export const ARUS = ['Masuk', 'Keluar'];
 export const STATUSES = ['Aktif', 'Nonaktif'];
 
-/** @param {string} message */
-export const fail = (message) => ({ status: false, message, data: null });
-/** @param {string} message @param {object|null} [data] */
-export const ok = (message, data = null) => ({ status: true, message, data });
+export const fail = (message: string) => ({ status: false, message, data: null });
+export const ok = (message: string, data: object|null = null) => ({ status: true, message, data });
 
-/** @param {unknown} value @param {number} max */
-export const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
-/** @param {unknown} value @param {number} max */
-export const cleanDigits = (value, max) => String(value ?? '').replace(/\D/g, '').slice(0, max);
+export const cleanText = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max);
+export const cleanDigits = (value: unknown, max: number) => String(value ?? '').replace(/\D/g, '').slice(0, max);
 
 export const MAX_BULK_TRANSACTIONS = 300;
 export const MAX_COMMIT_WRITES = 500;
 
-/**
- * Normalise a client-supplied transaction date into an ISO timestamp.
+/** Normalise a client-supplied transaction date into an ISO timestamp.
  *
  * The client sends the date the payment actually happened (local noon, so the
  * calendar day is stable across Indonesian timezones). Anything unparseable or
- * outside a sane year range is ignored, and the caller falls back to `nowIso()`.
- *
- * @param {*} value ISO string or date-like value.
- * @returns {string|null} ISO timestamp, or null when absent/invalid.
- */
-export const parseTimestamp = (value) => {
+ * outside a sane year range is ignored, and the caller falls back to `nowIso()`. */
+export const parseTimestamp = (value: string | number | Date): string|null => {
   if (value === undefined || value === null || value === '') return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
@@ -42,13 +34,22 @@ export const parseTimestamp = (value) => {
   return date.toISOString();
 };
 
-/**
- * Validate the shared transaction payload shape.
- * @param {Record<string, any> | null | undefined} dataForm
- * @returns {{nominal: number, tipeArus: string, idKategori: string, idAnggota: string,
- *            bulanIuran: string, tahunIuran: string, keterangan: string, timestamp: string|null, operationId?: string}|{error: string}}
- */
-export function parseTransactionInput(dataForm) {
+export interface TransactionInput {
+  nominal: number;
+  tipeArus: ArusTipe;
+  idKategori: string;
+  idAnggota: string;
+  bulanIuran: string;
+  tahunIuran: string;
+  keterangan: string;
+  timestamp: string | null;
+  operationId?: string;
+}
+
+/** Validate the shared transaction payload shape. */
+export function parseTransactionInput(
+  dataForm: Record<string, any> | null | undefined
+): TransactionInput | { error: string } {
   const nominal = Number(dataForm?.nominal ?? dataForm?.Nominal);
   if (!Number.isFinite(nominal) || nominal <= 0) return { error: 'Nominal transaksi harus lebih besar dari 0.' };
   if (nominal > 1_000_000_000_000) return { error: 'Nominal transaksi melebihi batas wajar.' };
@@ -71,14 +72,8 @@ export function parseTransactionInput(dataForm) {
   };
 }
 
-/**
- * Find an existing iuran payment matching the member and period.
- * @param {Array<Record<string, any>>} transactions
- * @param {{idAnggota: string, bulanIuran: string, tahunIuran: string}} input
- * @param {string|null} [excludeId]
- * Exported so the de-duplication rule can be tested directly.
- */
-export const findDuplicateIuran = (transactions, input, excludeId = null) =>
+/** Find an existing iuran payment matching the member and period. */
+export const findDuplicateIuran = (transactions: Array<Record<string, any>>, input: {idAnggota: string, bulanIuran: string, tahunIuran: string}, excludeId: string|null = null) =>
   transactions.find((t) =>
     (!excludeId || t.ID_Transaksi !== excludeId) &&
     t.Tipe_Arus === 'Masuk' &&
@@ -87,8 +82,7 @@ export const findDuplicateIuran = (transactions, input, excludeId = null) =>
     String(t.Tahun_Iuran) === String(input.tahunIuran)
   );
 
-/** @param {{tipeArus?: string, idAnggota?: string, bulanIuran?: string, tahunIuran?: string} | null | undefined} input */
-export const isIuranPayment = (input) =>
+export const isIuranPayment = (input: {tipeArus?: string, idAnggota?: string, bulanIuran?: string, tahunIuran?: string} | null | undefined) =>
   input?.tipeArus === 'Masuk' &&
   input?.idAnggota !== '-' &&
   input?.bulanIuran !== '-' &&

@@ -10,7 +10,9 @@
  * to accept a legacy hash once and immediately upgrade it), and never sent to
  * the client as a credential: the caller receives a signed, expiring session.
  */
-import { requireFirestoreHeaders, fsGet, fsPatch } from './_sa.js';
+import { parseBody, sendJson } from './_http.ts';
+import type { ApiRequest, ApiResponse, FirestoreHeaders } from '../src/types/finkas.d.ts';
+import { requireFirestoreHeaders, fsGet, fsPatch } from './_sa.ts';
 import {
   APP_CONFIG_DOC,
   getPrivateConfig,
@@ -19,7 +21,7 @@ import {
   readSuperadminEmails,
   setPrivateConfig,
   writeAuditLog
-} from './_store.js';
+} from './_store.ts';
 import {
   GROUP_SESSION_TTL,
   ROLES,
@@ -31,59 +33,25 @@ import {
   registerFailedAttempt,
   secretMatches,
   signSession
-} from './_session.js';
+} from './_session.ts';
 
 const MAX_ATTEMPTS_IP = 5;      // per-IP: strict, short window
 const MAX_ATTEMPTS_ID = 25;     // per-identity: generous so an attacker cannot easily lock the real admin out
 const LOCK_WINDOW_MS = 15 * 60 * 1000;
 const INVALID_CREDENTIALS = 'Email atau Password Admin salah!';
 
-/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
-/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
-
-/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
-const sendJson = (res, status, payload) => {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(status).json(payload);
-};
-
-/** @param {ApiRequest} req @returns {Record<string, any>} */
-const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return /** @type {Record<string, any>} */ (req.body);
-  if (typeof req.body === 'string') {
-    try {
-      return JSON.parse(req.body);
-    } catch (err) {
-      return {};
-    }
-  }
-  return {};
-};
-
-/**
- * Whether the supplied email may authenticate against the stored one.
+/** Whether the supplied email may authenticate against the stored one.
  *
  * A missing stored email means "password-only" credentials: they accept a blank
  * email and nothing else, so the caller's own arbitrary string is never adopted
  * as an identity. A stored email must match exactly — absence of a secret must
- * never widen access.
- * @param {string} storedEmail
- * @param {string} suppliedEmail
- */
-const emailAllowed = (storedEmail, suppliedEmail) =>
+ * never widen access. */
+const emailAllowed = (storedEmail: string, suppliedEmail: string) =>
   storedEmail ? storedEmail === suppliedEmail : !suppliedEmail;
 
-/**
- * Verify a group admin password against the private config, falling back to the
- * legacy location on the group document and upgrading it when it matches.
- * @param {string} groupId
- * @param {string} password
- * @param {string} email
- * @param {Record<string, string>} headers
- * @param {Record<string, any>|null} [existingGroup]
- * @returns {Promise<{matches: boolean, email: string}>}
- */
-async function verifyGroupAdmin(groupId, password, email, headers, existingGroup = null) {
+/** Verify a group admin password against the private config, falling back to the
+ * legacy location on the group document and upgrading it when it matches. */
+async function verifyGroupAdmin(groupId: string, password: string, email: string, headers: FirestoreHeaders, existingGroup: Record<string, any>|null = null): Promise<{matches: boolean, email: string}> {
   const config = await getPrivateConfig(groupId, headers);
   let storedHash = config?.admin_password_hash || '';
   let storedEmail = (config?.admin_email || '').toLowerCase().trim();
@@ -105,8 +73,7 @@ async function verifyGroupAdmin(groupId, password, email, headers, existingGroup
   if (!matches) return { matches: false, email: storedEmail };
 
   if (legacy) {
-    /** @type {Record<string, unknown>} */
-    const upgraded = { admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`) };
+    const upgraded: Record<string, unknown> = { admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`) };
     if (storedEmail) upgraded.admin_email = storedEmail;
     await setPrivateConfig(groupId, upgraded, headers);
     await fsPatch(groupDoc(groupId), { admin_password_hash: null, admin_email: null }, headers,
@@ -117,13 +84,8 @@ async function verifyGroupAdmin(groupId, password, email, headers, existingGroup
   return { matches: true, email: storedEmail };
 }
 
-/**
- * Verify the master (owner) password and upgrade a legacy digest when it matches.
- * @param {string} password
- * @param {Record<string, string>} headers
- * @returns {Promise<boolean>}
- */
-async function verifyMasterPassword(password, headers) {
+/** Verify the master (owner) password and upgrade a legacy digest when it matches. */
+async function verifyMasterPassword(password: string, headers: FirestoreHeaders): Promise<boolean> {
   const config = await fsGet(APP_CONFIG_DOC, headers);
   const storedHash = config?.admin_password_hash || '';
   if (!storedHash) return false;
@@ -139,8 +101,7 @@ async function verifyMasterPassword(password, headers) {
   return true;
 }
 
-/** @param {ApiRequest} req @param {ApiResponse} res */
-export default async function handler(req, res) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }

@@ -8,6 +8,8 @@
  * rejections and throw for infrastructure failures (the router maps those to
  * HTTP 500).
  */
+import type { FirestoreHeaders, Transaksi } from '../src/types/finkas.d.ts';
+import type { FirestoreWrite } from './_sa.ts';
 import {
   docName,
   encodeFields,
@@ -17,7 +19,7 @@ import {
   fsGet,
   fsPatch,
   isPreconditionFailure
-} from './_sa.js';
+} from './_sa.ts';
 import {
   CATEGORIES_COLLECTION,
   MEMBERS_COLLECTION,
@@ -28,18 +30,19 @@ import {
   newId,
   nowIso,
   writeAuditLog
-} from './_store.js';
-import { readTransactions } from './_group-read.js';
-import { PROOFS_COLLECTION } from './_attachments.js';
+} from './_store.ts';
+import { readTransactions } from './_group-read.ts';
+import { PROOFS_COLLECTION } from './_attachments.ts';
 import {
   fail,
   ok,
   cleanText,
   parseTransactionInput,
+  type TransactionInput,
   findDuplicateIuran,
   isIuranPayment,
   MAX_BULK_TRANSACTIONS
-} from './_write-shared.js';
+} from './_write-shared.ts';
 import {
   computeRequestFingerprint,
   transactionIdForOperation,
@@ -48,15 +51,13 @@ import {
   getOperationReceipt,
   buildReceiptWrite,
   receiptToResponse
-} from './_transaction-idempotency.js';
+} from './_transaction-idempotency.ts';
 
 /* ── Transactions ────────────────────────────────────────────────── */
 
-/** @typedef {Record<string, string>} FsHeaders */
-/** @typedef {Record<string, any>} Payload */
+type Payload = Record<string, any>;
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function addTransaction(gid, payload, headers) {
+export async function addTransaction(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const input = parseTransactionInput(payload?.dataForm);
   if ('error' in input) return fail(input.error);
 
@@ -165,11 +166,10 @@ export async function addTransaction(gid, payload, headers) {
   return response;
 }
 
-/** @param {string} gid @param {Array<Record<string, any>>} listTrx @param {string} operationId @param {FsHeaders} headers */
-export async function addAtomicBulk(gid, listTrx, operationId, headers) {
+export async function addAtomicBulk(gid: string, listTrx: Array<Record<string, any>>, operationId: string, headers: FirestoreHeaders) {
   if (listTrx.length > MAX_BULK_TRANSACTIONS) return fail(`Maksimal ${MAX_BULK_TRANSACTIONS} transaksi per permintaan massal.`);
 
-  const parsed = [];
+  const parsed: TransactionInput[] = [];
   for (let i = 0; i < listTrx.length; i += 1) {
     const raw = listTrx[i];
     const input = parseTransactionInput({ tipeArus: 'Masuk', ...raw });
@@ -224,8 +224,8 @@ export async function addAtomicBulk(gid, listTrx, operationId, headers) {
   }
 
   const timestamp = nowIso();
-  const rows = [];
-  const writes = [];
+  const rows: Transaksi[] = [];
+  const writes: FirestoreWrite[] = [];
 
   for (let index = 0; index < parsed.length; index += 1) {
     const input = parsed[index];
@@ -282,14 +282,13 @@ export async function addAtomicBulk(gid, listTrx, operationId, headers) {
   return response;
 }
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function addBulkTransactions(gid, payload, headers) {
+export async function addBulkTransactions(gid: string, payload: Payload, headers: FirestoreHeaders) {
   let listTrx = Array.isArray(payload?.listTrx)
     ? payload.listTrx
     : (Array.isArray(payload?.transaksiList) ? payload.transaksiList : []);
   if (!listTrx.length && Array.isArray(payload?.dataForm?.arrIdAnggota)) {
     const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan, timestamp } = payload.dataForm;
-    listTrx = arrIdAnggota.map((/** @type {string} */ idAnggota) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
+    listTrx = arrIdAnggota.map((idAnggota: string) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
   }
   if (!listTrx.length) return fail('Daftar transaksi massal tidak boleh kosong.');
   if (listTrx.length > MAX_BULK_TRANSACTIONS) return fail(`Maksimal ${MAX_BULK_TRANSACTIONS} transaksi per permintaan.`);
@@ -301,7 +300,7 @@ export async function addBulkTransactions(gid, payload, headers) {
 
   if (operationId) return addAtomicBulk(gid, listTrx, operationId, headers);
 
-  const parsed = [];
+  const parsed: TransactionInput[] = [];
   for (const raw of listTrx) {
     const input = parseTransactionInput({ tipeArus: 'Masuk', ...raw });
     if ('error' in input) return fail(input.error);
@@ -315,8 +314,8 @@ export async function addBulkTransactions(gid, payload, headers) {
   if (!parsed.length) return fail('Data transaksi massal tidak valid.');
 
   const transaksi = await readTransactions(gid, headers);
-  const skipped = [];
-  const accepted = [];
+  const skipped: string[] = [];
+  const accepted: TransactionInput[] = [];
   const seenInBatch = new Set();
 
   for (const input of parsed) {
@@ -385,8 +384,7 @@ export async function addBulkTransactions(gid, payload, headers) {
   return ok(`${insertedCount} transaksi massal berhasil disimpan.`, { inserted: insertedCount, skipped });
 }
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function editTransaction(gid, payload, headers) {
+export async function editTransaction(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const idTarget = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
   if (!idTarget || !isValidDocId(idTarget)) return fail('ID transaksi tidak valid.');
 
@@ -397,8 +395,7 @@ export async function editTransaction(gid, payload, headers) {
   const parsedOp = parseOperationId(rawOpId);
   if (parsedOp.error) return fail(parsedOp.error);
   const operationId = parsedOp.id;
-  /** @type {string|null} */
-  let fingerprint = null;
+  let fingerprint: string|null = null;
 
   if (operationId) {
     fingerprint = computeRequestFingerprint('editTransaksi', {
@@ -450,8 +447,7 @@ export async function editTransaction(gid, payload, headers) {
   const response = ok('Transaksi berhasil diupdate.', { idTransaksi: targetId });
 
   if (targetId !== idTarget) {
-    /** @type {Record<string, any>} */
-    const doc = {
+    const doc: Record<string, any> = {
       ID_Transaksi: targetId,
       Timestamp: input.timestamp || existing.Timestamp || nowIso(),
       Tipe_Arus: input.tipeArus,
@@ -470,8 +466,7 @@ export async function editTransaction(gid, payload, headers) {
 
     const targetDocName = docName(col(gid, TRANSACTIONS_COLLECTION), targetId);
     const oldDocName = docName(col(gid, TRANSACTIONS_COLLECTION), idTarget);
-    /** @type {import('./_sa.js').FirestoreWrite[]} */
-    const writes = [
+    const writes: FirestoreWrite[] = [
       {
         update: { name: targetDocName, fields: encodeFields(doc) },
         ...(isIuran ? { currentDocument: { exists: false } } : {})
@@ -517,8 +512,7 @@ export async function editTransaction(gid, payload, headers) {
     }
   } else {
     // In-place edit: use updateMask over mutable fields only + exists:true to avoid overwriting concurrent Bukti metadata
-    /** @type {Record<string, any>} */
-    const fieldsToUpdate = {
+    const fieldsToUpdate: Record<string, any> = {
       Tipe_Arus: input.tipeArus,
       ID_Kategori: input.idKategori,
       ID_Anggota: input.idAnggota,
@@ -541,8 +535,7 @@ export async function editTransaction(gid, payload, headers) {
       fieldPaths.push('Timestamp');
     }
 
-    /** @type {import('./_sa.js').FirestoreWrite[]} */
-    const writes = [
+    const writes: FirestoreWrite[] = [
       {
         update: {
           name: docName(col(gid, TRANSACTIONS_COLLECTION), idTarget),
@@ -583,15 +576,13 @@ export async function editTransaction(gid, payload, headers) {
 /* ── Group-scoped document deletion ──────────────────────────────── */
 
 const DELETABLE = [TRANSACTIONS_COLLECTION, MEMBERS_COLLECTION, CATEGORIES_COLLECTION];
-/** @type {Record<string, string>} */
-const DELETE_AUDIT = {
+const DELETE_AUDIT: Record<string, string> = {
   [TRANSACTIONS_COLLECTION]: 'HAPUS_TRANSAKSI',
   [MEMBERS_COLLECTION]: 'HAPUS_ANGGOTA',
   [CATEGORIES_COLLECTION]: 'HAPUS_KATEGORI'
 };
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function deleteDocument(gid, payload, headers) {
+export async function deleteDocument(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const collection = cleanText(payload?.targetCollection, 20);
   const id = cleanText(payload?.idTransaksi || payload?.id, 40);
   if (!DELETABLE.includes(collection)) return fail('Jalur koleksi tidak diizinkan.');
@@ -602,8 +593,7 @@ export async function deleteDocument(gid, payload, headers) {
   const parsedOp = parseOperationId(rawOpId);
   if (parsedOp.error) return fail(parsedOp.error);
   const operationId = parsedOp.id;
-  /** @type {string|null} */
-  let fingerprint = null;
+  let fingerprint: string|null = null;
 
   if (operationId && collection === TRANSACTIONS_COLLECTION) {
     fingerprint = computeRequestFingerprint('hapusTransaksi', {
@@ -640,8 +630,7 @@ export async function deleteDocument(gid, payload, headers) {
   const response = ok(`Data ${id} berhasil dihapus secara permanen.`);
 
   if (collection === TRANSACTIONS_COLLECTION) {
-    /** @type {import('./_sa.js').FirestoreWrite[]} */
-    const writes = [
+    const writes: FirestoreWrite[] = [
       {
         delete: docName(col(gid, collection), id),
         currentDocument: { exists: true }

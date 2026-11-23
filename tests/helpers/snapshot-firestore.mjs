@@ -8,9 +8,9 @@ const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
   client_email: 'synthetic@example.invalid', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' })
 });
-const { encodeFields, decodeFields, resourceName } = await import('../../api/_sa.js');
-const handler = (await import('../../api/data.js')).default;
-const { signSession, ROLES, GROUP_SESSION_TTL } = await import('../../api/_session.js');
+const { encodeFields, decodeFields, resourceName } = await import('../../api/_sa.ts');
+const handler = (await import('../../api/data.ts')).default;
+const { signSession, ROLES, GROUP_SESSION_TTL } = await import('../../api/_session.ts');
 const response = (data, status = 200) => new Response(JSON.stringify(data), { status });
 
 export class SnapshotFirestore {

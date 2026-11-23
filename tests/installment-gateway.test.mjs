@@ -175,7 +175,7 @@ test('legacy requests without operationId retain dedupe compatibility', async (t
 });
 
 test('malformed and oversized operationId is rejected not truncated', async () => {
-  const { parseOperationId } = await import('../api/_transaction-idempotency.js');
+  const { parseOperationId } = await import('../api/_transaction-idempotency.ts');
   const oversized = 'A'.repeat(129);
   const res = parseOperationId(oversized);
   assert.ok(res.error);

@@ -1,4 +1,3 @@
-import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/payment-account.js';
 /**
  * Entity write handlers for a single group: members, categories, skipped
  * (holiday) months, the kas-start override and client-reported audit events.
@@ -7,7 +6,9 @@ import { normalizePaymentAccount, validatePaymentAccount } from '../src/core/pay
  * entry. Handlers return `{status, message, data}` for business-level
  * rejections and throw for infrastructure failures.
  */
-import { fsGet, fsPatch } from './_sa.js';
+import type { FirestoreHeaders } from '../src/types/finkas.d.ts';
+import { normalizePaymentAccount, validatePaymentAccount } from '../src/svelte/core/payment-account.ts';
+import { fsGet, fsPatch } from './_sa.ts';
 import {
   CATEGORIES_COLLECTION,
   MEMBERS_COLLECTION,
@@ -17,7 +18,7 @@ import {
   nowIso,
   settingsDoc,
   writeAuditLog
-} from './_store.js';
+} from './_store.ts';
 import {
   SKIPPED_MONTH_RE,
   ARUS,
@@ -26,15 +27,13 @@ import {
   ok,
   cleanText,
   cleanDigits
-} from './_write-shared.js';
+} from './_write-shared.ts';
 
 /* ── Skipped months ──────────────────────────────────────────────── */
 
-/** @typedef {Record<string, string>} FsHeaders */
-/** @typedef {Record<string, any>} Payload */
+type Payload = Record<string, any>;
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers @param {boolean} shouldAdd */
-export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
+export async function changeSkippedMonth(gid: string, payload: Payload, headers: FirestoreHeaders, shouldAdd: boolean) {
   const month = cleanText(payload?.month, 7);
   if (!SKIPPED_MONTH_RE.test(month)) return fail('Format bulan libur harus MM-YYYY.');
 
@@ -42,7 +41,7 @@ export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
   const current = settings?.skippedMonths || [];
   const updated = shouldAdd
     ? (current.includes(month) ? current : [...current, month])
-    : current.filter((/** @type {string} */ m) => m !== month);
+    : current.filter((m: string) => m !== month);
 
   await fsPatch(settingsDoc(gid), { skippedMonths: updated }, headers, ['skippedMonths']);
   await writeAuditLog(gid, shouldAdd ? 'TAMBAH_BULAN_LIBUR' : 'HAPUS_BULAN_LIBUR', month, headers);
@@ -57,8 +56,7 @@ export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
  * which makes the client fall back to the legacy GROUP_START constant. A future
  * month is rejected so the arrears window can never start after "now".
  */
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function setKasStart(gid, payload, headers) {
+export async function setKasStart(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const raw = cleanText(payload?.kasStart, 7);
 
   // Empty clears the override (revert to the legacy fallback).
@@ -76,8 +74,7 @@ export async function setKasStart(gid, payload, headers) {
   return ok('Awal mulai kas diperbarui.', { kasStart: raw });
 }
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function setPaymentAccount(gid, payload, headers) {
+export async function setPaymentAccount(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const error = validatePaymentAccount(payload?.paymentAccount);
   if (error) return fail(error);
   const paymentAccount = normalizePaymentAccount(payload.paymentAccount);
@@ -88,8 +85,7 @@ export async function setPaymentAccount(gid, payload, headers) {
 
 /* ── Members ─────────────────────────────────────────────────────── */
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function addMember(gid, payload, headers) {
+export async function addMember(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const nama = cleanText(payload?.nama, 80);
   if (!nama) return fail('Nama anggota wajib diisi.');
   if (nama.length < 2) return fail('Nama anggota minimal 2 karakter.');
@@ -111,8 +107,7 @@ export async function addMember(gid, payload, headers) {
   return ok('Anggota berhasil ditambahkan.', doc);
 }
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function updateMemberStatus(gid, payload, headers) {
+export async function updateMemberStatus(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const idAnggota = cleanText(payload?.idAnggota, 40);
   const statusAktif = payload?.statusAktif;
   if (!idAnggota || !isValidDocId(idAnggota)) return fail('ID anggota tidak valid.');
@@ -121,8 +116,7 @@ export async function updateMemberStatus(gid, payload, headers) {
   const existing = await fsGet(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, headers);
   if (!existing) return fail('Anggota tidak ditemukan.');
 
-  /** @type {Record<string, unknown>} */
-  const patchData = { Status_Aktif: statusAktif };
+  const patchData: Record<string, unknown> = { Status_Aktif: statusAktif };
   const updateMask = ['Status_Aktif'];
 
   const nama = cleanText(payload?.nama, 80);
@@ -143,8 +137,7 @@ export async function updateMemberStatus(gid, payload, headers) {
 
 /* ── Categories ──────────────────────────────────────────────────── */
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function addCategory(gid, payload, headers) {
+export async function addCategory(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const nama = cleanText(payload?.nama, 60);
   const tipe = payload?.tipe;
   if (!nama) return fail('Nama kategori wajib diisi.');
@@ -168,8 +161,7 @@ const CLIENT_AUDIT_ACTIONS = new Set([
   'LOGOUT_ADMIN'
 ]);
 
-/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
-export async function noteClientAudit(gid, payload, headers) {
+export async function noteClientAudit(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const aksi = cleanText(payload?.aksi, 40);
   if (!CLIENT_AUDIT_ACTIONS.has(aksi)) return fail('Aksi audit tidak diizinkan.');
   await writeAuditLog(gid, aksi, cleanText(payload?.detail, 200), headers);

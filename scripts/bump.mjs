@@ -4,8 +4,9 @@
  * Unified single-command asset & Service Worker version bumper.
  *
  * Usage:
- *   npm run bump          # Auto-increments current version by 1 (e.g. 124 -> 125)
- *   npm run bump 126      # Explicit target version
+ *   npm run release         # Bump version, rebuild all assets, and run full checks
+ *   node scripts/bump.mjs   # Bump version only (auto-increment)
+ *   node scripts/bump.mjs 126  # Explicit target version
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -81,10 +82,10 @@ for (const pagePath of [ONBOARDING_PATH, PRIVACY_PATH]) {
 
 // 6. Automatically rebuild index.html
 console.log('Rebuilding index.html...');
-execSync('npm run build:html', { cwd: ROOT, stdio: 'inherit' });
+execSync('node scripts/build-html.cjs', { cwd: ROOT, stdio: 'inherit' });
 
 // 7. Verify parity
 console.log('Running verify checks...');
-execSync('npm run verify', { cwd: ROOT, stdio: 'inherit' });
+execSync('node scripts/verify.mjs', { cwd: ROOT, stdio: 'inherit' });
 
 console.log(`✓ Version successfully bumped to v${newVersion} across all files.`);

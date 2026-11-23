@@ -9,7 +9,7 @@
  *   4. style.css is not older than the css/ modules it is built from.
  *   5. TypeScript checks the core and API modules.
  *
- * Run with: npm run verify
+ * Run with: npm run check (or node scripts/verify.mjs)
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -127,12 +127,12 @@ function newestFragmentMtime() {
 }
 
 if (!fs.existsSync(INDEX_PATH)) {
-  failures.push('index.html is missing — run `npm run build:html`.');
+  failures.push('index.html is missing — run `npm run build`.');
 } else {
   const indexMtime = fs.statSync(INDEX_PATH).mtimeMs;
   const fragmentMtime = newestFragmentMtime();
   if (fragmentMtime > indexMtime) {
-    failures.push('index.html is older than its html/ fragments — run `npm run build:html`.');
+    failures.push('index.html is older than its html/ fragments — run `npm run build`.');
   }
 
   // Belt and braces: the modal injection marker must have been replaced.
@@ -164,10 +164,10 @@ function newestCssMtime() {
 }
 
 if (!fs.existsSync(STYLE_PATH)) {
-  failures.push('style.css is missing — run `npm run build:css`.');
+  failures.push('style.css is missing — run `npm run build`.');
 } else if (newestCssMtime() > fs.statSync(STYLE_PATH).mtimeMs) {
   failures.push(
-    'style.css is older than the css/ modules it is built from — run `npm run build:css`.'
+    'style.css is older than the css/ modules it is built from — run `npm run build`.'
   );
 }
 

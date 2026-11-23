@@ -5,16 +5,10 @@
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "verify": "node scripts/verify.mjs",
+    "build": "vite build && vite build --config vite.onboarding.config.ts && node scripts/build-html.cjs && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --minify",
     "test": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
-    "check": "npm run verify && npm test",
-    "bump": "node scripts/bump.mjs",
-    "build:html": "node scripts/build-html.cjs",
-    "build:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --minify",
-    "build": "npm run build:svelte && npm run build:html && npm run build:css",
-    "dev:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --watch",
-    "build:svelte": "vite build && vite build --config vite.onboarding.config.ts"
+    "check": "npm run build && node scripts/verify.mjs && npm test",
+    "release": "node scripts/bump.mjs && npm run check"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

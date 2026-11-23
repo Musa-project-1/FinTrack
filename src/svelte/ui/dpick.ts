@@ -1,4 +1,4 @@
-import { closestHtml } from '../../core/utils.js';
+import { closestHtml } from 'finkas/core/utils';
 /**
  * @module dpick
  * Hybrid Kinetic calendar date picker. Enhances `<input type="date" class="dpick">`
@@ -7,7 +7,7 @@ import { closestHtml } from '../../core/utils.js';
  */
 
 import { enhanceControl } from './control-a11y';
-import { NAMA_BULAN } from '../../core/config.js';
+import { NAMA_BULAN } from 'finkas/core/config';
 
 const EN_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',

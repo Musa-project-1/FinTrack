@@ -1,5 +1,5 @@
-import { getActiveGroupId, getIsAdminView } from '../../core/state.js';
-import { formatDisplayRp } from '../../core/utils.js';
+import { getActiveGroupId, getIsAdminView } from 'finkas/core/state';
+import { formatDisplayRp } from 'finkas/core/utils';
 
 const reducedMotion = () => typeof window === 'undefined' ||
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

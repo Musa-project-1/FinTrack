@@ -12,14 +12,14 @@
  */
 
 import { syncCashReport } from '../mount';
-import { getState, getActiveGroupId, getGroupName } from '../../core/state.js';
-import { getInput, formatRp, showToast } from '../../core/utils.js';
+import { getState, getActiveGroupId, getGroupName } from 'finkas/core/state';
+import { getInput, formatRp, showToast } from 'finkas/core/utils';
 import {
   buildMonthlyCashReport,
   formatReportToCSV,
   formatReportToHTML,
   ACCOUNTING_TIMEZONE
-} from '../../core/cash-report.js';
+} from 'finkas/core/cash-report';
 
 let listenersAttached = false;
 let boundMonthHandler: EventListener | null = null;

@@ -330,3 +330,23 @@ export { initAmbientMotion, initEditorialFooter, initFeatureDossier, initHorizon
 export { INITIAL_DEMO_SALDO, initOnboardingStage, formatRp as formatOnboardingRp } from './pages/onboarding-stage';
 export { bootOnboardingPage, submitPin } from './pages/onboarding';
 export { bootPrivacyPage } from './pages/privacy';
+export * from './core/config';
+export * from './core/utils';
+export * from './core/dues';
+export * from './core/payment-account';
+export * from './core/analytics';
+export * from './core/state';
+export * from './core/api-auth';
+export * from './core/api-client';
+export * from './core/offline-store';
+export * from './core/mutation';
+export * from './core/sync';
+export * from './core/cash-report';
+export { checkGroupUpdate, fetchAuditLogApi, fetchGroupsApi, fetchInitialData, postToBackend } from './core/api';
+export {
+  addOfflineTransaction, classifySyncResponse, countQueuedTransactions,
+  countQueuedTransactionsByGroup, deleteOfflineTransaction, emitQueueStatus,
+  getGroupOfflineTransactions, getOfflineTransactions, isAuthExpired,
+  isRetryableServerError, isUnsyncedTempId, queueOfflinePayload,
+  syncOfflineTransactions
+} from './core/offline';

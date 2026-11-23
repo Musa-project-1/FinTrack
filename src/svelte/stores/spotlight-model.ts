@@ -1,7 +1,7 @@
 import type { DuesLedger, DuesMonth } from '../../types/finkas';
-import type { billingPeriod } from '../../core/dues.js';
-import { NAMA_BULAN } from '../../core/config.js';
-import { formatDisplayRp } from '../../core/utils.js';
+import type { billingPeriod } from 'finkas/core/dues';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { formatDisplayRp } from 'finkas/core/utils';
 import { getDuesDisplayStatus } from 'finkas/dues-status';
 
 export type Period = ReturnType<typeof billingPeriod>;

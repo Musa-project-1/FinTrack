@@ -1,6 +1,6 @@
-import { NAMA_BULAN } from '../../core/config.js';
-import { createDuesLedger } from '../../core/dues.js';
-import { formatRp } from '../../core/utils.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { createDuesLedger } from 'finkas/core/dues';
+import { formatRp } from 'finkas/core/utils';
 import { getDuesDisplayStatus } from 'finkas/dues-status';
 import type { Anggota, AppState, DuesLedger } from '../../types/finkas';
 

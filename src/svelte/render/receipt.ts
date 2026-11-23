@@ -3,10 +3,10 @@ import type { ReceiptInput } from '../stores/receipt.svelte';
 
 type ReceiptData = ReceiptInput & { transaction: Transaksi; groupId: string };
 import { syncReceiptBody } from '../mount';
-import { NAMA_BULAN, byNewestTimestamp } from '../../core/config.js';
-import { getActiveGroupId, getGroupName, getState } from '../../core/state.js';
-import { escapeHtml, formatRp, showToast } from '../../core/utils.js';
-import { isUnsyncedTempId } from '../../core/offline.js';
+import { NAMA_BULAN, byNewestTimestamp } from 'finkas/core/config';
+import { getActiveGroupId, getGroupName, getState } from 'finkas/core/state';
+import { escapeHtml, formatRp, showToast } from 'finkas/core/utils';
+import { isUnsyncedTempId } from 'finkas/core/offline';
 import { downloadAttachmentBlob, triggerBlobDownload } from '../handlers/attachments';
 import { renderPassbookEmblem } from '../ui/dues-status';
 import { openModal, closeModal } from '../ui/modal';

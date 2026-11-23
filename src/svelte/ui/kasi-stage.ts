@@ -1,4 +1,4 @@
-import { getActiveGroupId, getGroupName, getIsAdminView } from '../../core/state.js';
+import { getActiveGroupId, getGroupName, getIsAdminView } from 'finkas/core/state';
 import { launchKasiTreat, spawnKasiParticles } from './kasi-effects';
 
 const PETS_KEY = 'finkas_kasi_pets_v1';

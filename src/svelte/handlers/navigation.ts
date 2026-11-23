@@ -1,7 +1,7 @@
 import { refreshProfileStampStyle, refreshSpotlightStampStyle, syncStampStylePreview } from '../mount';
 import { getActiveIndicatorStyle, saveIndicatorStyle, STAMP_META } from '../ui/dues-status';
-import { setCurrentHistoryFilter, setCurrentRekapYear } from "../../core/state.js";
-import { getInput, getSelect, htmlElements, handleNominalInput } from "../../core/utils.js";
+import { setCurrentHistoryFilter, setCurrentRekapYear } from "finkas/core/state";
+import { getInput, getSelect, htmlElements, handleNominalInput } from "finkas/core/utils";
 import { syncCdrop } from "../ui/cdrop";
 import {
   openModal, closeModal, closeGroupScopedModals, getActiveModalId, switchTab,

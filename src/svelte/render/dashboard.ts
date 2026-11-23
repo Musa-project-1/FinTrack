@@ -1,8 +1,8 @@
 import { renderHybridChart } from '../stores/stats.svelte';
 import { enterHybridOverview } from '../ui/hybrid-motion';
-import { NAMA_BULAN } from "../../core/config.js";
-import { getState } from "../../core/state.js";
-import { billingPeriod, createDuesLedger } from "../../core/dues.js";
+import { NAMA_BULAN } from "finkas/core/config";
+import { getState } from "finkas/core/state";
+import { billingPeriod, createDuesLedger } from "finkas/core/dues";
 import { syncSvelteDashboard } from "../mount";
 import { renderSpotlight } from "../stores/spotlight.svelte";
 import { filterKategori } from "../ui/transaction-form";

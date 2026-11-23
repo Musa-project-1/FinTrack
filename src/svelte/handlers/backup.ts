@@ -1,5 +1,5 @@
 import type { SnapshotEnvelope } from '../../types/finkas';
-import { normalizePaymentAccount } from '../../core/payment-account.js';
+import { normalizePaymentAccount } from 'finkas/core/payment-account';
 /**
  * @module handlers/backup
  * Disaster Recovery: Full JSON Snapshot Backup & Restore.
@@ -15,10 +15,10 @@ import {
   getIsAdminSession,
   getActiveGroupId,
   getGroups
-} from '../../core/state.js';
-import { postToBackend, logAuditEvent } from '../../core/api.js';
-import { showToast, isOnline } from '../../core/utils.js';
-import { getOfflineItems } from '../../core/offline-store.js';
+} from 'finkas/core/state';
+import { postToBackend, logAuditEvent } from 'finkas/core/api';
+import { showToast, isOnline } from 'finkas/core/utils';
+import { getOfflineItems } from 'finkas/core/offline-store';
 import { renderAll } from '../render/index';
 import { closeModal } from '../ui/modal';
 

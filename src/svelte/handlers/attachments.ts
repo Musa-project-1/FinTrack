@@ -12,9 +12,9 @@ type AttachmentFile = { base64: string; type: string; name: string; size: number
  *
  * Files are limited to JPEG, PNG, WebP, and PDF up to 512 KiB.
  */
-import { buttonIcon, isOnline, showToast } from '../../core/utils.js';
-import { getActiveGroupId, getState } from '../../core/state.js';
-import { dataRequest } from '../../core/api-client.js';
+import { buttonIcon, isOnline, showToast } from 'finkas/core/utils';
+import { getActiveGroupId, getState } from 'finkas/core/state';
+import { dataRequest } from 'finkas/core/api-client';
 
 const toast = (msg: string, type: Parameters<typeof showToast>[1]) => {
   if (typeof document !== 'undefined' && typeof showToast === 'function') {

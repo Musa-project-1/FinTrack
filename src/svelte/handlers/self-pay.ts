@@ -2,11 +2,11 @@ import type { Anggota, DuesLedger, DuesMonth } from '../../types/finkas';
 import type { SelfPayInput } from '../stores/self-pay.svelte';
 import { syncSelfPayMonths } from '../mount';
 import { getDuesDisplayStatus } from '../ui/dues-status';
-import { NAMA_BULAN } from '../../core/config.js';
-import { billingPeriod, createDuesLedger } from '../../core/dues.js';
-import { normalizePaymentAccount } from '../../core/payment-account.js';
-import { getActiveGroupId, getGroupName, getIsAdminView, getState } from '../../core/state.js';
-import { getSelect, requiredField, closestHtml, formatRp, showToast } from '../../core/utils.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { billingPeriod, createDuesLedger } from 'finkas/core/dues';
+import { normalizePaymentAccount } from 'finkas/core/payment-account';
+import { getActiveGroupId, getGroupName, getIsAdminView, getState } from 'finkas/core/state';
+import { getSelect, requiredField, closestHtml, formatRp, showToast } from 'finkas/core/utils';
 import { animateHybridAmount } from '../ui/hybrid-motion';
 import { openModal, closeModal } from '../ui/modal';
 

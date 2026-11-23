@@ -2,9 +2,9 @@ import { flushSync } from 'svelte';
 import { getActiveIndicatorStyle } from 'finkas/dues-status';
 import { openMonthReceipt } from 'finkas/receipt';
 import { openSelfPay } from 'finkas/self-pay';
-import { NAMA_BULAN } from '../../core/config.js';
-import { billingPeriod, createDuesLedger } from '../../core/dues.js';
-import { getActiveGroupId, getIsAdminView, getState } from '../../core/state.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { billingPeriod, createDuesLedger } from 'finkas/core/dues';
+import { getActiveGroupId, getIsAdminView, getState } from 'finkas/core/state';
 import type { DuesLedger } from '../../types/finkas';
 import { computeSpotlightViewModel, detailFor, type DetailCta, type Period } from './spotlight-model';
 

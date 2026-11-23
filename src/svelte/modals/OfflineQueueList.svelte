@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatRp } from '../../core/utils.js';
+  import { formatRp } from 'finkas/core/utils';
   import { offlineQueueStore as vm } from '../stores/offline-queue.svelte';
 </script>
 

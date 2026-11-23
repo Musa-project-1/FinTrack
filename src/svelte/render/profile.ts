@@ -1,11 +1,11 @@
 import type { ProfileInput } from '../stores/profile.svelte';
 import { syncMemberProfile } from '../mount';
 import { getPinnedMemberId } from '../stores/spotlight.svelte';
-import { createDuesLedger } from '../../core/dues.js';
+import { createDuesLedger } from 'finkas/core/dues';
 import { getDuesDisplayStatus, getActiveIndicatorStyle } from '../ui/dues-status';
-import { byNewestTimestamp, NAMA_BULAN } from '../../core/config.js';
-import { currentRekapYear, getIsAdminView, getState } from '../../core/state.js';
-import { formatRp, calculateMemberContribution, showToast } from '../../core/utils.js';
+import { byNewestTimestamp, NAMA_BULAN } from 'finkas/core/config';
+import { currentRekapYear, getIsAdminView, getState } from 'finkas/core/state';
+import { formatRp, calculateMemberContribution, showToast } from 'finkas/core/utils';
 import { animateHybridAmount } from '../ui/hybrid-motion';
 import { openModal } from '../ui/modal';
 

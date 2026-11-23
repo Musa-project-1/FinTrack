@@ -1,8 +1,8 @@
 import { syncSkippedMonthsList, syncYearGlider } from '../mount';
-import { GROUP_START_YEAR, NAMA_BULAN } from "../../core/config.js";
-import { getState, currentRekapYear } from "../../core/state.js";
-import { parseKasStart } from "../../core/utils.js";
-import { billingPeriod } from "../../core/dues.js";
+import { GROUP_START_YEAR, NAMA_BULAN } from "finkas/core/config";
+import { getState, currentRekapYear } from "finkas/core/state";
+import { parseKasStart } from "finkas/core/utils";
+import { billingPeriod } from "finkas/core/dues";
 
 export const populateTahunRekap = () => {
   const selects = [

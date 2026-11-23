@@ -1,6 +1,6 @@
 import { flushSync } from 'svelte';
-import { getState, currentRekapYear } from '../../core/state.js';
-import { billingPeriod } from '../../core/dues.js';
+import { getState, currentRekapYear } from 'finkas/core/state';
+import { billingPeriod } from 'finkas/core/dues';
 import { computeStatsViewModel } from './stats-model';
 
 export { computeStatsViewModel };

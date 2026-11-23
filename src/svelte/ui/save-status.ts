@@ -16,10 +16,10 @@
  *   - Queue count reflects actual IndexedDB active-group count.
  */
 
-import { getActiveGroupId, getStorageStatus } from '../../core/state.js';
-import { isOnline } from '../../core/utils.js';
-import { getSyncStatus } from '../../core/sync.js';
-import { countQueuedTransactions } from '../../core/offline.js';
+import { getActiveGroupId, getStorageStatus } from 'finkas/core/state';
+import { isOnline } from 'finkas/core/utils';
+import { getSyncStatus } from 'finkas/core/sync';
+import { countQueuedTransactions } from 'finkas/core/offline';
 
 /* ── Types & State ───────────────────────────────────────────────── */
 

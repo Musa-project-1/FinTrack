@@ -1,7 +1,7 @@
 import type { AppState } from '../../types/finkas';
-import { NAMA_BULAN } from '../../core/config.js';
-import { billingPeriod, createDuesLedger } from '../../core/dues.js';
-import { formatDisplayRp } from '../../core/utils.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { billingPeriod, createDuesLedger } from 'finkas/core/dues';
+import { formatDisplayRp } from 'finkas/core/utils';
 
 const formatAxisTick = (val: number) => {
   if (val === 0) return '0';

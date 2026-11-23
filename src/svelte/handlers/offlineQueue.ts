@@ -1,5 +1,5 @@
-import { getGroupOfflineTransactions } from "../../core/offline.js";
-import { getActiveGroupId } from "../../core/state.js";
+import { getGroupOfflineTransactions } from "finkas/core/offline";
+import { getActiveGroupId } from "finkas/core/state";
 import { syncOfflineQueueList } from "../mount";
 import { openModal } from "../ui/modal";
 

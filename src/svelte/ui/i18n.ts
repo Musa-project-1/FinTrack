@@ -1,4 +1,4 @@
-import { htmlElements } from '../../core/utils.js';
+import { htmlElements } from 'finkas/core/utils';
 /**
  * @module ui/i18n
  * Client-side Indonesian/English DOM interface translation engine.

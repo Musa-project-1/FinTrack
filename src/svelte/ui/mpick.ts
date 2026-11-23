@@ -1,4 +1,4 @@
-import { closestHtml } from '../../core/utils.js';
+import { closestHtml } from 'finkas/core/utils';
 /**
  * @module mpick
  * Universal custom month/year picker. Enhance any
@@ -8,7 +8,7 @@ import { closestHtml } from '../../core/utils.js';
  */
 
 import { enhanceControl } from './control-a11y';
-import { NAMA_BULAN } from '../../core/config.js';
+import { NAMA_BULAN } from 'finkas/core/config';
 
 const SHORT = NAMA_BULAN.map((m) => m.slice(0, 3));
 

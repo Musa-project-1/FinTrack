@@ -4,12 +4,12 @@ import type { Transaksi } from '../../types/finkas';
  * Single-member, single-month Hybrid Kinetic quick pay flow.
  */
 
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../../core/config.js";
-import { getState, currentRekapYear, getIsAdminSession, getActiveGroupId, addTransaction, saveCache } from "../../core/state.js";
-import { createDuesLedger } from "../../core/dues.js";
-import { getInput, requiredField, closestHtml, formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso } from "../../core/utils.js";
-import { classifySyncResponse } from "../../core/offline.js";
-import { deliverMutation, generateOperationId } from "../../core/mutation.js";
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "finkas/core/config";
+import { getState, currentRekapYear, getIsAdminSession, getActiveGroupId, addTransaction, saveCache } from "finkas/core/state";
+import { createDuesLedger } from "finkas/core/dues";
+import { getInput, requiredField, closestHtml, formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso } from "finkas/core/utils";
+import { classifySyncResponse } from "finkas/core/offline";
+import { deliverMutation, generateOperationId } from "finkas/core/mutation";
 import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, showConfirmDialog } from "../ui/modal";
 import { syncQuickPayPresets } from "../mount";

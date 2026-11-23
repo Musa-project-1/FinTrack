@@ -1,7 +1,7 @@
 import type { AppState, DuesLedger } from '../../types/finkas.d.ts';
-import { GROUP_START_MONTH, GROUP_START_YEAR, NAMA_BULAN } from '../../core/config.js';
-import { billingPeriod } from '../../core/dues.js';
-import { formatRp, getDisplayRpFormatter, parseKasStart } from '../../core/utils.js';
+import { GROUP_START_MONTH, GROUP_START_YEAR, NAMA_BULAN } from 'finkas/core/config';
+import { billingPeriod } from 'finkas/core/dues';
+import { formatRp, getDisplayRpFormatter, parseKasStart } from 'finkas/core/utils';
 
 type Period = ReturnType<typeof billingPeriod>;
 type Totals = { totalMasuk: number; totalKeluar: number };

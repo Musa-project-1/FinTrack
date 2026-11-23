@@ -3,7 +3,7 @@
  * Modal open/close, tab switching, and dialog interactions.
  */
 
-import { promoteToastLayer } from '../../core/utils.js';
+import { promoteToastLayer } from 'finkas/core/utils';
 
 export {
   filterKategori, updateCounterOps, updateCounterIuran, pilihSemuaIuran,

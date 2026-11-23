@@ -1,4 +1,4 @@
-import { getActiveGroupId, getIsAdminView } from '../../core/state.js';
+import { getActiveGroupId, getIsAdminView } from 'finkas/core/state';
 import { getActiveModalId, openModal, closeModal } from './modal';
 import { switchWorkspace } from './workspace';
 

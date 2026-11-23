@@ -1,5 +1,5 @@
-import { getInput } from '../../core/utils.js';
-import { getActiveGroupId } from '../../core/state.js';
+import { getInput } from 'finkas/core/utils';
+import { getActiveGroupId } from 'finkas/core/state';
 import { openModal } from './modal';
 import { createKasiVectorSvg, launchKasiTreatToPoint, spawnKasiParticles } from './kasi-effects';
 import { KASI_PET_QUOTES, incrementKasiAffection, initKasiStage, triggerAllMascotAction } from './kasi-stage';

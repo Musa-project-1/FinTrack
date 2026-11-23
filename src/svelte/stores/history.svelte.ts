@@ -1,6 +1,6 @@
 import { flushSync } from 'svelte';
 import { createPagination } from 'finkas/pagination';
-import { getState, currentHistoryFilter, getIsAdminView, getActiveGroupId } from '../../core/state.js';
+import { getState, currentHistoryFilter, getIsAdminView, getActiveGroupId } from 'finkas/core/state';
 import { computeHistoryViewModel, formatLedgerRows, type HistoryRowVM } from './history-model';
 
 export { computeHistoryViewModel };

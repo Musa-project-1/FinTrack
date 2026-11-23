@@ -1,8 +1,8 @@
 import type { GroupPickerRowVM } from '../stores/group-picker.svelte';
-import { htmlElements } from '../../core/utils.js';
-import { getActiveGroupId, getGroups, getGroupSession, getIsSuperAdmin, setGroups } from "../../core/state.js";
-import { fetchGroupsApi } from "../../core/api.js";
-import { countQueuedTransactions, countQueuedTransactionsByGroup } from "../../core/offline.js";
+import { htmlElements } from 'finkas/core/utils';
+import { getActiveGroupId, getGroups, getGroupSession, getIsSuperAdmin, setGroups } from "finkas/core/state";
+import { fetchGroupsApi } from "finkas/core/api";
+import { countQueuedTransactions, countQueuedTransactionsByGroup } from "finkas/core/offline";
 import { syncGroupPickerList } from "../mount";
 import { openModal } from "../ui/modal";
 

@@ -4,8 +4,8 @@ import type { Transaksi } from '../../types/finkas';
  * Shared helpers and state integration for cash transactions.
  */
 
-import { getState, addTransaction, saveCache } from "../../core/state.js";
-import { generateTempId, requestAppRefresh } from "../../core/mutation.js";
+import { getState, addTransaction, saveCache } from "finkas/core/state";
+import { generateTempId, requestAppRefresh } from "finkas/core/mutation";
 import {
   renderDashboard,
   renderTableTransaksi,

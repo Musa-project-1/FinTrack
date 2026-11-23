@@ -1,10 +1,10 @@
 type AuditEntry = { Aksi: string; Detail?: string; Timestamp: string };
 
-import { getState, getIsAdminSession, getIsSuperAdmin } from "../../core/state.js";
-import { fetchAuditLogApi } from "../../core/api.js";
-import { isUnsyncedTempId } from "../../core/offline.js";
-import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "../../core/utils.js";
-import { deliverMutation, generateTempId, requestAppRefresh } from "../../core/mutation.js";
+import { getState, getIsAdminSession, getIsSuperAdmin } from "finkas/core/state";
+import { fetchAuditLogApi } from "finkas/core/api";
+import { isUnsyncedTempId } from "finkas/core/offline";
+import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "finkas/core/utils";
+import { deliverMutation, generateTempId, requestAppRefresh } from "finkas/core/mutation";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
 import { syncCdrop } from "../ui/cdrop";
 import { renderSkippedMonthsList } from "../render/index";

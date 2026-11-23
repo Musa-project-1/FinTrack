@@ -1,8 +1,8 @@
 import type { PaymentAccount } from '../../types/finkas';
-import { postToBackend } from '../../core/api.js';
-import { normalizePaymentAccount, validatePaymentAccount } from '../../core/payment-account.js';
-import { getActiveGroupId, getIsAdminSession, getState, saveCache, setState } from '../../core/state.js';
-import { showToast } from '../../core/utils.js';
+import { postToBackend } from 'finkas/core/api';
+import { normalizePaymentAccount, validatePaymentAccount } from 'finkas/core/payment-account';
+import { getActiveGroupId, getIsAdminSession, getState, saveCache, setState } from 'finkas/core/state';
+import { showToast } from 'finkas/core/utils';
 
 export const initPaymentAccount = () => {
   const form = (document.getElementById('form-payment-account') as HTMLFormElement | null);

@@ -1,11 +1,11 @@
 import type { Transaksi } from '../../types/finkas';
 import { getReceiptData, renderReceiptHtml } from '../render/receipt';
-import { NAMA_BULAN } from "../../core/config.js";
-import { getState, currentRekapYear } from "../../core/state.js";
-import { formatRp, showToast, escapeHtml } from "../../core/utils.js";
-import { createDuesLedger, billingPeriod } from "../../core/dues.js";
+import { NAMA_BULAN } from "finkas/core/config";
+import { getState, currentRekapYear } from "finkas/core/state";
+import { formatRp, showToast, escapeHtml } from "finkas/core/utils";
+import { createDuesLedger, billingPeriod } from "finkas/core/dues";
 import { closeModal } from "../ui/modal";
-import { trackEvent } from "../../core/analytics.js";
+import { trackEvent } from "finkas/core/analytics";
 
 export const cetakStruk = (idTrx: string) => {
   const receipt = getReceiptData(idTrx);

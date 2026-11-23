@@ -1,7 +1,7 @@
-import { NAMA_BULAN } from '../../core/config.js';
-import { createDuesLedger } from '../../core/dues.js';
-import { getActiveGroupId, getIsAdminView, getState } from '../../core/state.js';
-import { htmlElements, closestHtml, formatRp, showToast } from '../../core/utils.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { createDuesLedger } from 'finkas/core/dues';
+import { getActiveGroupId, getIsAdminView, getState } from 'finkas/core/state';
+import { htmlElements, closestHtml, formatRp, showToast } from 'finkas/core/utils';
 
 const cellSelector = '[data-bulk-month]';
 const selected = new Set<string>();

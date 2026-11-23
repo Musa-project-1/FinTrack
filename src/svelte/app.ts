@@ -9,13 +9,13 @@
 
 import {
   setState, saveCache, loadCache, getIsAdminView, getState, getActiveGroupId
-} from "../core/state.js";
-import { fetchInitialData } from "../core/api.js";
-import { getInput, getSelect, closestHtml, showToast, setConnectionStatus, isOnline } from "../core/utils.js";
-import { syncOfflineTransactions, deleteOfflineTransaction, countQueuedTransactions } from "../core/offline.js";
-import { initAnalytics } from "../core/analytics.js";
-import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "../core/config.js";
-import { initSyncEvents, initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from "../core/sync.js";
+} from "finkas/core/state";
+import { fetchInitialData } from "finkas/core/api";
+import { getInput, getSelect, closestHtml, showToast, setConnectionStatus, isOnline } from "finkas/core/utils";
+import { syncOfflineTransactions, deleteOfflineTransaction, countQueuedTransactions } from "finkas/core/offline";
+import { initAnalytics } from "finkas/core/analytics";
+import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "finkas/core/config";
+import { initSyncEvents, initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from "finkas/core/sync";
 import {
   applyTheme, watchSystemTheme, toggleTheme, setTheme, setPalette, applyHeaderStatsPreference,
   applyDensityPreference, applyAccentPreference, applyNumberFontPreference,

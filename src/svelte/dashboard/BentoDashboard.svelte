@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { NAMA_BULAN } from '../../core/config.js';
+  import { NAMA_BULAN } from 'finkas/core/config';
   import { animateHybridAmount } from 'finkas/hybrid-motion';
   import { dashboardStore as vm, setSelectedSparkMonth } from '../stores/store.svelte';
 

@@ -4,10 +4,10 @@
  * rendering for `#modal-transaksi`.
  */
 
-import { NAMA_BULAN } from '../../core/config.js';
-import { getState } from '../../core/state.js';
-import { getInput, getSelect, showToast, getRawNominal, formatRp, getInitials } from '../../core/utils.js';
-import { createDuesLedger, duesStatusLabel } from '../../core/dues.js';
+import { NAMA_BULAN } from 'finkas/core/config';
+import { getState } from 'finkas/core/state';
+import { getInput, getSelect, showToast, getRawNominal, formatRp, getInitials } from 'finkas/core/utils';
+import { createDuesLedger, duesStatusLabel } from 'finkas/core/dues';
 
 import type { IuranChecklistItem } from '../stores/transaction-form.svelte';
 import { syncIuranChecklist, syncIuranChecklistFilter, syncIuranReviewChips } from '../mount';

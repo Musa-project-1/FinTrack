@@ -1,11 +1,11 @@
-import { htmlElements } from '../../core/utils.js';
+import { htmlElements } from 'finkas/core/utils';
 import { runHybridThemeWipe } from './hybrid-motion';
 /**
  * @module theme
  * Dark/light theme toggle and persistence.
  */
 
-import { THEME_KEY } from '../../core/config.js';
+import { THEME_KEY } from 'finkas/core/config';
 export { getLanguage, applyLanguagePreference, setLanguage } from './i18n';
 
 const safeGetItem = (key: string, fallback: string | null = null) => {

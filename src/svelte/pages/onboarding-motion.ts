@@ -4,7 +4,7 @@
  * theme wipe toggle, Living Horizon Spline, hero depth recession, sky parallax,
  * Split Ledger Dossier (01-05), and Architectural Colophon WIB footer.
  */
-import { THEME_KEY } from '../../core/config.js';
+import { THEME_KEY } from 'finkas/core/config';
 
 const el = (id: string) => document.getElementById(id);
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);

@@ -1,6 +1,6 @@
 import type { Anggota, AppState, Kategori, Transaksi } from '../../types/finkas';
-import { byNewestTimestamp } from '../../core/config.js';
-import { formatDisplayRp } from '../../core/utils.js';
+import { byNewestTimestamp } from 'finkas/core/config';
+import { formatDisplayRp } from 'finkas/core/utils';
 
 type Options = { filter: string; searchQuery: string; isAdmin: boolean };
 

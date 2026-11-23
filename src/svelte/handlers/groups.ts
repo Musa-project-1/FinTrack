@@ -8,7 +8,7 @@ import { resetPinInput, syncPinInput, wirePinInput } from "../ui/pin-input";
  * longer writes to Firestore directly and no longer reads credential hashes.
  */
 
-import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from "../../core/config.js";
+import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from "finkas/core/config";
 import {
   clearAdminSession,
   clearGroupSession,
@@ -21,17 +21,17 @@ import {
   setActiveGroupId,
   setGroups,
   setGroupSession
-} from "../../core/state.js";
+} from "finkas/core/state";
 import {
   addSuperAdminApi,
   fetchGroupsApi,
   fetchSuperAdminsApi,
   removeSuperAdminApi
-} from "../../core/api.js";
-import { initSyncEvents } from "../../core/sync.js";
-import { apiPost } from "../../core/api-client.js";
+} from "finkas/core/api";
+import { initSyncEvents } from "finkas/core/sync";
+import { apiPost } from "finkas/core/api-client";
 import { syncGroupAdminList, syncSuperAdminList } from "../mount";
-import { getInput, showToast } from "../../core/utils.js";
+import { getInput, showToast } from "finkas/core/utils";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion";
 import { openModal, closeModal, switchTab } from "../ui/modal";
 import { handleUI, renderAdminUI } from "./auth";

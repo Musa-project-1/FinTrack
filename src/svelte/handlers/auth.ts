@@ -16,10 +16,10 @@ import {
   setAdminViewMode,
   getActiveGroupId,
   clearAdminSession
-} from "../../core/state.js";
-import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "../../core/api.js";
-import { GOOGLE_CLIENT_ID } from "../../core/config.js";
-import { getInput, htmlElements, buttonIcon, showToast } from "../../core/utils.js";
+} from "finkas/core/state";
+import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "finkas/core/api";
+import { GOOGLE_CLIENT_ID } from "finkas/core/config";
+import { getInput, htmlElements, buttonIcon, showToast } from "finkas/core/utils";
 import { closeModal } from "../ui/modal";
 import { syncBulkDues } from "../ui/bulk-dues";
 import { syncWorkspaceGliders } from "../ui/workspace";

@@ -1,4 +1,4 @@
-import { closestHtml } from '../../core/utils.js';
+import { closestHtml } from 'finkas/core/utils';
 /**
  * @module cdrop
  * Premium custom dropdown that enhances native <select class="cdrop">.

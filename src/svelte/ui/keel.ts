@@ -3,7 +3,7 @@
  * Interactive button state controllers: busy spinners and liquid-fill ("keel") animations.
  */
 
-import { showToast } from '../../core/utils.js';
+import { showToast } from 'finkas/core/utils';
 
 /**
  * Run a task with a button in its busy state, restoring it afterwards.

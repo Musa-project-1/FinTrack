@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     resolve: {
       alias: {
+        'finkas/core': resolve(import.meta.dirname, 'src/svelte/core'),
         'finkas/self-pay': resolve(import.meta.dirname, 'src/svelte/handlers/self-pay.ts'),
         'finkas/receipt': resolve(import.meta.dirname, 'src/svelte/render/receipt.ts'),
         'finkas/dues-status': resolve(import.meta.dirname, 'src/svelte/ui/dues-status.ts'),
@@ -25,15 +26,7 @@ export default defineConfig(({ mode }) => {
       outDir: 'src/ui',
       emptyOutDir: false,
       minify: true,
-      rolldownOptions: isOnboarding
-        ? { output: { minify: true } }
-        : {
-            external: id => /(?:^|\/)(?:src\/)?core\//.test(id),
-            output: {
-              paths: id => id.replace(/^(?:.*\/)?src\/core\/|^(?:\.\.\/)+core\//, '../core/'),
-              minify: true
-            }
-          }
+      rolldownOptions: { output: { minify: true } }
     }
   };
 });

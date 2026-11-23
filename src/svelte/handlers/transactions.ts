@@ -9,12 +9,12 @@ import type { ArusTipe, Transaksi } from '../../types/finkas';
  * the payload is queued in IndexedDB and replayed later.
  */
 
-import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../../core/config.js";
-import { getState, addTransaction, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "../../core/state.js";
-import { billingPeriod } from "../../core/dues.js";
-import { getInput, getSelect, requiredField, formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "../../core/utils.js";
-import { isUnsyncedTempId, classifySyncResponse } from "../../core/offline.js";
-import { deliverMutation, generateOperationId } from "../../core/mutation.js";
+import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "finkas/core/config";
+import { getState, addTransaction, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "finkas/core/state";
+import { billingPeriod } from "finkas/core/dues";
+import { getInput, getSelect, requiredField, formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "finkas/core/utils";
+import { isUnsyncedTempId, classifySyncResponse } from "finkas/core/offline";
+import { deliverMutation, generateOperationId } from "finkas/core/mutation";
 import { withBusyButton, withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
 import { renderCheckboxIuran, filterKategori, updateEditDelta, updateCounterIuran, updateCounterOps, resetTrxWizard } from "../ui/transaction-form";

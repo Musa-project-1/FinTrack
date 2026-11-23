@@ -6,9 +6,9 @@
  * group list search/selection, scroll-driven backdrop, and interactive specimens.
  */
 import { resetPinInput, syncPinInput, wirePinInput } from '../ui/pin-input';
-import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from '../../core/config.js';
-import { apiPost } from '../../core/api-client.js';
-import { setGroupSession } from '../../core/state.js';
+import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from 'finkas/core/config';
+import { apiPost } from 'finkas/core/api-client';
+import { setGroupSession } from 'finkas/core/state';
 import { syncOnboardingGroupList } from '../onboarding/mount';
 import { initSkyJourney } from './journey';
 import { INITIAL_DEMO_SALDO, initOnboardingStage } from './onboarding-stage';

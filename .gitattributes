@@ -1,11 +1,16 @@
-# Generated build artifacts
+# Generated build artifacts & static fallback shells
 index.html linguist-generated=true
 onboarding.html linguist-generated=true
 privacy.html linguist-generated=true
+404.html linguist-generated=true
+offline.html linguist-generated=true
 style.css linguist-generated=true
 src/ui/svelte-dashboard.js linguist-generated=true
 src/ui/svelte-onboarding.js linguist-generated=true
+sw.js linguist-generated=true
 *.map linguist-generated=true
 
-# Vendored third-party assets
+# Vendored third-party assets & test/build infrastructure
 fonts/** linguist-vendored=true
+tests/** linguist-vendored=true
+scripts/** linguist-vendored=true

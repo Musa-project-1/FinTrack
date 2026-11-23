@@ -194,14 +194,17 @@ if (!fs.existsSync(STYLE_PATH)) {
   );
 }
 
-try {
-  execFileSync(process.execPath, [path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit'], {
-    cwd: ROOT,
-    stdio: 'pipe'
-  });
-} catch (err) {
-  const detail = String(err.stdout || err.stderr || err.message || '').trim().split('\n').slice(0, 12).join('\n');
-  failures.push(`typecheck: tsc --noEmit\n${detail}`);
+const tscBin = path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
+for (const args of [['--noEmit'], ['--noEmit', '-p', 'tsconfig.strict.json']]) {
+  try {
+    execFileSync(process.execPath, [tscBin, ...args], {
+      cwd: ROOT,
+      stdio: 'pipe'
+    });
+  } catch (err) {
+    const detail = String(err.stdout || err.stderr || err.message || '').trim().split('\n').slice(0, 12).join('\n');
+    failures.push(`typecheck: tsc ${args.join(' ')}\n${detail}`);
+  }
 }
 
 /* ── Report ──────────────────────────────────────────────────────── */
@@ -212,4 +215,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html and style.css are current, TypeScript passed.`);
+console.log(`✓ verify passed — ${filesToCheck.length} files parsed, ${clientModules.length} client modules precached, index.html and style.css are current, TypeScript + strict passed.`);

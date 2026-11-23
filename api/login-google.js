@@ -24,13 +24,20 @@ import {
 
 const PRIMARY_OWNER = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
 
+/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
+/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
+/** @typedef {Record<string, any>} JsonBody */
+/** @typedef {Record<string, string>} FsHeaders */
+
+/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.status(status).json(payload);
 };
 
+/** @param {ApiRequest} req @returns {JsonBody} */
 const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'object') return /** @type {JsonBody} */ (req.body);
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -45,6 +52,8 @@ const parseBody = (req) => {
 
 /**
  * Persist the superadmin email list.
+ * @param {string[]} list
+ * @param {FsHeaders} headers
  */
 async function saveSuperadminList(list, headers) {
   await fsPatch(APP_CONFIG_DOC, { superadmin_emails: list }, headers, ['superadmin_emails']);
@@ -60,7 +69,9 @@ async function saveSuperadminList(list, headers) {
  * its whole TTL (30 days). Re-checking the email here is what makes a
  * revocation take effect. The check runs before any Firestore call, so a
  * removed admin is refused even when the database is unreachable.
- * @returns {Promise<{session: object, emails: string[]}|null>}
+ * @param {JsonBody} body
+ * @param {FsHeaders} headers
+ * @returns {Promise<{session: import('../src/types/finkas.d.ts').SessionClaims, emails: string[]}|null>}
  */
 const requireSuperAdmin = async (body, headers) => {
   const session = readSession(body);
@@ -77,6 +88,7 @@ const requireSuperAdmin = async (body, headers) => {
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
+/** @param {JsonBody} body @param {FsHeaders} headers @param {string} ip */
 async function loginWithGoogle(body, headers, ip) {
   const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
   if (!rawToken) {
@@ -152,6 +164,7 @@ async function loginWithGoogle(body, headers, ip) {
   };
 }
 
+/** @param {string[]} emails */
 async function listSuperAdmins(emails) {
   return {
     code: 200,
@@ -162,6 +175,7 @@ async function listSuperAdmins(emails) {
   };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers @param {string[]} emails */
 async function addSuperAdmin(body, headers, emails) {
   const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
   if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
@@ -179,6 +193,7 @@ async function addSuperAdmin(body, headers, emails) {
   return { code: 200, payload: { status: true, message: `Email ${newEmail} berhasil ditambahkan sebagai Super Admin.`, data: updated } };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers @param {string[]} emails */
 async function removeSuperAdmin(body, headers, emails) {
   const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
   if (PRIMARY_OWNER && removeEmail === PRIMARY_OWNER) {
@@ -196,14 +211,16 @@ async function removeSuperAdmin(body, headers, emails) {
   return { code: 200, payload: { status: true, message: `Akses Super Admin untuk ${removeEmail} telah dicabut.`, data: updated } };
 }
 
+/** @type {Record<string, (body: JsonBody, headers: FsHeaders, emails: string[]) => Promise<import('../src/types/finkas.d.ts').ApiHandlerResult>>} */
 const GUARDED_ACTIONS = {
-  list: listSuperAdmins,
+  list: (_body, _headers, emails) => listSuperAdmins(emails),
   add: addSuperAdmin,
   remove: removeSuperAdmin
 };
 
 /* ── Handler ─────────────────────────────────────────────────────── */
 
+/** @param {ApiRequest} req @param {ApiResponse} res */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
@@ -243,9 +260,7 @@ export default async function handler(req, res) {
       return sendJson(res, 400, { status: false, message: 'Aksi tidak dikenal.' });
     }
 
-    const result = action === 'list'
-      ? await guardedHandler(auth.emails)
-      : await guardedHandler(body, headers, auth.emails);
+    const result = await guardedHandler(body, headers, auth.emails);
     return sendJson(res, result.code, result.payload);
   } catch (error) {
     console.error('[finkas] login-google error:', error?.message);

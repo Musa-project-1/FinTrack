@@ -20,6 +20,7 @@ export {
   getOfflineItems as getOfflineTransactions
 };
 
+/** @param {unknown} groupId */
 const normalizeGroupId = (groupId) => typeof groupId === 'string' ? groupId.trim() : '';
 
 /** Return counts only, excluding legacy rows without a group. */

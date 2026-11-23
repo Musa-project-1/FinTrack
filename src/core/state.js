@@ -43,7 +43,7 @@ const getLocalStorage = () => {
   return null;
 };
 
-/** Safe read helper shared by the session/cache accessors. */
+/** Safe read helper shared by the session/cache accessors. @param {string} key */
 const safelyRead = (key) => {
   try {
     const storage = getLocalStorage();
@@ -58,7 +58,7 @@ const safelyRead = (key) => {
 /** @type {string} ID grup aktif, tersimpan di localStorage. */
 let activeGroupId = safelyRead(ACTIVE_GROUP_KEY);
 
-/** @type {Array} Daftar grup yang tersedia. */
+/** @type {Array<{id: string, nama: string, dibuat?: string}>} Daftar grup yang tersedia. */
 let groups = [];
 
 /** Get ID grup aktif dari sesi/localStorage. */
@@ -72,9 +72,15 @@ let storageStatus = { groupId: activeGroupId, state: 'unknown', operation: null,
 /** Snapshot of the last actual cache operation, never a tiny capacity probe. */
 export const getStorageStatus = () => ({ ...storageStatus });
 
-/** @param {Error|null} [error] */
+/**
+ * @param {string} status
+ * @param {string} operation
+ * @param {unknown} [error]
+ * @param {string} [groupId]
+ */
 export function publishStorageStatus(status, operation, error = null, groupId = activeGroupId) {
-  storageStatus = { groupId, state: status, operation, error: error?.message || null };
+  const errMsg = error instanceof Error ? error.message : (/** @type {{message?: string}|null} */ (error)?.message || null);
+  storageStatus = { groupId, state: status, operation, error: errMsg };
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('finkas:storage-status', { detail: getStorageStatus() }));
   }
@@ -152,11 +158,11 @@ export const getGroups = () => groups;
 
 /**
  * Set daftar grup.
- * @param {Array} list
+ * @param {Array<{id: string, nama: string, dibuat?: string}>} list
  */
 export const setGroups = (list) => { groups = Array.isArray(list) ? list : []; };
 
-/** Display name for a group id, falling back to the id itself. */
+/** Display name for a group id, falling back to the id itself. @param {string} id */
 export const getGroupName = (id) => groups.find((g) => g.id === id)?.nama || id;
 
 /* ── Cache ───────────────────────────────────────────────────────── */
@@ -240,7 +246,7 @@ export const setGroupSession = (gid, token) => {
   persistGroupSessions();
 };
 
-/** Token authorizing access to a group, or '' when it has not been unlocked. */
+/** Token authorizing access to a group, or '' when it has not been unlocked. @param {string | null | undefined} gid */
 export const getGroupSession = (gid) => groupSessions[gid || ''] || '';
 
 /**
@@ -273,6 +279,7 @@ let adminUserEmail = safelyRead(ADMIN_EMAIL_KEY);
 /** @type {'admin' | 'anggota'} Active UI preview mode while an admin session is open. */
 let adminViewMode = safelyRead(ADMIN_VIEW_MODE_KEY) === 'anggota' ? 'anggota' : 'admin';
 
+/** @param {string} key @param {string} value */
 const persistSessionField = (key, value) => {
   try {
     const storage = getLocalStorage();
@@ -370,16 +377,24 @@ export const resolveSessionToken = (gid, needsWrite = false) => {
 export let currentRekapYear = String(billingPeriod().year);
 export let currentHistoryFilter = 'semua';
 
+/** @param {string | number} y */
 export const setCurrentRekapYear = (y) => { currentRekapYear = y.toString(); };
+/** @param {string} f */
 export const setCurrentHistoryFilter = (f) => { currentHistoryFilter = f; };
 
 /* ── Chart instances ───────────────────────────────────────────── */
 
+/** @type {unknown} */
 export let cashFlowChart = null;
+/** @type {unknown} */
 export let expenseChart = null;
+/** @type {unknown} */
 export let arrearsRankChart = null;
+/** @param {unknown} c */
 export const setCashFlowChart = (c) => { cashFlowChart = c; };
+/** @param {unknown} c */
 export const setExpenseChart = (c) => { expenseChart = c; };
+/** @param {unknown} c */
 export const setArrearsRankChart = (c) => { arrearsRankChart = c; };
 export const getCashFlowChart = () => cashFlowChart;
 export const getExpenseChart = () => expenseChart;

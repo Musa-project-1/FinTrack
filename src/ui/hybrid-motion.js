@@ -3,14 +3,19 @@ import { formatDisplayRp } from '../core/utils.js';
 
 const reducedMotion = () => typeof window === 'undefined' ||
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+/** @type {WeakMap<HTMLElement, { value: number, frame?: number }>} */
 const counters = new WeakMap();
+/** @type {string | undefined} */
 let lastOverview;
+/** @type {ViewTransition | undefined} */
 let activeWipe;
+/** @type {ViewTransition | undefined} */
 let activeGroupTransition;
 let lastGroupDirection = 'group-forward';
 let groupTransitionDepth = 0;
 let fallbackSeq = 0;
 
+/** @param {string} previousGroupId @param {string} nextGroupId @param {Array<{id?: string}>} groups */
 export const resolveGroupDirection = (previousGroupId, nextGroupId, groups) => {
   const list = Array.isArray(groups) ? groups : [];
   const prevIdx = list.findIndex(g => g?.id === previousGroupId);
@@ -38,6 +43,7 @@ export const enterHybridOverview = () => {
       if (!item.getClientRects().length) return;
       item.style.setProperty('--cascade-i', item.dataset.cascade ?? '0');
       item.classList.add('cascade-enter');
+      /** @param {AnimationEvent} event */
       const onEnd = (event) => {
         if (event.target === item && event.animationName === 'cascade-spring') {
           item.classList.remove('cascade-enter');
@@ -67,9 +73,11 @@ export const animateHybridAmount = (node, amount, { format = formatDisplayRp, fr
   }
 
   node.textContent = prefix + format(start);
+  /** @type {{ value: number, frame?: number }} */
   const animation = { value: start };
   counters.set(node, animation);
   const began = performance.now();
+  /** @param {number} now */
   const step = (now) => {
     const progress = Math.min(1, (now - began) / 560);
     animation.value = progress === 1 ? amount : Math.round(start + (amount - start) * (1 - (1 - progress) ** 3));
@@ -79,6 +87,7 @@ export const animateHybridAmount = (node, amount, { format = formatDisplayRp, fr
   animation.frame = requestAnimationFrame(step);
 };
 
+/** @param {() => void} apply @param {MouseEvent} [event] @param {HTMLElement | null} [trigger] */
 export const runHybridThemeWipe = (apply, event, trigger) => {
   if (activeGroupTransition) {
     activeGroupTransition.skipTransition?.();
@@ -114,11 +123,13 @@ export const runHybridThemeWipe = (apply, event, trigger) => {
 };
 
 // Ignore animation events bubbling from descendants.
+/** @param {HTMLElement} node @param {() => void} cleanup */
 const onAnimationDone = (node, cleanup) => {
   if (node.getAnimations?.().length === 0) {
     cleanup();
     return;
   }
+  /** @param {AnimationEvent} event */
   const onEnd = event => {
     if (event.target !== node) return;
     node.removeEventListener('animationend', onEnd);
@@ -137,6 +148,7 @@ const pulseGroupChip = () => {
   onAnimationDone(chip, () => chip.classList.remove('is-group-arrived'));
 };
 
+/** @param {() => void} apply @param {{ direction?: string, focusHeading?: boolean }} [options] */
 export const runGroupSwitchTransition = (apply, { direction = 'group-forward', focusHeading = false } = {}) => {
   lastGroupDirection = direction === 'group-backward' ? 'group-backward' : 'group-forward';
   const routeFocus = () => {
@@ -213,6 +225,7 @@ export const initHybridMotion = () => {
     if (initializedCards.has(card)) return;
     initializedCards.add(card);
     const tilt = card.matches('.bento-balance, #spotlight-card');
+    /** @type {number | undefined} */
     let frame;
     card.addEventListener('pointermove', (event) => {
       if (!pointer.matches || event.pointerType !== 'mouse') return;

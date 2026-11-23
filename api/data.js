@@ -18,18 +18,23 @@ const READ_ACTIONS = ['read', 'audit', 'checkUpdate', 'readAttachment', 'exportA
 const SUPERADMIN_READ_ACTIONS = ['audit'];
 const ADMIN_READ_ACTIONS = ['exportAttachments', 'exportSnapshot'];
 
-/** Send a JSON response with caching disabled. */
+/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
+/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
+
+/** Send a JSON response with caching disabled. @param {ApiResponse} res @param {number} status @param {unknown} payload */
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.status(status).json(payload);
 };
 
+/** @param {ApiResponse} res @param {string} message */
 const unauthorized = (res, message) => sendJson(res, 401, { status: false, message });
+/** @param {ApiResponse} res @param {string} message */
 const badRequest = (res, message) => sendJson(res, 400, { status: false, message });
 
-/** Parse a body that may arrive as an object or a JSON string. */
+/** Parse a body that may arrive as an object or a JSON string. @param {ApiRequest} req @returns {Record<string, any>} */
 function parseBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'object') return /** @type {Record<string, any>} */ (req.body);
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -40,6 +45,7 @@ function parseBody(req) {
   return {};
 }
 
+/** @param {ApiRequest} req @param {ApiResponse} res */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
@@ -154,6 +160,7 @@ export default async function handler(req, res) {
     }
 
     // ── Writes ─────────────────────────────────────────────────────────
+    /** @type {import('./_group-write.js').GroupWriteHandler | undefined} */
     const writeHandler = WRITE_HANDLERS[action] || ATTACHMENT_WRITE_HANDLERS[action];
     if (writeHandler) {
       if (!canWriteGroup(session, groupId, null, superadminEmails)) {

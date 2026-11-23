@@ -25,13 +25,18 @@ const MAX_ATTEMPTS_GROUP = 25;
 const LOCK_WINDOW_MS = 5 * 60 * 1000;
 const GENERIC_PIN_ERROR = 'PIN salah.';
 
+/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
+/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
+
+/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.status(status).json(payload);
 };
 
+/** @param {ApiRequest} req @returns {Record<string, any>} */
 const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'object') return /** @type {Record<string, any>} */ (req.body);
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -42,9 +47,10 @@ const parseBody = (req) => {
   return {};
 };
 
-/** PIN scope: bound into both the scrypt hash and the legacy digest. */
+/** PIN scope: bound into both the scrypt hash and the legacy digest. @param {string} gid */
 const pinScope = (gid) => `finkas-pin:${gid}`;
 
+/** @param {ApiRequest} req @param {ApiResponse} res */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });

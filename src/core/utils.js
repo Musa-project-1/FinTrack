@@ -127,6 +127,7 @@ export const promoteToastLayer = (container = document.getElementById('toast-con
   } catch (_) {}
 };
 
+/** @param {HTMLElement | null} container */
 const syncToastPopoverState = (container) => {
   if (!container) return;
   if (container.children.length > 0) {
@@ -294,6 +295,7 @@ export const showToast = (message, type = 'success', options = {}) => {
     }
   });
 
+  /** @param {PointerEvent} e */
   const onPointerEnd = (e) => {
     if (!isSwiping) return;
     isSwiping = false;
@@ -356,6 +358,7 @@ export const setConnectionStatus = (isOnline) => {
   });
 };
 
+/** @param {string} str */
 const toGraphemes = (str) => (
   typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
     ? Array.from(new Intl.Segmenter().segment(str), (s) => s.segment)
@@ -385,6 +388,7 @@ export const getInitials = (name) => {
 export const isOnline = () => window.navigator.onLine;
 
 /** @private entity map for escapeHtml */
+/** @type {Record<string, string>} */
 const _ESCAPE_MAP = {
   '&': '&amp;',
   '<': '&lt;',
@@ -394,6 +398,7 @@ const _ESCAPE_MAP = {
 };
 const _ESCAPE_RE = /[&<>"']/g;
 
+/** @param {unknown} str */
 export const escapeHtml = (str) => {
   if (str == null) return '';
   return String(str).replace(_ESCAPE_RE, (ch) => _ESCAPE_MAP[ch]);
@@ -430,10 +435,14 @@ export const safeHtml = (strings, ...values) =>
  * accounting for skipped months (not owed).
  *
  * @param {string} memberId
- * @param {object} mapPembayaran Key: `${memberId}_${bulan}` -> true
+ * @param {Record<string, unknown>} mapPembayaran Key: `${memberId}_${bulan}` -> true
  * @param {Array<string>} skippedMonths Array of 'MM-YYYY'
  * @param {string|number} rekapYear
  * @param {Array<string>} monthNames Array of 12 month names
+ * @param {string} [joinDateIso]
+ * @param {string} [kasStart='']
+ * @param {number} [fallbackYear]
+ * @param {number} [fallbackMonth]
  * @returns {{lunasBulan: number, totalOwedMonths: number, progressPercent: number, isFullPaid: boolean}}
  */
 export const calculateMemberRekapProgress = (

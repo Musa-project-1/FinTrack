@@ -30,6 +30,10 @@ import {
 
 /* ── Skipped months ──────────────────────────────────────────────── */
 
+/** @typedef {Record<string, string>} FsHeaders */
+/** @typedef {Record<string, any>} Payload */
+
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers @param {boolean} shouldAdd */
 export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
   const month = cleanText(payload?.month, 7);
   if (!SKIPPED_MONTH_RE.test(month)) return fail('Format bulan libur harus MM-YYYY.');
@@ -38,7 +42,7 @@ export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
   const current = settings?.skippedMonths || [];
   const updated = shouldAdd
     ? (current.includes(month) ? current : [...current, month])
-    : current.filter((m) => m !== month);
+    : current.filter((/** @type {string} */ m) => m !== month);
 
   await fsPatch(settingsDoc(gid), { skippedMonths: updated }, headers, ['skippedMonths']);
   await writeAuditLog(gid, shouldAdd ? 'TAMBAH_BULAN_LIBUR' : 'HAPUS_BULAN_LIBUR', month, headers);
@@ -53,6 +57,7 @@ export async function changeSkippedMonth(gid, payload, headers, shouldAdd) {
  * which makes the client fall back to the legacy GROUP_START constant. A future
  * month is rejected so the arrears window can never start after "now".
  */
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function setKasStart(gid, payload, headers) {
   const raw = cleanText(payload?.kasStart, 7);
 
@@ -71,6 +76,7 @@ export async function setKasStart(gid, payload, headers) {
   return ok('Awal mulai kas diperbarui.', { kasStart: raw });
 }
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function setPaymentAccount(gid, payload, headers) {
   const error = validatePaymentAccount(payload?.paymentAccount);
   if (error) return fail(error);
@@ -82,6 +88,7 @@ export async function setPaymentAccount(gid, payload, headers) {
 
 /* ── Members ─────────────────────────────────────────────────────── */
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function addMember(gid, payload, headers) {
   const nama = cleanText(payload?.nama, 80);
   if (!nama) return fail('Nama anggota wajib diisi.');
@@ -104,6 +111,7 @@ export async function addMember(gid, payload, headers) {
   return ok('Anggota berhasil ditambahkan.', doc);
 }
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function updateMemberStatus(gid, payload, headers) {
   const idAnggota = cleanText(payload?.idAnggota, 40);
   const statusAktif = payload?.statusAktif;
@@ -113,6 +121,7 @@ export async function updateMemberStatus(gid, payload, headers) {
   const existing = await fsGet(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, headers);
   if (!existing) return fail('Anggota tidak ditemukan.');
 
+  /** @type {Record<string, unknown>} */
   const patchData = { Status_Aktif: statusAktif };
   const updateMask = ['Status_Aktif'];
 
@@ -134,6 +143,7 @@ export async function updateMemberStatus(gid, payload, headers) {
 
 /* ── Categories ──────────────────────────────────────────────────── */
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function addCategory(gid, payload, headers) {
   const nama = cleanText(payload?.nama, 60);
   const tipe = payload?.tipe;
@@ -158,6 +168,7 @@ const CLIENT_AUDIT_ACTIONS = new Set([
   'LOGOUT_ADMIN'
 ]);
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function noteClientAudit(gid, payload, headers) {
   const aksi = cleanText(payload?.aksi, 40);
   if (!CLIENT_AUDIT_ACTIONS.has(aksi)) return fail('Aksi audit tidak diizinkan.');

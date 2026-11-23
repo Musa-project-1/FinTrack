@@ -39,7 +39,9 @@ export { validateSnapshot, restoreSnapshot } from './_write-snapshot.js';
 
 /* ── Dispatch table ──────────────────────────────────────────────── */
 
-/** Action name → handler. Used by the data gateway's router. */
+/** @typedef {(gid: string, payload: Record<string, any>, headers: Record<string, string>) => Promise<{status: boolean, message: string, data?: unknown, updatedAt?: string}>} GroupWriteHandler */
+
+/** Action name → handler. Used by the data gateway's router. @type {Record<string, GroupWriteHandler>} */
 export const WRITE_HANDLERS = {
   tambahTransaksi: addTransaction,
   tambahTransaksiMassal: addBulkTransactions,

@@ -46,7 +46,7 @@ export const addOfflineItem = async (item) => {
 
 /**
  * Retrieve all queued items from the offline store.
- * @returns {Promise<Array>}
+ * @returns {Promise<Array<{ id: number, payload: { action: string, groupId?: string, operationId?: string, queuedAt?: unknown, [key: string]: unknown }, [key: string]: unknown }>>}
  */
 export const getOfflineItems = async () => {
   const db = await openOfflineDB();

@@ -10,11 +10,14 @@ import { docName, fsGet, encodeFields } from './_sa.js';
 
 export const OPERATIONS_COLLECTION = 'operations';
 
+/** @param {string} gid @param {string} opId */
 export const operationDoc = (gid, opId) => `${col(gid, OPERATIONS_COLLECTION)}/${opId}`;
 
+/** @param {unknown} opId */
 export const isValidOperationId = (opId) =>
   typeof opId === 'string' && /^[A-Za-z0-9_-]{8,128}$/.test(opId);
 
+/** @param {unknown} raw */
 export function parseOperationId(raw) {
   if (raw === undefined || raw === null || raw === '') return { id: null };
   if (typeof raw !== 'string') return { error: 'ID operasi harus berupa teks.' };
@@ -37,7 +40,7 @@ export function computeRequestFingerprint(action, normalizedData) {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       return Object.keys(value)
         .sort()
-        .reduce((sorted, k) => {
+        .reduce((/** @type {Record<string, unknown>} */ sorted, k) => {
           sorted[k] = value[k];
           return sorted;
         }, {});
@@ -68,7 +71,7 @@ export function transactionIdForOperation(gid, operationId, index = null) {
  *
  * @param {string} gid
  * @param {string} operationId
- * @param {object} headers
+ * @param {Record<string, string>} headers
  */
 export async function getOperationReceipt(gid, operationId, headers) {
   if (!isValidOperationId(operationId)) return null;

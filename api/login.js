@@ -38,13 +38,18 @@ const MAX_ATTEMPTS_ID = 25;     // per-identity: generous so an attacker cannot 
 const LOCK_WINDOW_MS = 15 * 60 * 1000;
 const INVALID_CREDENTIALS = 'Email atau Password Admin salah!';
 
+/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
+/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
+
+/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.status(status).json(payload);
 };
 
+/** @param {ApiRequest} req @returns {Record<string, any>} */
 const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'object') return /** @type {Record<string, any>} */ (req.body);
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -62,6 +67,8 @@ const parseBody = (req) => {
  * email and nothing else, so the caller's own arbitrary string is never adopted
  * as an identity. A stored email must match exactly — absence of a secret must
  * never widen access.
+ * @param {string} storedEmail
+ * @param {string} suppliedEmail
  */
 const emailAllowed = (storedEmail, suppliedEmail) =>
   storedEmail ? storedEmail === suppliedEmail : !suppliedEmail;
@@ -69,6 +76,10 @@ const emailAllowed = (storedEmail, suppliedEmail) =>
 /**
  * Verify a group admin password against the private config, falling back to the
  * legacy location on the group document and upgrading it when it matches.
+ * @param {string} groupId
+ * @param {string} password
+ * @param {string} email
+ * @param {Record<string, string>} headers
  * @param {Record<string, any>|null} [existingGroup]
  * @returns {Promise<{matches: boolean, email: string}>}
  */
@@ -94,6 +105,7 @@ async function verifyGroupAdmin(groupId, password, email, headers, existingGroup
   if (!matches) return { matches: false, email: storedEmail };
 
   if (legacy) {
+    /** @type {Record<string, unknown>} */
     const upgraded = { admin_password_hash: hashSecret(password, `finkas-admin:${groupId}`) };
     if (storedEmail) upgraded.admin_email = storedEmail;
     await setPrivateConfig(groupId, upgraded, headers);
@@ -107,6 +119,8 @@ async function verifyGroupAdmin(groupId, password, email, headers, existingGroup
 
 /**
  * Verify the master (owner) password and upgrade a legacy digest when it matches.
+ * @param {string} password
+ * @param {Record<string, string>} headers
  * @returns {Promise<boolean>}
  */
 async function verifyMasterPassword(password, headers) {
@@ -125,6 +139,7 @@ async function verifyMasterPassword(password, headers) {
   return true;
 }
 
+/** @param {ApiRequest} req @param {ApiResponse} res */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });

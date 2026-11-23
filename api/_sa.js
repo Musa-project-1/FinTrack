@@ -13,12 +13,13 @@ export const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'finkas-kas';
 export const FIRESTORE_BASE =
   `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-/** URL-safe base64 encoding without padding. */
+/** URL-safe base64 encoding without padding. @param {string | Buffer} input */
 export const base64UrlEncode = (input) => Buffer.from(input).toString('base64url');
 
 /* ── Service account ─────────────────────────────────────────────── */
 
-let serviceAccountCache;
+/** @type {{client_email: string, private_key: string}|null} */
+let serviceAccountCache = null;
 let serviceAccountLoaded = false;
 
 /**
@@ -67,6 +68,7 @@ export const hasServiceAccount = () => {
 
 /* ── OAuth2 access token (cached across warm invocations) ─────────── */
 
+/** @type {string | null} */
 let cachedToken = null;
 let cachedTokenExpiresAt = 0;
 
@@ -148,6 +150,8 @@ export function constantTimeEqual(a, b) {
 /**
  * Decode a single Firestore typed value into a plain JS value.
  * Recursive, so nested arrays and maps round-trip correctly.
+ * @param {Record<string, any> | null | undefined} value
+ * @returns {unknown}
  */
 export function decodeValue(value) {
   if (!value || typeof value !== 'object') return null;
@@ -164,8 +168,9 @@ export function decodeValue(value) {
   return null;
 }
 
-/** Decode a Firestore `fields` object into a plain JS object. */
+/** Decode a Firestore `fields` object into a plain JS object. @param {Record<string, any> | null | undefined} fields @returns {Record<string, any>} */
 export function decodeFields(fields) {
+  /** @type {Record<string, any>} */
   const out = {};
   Object.entries(fields || {}).forEach(([key, value]) => {
     out[key] = decodeValue(value);
@@ -173,7 +178,7 @@ export function decodeFields(fields) {
   return out;
 }
 
-/** Encode a plain JS value into a Firestore typed value. */
+/** Encode a plain JS value into a Firestore typed value. @param {unknown} value @returns {import('../src/types/finkas.d.ts').FirestoreValue} */
 export function encodeValue(value) {
   if (value === null || value === undefined) return { nullValue: null };
   if (typeof value === 'boolean') return { booleanValue: value };
@@ -184,13 +189,14 @@ export function encodeValue(value) {
     return { arrayValue: { values: value.map(encodeValue) } };
   }
   if (typeof value === 'object') {
-    return { mapValue: { fields: encodeFields(value) } };
+    return { mapValue: { fields: encodeFields(/** @type {Record<string, unknown>} */ (value)) } };
   }
   return { stringValue: String(value) };
 }
 
-/** Encode a plain JS object into a Firestore `fields` object. */
+/** Encode a plain JS object into a Firestore `fields` object. @param {Record<string, unknown> | object | null | undefined} obj @returns {Record<string, import('../src/types/finkas.d.ts').FirestoreValue>} */
 export function encodeFields(obj) {
+  /** @type {Record<string, import('../src/types/finkas.d.ts').FirestoreValue>} */
   const fields = {};
   Object.entries(obj || {}).forEach(([key, value]) => {
     fields[key] = encodeValue(value);
@@ -236,10 +242,13 @@ export const isPreconditionFailure = (error) =>
     `${error?.body || ''} ${error?.message || ''}`
   );
 
+/** @param {string} docPath @param {string} [query] */
 const docUrl = (docPath, query = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 
 /**
  * Read a single document.
+ * @param {string} docPath
+ * @param {Record<string, string>} headers
  * @returns {Promise<Record<string, any>|null>} Decoded fields, or null when absent.
  */
 export async function fsGet(docPath, headers) {
@@ -257,6 +266,7 @@ export async function fsGet(docPath, headers) {
  * Create or merge a document.
  * @param {string} docPath
  * @param {object} data
+ * @param {Record<string, string>} headers
  * @param {string[]} [updateMask] When present, only these fields are written.
  */
 export async function fsPatch(docPath, data, headers, updateMask) {
@@ -273,7 +283,7 @@ export async function fsPatch(docPath, data, headers, updateMask) {
   return true;
 }
 
-/** Delete a document. Idempotent. */
+/** Delete a document. Idempotent. @param {string} docPath @param {Record<string, string>} headers */
 export async function fsDelete(docPath, headers) {
   const res = await fetch(docUrl(docPath), { method: 'DELETE', headers });
   if (!res.ok && res.status !== 404) {
@@ -285,7 +295,7 @@ export async function fsDelete(docPath, headers) {
 
 /** @typedef {({update: { name: string, fields: object }, updateMask?: { fieldPaths: string[] }} | {delete: string}) & {currentDocument?: {exists: boolean}}} FirestoreWrite */
 
-/** Execute an atomic batch of writes. @param {FirestoreWrite[]} writes */
+/** Execute an atomic batch of writes. @param {FirestoreWrite[]} writes @param {Record<string, string>} headers */
 export async function fsCommit(writes, headers) {
   const res = await fetch(`${FIRESTORE_BASE}:commit`, {
     method: 'POST',
@@ -336,9 +346,14 @@ export async function fsCreateIfAbsent(docPath, data, headers) {
 
 /**
  * List every document name in a collection, following pagination.
+ * @param {string} colPath
+ * @param {Record<string, string>} headers
+ * @param {number} [maxPages]
+ * @param {boolean} [allowPartial]
  * @returns {Promise<Array<{name: string, fields: Record<string, any>}>>}
  */
 export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = false) {
+  /** @type {Array<{name: string, fields: Record<string, any>}>} */
   const docs = [];
   let pageToken = '';
   for (let page = 0; page < maxPages; page += 1) {
@@ -349,7 +364,9 @@ export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = 
       throw new Error(`Gagal membaca koleksi (${res.status}).`);
     }
     const json = await res.json();
-    (json.documents || []).forEach((doc) => docs.push({ name: doc.name, fields: decodeFields(doc.fields) }));
+    (json.documents || []).forEach((/** @type {import('../src/types/finkas.d.ts').FirestoreDoc} */ doc) => {
+      docs.push({ name: doc.name || '', fields: decodeFields(doc.fields) });
+    });
     pageToken = json.nextPageToken || '';
     if (!pageToken) break;
   }
@@ -363,5 +380,5 @@ export async function fsListAll(colPath, headers, maxPages = 40, allowPartial = 
   return docs;
 }
 
-/** Build a Firestore document name for a collection path + id. */
+/** Build a Firestore document name for a collection path + id. @param {string} colPath @param {string} id */
 export const docName = (colPath, id) => resourceName(`${colPath}/${id}`);

@@ -31,6 +31,7 @@ const EMPTY_DATA = { anggota: [], kategori: [], transaksi: [], settings: { skipp
 let quotaCooldownUntil = 0;
 const QUOTA_COOLDOWN_MS = 10 * 60 * 1000;
 
+/** @param {string} [message] */
 const isQuotaError = (message) => /kuota|quota|429/i.test(String(message || ''));
 
 /**
@@ -169,7 +170,7 @@ export const postToBackend = async (payload) => {
 /**
  * Fetch the audit trail for the selected group.
  * @param {string} [targetGroupId]
- * @returns {Promise<{status: boolean, data: {log: Array}, message?: string}>}
+ * @returns {Promise<{status: boolean, data: {log: object[]}, message?: string}>}
  */
 export const fetchAuditLogApi = async (targetGroupId) => {
   const groupId = targetGroupId || getActiveGroupId();

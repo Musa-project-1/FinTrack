@@ -52,6 +52,10 @@ import {
 
 /* ── Transactions ────────────────────────────────────────────────── */
 
+/** @typedef {Record<string, string>} FsHeaders */
+/** @typedef {Record<string, any>} Payload */
+
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function addTransaction(gid, payload, headers) {
   const input = parseTransactionInput(payload?.dataForm);
   if ('error' in input) return fail(input.error);
@@ -161,6 +165,7 @@ export async function addTransaction(gid, payload, headers) {
   return response;
 }
 
+/** @param {string} gid @param {Array<Record<string, any>>} listTrx @param {string} operationId @param {FsHeaders} headers */
 export async function addAtomicBulk(gid, listTrx, operationId, headers) {
   if (listTrx.length > MAX_BULK_TRANSACTIONS) return fail(`Maksimal ${MAX_BULK_TRANSACTIONS} transaksi per permintaan massal.`);
 
@@ -277,13 +282,14 @@ export async function addAtomicBulk(gid, listTrx, operationId, headers) {
   return response;
 }
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function addBulkTransactions(gid, payload, headers) {
   let listTrx = Array.isArray(payload?.listTrx)
     ? payload.listTrx
     : (Array.isArray(payload?.transaksiList) ? payload.transaksiList : []);
   if (!listTrx.length && Array.isArray(payload?.dataForm?.arrIdAnggota)) {
     const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan, timestamp } = payload.dataForm;
-    listTrx = arrIdAnggota.map((idAnggota) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
+    listTrx = arrIdAnggota.map((/** @type {string} */ idAnggota) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
   }
   if (!listTrx.length) return fail('Daftar transaksi massal tidak boleh kosong.');
   if (listTrx.length > MAX_BULK_TRANSACTIONS) return fail(`Maksimal ${MAX_BULK_TRANSACTIONS} transaksi per permintaan.`);
@@ -379,6 +385,7 @@ export async function addBulkTransactions(gid, payload, headers) {
   return ok(`${insertedCount} transaksi massal berhasil disimpan.`, { inserted: insertedCount, skipped });
 }
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function editTransaction(gid, payload, headers) {
   const idTarget = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
   if (!idTarget || !isValidDocId(idTarget)) return fail('ID transaksi tidak valid.');
@@ -443,6 +450,7 @@ export async function editTransaction(gid, payload, headers) {
   const response = ok('Transaksi berhasil diupdate.', { idTransaksi: targetId });
 
   if (targetId !== idTarget) {
+    /** @type {Record<string, any>} */
     const doc = {
       ID_Transaksi: targetId,
       Timestamp: input.timestamp || existing.Timestamp || nowIso(),
@@ -509,6 +517,7 @@ export async function editTransaction(gid, payload, headers) {
     }
   } else {
     // In-place edit: use updateMask over mutable fields only + exists:true to avoid overwriting concurrent Bukti metadata
+    /** @type {Record<string, any>} */
     const fieldsToUpdate = {
       Tipe_Arus: input.tipeArus,
       ID_Kategori: input.idKategori,
@@ -574,12 +583,14 @@ export async function editTransaction(gid, payload, headers) {
 /* ── Group-scoped document deletion ──────────────────────────────── */
 
 const DELETABLE = [TRANSACTIONS_COLLECTION, MEMBERS_COLLECTION, CATEGORIES_COLLECTION];
+/** @type {Record<string, string>} */
 const DELETE_AUDIT = {
   [TRANSACTIONS_COLLECTION]: 'HAPUS_TRANSAKSI',
   [MEMBERS_COLLECTION]: 'HAPUS_ANGGOTA',
   [CATEGORIES_COLLECTION]: 'HAPUS_KATEGORI'
 };
 
+/** @param {string} gid @param {Payload} payload @param {FsHeaders} headers */
 export async function deleteDocument(gid, payload, headers) {
   const collection = cleanText(payload?.targetCollection, 20);
   const id = cleanText(payload?.idTransaksi || payload?.id, 40);

@@ -4,17 +4,19 @@
 import { fsGet, fsListAll } from './_sa.js';
 import { MEMBERS_COLLECTION, CATEGORIES_COLLECTION, TRANSACTIONS_COLLECTION, col, settingsDoc } from './_store.js';
 
+/** @param {{Timestamp?: string}} a @param {{Timestamp?: string}} b */
 const byTimestampDesc = (a, b) =>
   new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime();
 
+/** @param {Array<{name: string, fields: Record<string, any>}>} docs */
 const fieldsOf = (docs) => docs.map((doc) => doc.fields || {});
 
 /**
  * Load only the transactions collection for one group.
  * Used by write handlers for duplicate checking without reading other collections.
  * @param {string} gid
- * @param {object} headers
- * @returns {Promise<Array>}
+ * @param {Record<string, string>} headers
+ * @returns {Promise<Array<Record<string, any>>>}
  */
 export async function readTransactions(gid, headers) {
   const docs = await fsListAll(col(gid, TRANSACTIONS_COLLECTION), headers);
@@ -24,8 +26,8 @@ export async function readTransactions(gid, headers) {
 /**
  * Load the full dataset for one group.
  * @param {string} gid
- * @param {object} headers Authorized Firestore headers.
- * @returns {Promise<{anggota: Array, kategori: Array, transaksi: Array, updatedAt?: string, settings: import('../src/types/finkas.d.ts').GroupSettings}>}
+ * @param {Record<string, string>} headers Authorized Firestore headers.
+ * @returns {Promise<{anggota: Array<Record<string, any>>, kategori: Array<Record<string, any>>, transaksi: Array<Record<string, any>>, updatedAt?: string, settings: import('../src/types/finkas.d.ts').GroupSettings}>}
  */
 export async function readGroupData(gid, headers) {
   const [memberDocs, categoryDocs, transactionDocs, settings] = await Promise.all([
@@ -49,7 +51,9 @@ export async function readGroupData(gid, headers) {
 
 /**
  * Load the audit trail for one group, newest first.
- * @returns {Promise<Array>}
+ * @param {string} gid
+ * @param {Record<string, string>} headers
+ * @returns {Promise<Array<Record<string, any>>>}
  */
 export async function readAuditLog(gid, headers) {
   // Bounded read: the audit view only shows the newest ~100 entries, so a

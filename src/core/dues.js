@@ -2,7 +2,16 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE, GROUP_START_YEAR, GROUP_START_MONTH } from './config.js';
 import { parseKasStart } from './utils.js';
 
+/**
+ * @param {string} id
+ * @param {number} monthIndex
+ * @param {number | string} year
+ */
 const keyFor = (id, monthIndex, year) => JSON.stringify([id, monthIndex, Number(year)]);
+/**
+ * @param {number} monthIndex
+ * @param {number | string} year
+ */
 const ordinal = (monthIndex, year) => Number(year) * 12 + monthIndex;
 
 const billingFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' });
@@ -53,6 +62,7 @@ export const createDuesLedger = (state, { now = new Date(), year, monthlyFee = D
       status: !owed ? 'exempt' : total >= monthlyFee ? 'paid' : total > 0 ? 'partial' : 'unpaid'
     };
   };
+  /** @param {import('../types/finkas.d.ts').Anggota} ang */
   const summarize = (ang) => {
     const months = [];
     const from = year === undefined ? first : Math.max(first, ordinal(0, year));
@@ -76,6 +86,10 @@ export const createDuesLedger = (state, { now = new Date(), year, monthlyFee = D
   };
 };
 
-export const duesStatusLabel = (month) => ({
+/** @type {Record<import('../types/finkas.d.ts').DuesMonth['status'], string>} */
+const DUES_STATUS_LABELS = {
   exempt: 'Tidak ditagih', paid: 'Lunas', partial: 'Sebagian', unpaid: 'Belum bayar'
-})[month.status];
+};
+
+/** @param {Pick<import('../types/finkas.d.ts').DuesMonth, 'status'>} month */
+export const duesStatusLabel = (month) => DUES_STATUS_LABELS[month.status];

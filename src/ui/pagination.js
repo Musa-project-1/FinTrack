@@ -13,6 +13,7 @@ export const buildPageList = (current, total) => {
   return [1, '…', current - 1, current, current + 1, '…', total];
 };
 
+/** @param {Element | null} listEl @param {number} current @param {number} total */
 const renderPageList = (listEl, current, total) => {
   if (!listEl) return;
   const nodes = buildPageList(current, total).map((token) => {
@@ -35,6 +36,7 @@ const renderPageList = (listEl, current, total) => {
   listEl.replaceChildren(...nodes);
 };
 
+/** @param {Element | null} rangeEl @param {number} startIdx @param {number} endIdx @param {number} total @param {string} label */
 const renderPageRange = (rangeEl, startIdx, endIdx, total, label) => {
   if (!rangeEl) return;
   const rangeStrong = document.createElement('strong');
@@ -49,6 +51,7 @@ const renderPageRange = (rangeEl, startIdx, endIdx, total, label) => {
   );
 };
 
+/** @param {string} id @param {string} label @param {() => void} render */
 export const createPagination = (id, label, render) => {
   let page = 1;
   let previousContext = '';
@@ -98,6 +101,11 @@ export const createPagination = (id, label, render) => {
     input.addEventListener('change', applyInputPage);
   };
 
+  /**
+   * @template T
+   * @param {T[]} items
+   * @param {string} context
+   */
   const paginate = (items, context) => {
     if (previousContext !== context) {
       previousContext = context;

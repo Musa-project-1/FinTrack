@@ -30,14 +30,20 @@ export const GROUP_SUBCOLLECTIONS = [
 export const APP_CONFIG_DOC = 'settings/app_config';
 
 export const GROUP_ID_RE = /^[A-Za-z0-9-]{3,40}$/;
+/** @param {string} gid */
 export const isValidGroupId = (gid) => GROUP_ID_RE.test(String(gid || '').trim());
 
 export const DOC_ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+/** @param {string} id */
 export const isValidDocId = (id) => DOC_ID_RE.test(String(id || '').trim());
 
+/** @param {string} gid */
 export const groupDoc = (gid) => `groups/${gid}`;
+/** @param {string} gid @param {string} name */
 export const col = (gid, name) => `groups/${gid}/${name}`;
+/** @param {string} gid */
 export const settingsDoc = (gid) => `groups/${gid}/settings/app_config`;
+/** @param {string} gid */
 export const privateDoc = (gid) => `groups/${gid}/private/config`;
 
 /**
@@ -46,7 +52,7 @@ export const privateDoc = (gid) => `groups/${gid}/private/config`;
  *
  * A read failure is rethrown. An empty list would let every authorization
  * check either revoke everyone or, if the caller ignored it, trust everyone.
- * @param {object} headers
+ * @param {Record<string, string>} headers
  * @returns {Promise<string[]>}
  */
 export async function readSuperadminEmails(headers) {
@@ -112,6 +118,10 @@ export const nowIso = () => new Date().toISOString();
 /**
  * Append an audit entry. Best effort — a failure here must never fail the
  * caller's operation, but it is always logged.
+ * @param {string} gid
+ * @param {string} aksi
+ * @param {string} detail
+ * @param {Record<string, string>} headers
  */
 export async function writeAuditLog(gid, aksi, detail, headers) {
   if (!isValidGroupId(gid)) {
@@ -137,6 +147,8 @@ export async function writeAuditLog(gid, aksi, detail, headers) {
  * mutation succeeds. Clients poll this field via the lightweight
  * `checkUpdate` action to detect remote changes without a full data pull.
  * Best-effort — never fails the caller's write.
+ * @param {string} gid
+ * @param {Record<string, string>} headers
  */
 export async function touchGroupUpdated(gid, headers) {
   const ts = nowIso();
@@ -151,6 +163,7 @@ export async function touchGroupUpdated(gid, headers) {
 
 /**
  * Public directory of groups — identifiers and names only, never credentials.
+ * @param {Record<string, string>} headers
  * @returns {Promise<Array<{id: string, nama: string}>>}
  */
 export async function listGroups(headers) {
@@ -168,6 +181,8 @@ export async function listGroups(headers) {
 
 /**
  * Read the credential document for a group.
+ * @param {string} gid
+ * @param {Record<string, string>} headers
  * @returns {Promise<{admin_email?: string, admin_password_hash?: string, pin_hash?: string}|null>}
  */
 export async function getPrivateConfig(gid, headers) {
@@ -176,6 +191,9 @@ export async function getPrivateConfig(gid, headers) {
 
 /**
  * Persist credential fields for a group (private subcollection only).
+ * @param {string} gid
+ * @param {Record<string, unknown>} data
+ * @param {Record<string, string>} headers
  */
 export async function setPrivateConfig(gid, data, headers) {
   const updateMask = Object.keys(data);
@@ -185,6 +203,8 @@ export async function setPrivateConfig(gid, data, headers) {
 
 /**
  * Remove a group and every document nested beneath it.
+ * @param {string} gid
+ * @param {Record<string, string>} headers
  * @returns {Promise<number>} Number of documents deleted.
  */
 export async function deleteGroupTree(gid, headers) {
@@ -201,5 +221,5 @@ export async function deleteGroupTree(gid, headers) {
   return deleted;
 }
 
-/** Full resource name for a document inside a group collection. */
+/** Full resource name for a document inside a group collection. @param {string} gid @param {string} collection @param {string} id */
 export const memberName = (gid, collection, id) => docName(col(gid, collection), id);

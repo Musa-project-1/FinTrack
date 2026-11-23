@@ -1,3 +1,4 @@
+/** @param {Pick<import('../types/finkas.d.ts').DuesMonth, 'owed' | 'status' | 'due'>} month */
 export const getDuesDisplayStatus = (month) => {
   if (!month.owed) return 'Libur';
   if (month.status === 'paid') return 'Lunas';
@@ -5,21 +6,26 @@ export const getDuesDisplayStatus = (month) => {
   return month.due ? 'Belum' : 'Nanti';
 };
 
+/** @typedef {'seal' | 'rosette' | 'shield'} StampStyle */
+/** @type {readonly StampStyle[]} */
 export const STAMP_STYLES = Object.freeze(['seal', 'rosette', 'shield']);
+/** @type {StampStyle | undefined} */
 let currentStyle;
 
+/** @returns {StampStyle} */
 export const getActiveIndicatorStyle = () => {
   if (currentStyle) return currentStyle;
-  let saved;
-  try { saved = localStorage.getItem('finkas_indicator_style'); }
+  let saved = '';
+  try { saved = localStorage.getItem('finkas_indicator_style') || ''; }
   catch {}
-  if (saved && STAMP_STYLES.includes(saved)) return saved;
+  if (saved && STAMP_STYLES.includes(/** @type {StampStyle} */ (saved))) return /** @type {StampStyle} */ (saved);
   return saved === 'star' || saved === 'round-star' ? 'rosette' : 'seal';
 };
 
+/** @param {string} style */
 export const saveIndicatorStyle = (style) => {
-  if (!STAMP_STYLES.includes(style)) return false;
-  currentStyle = style;
+  if (!STAMP_STYLES.includes(/** @type {StampStyle} */ (style))) return false;
+  currentStyle = /** @type {StampStyle} */ (style);
   try { localStorage.setItem('finkas_indicator_style', style); }
   catch {}
   return true;
@@ -31,7 +37,9 @@ export const STAMP_META = Object.freeze({
   shield: { label: 'Perisai Sah', sub: 'Perisai arsip digital bergaya modern' }
 });
 
+/** @param {number} cx @param {number} cy @param {number} radius @param {number} controlRadius */
 const rosettePathAt = (cx, cy, radius, controlRadius, petals = 12) => {
+  /** @param {number} angle @param {number} r */
   const point = (angle, r) => `${(cx + r * Math.cos(angle)).toFixed(2)} ${(cy + r * Math.sin(angle)).toFixed(2)}`;
   const step = Math.PI / petals;
   const curves = Array.from({ length: petals }, (_, index) =>
@@ -39,19 +47,23 @@ const rosettePathAt = (cx, cy, radius, controlRadius, petals = 12) => {
   return `M ${point(0, radius)} ${curves.join(' ')} Z`;
 };
 
+/** @param {number} radius @param {number} controlRadius */
 const rosettePath = (radius, controlRadius) => rosettePathAt(20, 20, radius, controlRadius, 12);
 
+/** @type {Record<string, string>} */
 const miniShapes = Object.freeze({
   seal: '<circle class="mini-seal-bg" cx="9" cy="9" r="7.8"/><path class="mini-seal-check" d="M5.5 9.2 L7.9 11.6 L12.7 6.5"/>',
   rosette: `<path class="mini-seal-bg" d="${rosettePathAt(9, 9, 6.8, 8.6, 8)}"/><path class="mini-seal-check" d="M5.6 9.2 L7.9 11.5 L12.6 6.6"/>`,
   shield: '<path class="mini-seal-bg" d="M9 1.4 L16 4.2 V9.1 C16 13.3 13 15.9 9 17.1 C5 15.9 2 13.3 2 9.1 V4.2 Z"/><path class="mini-seal-check" d="M5.7 9.1 L8 11.4 L12.5 6.6"/>'
 });
 
+/** @param {StampStyle} [style] */
 export const renderMiniStamp = (style = getActiveIndicatorStyle()) => {
   const validStyle = STAMP_STYLES.includes(style) ? style : 'seal';
   return `<svg class="mini-stamp-ico" viewBox="0 0 18 18" aria-hidden="true" focusable="false">${miniShapes[validStyle]}</svg>`;
 };
 
+/** @param {boolean} [isNewlyPaid] @param {StampStyle} [style] */
 export const renderLunasHtml = (isNewlyPaid = false, style = getActiveIndicatorStyle()) => {
   const validStyle = STAMP_STYLES.includes(style) ? style : 'seal';
   return `
@@ -62,6 +74,7 @@ export const renderLunasHtml = (isNewlyPaid = false, style = getActiveIndicatorS
   </span>`;
 };
 
+/** @type {Record<string, string>} */
 const passbookEmblems = {
   seal: '<circle class="seal-halo" cx="20" cy="20" r="18"/><circle class="seal-track-ring" cx="20" cy="20" r="15"/><circle class="seal-core" cx="20" cy="20" r="12.2"/><path class="seal-check" d="M14.4 20.2 L18.2 24 L26 15.8"/>',
   rosette: `<path class="seal-halo" d="${rosettePath(15.8, 19)}"/><path class="seal-core" d="${rosettePath(12.6, 15.5)}"/><circle class="seal-core-ring" cx="20" cy="20" r="9.6"/><path class="seal-check" d="M14.6 20.2 L18.2 23.8 L25.6 16"/>`,
@@ -72,6 +85,7 @@ const passbookEmblems = {
   unpaid: '<circle class="seal-unpaid-ring" cx="20" cy="20" r="14"/><path class="seal-unpaid-hand" d="M20 13.5 V20 L24 22.4"/>'
 };
 
+/** @param {string} kind @param {StampStyle} [style] */
 export const renderPassbookEmblem = (kind, style = getActiveIndicatorStyle()) => `
   <svg class="seal-svg" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
     ${kind === 'paid' ? passbookEmblems[style] || passbookEmblems.seal : passbookEmblems[kind]}

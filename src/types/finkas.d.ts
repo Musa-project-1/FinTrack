@@ -179,3 +179,56 @@ declare global {
     sync?: { register(tag: string): Promise<void> };
   }
 }
+
+export interface ApiRequest {
+  method?: string;
+  headers?: Record<string, string | string[] | undefined>;
+  query?: Record<string, string | string[] | undefined>;
+  body?: unknown;
+  socket?: { remoteAddress?: string };
+}
+
+export interface ApiResponse {
+  status(code: number): ApiResponse;
+  json(payload: unknown): ApiResponse | void;
+  setHeader(name: string, value: string | string[]): void;
+  end?(chunk?: unknown): void;
+}
+
+export type FirestoreHeaders = Record<string, string>;
+
+export type FirestoreValue =
+  | { nullValue: null }
+  | { booleanValue: boolean }
+  | { integerValue: string }
+  | { doubleValue: number }
+  | { stringValue: string }
+  | { arrayValue: { values: FirestoreValue[] } }
+  | { mapValue: { fields: Record<string, FirestoreValue> } };
+
+export interface FirestoreDoc {
+  name?: string;
+  fields?: Record<string, FirestoreValue>;
+  createTime?: string;
+  updateTime?: string;
+}
+
+export interface SessionClaims {
+  role: string;
+  gid: string;
+  email: string;
+  exp: number;
+  iat?: number;
+}
+
+export interface ApiHandlerResult<T = unknown> {
+  code: number;
+  payload: { status: boolean; message?: string; data?: T };
+}
+
+export interface GroupRecord {
+  id: string;
+  nama: string;
+  dibuat?: string;
+  [key: string]: unknown;
+}

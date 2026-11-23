@@ -50,6 +50,8 @@ import {
 
 /* ── Read-only Transaction Helpers ───────────────────────────────── */
 
+/** @typedef {Record<string, string>} FsHeaders */
+/** @param {FsHeaders} headers */
 async function beginReadOnlyTx(headers) {
   try {
     const res = await fetch(`${FIRESTORE_BASE}:beginTransaction`, {
@@ -65,6 +67,7 @@ async function beginReadOnlyTx(headers) {
   }
 }
 
+/** @param {FsHeaders} headers @param {string | null} transaction */
 async function rollbackTx(headers, transaction) {
   if (!transaction) return;
   try {
@@ -78,7 +81,9 @@ async function rollbackTx(headers, transaction) {
   }
 }
 
+/** @param {string} colPath @param {FsHeaders} headers @param {string | null} transaction */
 async function listAllInTx(colPath, headers, transaction) {
+  /** @type {Array<{name: string, fields: Record<string, any>}>} */
   const docs = [];
   let pageToken = '';
   for (let page = 0; page < 40; page += 1) {
@@ -90,8 +95,8 @@ async function listAllInTx(colPath, headers, transaction) {
       throw new Error(`Gagal membaca koleksi (${res.status}): ${colPath}`);
     }
     const json = await res.json();
-    (json.documents || []).forEach((doc) => {
-      docs.push({ name: doc.name, fields: decodeFields(doc.fields) });
+    (json.documents || []).forEach((/** @type {import('../src/types/finkas.d.ts').FirestoreDoc} */ doc) => {
+      docs.push({ name: doc.name || '', fields: decodeFields(doc.fields) });
     });
     pageToken = json.nextPageToken || '';
     if (!pageToken) break;
@@ -99,6 +104,7 @@ async function listAllInTx(colPath, headers, transaction) {
   return docs;
 }
 
+/** @param {string} docPath @param {FsHeaders} headers @param {string | null} transaction */
 async function getDocInTx(docPath, headers, transaction) {
   const txParam = transaction ? `?transaction=${encodeURIComponent(transaction)}` : '';
   const res = await fetch(`${FIRESTORE_BASE}/${docPath}${txParam}`, { headers });
@@ -186,7 +192,7 @@ export function validateSnapshot(raw) {
   const paymentAccount = data.paymentAccount == null ? undefined : normalizePaymentAccount(data.paymentAccount);
 
   const skippedMonths = Array.isArray(rawSkipped)
-    ? rawSkipped.filter((m) => SKIPPED_MONTH_RE.test(m))
+    ? rawSkipped.filter((/** @type {string} */ m) => SKIPPED_MONTH_RE.test(m))
     : [];
 
   const seenMember = new Set();
@@ -334,11 +340,11 @@ export function validateSnapshot(raw) {
  * Export an atomic point-in-time snapshot of a group's full ledger and proofs.
  *
  * @param {string} gid
- * @param {object} payloadOrHeaders
- * @param {object} [maybeHeaders]
+ * @param {Record<string, any>} payloadOrHeaders
+ * @param {FsHeaders} [maybeHeaders]
  */
 export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
-  const headers = maybeHeaders !== undefined ? maybeHeaders : payloadOrHeaders;
+  const headers = /** @type {FsHeaders} */ (maybeHeaders !== undefined ? maybeHeaders : payloadOrHeaders);
   const transaction = await beginReadOnlyTx(headers);
   const consistency = transaction ? 'firestore-read-only-transaction' : 'best-effort-read';
 
@@ -361,8 +367,9 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
       getDocInTx(groupDoc(gid), headers, transaction)
     ]);
 
-    const anggota = memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || ''));
-    const kategori = categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || ''));
+    const anggota = /** @type {import('../src/types/finkas.d.ts').Anggota[]} */ (memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || '')));
+    const kategori = /** @type {import('../src/types/finkas.d.ts').Kategori[]} */ (categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || '')));
+    /** @param {{name: string, fields: Record<string, any>}} doc */
     const belongsToGroup = (doc) => !doc.fields?.groupId || doc.fields.groupId === gid;
     const attachments = proofDocs.filter(belongsToGroup).map((d) => {
       const f = d.fields || {};
@@ -391,7 +398,8 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
     }).sort((a, b) => (a.operationId || '').localeCompare(b.operationId || ''));
 
     const proofMap = new Map(attachments.map((a) => [a.idTransaksi, a]));
-    const transaksi = transactionDocs.map((d) => {
+    const transaksi = /** @type {import('../src/types/finkas.d.ts').Transaksi[]} */ (transactionDocs.map((d) => {
+      /** @type {Record<string, any>} */
       const f = { ...d.fields };
       const idTrx = f.ID_Transaksi || d.name.split('/').pop();
       const att = proofMap.get(idTrx);
@@ -406,10 +414,11 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
         delete f.Bukti;
       }
       return f;
-    }).sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime());
+    }).sort((a, b) => new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime()));
 
-    const skippedMonths = Array.isArray(settings?.skippedMonths) ? settings.skippedMonths : [];
-    const kasStart = settings?.kasStart || '';
+    const s = /** @type {Record<string, any> | null} */ (settings);
+    const skippedMonths = Array.isArray(s?.skippedMonths) ? s.skippedMonths : [];
+    const kasStart = s?.kasStart || '';
     const gname = groupDocInfo?.nama || gid;
 
     /** @type {import('../src/types/finkas.d.ts').SnapshotEnvelope} */
@@ -433,7 +442,7 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
         transaksi,
         skippedMonths,
         kasStart,
-        ...(settings?.paymentAccount ? { paymentAccount: settings.paymentAccount } : {}),
+        ...(s?.paymentAccount ? { paymentAccount: s.paymentAccount } : {}),
         attachments,
         operations
       }
@@ -453,8 +462,8 @@ export async function exportSnapshot(gid, payloadOrHeaders, maybeHeaders) {
  * Restore a full database snapshot into a group.
  *
  * @param {string} gid Target group id
- * @param {Record<string, unknown> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }} payload
- * @param {object} headers
+ * @param {Record<string, any> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }} payload
+ * @param {FsHeaders} headers
  */
 export async function restoreSnapshot(gid, payload, headers) {
   const rawData = payload?.data || payload;
@@ -475,8 +484,10 @@ export async function restoreSnapshot(gid, payload, headers) {
 
   const { anggota, kategori, transaksi, skippedMonths, kasStart, paymentAccount, attachments, operations } = validated.data;
   const timestamp = nowIso();
-  const idOf = (doc) => String(doc.name || '').split('/').pop();
+  /** @param {{name?: string}} doc */
+  const idOf = (doc) => String(doc.name || '').split('/').pop() || '';
 
+  /** @param {string} collName @param {Set<string>} keptIds @param {() => Array<import('./_sa.js').FirestoreWrite>} buildWrites */
   const upsertThenPrune = async (collName, keptIds, buildWrites) => {
     const writes = buildWrites();
     for (let i = 0; i < writes.length; i += 400) {
@@ -584,6 +595,7 @@ export async function restoreSnapshot(gid, payload, headers) {
     transaksi.map((t) => {
       const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40);
       transaksiIds.add(idTrx);
+      /** @type {Record<string, any>} */
       const fields = {
         ID_Transaksi: idTrx,
         Timestamp: cleanText(t.Timestamp ?? t.timestamp, 30) || timestamp,
@@ -609,6 +621,7 @@ export async function restoreSnapshot(gid, payload, headers) {
   );
 
   // Restoring a cash ledger across groups must retain the target group's transfer account.
+  /** @type {Record<string, any>} */
   const settings = { skippedMonths, kasStart: kasStart || '' };
   if (paymentAccount && sourceGid === gid) settings.paymentAccount = paymentAccount;
   await fsPatch(settingsDoc(gid), settings, headers, Object.keys(settings));

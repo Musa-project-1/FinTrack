@@ -357,8 +357,10 @@ export const formatReportToCSV = (report, separator = ';', options = {}) => {
     throw new Error('Laporan kas memiliki data transaksi invalid. Ekspor CSV dibatalkan demi integritas data.');
   }
 
+  /** @type {string[]} */
   const lines = [];
 
+  /** @param {...(string | number)} cells */
   const row = (...cells) => lines.push(cells.join(separator));
 
   // Metadata headers

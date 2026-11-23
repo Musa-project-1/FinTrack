@@ -39,11 +39,13 @@ const ALLOWED_MIME_TYPES = new Set([
 
 /** @template T @param {string} message @param {T} data */
 const ok = (message, data) => ({ status: true, message, data });
+/** @param {string} message @param {object | null} [data] */
 const fail = (message, data = null) => ({ status: false, message, data });
 
 /** @typedef {{base64?: string, data?: string, size?: number, type?: string, mimeType?: string, name?: string, filename?: string}} ProofInput */
 /** @typedef {ProofInput & {idTransaksi?: string, file?: ProofInput, dataForm?: {idTransaksi?: string, file?: ProofInput}}} ProofRequest */
 
+/** @param {unknown} val */
 const cleanText = (val, max = 100) => String(val || '').trim().slice(0, max);
 
 /**
@@ -110,6 +112,7 @@ export function detectFileSignature(buffer) {
  */
 export function sanitizeFileName(rawName, idTransaksi, detectedType) {
   const base = path.basename(String(rawName || '').replace(/[\\/\0]/g, '_')).trim();
+  /** @type {Record<string, string>} */
   const extMap = {
     'image/jpeg': '.jpg',
     'image/png': '.png',
@@ -230,7 +233,7 @@ export function validateAttachmentInput(payload) {
  *
  * @param {string} gid
  * @param {ProofRequest} payload
- * @param {object} headers
+ * @param {Record<string, string>} headers
  * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
  */
 export async function uploadAttachment(gid, payload, headers) {
@@ -303,7 +306,7 @@ export async function uploadAttachment(gid, payload, headers) {
  *
  * @param {string} gid
  * @param {ProofRequest} payload
- * @param {object} headers
+ * @param {Record<string, string>} headers
  * @returns {Promise<{status: boolean, message: string, data?: object|null}>}
  */
 export async function deleteAttachment(gid, payload, headers) {
@@ -354,7 +357,7 @@ export async function deleteAttachment(gid, payload, headers) {
  *
  * @param {string} gid
  * @param {ProofRequest} payload
- * @param {object} headers
+ * @param {Record<string, string>} headers
  * @returns {Promise<{status: boolean, message: string, data?: object|null, notFound?: boolean}>}
  */
 export async function readAttachment(gid, payload, headers) {
@@ -387,8 +390,8 @@ export async function readAttachment(gid, payload, headers) {
  * Returns list {idTransaksi, name, type, size, base64}.
  *
  * @param {string} gid
- * @param {object} headers
- * @returns {Promise<{status: boolean, message: string, data: {attachments: Array}}>}
+ * @param {Record<string, string>} headers
+ * @returns {Promise<{status: boolean, message: string, data: {attachments: Array<object>}}>}
  */
 export async function exportAttachments(gid, headers) {
   const docs = await fsListAll(col(gid, PROOFS_COLLECTION), headers);
@@ -410,6 +413,7 @@ export async function exportAttachments(gid, headers) {
   });
 }
 
+/** @type {Record<string, (gid: string, payload: Record<string, any>, headers: Record<string, string>) => Promise<{status: boolean, message: string, data?: unknown, updatedAt?: string}>>} */
 export const ATTACHMENT_WRITE_HANDLERS = {
   uploadAttachment,
   deleteAttachment

@@ -30,7 +30,10 @@ export const OFFLINE_STORE_NAME = 'offline-transactions';
 /** Default monthly contribution amount (Rp) */
 export const DEFAULT_MONTHLY_FEE = 10000;
 
-/** Newest ledger row first. Invalid timestamps sort last, never to the top. */
+/** Newest ledger row first. Invalid timestamps sort last, never to the top.
+ * @param {{Timestamp?: string}} a
+ * @param {{Timestamp?: string}} b
+ */
 export const byNewestTimestamp = (a, b) => {
   const tb = new Date(b?.Timestamp || 0).getTime();
   const ta = new Date(a?.Timestamp || 0).getTime();

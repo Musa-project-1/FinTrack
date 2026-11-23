@@ -111,6 +111,7 @@ if (channel) {
  * 4. Crucially: DO NOT clear `hasRemoteUpdate` (an unread remote change remains unread).
  * 5. Broadcast to sibling tabs scoped with `groupId` so their indicators turn on.
  */
+/** @param {CustomEvent<{groupId?: string, updatedAt?: string}>} e */
 function handleMutationSuccess(e) {
   const detail = e?.detail;
   const activeGroup = getActiveGroupId();
@@ -158,6 +159,7 @@ function dispatchSyncStatus() {
 
 /* ── Badge / Freshness state management ──────────────────────────── */
 
+/** @param {string} [groupId] */
 function markHasUpdate(groupId) {
   const activeGroup = getActiveGroupId();
   const targetGroup = groupId || activeGroup;
@@ -172,6 +174,10 @@ function markHasUpdate(groupId) {
   }
 }
 
+/**
+ * @param {string} [groupId]
+ * @param {string | null} [updatedAt]
+ */
 function markUpToDate(groupId, updatedAt) {
   const activeGroup = getActiveGroupId();
   const targetGroup = groupId || activeGroup;

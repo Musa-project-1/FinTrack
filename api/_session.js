@@ -55,6 +55,7 @@ export function getSessionSecret() {
   throw new Error('Session secret tidak tersedia. Set FINKAS_SESSION_SECRET atau konfigurasi service account.');
 }
 
+/** @param {string} input */
 const hmac = (input) =>
   crypto.createHmac('sha256', getSessionSecret()).update(input).digest();
 
@@ -122,6 +123,11 @@ export function verifySession(token) {
  */
 export const readSession = (body) => verifySession(String(body?.sessionToken || '').trim());
 
+/**
+ * @param {import('../src/types/finkas.d.ts').SessionClaims} session
+ * @param {string} groupId
+ * @param {{groupId?: string, revokedAfter?: number|string}|null} groupInfo
+ */
 function matchesGroupInfo(session, groupId, groupInfo) {
   if (groupInfo?.groupId && String(groupInfo.groupId).trim() !== groupId) return false;
   const revokedAfter = groupInfo?.revokedAfter;
@@ -200,6 +206,9 @@ export function hashSecret(secret, scope = '') {
 
 /**
  * Verify a secret against a stored scrypt hash.
+ * @param {string} secret
+ * @param {string} stored
+ * @param {string} [scope='']
  * @returns {boolean}
  */
 export function verifyHashedSecret(secret, stored, scope = '') {
@@ -249,6 +258,7 @@ export function secretMatches(secret, stored, scope, legacyPrefix = '') {
 
 /* ── Server-side rate limiting ───────────────────────────────────── */
 
+/** @param {string} key */
 const rateLimitKey = (key) =>
   `${RATE_LIMIT_COLLECTION}/${crypto.createHash('sha256').update(key).digest('hex').slice(0, 32)}`;
 
@@ -310,6 +320,7 @@ export async function registerFailedAttempt(key, maxAttempts, windowMs) {
 
 /**
  * Report whether an identity is currently locked out.
+ * @param {string} key
  * @returns {Promise<{locked: boolean, retryAfterSec: number}>}
  */
 export async function checkRateLimit(key) {
@@ -328,7 +339,7 @@ export async function checkRateLimit(key) {
   }
 }
 
-/** Clear the attempt counter after a successful authentication. */
+/** Clear the attempt counter after a successful authentication. @param {string} key */
 export async function clearRateLimit(key) {
   try {
     const headers = await requireFirestoreHeaders();
@@ -386,6 +397,7 @@ export function checkReadRateLimit(key, maxPerWindow = READ_MAX_PER_WINDOW, wind
  * Best-effort client IP extraction behind a proxy.
  * Prefers x-real-ip from the edge or the rightmost x-forwarded-for entry to prevent
  * spoofed-header rate-limit bypasses.
+ * @param {import('../src/types/finkas.d.ts').ApiRequest | null | undefined} req
  */
 export const clientIp = (req) => {
   const headers = req?.headers || {};

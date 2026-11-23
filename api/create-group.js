@@ -28,13 +28,20 @@ const GENERATED_PASSWORD_LENGTH = 10;
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!';
 const RESERVED_GROUP_IDS = new Set(['utama']);
 
+/** @typedef {import('../src/types/finkas.d.ts').ApiRequest} ApiRequest */
+/** @typedef {import('../src/types/finkas.d.ts').ApiResponse} ApiResponse */
+/** @typedef {Record<string, any>} JsonBody */
+/** @typedef {Record<string, string>} FsHeaders */
+
+/** @param {ApiResponse} res @param {number} status @param {unknown} payload */
 const sendJson = (res, status, payload) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.status(status).json(payload);
 };
 
+/** @param {ApiRequest} req @returns {JsonBody} */
 const parseBody = (req) => {
-  if (req.body && typeof req.body === 'object') return req.body;
+  if (req.body && typeof req.body === 'object') return /** @type {JsonBody} */ (req.body);
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -54,13 +61,17 @@ const generatePassword = (length = GENERATED_PASSWORD_LENGTH) => {
   return res;
 };
 
+/** @param {unknown} value */
 const cleanName = (value) => String(value ?? '').trim().slice(0, MAX_GROUP_NAME);
+/** @param {unknown} value */
 const cleanPin = (value) => String(value ?? '').replace(/\D/g, '').slice(0, 4);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** @param {unknown} email */
 const isValidEmail = (email) => EMAIL_RE.test(String(email || '').trim());
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
+/** @param {JsonBody} body @param {FsHeaders} headers */
 async function createGroup(body, headers) {
   const nama = cleanName(body?.nama);
   const pin = cleanPin(body?.pin);
@@ -103,6 +114,7 @@ async function createGroup(body, headers) {
   };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers */
 async function setAdminCredential(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   const adminEmail = String(body?.adminEmail || '').trim().toLowerCase();
@@ -137,6 +149,7 @@ async function setAdminCredential(body, headers) {
   return { status: true, message: 'Kredensial Admin Grup berhasil diperbarui!' };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers */
 async function setGroupPin(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   const pin = cleanPin(body?.pin);
@@ -159,6 +172,7 @@ async function setGroupPin(body, headers) {
   return { status: true, message: 'PIN grup diperbarui.' };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers */
 async function renameGroup(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   const nama = cleanName(body?.nama);
@@ -173,6 +187,7 @@ async function renameGroup(body, headers) {
   return { status: true, message: `Nama grup diubah menjadi "${nama}".` };
 }
 
+/** @param {JsonBody} body @param {FsHeaders} headers */
 async function removeGroup(body, headers) {
   const groupId = String(body?.groupId || '').trim();
   if (!isValidGroupId(groupId) || RESERVED_GROUP_IDS.has(groupId)) {
@@ -193,6 +208,7 @@ async function removeGroup(body, headers) {
   }
 }
 
+/** @type {Record<string, (body: JsonBody, headers: FsHeaders) => Promise<{status: boolean, message: string, data?: unknown}>>} */
 const ACTIONS = {
   create: createGroup,
   'set-admin-credential': setAdminCredential,
@@ -201,6 +217,7 @@ const ACTIONS = {
   remove: removeGroup
 };
 
+/** @param {ApiRequest} req @param {ApiResponse} res */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });

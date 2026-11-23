@@ -10,11 +10,14 @@ export const SKIPPED_MONTH_RE = /^(0[1-9]|1[0-2])-\d{4}$/;
 export const ARUS = ['Masuk', 'Keluar'];
 export const STATUSES = ['Aktif', 'Nonaktif'];
 
+/** @param {string} message */
 export const fail = (message) => ({ status: false, message, data: null });
 /** @param {string} message @param {object|null} [data] */
 export const ok = (message, data = null) => ({ status: true, message, data });
 
+/** @param {unknown} value @param {number} max */
 export const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
+/** @param {unknown} value @param {number} max */
 export const cleanDigits = (value, max) => String(value ?? '').replace(/\D/g, '').slice(0, max);
 
 export const MAX_BULK_TRANSACTIONS = 300;
@@ -41,6 +44,7 @@ export const parseTimestamp = (value) => {
 
 /**
  * Validate the shared transaction payload shape.
+ * @param {Record<string, any> | null | undefined} dataForm
  * @returns {{nominal: number, tipeArus: string, idKategori: string, idAnggota: string,
  *            bulanIuran: string, tahunIuran: string, keterangan: string, timestamp: string|null, operationId?: string}|{error: string}}
  */
@@ -69,6 +73,8 @@ export function parseTransactionInput(dataForm) {
 
 /**
  * Find an existing iuran payment matching the member and period.
+ * @param {Array<Record<string, any>>} transactions
+ * @param {{idAnggota: string, bulanIuran: string, tahunIuran: string}} input
  * @param {string|null} [excludeId]
  * Exported so the de-duplication rule can be tested directly.
  */
@@ -81,6 +87,7 @@ export const findDuplicateIuran = (transactions, input, excludeId = null) =>
     String(t.Tahun_Iuran) === String(input.tahunIuran)
   );
 
+/** @param {{tipeArus?: string, idAnggota?: string, bulanIuran?: string, tahunIuran?: string} | null | undefined} input */
 export const isIuranPayment = (input) =>
   input?.tipeArus === 'Masuk' &&
   input?.idAnggota !== '-' &&

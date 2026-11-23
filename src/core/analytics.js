@@ -18,7 +18,8 @@ export const initAnalytics = (measurementId) => {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
-  function gtag(...args) { window.dataLayer.push(arguments); }
+  /** @param {...unknown} _args */
+  function gtag(..._args) { window.dataLayer.push(arguments); }
   window.gtag = gtag;
   gtag('js', new Date());
   gtag('config', measurementId, { anonymize_ip: true });

@@ -1,15 +1,21 @@
-export const normalizePaymentAccount = (value) => ({
-  bank: String(value?.bank ?? '').trim().slice(0, 60),
-  number: String(value?.number ?? '').replace(/[^\d]/g, '').slice(0, 34),
-  holder: String(value?.holder ?? '').trim().slice(0, 80),
-  whatsapp: String(value?.whatsapp ?? '').replace(/[^\d]/g, '').replace(/^0/, '62').slice(0, 15)
-});
+/** @param {unknown} value */
+export const normalizePaymentAccount = (value) => {
+  const v = /** @type {Record<string, unknown> | null | undefined} */ (value);
+  return {
+    bank: String(v?.bank ?? '').trim().slice(0, 60),
+    number: String(v?.number ?? '').replace(/[^\d]/g, '').slice(0, 34),
+    holder: String(v?.holder ?? '').trim().slice(0, 80),
+    whatsapp: String(v?.whatsapp ?? '').replace(/[^\d]/g, '').replace(/^0/, '62').slice(0, 15)
+  };
+};
 
 
+/** @param {unknown} value */
 export const validatePaymentAccount = (value) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return 'Pengaturan rekening tidak valid.';
-  const number = String(value.number ?? '').trim();
-  const whatsapp = String(value.whatsapp ?? '').trim();
+  const v = /** @type {Record<string, unknown>} */ (value);
+  const number = String(v.number ?? '').trim();
+  const whatsapp = String(v.whatsapp ?? '').trim();
   if (number && (!/^[\d -]+$/.test(number) || number.replace(/\D/g, '').length > 34)) {
     return 'Nomor rekening harus berupa angka yang valid.';
   }

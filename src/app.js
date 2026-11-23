@@ -271,7 +271,7 @@ document.addEventListener('click', (e) => {
     case 'open-month-receipt': openMonthReceipt(id, Number(month), Number(target.dataset.year)); break;
     case 'open-receipt': openReceipt(id); break;
     case 'copy-receipt': copyReceipt(); break;
-    case 'receipt-attachment': downloadReceiptAttachment(target); break;
+    case 'receipt-attachment': if (target instanceof HTMLButtonElement) downloadReceiptAttachment(target); break;
     case 'profil':            e.stopPropagation(); bukaProfilAnggota(id); break;
 
     /* ── Transaction actions ──────────────────────── */

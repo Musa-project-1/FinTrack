@@ -319,8 +319,13 @@ test('the shipped ESM shares core and motion dependencies and is available offli
   const file = 'src/ui/svelte-dashboard.js';
   const js = read(file);
   const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
-  assert.deepEqual(new Set(imports), new Set(['../core/config.js', '../core/utils.js', '../core/dues.js', '../core/state.js',
-    '../core/sync.js', '../core/offline.js', '../render/receipt.js', '../handlers/self-pay.js']));
+  assert.deepEqual(new Set(imports), new Set([
+    '../core/analytics.js', '../core/api-client.js', '../core/api.js',
+    '../core/cash-report.js', '../core/config.js', '../core/dues.js',
+    '../core/mutation.js', '../core/offline-store.js', '../core/offline.js',
+    '../core/payment-account.js', '../core/state.js', '../core/sync.js',
+    '../core/utils.js',
+  ]));
   assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
   const map = JSON.parse(read(file + '.map'));
   for (const file of [
@@ -346,6 +351,12 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     'ui/theme.ts', 'ui/keel.ts', 'ui/control-a11y.ts', 'ui/cdrop.ts',
     'ui/dpick.ts', 'ui/mpick.ts', 'ui/kasi-effects.ts', 'ui/kasi-stage.ts',
     'ui/kasi-mascot.ts', 'render/dashboard.ts', 'render/profile.ts', 'render/rekap.ts',
+    'render/index.ts', 'render/receipt.ts', 'ui/workspace.ts',
+    'ui/guided-tour.ts', 'handlers/attachments.ts', 'handlers/auth.ts',
+    'handlers/backup.ts', 'handlers/cash-report.ts', 'handlers/export.ts',
+    'handlers/group-picker.ts', 'handlers/master.ts', 'handlers/navigation.ts',
+    'handlers/offlineQueue.ts', 'handlers/payment-account.ts', 'handlers/quickpay.ts',
+    'handlers/self-pay.ts', 'handlers/transaction-shared.ts', 'handlers/transactions.ts',
     'components.ts', 'mount.ts'
   ]) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));

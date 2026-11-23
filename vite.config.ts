@@ -3,16 +3,13 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { authoredSourcemaps } from './scripts/authored-sourcemaps.mjs';
 
-const paths: Record<string, string> = {
-  'finkas/receipt': '../render/receipt.js',
-  'finkas/self-pay': '../handlers/self-pay.js'
-};
-
 export default defineConfig(({ mode }) => {
   const isOnboarding = mode === 'onboarding';
   return {
     resolve: {
       alias: {
+        'finkas/self-pay': resolve(import.meta.dirname, 'src/svelte/handlers/self-pay.ts'),
+        'finkas/receipt': resolve(import.meta.dirname, 'src/svelte/render/receipt.ts'),
         'finkas/dues-status': resolve(import.meta.dirname, 'src/svelte/ui/dues-status.ts'),
         'finkas/pagination': resolve(import.meta.dirname, 'src/svelte/ui/pagination.ts'),
         'finkas/hybrid-motion': resolve(import.meta.dirname, 'src/svelte/ui/hybrid-motion.ts'),
@@ -31,9 +28,9 @@ export default defineConfig(({ mode }) => {
       rolldownOptions: isOnboarding
         ? { output: { minify: true } }
         : {
-            external: id => /(?:^|\/)(?:src\/)?core\//.test(id) || Object.hasOwn(paths, id),
+            external: id => /(?:^|\/)(?:src\/)?core\//.test(id),
             output: {
-              paths: id => paths[id] ?? id.replace(/^(?:.*\/)?src\/core\/|^(?:\.\.\/)+core\//, '../core/'),
+              paths: id => id.replace(/^(?:.*\/)?src\/core\/|^(?:\.\.\/)+core\//, '../core/'),
               minify: true
             }
           }

@@ -29,10 +29,10 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=300">
+  <link rel="stylesheet" href="style.css?v=301">
 </head>
 <body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">
-  <script src="src/workspace-boot-theme.js?v=300"></script>
+  <script src="src/workspace-boot-theme.js?v=301"></script>
   <div class="bg-stage" id="bg-stage" aria-hidden="true">
     <!-- Mode: aurora (default) -->
     <div class="bg-layer bg-aurora">
@@ -123,7 +123,7 @@
   </header>
 
   <div class="workspace-startup" role="status">
-    <p class="workspace-startup-loading"><span aria-hidden="true" class="workspace-loading-dot"></span>Memuat buku kas…</p>
+    <p class="workspace-startup-loading"><span aria-hidden="true" class="workspace-loading-dot"></span><span id="workspace-startup-label">Memuat buku kas…</span></p>
     <div class="workspace-startup-error">
       <p>Buku kas belum bisa dimuat.</p>
       <button type="button" class="btn btn-secondary" data-action="sync-rekap-data">Coba Lagi</button>
@@ -134,7 +134,7 @@
       <div>
         <span class="group-overview-role non-admin-only"><i class="ph ph-eye" aria-hidden="true"></i> <span data-i18n="role.member">Tampilan Anggota · Transparansi Kas</span></span>
         <span class="group-overview-role admin-only"><i class="ph ph-shield-check" aria-hidden="true"></i> <span data-i18n="role.admin">Mode Pengurus</span></span>
-        <h1 id="group-overview-name"></h1>
+        <h1 id="group-overview-name" tabindex="-1"></h1>
         <div class="group-overview-meta">
           <span id="group-overview-fee"></span>
           <span id="group-overview-members"></span>
@@ -2937,7 +2937,7 @@
     </button>
   </nav>
 
-  <script type="module" src="src/app.js?v=300"></script>
-  <script src="src/sw-register.js?v=300" defer></script>
+  <script type="module" src="src/app.js?v=301"></script>
+  <script src="src/sw-register.js?v=301" defer></script>
 </body>
 </html>

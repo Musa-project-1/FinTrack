@@ -1,4 +1,6 @@
 /* Background layers and motion keyframes from prototype-hybrid-kinetic.html. */
+:root { --hybrid-ease-out: cubic-bezier(.22, 1, .36, 1); }
+
 body[data-canvas] {
   isolation: isolate;
   background-image: none;
@@ -9,7 +11,6 @@ body[data-canvas] {
   --hybrid-outflow: #64748B;
   --hybrid-ink: var(--text-main);
   --hybrid-canvas: var(--bg-color);
-  --hybrid-ease-out: cubic-bezier(.22, 1, .36, 1);
   --hybrid-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --hybrid-glow: color-mix(in oklab, var(--hybrid-spot) 9%, transparent);
   --hybrid-outline: color-mix(in oklab, var(--hybrid-spot) 30%, transparent);

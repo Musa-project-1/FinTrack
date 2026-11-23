@@ -14,7 +14,7 @@ import { fetchInitialData } from "./core/api.js";
 import { showToast, setConnectionStatus, isOnline } from "./core/utils.js";
 import { syncOfflineTransactions, deleteOfflineTransaction, countQueuedTransactions } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
-import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY } from "./core/config.js";
+import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "./core/config.js";
 import { initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from "./core/sync.js";
 import {
   applyTheme, watchSystemTheme, toggleTheme, setTheme, setPalette, applyHeaderStatsPreference,
@@ -71,7 +71,7 @@ import { initKasi, playKasiAction } from "./ui/kasi-mascot.js";
 import { initGuidedTour, startGuidedTour, advanceGuidedTour } from "./ui/guided-tour.js";
 import { initHistoryPagination } from "./render/transactions.js";
 import { filterDuesStatus, initDuesPagination } from "./render/rekap.js";
-import { initHybridMotion } from "./ui/hybrid-motion.js";
+import { getLastGroupDirection, initHybridMotion, runGroupSwitchTransition } from "./ui/hybrid-motion.js";
 import { initBento } from "./ui/bento-dashboard.js";
 import { initSpotlight, showSpotlightDetail, getPinnedMemberId, setMemberPin, toggleMemberPin } from "./ui/spotlight.js";
 import { initBulkDues, toggleBulkMode, reviewBulkDues } from "./ui/bulk-dues.js";
@@ -393,7 +393,12 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   const group = getActiveGroupId();
   if (!group) return false;
   const boot = document.body.dataset;
-  if (boot.workspaceGroup !== group || boot.workspaceState === 'unavailable') boot.workspaceState = 'loading';
+  if (boot.workspaceGroup !== group || boot.workspaceState === 'unavailable') {
+    boot.workspaceState = 'loading';
+    const label = document.getElementById('workspace-startup-label');
+    const groupName = localStorage.getItem(ACTIVE_GROUP_NAME_KEY);
+    if (label) label.textContent = groupName ? `Membuka ${groupName}…` : 'Memuat buku kas…';
+  }
   boot.workspaceGroup = group;
   if (isLoading) return false;
   const hasCache = loadCache(group);
@@ -423,8 +428,15 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
       saveCache(group);
       notifySynced(resJSON.data?.updatedAt, resJSON.data?.groupId || localStorage.getItem(GROUP_OPEN_KEY));
       setSyncBadge('is-clean');
-      renderAll();
-      boot.workspaceState = 'ready';
+      if (boot.workspaceState !== 'ready') {
+        await runGroupSwitchTransition(() => {
+          if (getActiveGroupId() !== group) return;
+          renderAll();
+          boot.workspaceState = 'ready';
+        }, { direction: getLastGroupDirection(), focusHeading: true });
+      } else {
+        renderAll();
+      }
       setConnectionStatus(true);
       return true;
     } else {

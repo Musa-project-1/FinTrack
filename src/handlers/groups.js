@@ -30,6 +30,7 @@ import {
 } from "../core/api.js";
 import { apiPost } from "../core/api-client.js";
 import { escapeHtml, showToast } from "../core/utils.js";
+import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion.js";
 import { openModal, closeModal, switchTab } from "../ui/modal.js";
 import { handleUI, renderAdminUI } from "./auth.js";
 
@@ -177,11 +178,24 @@ export const enterGroup = (id) => {
 
   closeModal("modal-groups");
   closeModal("modal-group-pin");
-  const nameEl = document.getElementById("app-group-name");
-  if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
-  setActiveGroupId(id);
-  if (currentActive === id) {
-    window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { groupId: id, previousGroupId: currentActive } }));
+  const applySwitch = () => {
+    const nameEl = document.getElementById("app-group-name");
+    if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
+    setActiveGroupId(id);
+    if (currentActive === id) {
+      window.dispatchEvent(new CustomEvent("finkas:group-changed", { detail: { groupId: id, previousGroupId: currentActive } }));
+    }
+  };
+  if (currentActive !== id) {
+    const label = document.getElementById("workspace-startup-label");
+    if (label) label.textContent = `Membuka ${found.nama}…`;
+  }
+  if (currentActive && currentActive !== id) {
+    runGroupSwitchTransition(applySwitch, {
+      direction: resolveGroupDirection(currentActive, id, getGroups()), focusHeading: true
+    });
+  } else {
+    applySwitch();
   }
 };
 

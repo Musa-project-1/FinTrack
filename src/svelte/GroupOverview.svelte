@@ -5,7 +5,7 @@
 <div>
   <span class="group-overview-role non-admin-only"><i class="ph ph-eye" aria-hidden="true"></i> <span data-i18n="role.member">Tampilan Anggota · Transparansi Kas</span></span>
   <span class="group-overview-role admin-only"><i class="ph ph-shield-check" aria-hidden="true"></i> <span data-i18n="role.admin">Mode Pengurus</span></span>
-  <h1 id="group-overview-name">{vm.groupName}</h1>
+  <h1 id="group-overview-name" tabindex="-1">{vm.groupName}</h1>
   <div class="group-overview-meta">
     <span id="group-overview-fee">Iuran {vm.format(vm.monthlyFee)}/bln</span>
     <span id="group-overview-members">{vm.activeMembersCount} anggota aktif</span>

@@ -6,11 +6,29 @@ const reducedMotion = () => typeof window === 'undefined' ||
 const counters = new WeakMap();
 let lastOverview;
 let activeWipe;
+let activeGroupTransition;
+let lastGroupDirection = 'group-forward';
+let groupTransitionDepth = 0;
+let fallbackSeq = 0;
+
+export const resolveGroupDirection = (previousGroupId, nextGroupId, groups) => {
+  const list = Array.isArray(groups) ? groups : [];
+  const prevIdx = list.findIndex(g => g?.id === previousGroupId);
+  const nextIdx = list.findIndex(g => g?.id === nextGroupId);
+  return prevIdx >= 0 && nextIdx >= 0 && nextIdx < prevIdx ? 'group-backward' : 'group-forward';
+};
+
+export const getLastGroupDirection = () => lastGroupDirection;
+export const isGroupTransitionActive = () => groupTransitionDepth > 0;
 
 export const enterHybridOverview = () => {
   const group = getActiveGroupId();
   if (!group) return;
   const overview = JSON.stringify([group, getIsAdminView()]);
+  if (isGroupTransitionActive()) {
+    lastOverview = overview;
+    return;
+  }
   if (overview === lastOverview || reducedMotion() || typeof requestAnimationFrame !== 'function') return;
   lastOverview = overview;
   const items = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-cascade]'));
@@ -42,7 +60,7 @@ export const animateHybridAmount = (node, amount, { format = formatDisplayRp, fr
   const previous = counters.get(node);
   if (previous?.frame) globalThis.cancelAnimationFrame?.(previous.frame);
   const start = from ?? previous?.value ?? 0;
-  if (reducedMotion() || typeof requestAnimationFrame !== 'function' || typeof cancelAnimationFrame !== 'function' || start === amount) {
+  if (isGroupTransitionActive() || reducedMotion() || typeof requestAnimationFrame !== 'function' || typeof cancelAnimationFrame !== 'function' || start === amount) {
     node.textContent = prefix + format(amount);
     counters.set(node, { value: amount });
     return;
@@ -62,6 +80,11 @@ export const animateHybridAmount = (node, amount, { format = formatDisplayRp, fr
 };
 
 export const runHybridThemeWipe = (apply, event, trigger) => {
+  if (activeGroupTransition) {
+    activeGroupTransition.skipTransition?.();
+    activeGroupTransition = undefined;
+    delete document.documentElement.dataset.groupTransition;
+  }
   if (reducedMotion() || typeof document.startViewTransition !== 'function') {
     apply();
     return;
@@ -88,6 +111,96 @@ export const runHybridThemeWipe = (apply, event, trigger) => {
     delete root.dataset.themeWipe;
   };
   transition.finished.then(finish, finish);
+};
+
+// Ignore animation events bubbling from descendants.
+const onAnimationDone = (node, cleanup) => {
+  if (node.getAnimations?.().length === 0) {
+    cleanup();
+    return;
+  }
+  const onEnd = event => {
+    if (event.target !== node) return;
+    node.removeEventListener('animationend', onEnd);
+    cleanup();
+  };
+  node.addEventListener('animationend', onEnd);
+};
+
+const pulseGroupChip = () => {
+  if (reducedMotion()) return;
+  const chip = document.getElementById('app-group-name');
+  if (!chip) return;
+  chip.classList.remove('is-group-arrived');
+  void chip.offsetWidth;
+  chip.classList.add('is-group-arrived');
+  onAnimationDone(chip, () => chip.classList.remove('is-group-arrived'));
+};
+
+export const runGroupSwitchTransition = (apply, { direction = 'group-forward', focusHeading = false } = {}) => {
+  lastGroupDirection = direction === 'group-backward' ? 'group-backward' : 'group-forward';
+  const routeFocus = () => {
+    if (!focusHeading) return;
+    const overview = document.getElementById('group-overview');
+    const heading = document.getElementById('group-overview-name');
+    if (heading && !overview?.hidden && typeof heading.focus === 'function') heading.focus({ preventScroll: true });
+  };
+
+  if (reducedMotion()) {
+    apply();
+    routeFocus();
+    return;
+  }
+  if (typeof document.startViewTransition !== 'function') {
+    apply();
+    const main = /** @type {HTMLElement | null} */ (document.querySelector('main.container'));
+    if (main && document.body?.dataset?.workspaceState === 'ready') {
+      const seq = ++fallbackSeq;
+      main.classList.remove('group-switch-fallback');
+      main.dataset.groupDir = lastGroupDirection;
+      void main.offsetWidth;
+      main.classList.add('group-switch-fallback');
+      onAnimationDone(main, () => {
+        if (seq !== fallbackSeq) return;
+        main.classList.remove('group-switch-fallback');
+        delete main.dataset.groupDir;
+      });
+    }
+    pulseGroupChip();
+    routeFocus();
+    return;
+  }
+
+  activeWipe?.skipTransition?.();
+  activeWipe = undefined;
+  activeGroupTransition?.skipTransition?.();
+  const root = document.documentElement;
+  delete root.dataset.themeWipe;
+  root.dataset.groupTransition = lastGroupDirection;
+  const runUpdate = () => {
+    groupTransitionDepth += 1;
+    try {
+      apply();
+    } finally {
+      groupTransitionDepth = Math.max(0, groupTransitionDepth - 1);
+    }
+  };
+  const supportsTypes = typeof window !== 'undefined' && 'ViewTransitionTypeSet' in window;
+  const transition = supportsTypes
+    ? document.startViewTransition({ update: runUpdate, types: [lastGroupDirection] })
+    : document.startViewTransition(runUpdate);
+  activeGroupTransition = transition;
+  transition.ready?.catch?.(() => {});
+  transition.updateCallbackDone?.catch?.(() => {});
+  const finish = () => {
+    if (activeGroupTransition !== transition) return;
+    activeGroupTransition = undefined;
+    delete root.dataset.groupTransition;
+    pulseGroupChip();
+    routeFocus();
+  };
+  transition.finished?.then?.(finish, finish);
+  return transition.updateCallbackDone;
 };
 
 const initializedCards = new WeakSet();

@@ -90,7 +90,9 @@ def check_workspace(browser, width, theme):
     expect(page.locator("main.container")).to_be_visible()
     balance = sum((1 if row["Tipe_Arus"] == "Masuk" else -1) * row["Nominal"] for row in data["transaksi"])
     page.wait_for_function("total => window.balanceFrames.includes(total)", arg=balance)
-    assert page.evaluate("total => window.balanceFrames.some(n => n > 0 && n < total)", balance)
+    # Native loading-to-dashboard snapshots must already contain the final amount.
+    has_transition = page.evaluate("typeof document.startViewTransition === 'function'")
+    assert page.evaluate("total => window.balanceFrames.some(n => n > 0 && n < total)", balance) != has_transition
     page.reload(wait_until="domcontentloaded")
     page.wait_for_function("total => window.balanceFrames.includes(total)", arg=balance)
     assert page.evaluate("total => window.balanceFrames.some(n => n > 0 && n < total)", balance)

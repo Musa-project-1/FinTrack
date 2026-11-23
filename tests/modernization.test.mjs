@@ -160,7 +160,7 @@ function contrast(a, b) {
 }
 
 test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => {
-  const tokens = read('css/modules/tokens.css');
+  const tokens = read('css/svelte-scoped.css');
   for (const block of [tokens.split(':root {')[1].split('}')[0],
     tokens.split('body.dark-mode {')[1].split('}')[0]]) {
     const thumb = block.match(/--scrollbar-thumb:\s*(#[\da-f]+)/)[1];
@@ -168,7 +168,7 @@ test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => 
       assert.ok(contrast(thumb, surface) >= 3, `${thumb} on ${surface}`);
     }
   }
-  const landing = read('css/onboarding.css');
+  const landing = read('css/onboarding-scoped.css');
   const thumb = landing.match(/--scrollbar-thumb:\s*(#[\da-f]+)/)[1];
   for (const [, surface] of landing.matchAll(/--lp-(?:abyss|canvas|graphite|steel|void):\s*(#[\da-f]+)/g)) {
     assert.ok(contrast(thumb, surface) >= 3, `${thumb} on ${surface}`);
@@ -176,8 +176,7 @@ test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => 
 });
 
 test('vendor scrollbar selectors only appear within unsupported-standard fallback blocks', () => {
-  for (const file of ['css/modules/base.css', 'css/modules/tables.css',
-    'css/modules/responsive-tablet.css', 'css/svelte-scoped.css', 'css/onboarding.css']) {
+  for (const file of ['css/svelte-scoped.css', 'css/onboarding-scoped.css']) {
     const css = read(file).replace(/\/\*[\s\S]*?\*\//g, '');
     const stack = [];
     let start = 0;
@@ -192,24 +191,23 @@ test('vendor scrollbar selectors only appear within unsupported-standard fallbac
     }
     assert.equal(stack.length, 0);
   }
-  for (const file of ['css/modules/base.css', 'css/onboarding.css']) {
+  for (const file of ['css/svelte-scoped.css', 'css/onboarding-scoped.css']) {
     assert.match(read(file), /scrollbar-width:\s*thin/);
     assert.match(read(file), /scrollbar-color:\s*var\(--scrollbar-thumb\) transparent/);
   }
 });
 
 test('split modules are imported, precached, and authored batch sources stay under 750 lines', () => {
-  for (const file of ['css/modules/groups-superadmin.css', 'css/modules/pin-input.css', 'src/ui/svelte-dashboard.js']) {
+  for (const file of ['css/onboarding-scoped.css', 'style.css', 'src/ui/svelte-dashboard.js']) {
     assert.ok(read('sw.js').includes(`'${file}'`));
   }
-  for (const file of ['groups-modal.css', 'groups-superadmin.css', 'pin-input.css']) {
-    assert.ok(read('css/input.css').includes(`./modules/${file}`));
-  }
-  for (const file of ['css/modules/groups-modal.css', 'css/modules/groups-superadmin.css',
-    'css/modules/pin-input.css',
+  assert.ok(read('css/input.css').includes('./svelte-scoped.css'));
+  for (const file of ['src/svelte/shell/modals/MasterModals.svelte', 'src/svelte/shell/modals/GroupAdminModals.svelte',
+    'src/svelte/shell/styles/ModalsBaseStyle.svelte',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',
-    'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'src/svelte/pages/OnboardingShell.svelte', 'css/onboarding.css', 'css/onboarding-motion.css']) {
+    'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'src/svelte/pages/OnboardingShell.svelte',
+    'src/svelte/pages/onboarding/OnboardingBaseStyle.svelte', 'src/svelte/pages/onboarding/OnboardingMotionStyle.svelte']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
 });

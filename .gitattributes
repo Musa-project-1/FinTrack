@@ -6,6 +6,7 @@ privacy.html linguist-generated=true
 offline.html linguist-generated=true
 style.css linguist-generated=true
 css/svelte-scoped.css linguist-generated=true
+css/onboarding-scoped.css linguist-generated=true
 src/ui/svelte-dashboard.js linguist-generated=true
 src/ui/svelte-onboarding.js linguist-generated=true
 sw.js linguist-generated=true

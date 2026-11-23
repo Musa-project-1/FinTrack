@@ -105,12 +105,7 @@ const onboardingHtml = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/onboarding-icons.css?v=${v}">
-  <link rel="stylesheet" href="css/onboarding.css?v=${v}">
-  <link rel="stylesheet" href="css/onboarding-hero-stage.css?v=${v}">
-  <link rel="stylesheet" href="css/onboarding-sections.css?v=${v}">
-  <link rel="stylesheet" href="css/onboarding-footer-portal.css?v=${v}">
-  <link rel="stylesheet" href="css/onboarding-motion.css?v=${v}">
+  <link rel="stylesheet" href="css/onboarding-scoped.css?v=${v}">
   <script src="src/pages/onboarding-boot-theme.js"></script>
 </head>
 <body>
@@ -133,7 +128,6 @@ const privacyHtml = `<!DOCTYPE html>
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
   <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
   <link rel="stylesheet" href="style.css?v=${v}">
-  <link rel="stylesheet" href="css/privacy.css?v=${v}">
 </head>
 <body class="privacy-page" data-palette="cobalt" data-canvas="aurora">
   <script src="src/workspace-boot-theme.js?v=${v}"></script>
@@ -153,15 +147,49 @@ function collectSvelteFiles(dir, out = []) {
   return out;
 }
 
-const svelteStyleChunks = [];
-for (const filePath of collectSvelteFiles(path.join(ROOT, 'src', 'svelte'))) {
-  const source = fs.readFileSync(filePath, 'utf8');
-  if (!/<style\b/.test(source)) continue;
-  const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
+const BASE_STYLE_ORDER = [
+  'src/svelte/shell/styles/TokensStyle.svelte',
+  'src/svelte/shell/modals/TransactionsModals.svelte',
+  'src/svelte/shell/styles/BaseStyle.svelte',
+  'src/svelte/shell/modals/NavigationModals.svelte',
+  'src/svelte/shell/modals/AuthModals.svelte',
+  'src/svelte/shell/modals/ReportsModals.svelte',
+  'src/svelte/shell/modals/SelfPayModal.svelte',
+  'src/svelte/shell/modals/StrukModal.svelte',
+  'src/svelte/shell/modals/MasterModals.svelte',
+  'src/svelte/shell/modals/GroupAdminModals.svelte',
+  'src/svelte/shell/styles/ModalsBaseStyle.svelte',
+  'src/svelte/shell/styles/ModalsSheetStyle.svelte',
+  'src/svelte/shell/styles/CdropStyle.svelte',
+  'src/svelte/shell/modals/TampilanModal.svelte',
+  'src/svelte/shell/styles/ResponsiveTabletStyle.svelte',
+];
+
+const ONBOARDING_STYLE_ORDER = [
+  'src/svelte/pages/onboarding/OnboardingIconsStyle.svelte',
+  'src/svelte/pages/onboarding/OnboardingBaseStyle.svelte',
+  'src/svelte/pages/onboarding/OnboardingHeroStageStyle.svelte',
+  'src/svelte/pages/onboarding/OnboardingSectionsStyle.svelte',
+  'src/svelte/pages/onboarding/OnboardingFooterPortalStyle.svelte',
+  'src/svelte/pages/onboarding/OnboardingMotionStyle.svelte',
+];
+
+function compileStyleBlock(rel) {
+  const source = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+  if (!/<style\b/.test(source)) return null;
   const compiled = compile(source, { filename: rel });
   const css = compiled.css?.code?.trim();
-  if (css) svelteStyleChunks.push(`/* ${rel} */\n${css}`);
+  return css ? `/* ${rel} */\n${css}` : null;
 }
+
+const reserved = new Set([...BASE_STYLE_ORDER, ...ONBOARDING_STYLE_ORDER]);
+const featureRelPaths = collectSvelteFiles(path.join(ROOT, 'src', 'svelte'))
+  .map((filePath) => path.relative(ROOT, filePath).split(path.sep).join('/'))
+  .filter((rel) => !reserved.has(rel));
+
+const svelteStyleChunks = [...BASE_STYLE_ORDER, ...featureRelPaths].map(compileStyleBlock).filter(Boolean);
+const onboardingStyleChunks = ONBOARDING_STYLE_ORDER.map(compileStyleBlock).filter(Boolean);
+
 const writeIfChanged = (filePath, content) => {
   if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === content) return false;
   fs.writeFileSync(filePath, content, 'utf8');
@@ -173,8 +201,12 @@ writeIfChanged(
   path.join(ROOT, 'css', 'svelte-scoped.css'),
   scopedHeader + (svelteStyleChunks.length ? `${svelteStyleChunks.join('\n\n')}\n` : '')
 );
+writeIfChanged(
+  path.join(ROOT, 'css', 'onboarding-scoped.css'),
+  scopedHeader + (onboardingStyleChunks.length ? `${onboardingStyleChunks.join('\n\n')}\n` : '')
+);
 
 fs.writeFileSync(path.join(ROOT, 'index.html'), indexHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
-console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length} style blocks) at v${v}.`);
+console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length}) + css/onboarding-scoped.css (${onboardingStyleChunks.length}) at v${v}.`);

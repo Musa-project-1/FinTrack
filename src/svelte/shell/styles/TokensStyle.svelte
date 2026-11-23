@@ -1,0 +1,498 @@
+<style>
+  :global {
+    /* === FINKAS — DESIGN TOKENS · "OCEAN LEDGER" ===
+       Trust-first fintech × tactile precision.
+       Light = "Paper Ocean" (201° hue) · Dark = "Navy Ocean" / Abyssal Deep Sea (208° hue).
+
+       GUARDRAIL G1 — JANGAN muat berkas ini atau style.css dari onboarding.html.
+                      Landing page menggunakan sistem visual Origin gelapnya sendiri
+                      dengan token berprefix --lp- di css/onboarding.css.
+
+       Rules of the system:
+       1. Elevation comes from surface contrast + 1px hairlines — never from blur shadows.
+          The single exception is `--shadow-pop` for genuinely floating surfaces
+          (modal, dropdown, bottom sheet, toast).
+       2. Use the palette accent for primary actions, active state,
+          focus ring, and a single hero figure per screen.
+       3. Ocean Coral is reserved for destructive actions only (delete / logout).
+       4. Ocean Cyan carries informational states, Ocean Amber carries overdue only.
+       5. Money is never coloured differently to say "out": it is `--text-main` + a "−".
+       6. Never hard-code a colour outside this file — always read a token. */
+
+    :root {
+      /* ---------- Surfaces · Cool Alabaster + Ice Blue Wash (Coinbase × Stripe) ---------- */
+      --scrollbar-thumb: #687b96;
+      --scrollbar-thumb-hover: #425466;
+      --scrollbar-edge-shadow: rgb(6 27 49 / 0.14);
+      --bg-color: #f3f6fb;
+      --surface: #ffffff;
+      --surface-2: #eaf0f8;
+      --surface-3: #dbe5f3;
+      --surface-subtle: var(--surface-2);
+      --bg-card: var(--surface);
+      --bg-card-subtle: var(--surface-2);
+      --table-header-bg: var(--surface-2);
+
+      /* ---------- Hairlines ---------- */
+      --border: #cbd8ea;
+      --border-strong: #9fb6d4;
+      --border-color: var(--border);
+
+      /* ---------- Ink ---------- */
+      --text-main: #061b31;
+      --text-muted: #425466;
+      --text-faint: #334659;
+
+      /* ---------- Accent · Coinbase / Oura Action Blue ---------- */
+      --accent: #0052ff;
+      --accent-strong: #0040c9;
+      --accent-tint: rgba(0, 82, 255, 0.09);
+      --accent-border: rgba(0, 82, 255, 0.30);
+      --accent-ink: #ffffff;
+
+      /* ---------- Functional hues (Blue Edition — Zero Green) ---------- */
+      --income: #0052ff;
+      --income-strong: #0040c9;
+      --income-bg: rgba(0, 82, 255, 0.10);
+      --income-border: rgba(0, 82, 255, 0.28);
+      --secondary: #0284c7;
+      --danger: #be123c;
+      --danger-strong: #be123c;
+      --danger-bg: rgba(225, 29, 72, 0.10);
+      --danger-border: rgba(225, 29, 72, 0.28);
+      --danger-ink: #ffffff;
+      --warning: #b45309;
+      --warning-bg: rgba(180, 83, 9, 0.12);
+      --warning-border: rgba(180, 83, 9, 0.28);
+
+      /* ---------- Ledger semantics ---------- */
+      --expense: var(--text-main);
+      --overdue: var(--warning);
+
+      /* ---------- Radius · tactile precision ---------- */
+      --r-xs: 4px;
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 10px;
+      --r-pill: 999px;
+      /* legacy aliases kept so untouched modules still resolve */
+      --radius-sm: var(--r-sm);
+      --radius-md: var(--r-md);
+      --radius-lg: var(--r-lg);
+
+      /* ---------- Spacing · 4px base ---------- */
+      --sp-1: 4px;
+      --sp-2: 8px;
+      --sp-3: 12px;
+      --sp-4: 16px;
+      --sp-6: 24px;
+      --sp-8: 32px;
+      --sp-12: 48px;
+      --sp-18: 72px;
+      --modal-pad: 24px;
+
+      /* ---------- Motion ---------- */
+      --t-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      --t-base: 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+
+      /* ---------- Elevation ---------- */
+      --shadow-pop: 0 16px 36px -8px rgba(0, 0, 0, 0.16), 0 4px 10px -2px rgba(0, 0, 0, 0.06);
+      --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+      --shadow-sm: var(--shadow-card);
+      --shadow-md: var(--shadow-card);
+      --shadow-lg: var(--shadow-pop);
+      --shadow-card-hover: var(--shadow-pop);
+      --shadow-card-flat: none;
+      --shadow-dropdown: var(--shadow-pop);
+      --shadow-menu-mobile: var(--shadow-pop);
+      --btn-icon-shadow: none;
+      --btn-icon-shadow-hover: none;
+
+      /* ---------- Legacy aliases ----------
+         Older fragments still ship inline styles referencing these names with
+         hard-coded fallbacks; mapping them keeps those styles on the new palette. */
+      --primary: var(--accent);
+      --primary-hover: var(--accent-strong);
+      --color-primary: var(--accent-strong);
+      --color-border: var(--border);
+      --color-text-muted: var(--text-muted);
+
+      color-scheme: light;
+    }
+
+    body.dark-mode {
+      /* ---------- Surfaces · Twilight Midnight Blue ---------- */
+      --scrollbar-thumb: #7289ab;
+      --scrollbar-thumb-hover: #94a9c9;
+      --scrollbar-edge-shadow: rgb(0 0 0 / 0.42);
+      --bg-color: #070d19;
+      --surface: #0e172a;
+      --surface-2: #16223b;
+      --surface-3: #1e2f50;
+      --surface-subtle: var(--surface-2);
+      --bg-card: var(--surface);
+      --bg-card-subtle: var(--surface-2);
+      --table-header-bg: var(--surface-2);
+
+      /* ---------- Hairlines · cobalt-tinted ---------- */
+      --border: rgba(96, 165, 250, 0.16);
+      --border-strong: rgba(96, 165, 250, 0.30);
+
+      /* ---------- Ink ---------- */
+      --text-main: #f0f6fc;
+      --text-muted: #94a9c9;
+      --text-faint: #6c84a6;
+
+      /* ---------- Accent ---------- */
+      --accent: #3b82f6;
+      --accent-strong: #60a5fa;
+      --accent-tint: rgba(59, 130, 246, 0.14);
+      --accent-border: rgba(59, 130, 246, 0.36);
+      --accent-ink: #041026;
+
+      /* ---------- Functional hues (Blue Edition — Zero Green) ---------- */
+      --income: #60a5fa;
+      --income-strong: #93c5fd;
+      --income-bg: rgba(59, 130, 246, 0.16);
+      --income-border: rgba(96, 165, 250, 0.36);
+      --secondary: #38bdf8;
+      --danger: #fb7185;
+      --danger-strong: #fda4af;
+      --danger-bg: rgba(251, 113, 133, 0.14);
+      --danger-border: rgba(251, 113, 133, 0.32);
+      --danger-ink: #2b0a11;
+      --warning: #fbbf24;
+      --warning-bg: rgba(251, 191, 36, 0.14);
+      --warning-border: rgba(251, 191, 36, 0.32);
+
+      /* ---------- Elevation ---------- */
+      --shadow-pop: 0 16px 40px -8px rgba(0, 0, 0, 0.65), 0 2px 8px -2px rgba(0, 0, 0, 0.45);
+      --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
+      --shadow-sm: var(--shadow-card);
+      --shadow-md: var(--shadow-card);
+      --shadow-lg: var(--shadow-pop);
+      --shadow-card-hover: var(--shadow-pop);
+
+      /* Legacy inline-style aliases — redeclared here so they re-resolve against
+         this element's dark values instead of the light ones from :root. */
+      --color-primary: var(--accent-strong);
+      --color-border: var(--border);
+      --color-text-muted: var(--text-muted);
+
+      color-scheme: dark;
+    }
+
+    /* === RESET === */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    }
+
+    /* Ensure icon fonts inherit font-family on pseudo-elements */
+    [class*="ph"]::before,
+    [class*="ph"]::after,
+    .ph::before,
+    .ph-fill::before,
+    .ph-bold::before {
+      font-family: inherit !important;
+    }
+
+    /* === VIEW TRANSITIONS === */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.32s;
+      animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-group(root),
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+    /* === ACTION BLUE (COINBASE BLUE — ZERO GREEN PALETTE GUARDRAIL) === */
+    body,
+    body[data-accent] {
+      --accent: #0052ff;
+      --accent-strong: #0040c9;
+      --accent-tint: rgba(0, 82, 255, 0.10);
+      --accent-border: rgba(0, 82, 255, 0.32);
+      --accent-ink: #ffffff;
+    }
+    body.dark-mode,
+    body.dark-mode[data-accent] {
+      --accent: #3b82f6;
+      --accent-strong: #60a5fa;
+      --accent-tint: rgba(59, 130, 246, 0.16);
+      --accent-border: rgba(59, 130, 246, 0.38);
+      --accent-ink: #041026;
+    }
+
+    /* The viewport scrollbar belongs to html, above the body theme scope. */
+    html:has(body.dark-mode) { --scrollbar-thumb: #7289ab; --scrollbar-thumb-hover: #94a9c9; }
+    html:has(body[data-palette="terracotta"]) { --scrollbar-thumb: #8f7b71; --scrollbar-thumb-hover: #635a54; }
+    html:has(body[data-palette="terracotta"].dark-mode) { --scrollbar-thumb: #85766e; --scrollbar-thumb-hover: #a89e97; }
+    html:has(body[data-palette="cobalt"]) { --scrollbar-thumb: #697d99; --scrollbar-thumb-hover: #4b5c74; }
+    html:has(body[data-palette="cobalt"].dark-mode) { --scrollbar-thumb: #7287a8; --scrollbar-thumb-hover: #93a6c4; }
+    html:has(body[data-palette="charcoal"]) { --scrollbar-thumb: #787c8f; --scrollbar-thumb-hover: #5a5d6c; }
+    html:has(body[data-palette="charcoal"].dark-mode) { --scrollbar-thumb: #7c8199; --scrollbar-thumb-hover: #9ba0b5; }
+    html:has(body[data-palette="indigo"]) { --scrollbar-thumb: #77749e; --scrollbar-thumb-hover: #565375; }
+    html:has(body[data-palette="indigo"].dark-mode) { --scrollbar-thumb: #807ba8; --scrollbar-thumb-hover: #a19cc2; }
+
+
+    /* Workspace palettes drawn from the Hybrid Kinetic prototype. */
+    body[data-palette="terracotta"] {
+      --scrollbar-thumb: #8f7b71;
+      --scrollbar-thumb-hover: #635a54;
+      --bg-color: #FAF8F6;
+      --surface: #FEFDFB;
+      --surface-2: #F3EFEA;
+      --surface-3: #E8E2DA;
+      --border: #E4DDD4;
+      --border-strong: #CBC2B6;
+      --text-main: #181412;
+      --text-muted: #635A54;
+      --text-faint: #766B64;
+      --accent: #C84628;
+      --accent-strong: #AE3A1F;
+      --accent-ink: #FEFBF9;
+      --accent-tint: #FDECE7;
+      --accent-border: #F5B7A6;
+      --income: #1D63DC;
+      --income-strong: #154EB4;
+      --income-bg: #E8F1FF;
+      --income-border: #ACC8FA;
+      --secondary: #0E7490;
+    }
+
+    body[data-palette="terracotta"].dark-mode {
+      --scrollbar-thumb: #85766e;
+      --scrollbar-thumb-hover: #a89e97;
+      --bg-color: #100E0D;
+      --surface: #181514;
+      --surface-2: #211D1B;
+      --surface-3: #2B2522;
+      --border: #2E2825;
+      --border-strong: #423934;
+      --text-main: #F5F1EE;
+      --text-muted: #A89E97;
+      --text-faint: #8C817A;
+      --accent: #F97352;
+      --accent-strong: #FB8A6E;
+      --accent-ink: #1B0904;
+      --accent-tint: rgba(249, 115, 82, 0.16);
+      --accent-border: rgba(251, 146, 120, 0.36);
+      --income: #60A5FA;
+      --income-strong: #93C5FD;
+      --income-bg: rgba(59, 130, 246, 0.17);
+      --income-border: rgba(96, 165, 250, 0.36);
+      --secondary: #22D3EE;
+    }
+
+    body[data-palette="cobalt"] {
+      --scrollbar-thumb: #697d99;
+      --scrollbar-thumb-hover: #4b5c74;
+      --bg-color: #F4F7FB;
+      --surface: #FAFCFE;
+      --surface-2: #EBF1F8;
+      --surface-3: #DCE6F2;
+      --border: #D5E0EE;
+      --border-strong: #B4C6DF;
+      --text-main: #0B1526;
+      --text-muted: #4B5C74;
+      --text-faint: #52637A;
+      --accent: #0047E0;
+      --accent-strong: #0039B8;
+      --accent-ink: #F8FAFE;
+      --accent-tint: #E6EEFF;
+      --accent-border: #A8C5FF;
+      --income: #0284C7;
+      --income-strong: #0369A1;
+      --income-bg: #E0F2FE;
+      --income-border: #93D5FD;
+      --secondary: #4F46E5;
+    }
+
+    body[data-palette="cobalt"].dark-mode {
+      --scrollbar-thumb: #7287a8;
+      --scrollbar-thumb-hover: #93a6c4;
+      --bg-color: #080D16;
+      --surface: #101726;
+      --surface-2: #172136;
+      --surface-3: #202E4A;
+      --border: #22304D;
+      --border-strong: #334770;
+      --text-main: #EEF4FC;
+      --text-muted: #93A6C4;
+      --text-faint: #788CAE;
+      --accent: #60A5FA;
+      --accent-strong: #93C5FD;
+      --accent-ink: #051229;
+      --accent-tint: rgba(59, 130, 246, 0.16);
+      --accent-border: rgba(96, 165, 250, 0.36);
+      --income: #38BDF8;
+      --income-strong: #7DD3FC;
+      --income-bg: rgba(56, 189, 248, 0.16);
+      --income-border: rgba(56, 189, 248, 0.36);
+      --secondary: #818CF8;
+    }
+
+    body[data-palette="charcoal"] {
+      --scrollbar-thumb: #787c8f;
+      --scrollbar-thumb-hover: #5a5d6c;
+      --bg-color: #F7F7F9;
+      --surface: #FCFCFD;
+      --surface-2: #EFEFF3;
+      --surface-3: #E4E4EA;
+      --border: #DFDFE6;
+      --border-strong: #C4C4D0;
+      --text-main: #14151A;
+      --text-muted: #5A5D6C;
+      --text-faint: #707486;
+      --accent: #181A20;
+      --accent-strong: #2A2D37;
+      --accent-ink: #F8F8FA;
+      --accent-tint: #EBEBEF;
+      --accent-border: #C8C9D4;
+      --income: #2563EB;
+      --income-strong: #1D4ED8;
+      --income-bg: #E6EEFF;
+      --income-border: #B2CCFF;
+      --secondary: #BE185D;
+    }
+
+    body[data-palette="charcoal"].dark-mode {
+      --scrollbar-thumb: #7c8199;
+      --scrollbar-thumb-hover: #9ba0b5;
+      --bg-color: #0B0C10;
+      --surface: #13151C;
+      --surface-2: #1B1E28;
+      --surface-3: #252937;
+      --border: #262A38;
+      --border-strong: #393F54;
+      --text-main: #F2F3F8;
+      --text-muted: #9BA0B5;
+      --text-faint: #7D839A;
+      --accent: #F2F3F8;
+      --accent-strong: #DCE0EC;
+      --accent-ink: #0E1016;
+      --accent-tint: rgba(242, 243, 248, 0.14);
+      --accent-border: rgba(242, 243, 248, 0.30);
+      --income: #60A5FA;
+      --income-strong: #93C5FD;
+      --income-bg: rgba(96, 165, 250, 0.16);
+      --income-border: rgba(96, 165, 250, 0.36);
+      --secondary: #F472B6;
+    }
+
+    body[data-palette="indigo"] {
+      --scrollbar-thumb: #77749e;
+      --scrollbar-thumb-hover: #565375;
+      --bg-color: #F6F6FB;
+      --surface: #FCFCFE;
+      --surface-2: #ECECFA;
+      --surface-3: #E0E0F5;
+      --border: #DCDCEE;
+      --border-strong: #BEBFE0;
+      --text-main: #141229;
+      --text-muted: #565375;
+      --text-faint: #6D6A8E;
+      --accent: #4338CA;
+      --accent-strong: #3730A3;
+      --accent-ink: #F9F9FE;
+      --accent-tint: #EAE8FF;
+      --accent-border: #BCB8FF;
+      --income: #0284C7;
+      --income-strong: #0369A1;
+      --income-bg: #E0F2FE;
+      --income-border: #99D5FB;
+      --secondary: #A21CAF;
+      --warning: #9A3412;
+      --warning-bg: #FFEDD5;
+      --warning-border: #FDBA74;
+    }
+
+    body[data-palette="indigo"].dark-mode {
+      --scrollbar-thumb: #807ba8;
+      --scrollbar-thumb-hover: #a19cc2;
+      --bg-color: #0C0B14;
+      --surface: #141222;
+      --surface-2: #1D1A30;
+      --surface-3: #282442;
+      --border: #2A2644;
+      --border-strong: #3E3863;
+      --text-main: #F3F1FC;
+      --text-muted: #A19CC2;
+      --text-faint: #847EA8;
+      --accent: #818CF8;
+      --accent-strong: #A5B4FC;
+      --accent-ink: #100E24;
+      --accent-tint: rgba(129, 140, 248, 0.16);
+      --accent-border: rgba(129, 140, 248, 0.36);
+      --income: #38BDF8;
+      --income-strong: #7DD3FC;
+      --income-bg: rgba(56, 189, 248, 0.16);
+      --income-border: rgba(56, 189, 248, 0.36);
+      --secondary: #E879F9;
+      --warning: #FDBA74;
+      --warning-bg: rgba(251, 146, 60, 0.16);
+      --warning-border: rgba(251, 146, 60, 0.36);
+    }
+
+    body[data-palette] {
+      --border-color: var(--border);
+      --surface-subtle: var(--surface-2);
+      --bg-card: var(--surface);
+      --bg-card-subtle: var(--surface-2);
+      --table-header-bg: var(--surface-2);
+      --primary: var(--accent);
+      --primary-hover: var(--accent-strong);
+      --color-primary: var(--accent-strong);
+      --color-border: var(--border);
+      --color-text-muted: var(--text-muted);
+      --expense: var(--text-main);
+      --overdue: var(--warning);
+    }
+
+    :root {
+      --sample-terracotta: #c84628;
+      --sample-cobalt: #0052ff;
+      --sample-charcoal: #55596d;
+      --sample-indigo: #6555e8;
+    }
+
+    body.dark-mode {
+      --sample-terracotta: #fb8a6e;
+      --sample-cobalt: #82b7ff;
+      --sample-charcoal: #c1c4d1;
+      --sample-indigo: #a99bff;
+    }
+
+    @media (prefers-contrast: more) {
+      :root,
+      html,
+      body[data-palette],
+      html:has(body[data-palette]) {
+        --scrollbar-thumb: #000000;
+        --scrollbar-thumb-hover: #000000;
+      }
+
+      body.dark-mode,
+      html:has(body.dark-mode),
+      body[data-palette].dark-mode,
+      html:has(body[data-palette].dark-mode) {
+        --scrollbar-thumb: #ffffff;
+        --scrollbar-thumb-hover: #ffffff;
+      }
+    }
+  }
+</style>

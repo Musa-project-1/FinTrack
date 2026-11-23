@@ -26,20 +26,5 @@
   --shadow-pop: var(--shadow-pop);
 }
 
-/* === FINKAS GRANULAR MODULAR ARCHITECTURE (AUTHORED MODULES < 750 LINES) === */
-@import "./modules/tokens.css";
-@import "./modules/typography.css";
-@import "./modules/base.css";
-@import "./modules/layout.css";
-@import "./modules/cards.css";
-@import "./modules/buttons.css";
-@import "./modules/tables.css";
-@import "./modules/forms.css";
-@import "./modules/groups-modal.css";
-@import "./modules/groups-superadmin.css";
-@import "./modules/pin-input.css";
-@import "./modules/modals.css";
-@import "./modules/cdrop.css";
-@import "./modules/mpick.css";
-@import "./modules/responsive-tablet.css";
+/* === FINKAS TAILWIND V4 + COMPILED SVELTE COMPONENT STYLES === */
 @import "./svelte-scoped.css";

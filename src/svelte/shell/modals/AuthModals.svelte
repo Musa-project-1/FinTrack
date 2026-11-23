@@ -152,3 +152,473 @@
       </div>
     </div>
   </dialog>
+
+<style>
+  :global {
+    /* === CARDS — dashboard cash summary, header pills, chart cards ===
+       One number leads: the balance is set in mono and carries the only accent
+       moment on the screen. Inflows and outflows sit in a compact strip beneath. */
+
+    /* === DASHBOARD === */
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-4);
+      margin-bottom: 20px;
+    }
+
+    /* --- Bento 3-Card Financial Strip (Polarity-Flipped Cobalt Vault + Dual Frosted Flow Cards) --- */
+    .cash-summary {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .balance-hero {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, #0045d8 0%, #061b31 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.dark-mode .balance-hero {
+      background: linear-gradient(135deg, #1d4ed8 0%, #0b162c 100%);
+      border-color: rgba(96, 165, 250, 0.28);
+    }
+
+    .balance-hero .eyebrow {
+      color: #dbeafe;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .balance-hero__value {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 2.5rem;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-feature-settings: "tnum" 1;
+      font-feature-settings: "tnum" 1;
+      color: #ffffff;
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      align-self: stretch;
+    }
+
+    body.dark-mode .balance-hero__value {
+      color: #ffffff;
+    }
+
+    /* --- Flow strip (inflow/outflow) — 2 detached frosted glass cards --- */
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      background: transparent;
+      border-top: none;
+      overflow: visible;
+    }
+
+    @media (min-width: 768px) {
+      .cash-summary {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr);
+        align-items: stretch;
+        gap: 16px;
+      }
+
+      .flow-strip {
+        border-top: none;
+        border-left: none;
+        gap: 16px;
+      }
+
+      .flow-strip__item {
+        justify-content: center;
+      }
+    }
+
+    .flow-strip__item {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 20px 24px;
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.84);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      backdrop-filter: blur(18px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+    }
+
+    body.dark-mode .flow-strip__item {
+      background: rgba(14, 23, 42, 0.82);
+    }
+
+    .flow-strip__item + .flow-strip__item {
+      border-left: 1px solid var(--border);
+    }
+
+    .flow-strip__value {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flow-strip__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-eyebrow);
+      color: var(--text-faint);
+    }
+
+    /* Inflow (Masuk) is strictly semantic financial green — independent of UI accent themes. */
+    .flow-in .flow-strip__label { color: var(--income-strong); }
+    .flow-in .flow-strip__label i { color: var(--income-strong); font-size: 13px; }
+    .flow-in .flow-strip__value { color: var(--income-strong); }
+    .flow-in .flow-strip__sign { color: var(--income-strong); }
+
+    body.dark-mode .flow-in .flow-strip__label,
+    body.dark-mode .flow-in .flow-strip__label i,
+    body.dark-mode .flow-in .flow-strip__value,
+    body.dark-mode .flow-in .flow-strip__sign {
+      color: var(--income);
+    }
+
+    .flow-out .flow-strip__label { color: var(--danger); }
+    .flow-out .flow-strip__label i { color: var(--danger); font-size: 13px; }
+    .flow-out .flow-strip__value { color: var(--danger); }
+    .flow-out .flow-strip__sign { color: var(--danger); }
+
+    .flow-strip__sign {
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    /* Deterministic loading placeholders. Two separate things collapse them, and
+       both are pinned here:
+       1. The .skeleton-* helpers default to a percentage width, which resolves to
+          0 inside these content-sized flex items.
+       2. The flow-strip placeholders are <span>s — width/height are ignored on an
+          inline box, so the bar must be blockified or it renders at zero size.
+       Heights are set in `em` so the bar scales with the figure it stands in for. */
+    .balance-hero__value .skeleton-title {
+      display: block;
+      width: 58%;
+      min-width: 180px;
+      height: 0.6em;
+      margin-bottom: 0;
+    }
+
+    .flow-strip__value .skeleton-text {
+      display: block;
+      width: 88px;
+      height: 0.85em;
+      margin-bottom: 0;
+    }
+
+    .flow-out .flow-strip__sign { color: var(--text-muted); }
+
+    /* === HEADER STATS (compact pills) === */
+    .brand-name { font-size: 22px; font-weight: 600; letter-spacing: var(--tracking-tight); margin-left: 4px; }
+
+    .header-stats {
+      display: none;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    body.header-stats-active .header-stats {
+      display: flex;
+    }
+
+    body.header-stats-active .dashboard {
+      display: none !important;
+    }
+
+    .header-stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      transition: background var(--t-fast), border-color var(--t-fast);
+    }
+
+    .header-stat-pill:hover {
+      border-color: var(--border-strong);
+    }
+
+    .header-stat-pill i {
+      font-size: 15px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
+    .header-stat-pill.pill-saldo i { color: var(--secondary); }
+    .header-stat-pill.pill-masuk i { color: var(--accent); }
+    .header-stat-pill.pill-keluar i { color: var(--danger); }
+
+    .header-stat-content {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .header-stat-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-eyebrow);
+      /* Pill surface is --surface-2. Faint ink there is 5.95:1; weight 600 because
+         the label is under 10px, where Lighthouse asks for 4.5:1 not 3:1. */
+      color: var(--text-faint);
+    }
+
+    .header-stat-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .header-stat-pill.pill-masuk .header-stat-val { color: var(--accent-strong); }
+    .header-stat-pill.pill-keluar .header-stat-val { color: var(--danger); }
+
+    @media (max-width: 900px) {
+      .header-stats {
+        gap: 6px;
+      }
+      .header-stat-pill {
+        padding: 4px 8px;
+        gap: 5px;
+      }
+      .header-stat-pill i {
+        font-size: 13px;
+      }
+      .header-stat-label {
+        display: none;
+      }
+      .header-stat-val {
+        font-size: 12px;
+      }
+    }
+
+    /* === CONNECTION STATUS DOT === */
+    .brand-link {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .status-dot {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--surface);
+      pointer-events: none;
+    }
+
+    .connection-status.offline .status-dot {
+      background: var(--danger);
+    }
+
+    .status-badge .queue-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 4px;
+      color: var(--danger);
+    }
+
+    /* === PENDING ITEM (offline modal) === */
+    .pending-item {
+      padding: var(--sp-3) var(--sp-4);
+      border-radius: var(--r-md);
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .pending-item + .pending-item { margin-top: var(--sp-2); }
+
+    /* === CHART SECTION === */
+    .chart-section { margin-bottom: var(--sp-8); }
+    .chart-container-card { padding: var(--sp-6); }
+    .chart-wrapper {
+      height: 320px;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      margin-top: var(--sp-4);
+    }
+    .chart-wrapper canvas {
+      max-width: 100% !important;
+    }
+
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-6);
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-6);
+      box-shadow: none;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .stat-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-4);
+      flex: 1;
+    }
+
+    .stat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-3);
+    }
+
+    .stat-card-title,
+    .stat-card-note {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .stat-card-value {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: var(--tracking-tight);
+      color: var(--text-main);
+    }
+
+    .health-card {
+      grid-column: 1 / -1;
+      min-height: auto;
+      padding: var(--sp-4) var(--sp-6);
+    }
+
+    .health-card .stat-card-header {
+      margin-bottom: var(--sp-2);
+    }
+
+    .health-card .stat-card-body {
+      gap: var(--sp-2);
+    }
+
+    .progress-bar {
+      height: 8px;
+      border-radius: var(--r-pill);
+      background: var(--accent-tint);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: var(--r-pill);
+      background: var(--accent);
+      transform-origin: left center;
+    }
+
+    /* Stat card interactive (menunggak — clickable WA copy) */
+    .stat-card-interactive {
+      cursor: pointer;
+    }
+
+    .stat-card-interactive-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .stat-wa-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--accent-tint);
+      color: var(--accent-strong);
+    }
+
+    .stat-arrears-val { color: var(--warning); }
+    .stat-danger-val  { color: var(--danger); }
+
+    .stat-card-note {
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    /* === HERO METRIC UPDATE ANIMATION === */
+    @keyframes valFlash {
+      0% {
+        opacity: 0.6;
+        transform: scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .val-flash {
+      display: inline-block;
+      animation: valFlash 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .val-flash {
+        animation: none !important;
+      }
+    }
+  }
+</style>

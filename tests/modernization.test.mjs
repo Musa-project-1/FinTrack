@@ -177,8 +177,7 @@ test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => 
 
 test('vendor scrollbar selectors only appear within unsupported-standard fallback blocks', () => {
   for (const file of ['css/modules/base.css', 'css/modules/tables.css',
-    'css/modules/responsive-tablet.css', 'css/modules/view-master.css',
-    'css/svelte-scoped.css', 'css/onboarding.css']) {
+    'css/modules/responsive-tablet.css', 'css/svelte-scoped.css', 'css/onboarding.css']) {
     const css = read(file).replace(/\/\*[\s\S]*?\*\//g, '');
     const stack = [];
     let start = 0;

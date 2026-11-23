@@ -79,7 +79,7 @@ test('empty ledger, unknown category, flat chart and persistent bounded selectio
 // Svelte caches DOM templates and their realm's node constructors.
 let dom;
 after(() => dom?.window.close());
-function installDom(t, file = 'html/index.template.html') {
+function installDom(t, file = 'index.html') {
   dom ??= new JSDOM('', { url: 'https://example.test' });
   const { window } = dom;
   window.document.open();

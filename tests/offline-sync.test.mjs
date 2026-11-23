@@ -139,7 +139,7 @@ test('offline replay simulation: skips queued items belonging to different group
   assert.deepEqual(processed, [2]);
 });
 
-const modalMarkup = readFileSync(new URL('../html/modals/master.html', import.meta.url), 'utf8');
+const modalMarkup = readFileSync(new URL('../src/svelte/shell/modals/MasterModals.svelte', import.meta.url), 'utf8');
 let dom;
 after(() => dom?.window.close());
 beforeEach(() => {

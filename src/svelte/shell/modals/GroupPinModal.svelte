@@ -1,4 +1,4 @@
-  <!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
+<!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-group-pin" aria-labelledby="group-pin-name">
     <div class="modal-content modal-sm">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>

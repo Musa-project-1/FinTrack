@@ -5,7 +5,7 @@
  *   1. JavaScript under src/ and scripts/ and TypeScript under api/ parse.
  *   2. The service worker's precache list matches the modules that actually
  *      exist (a missing entry works online and 404s offline).
- *   3. index.html is not older than the html/ fragments it is assembled from.
+ *   3. index.html is not older than the Svelte shell components it is rendered from.
  *   4. style.css is not older than the css/ modules it is built from.
  *   5. TypeScript checks the core and API modules.
  *
@@ -20,7 +20,8 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const MODULE_DIRS = ['src', 'scripts'];
 const SW_PATH = path.join(ROOT, 'sw.js');
 const INDEX_PATH = path.join(ROOT, 'index.html');
-const HTML_DIR = path.join(ROOT, 'html');
+const SHELL_PATH = path.join(ROOT, 'src', 'svelte', 'shell', 'WorkspaceShell.svelte');
+const SHELL_MODALS_DIR = path.join(ROOT, 'src', 'svelte', 'shell', 'modals');
 const STYLE_PATH = path.join(ROOT, 'style.css');
 const CSS_ENTRY = path.join(ROOT, 'css', 'input.css');
 const CSS_MODULE_DIR = path.join(ROOT, 'css', 'modules');
@@ -114,7 +115,6 @@ if (fs.existsSync(swRegisterPath)) {
 
 if (swVer) {
   const versionedPages = [
-    { label: 'html/index.template.html', filePath: path.join(HTML_DIR, 'index.template.html') },
     { label: 'index.html', filePath: INDEX_PATH },
     { label: 'onboarding.html', filePath: path.join(ROOT, 'onboarding.html') },
     { label: 'privacy.html', filePath: path.join(ROOT, 'privacy.html') }
@@ -136,10 +136,9 @@ if (swVer) {
 
 /* ── 3. index.html freshness ─────────────────────────────────────── */
 
-/** Newest modification time among the template and every modal fragment. */
+/** Newest modification time among WorkspaceShell.svelte and every modal shell. */
 function newestFragmentMtime() {
-  const candidates = [path.join(HTML_DIR, 'index.template.html')];
-  candidates.push(...collectFiles(path.join(HTML_DIR, 'modals'), /\.html$/));
+  const candidates = [SHELL_PATH, ...collectFiles(SHELL_MODALS_DIR, /\.svelte$/)];
 
   let newest = 0;
   for (const file of candidates) {
@@ -155,7 +154,7 @@ if (!fs.existsSync(INDEX_PATH)) {
   const indexMtime = fs.statSync(INDEX_PATH).mtimeMs;
   const fragmentMtime = newestFragmentMtime();
   if (fragmentMtime > indexMtime) {
-    failures.push('index.html is older than its html/ fragments — run `npm run build`.');
+    failures.push('index.html is older than its Svelte shell components — run `npm run build`.');
   }
 
   // Belt and braces: the modal injection marker must have been replaced.

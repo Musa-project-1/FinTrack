@@ -10,9 +10,9 @@
  * the Kas Operasional tab threw a TypeError (fixed 2026-09-19). That class of
  * defect now fails here instead of in the browser.
  *
- * The markup is assembled from `html/index.template.html` + `html/modals/*.html`
- * by `scripts/build-html.cjs`, so the fragments are the source of truth and the
- * checks read the fragments, not the generated `index.html`.
+ * The markup is assembled from `src/svelte/shell/WorkspaceShell.svelte` +
+ * `src/svelte/shell/modals/*.svelte` by `scripts/render-shells.mjs`, so those
+ * Svelte shell files are the source of truth rather than the generated `index.html`.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -38,19 +38,17 @@ function walk(dir) {
 }
 
 /**
- * The fragments `scripts/build-html.cjs` assembles into `index.html`.
- * These are the source of truth; the generated `index.html` is deliberately
- * not read, because everything in it is a copy of something listed here.
+ * The Svelte workspace shell and modal components rendered into `index.html` by `scripts/render-shells.mjs`.
  */
-const FRAGMENT_FILES = [
-  'html/index.template.html',
-  ...walk('html/modals').filter((f) => f.endsWith('.html'))
+const SHELL_SVELTE_FILES = [
+  'src/svelte/shell/WorkspaceShell.svelte',
+  ...walk('src/svelte/shell/modals').filter((f) => f.endsWith('.svelte'))
 ];
 
 /**
  * Standalone pages that ship their own markup and scripts. Their ids are
- * reachable by the shared modules — `js/journey.js` runs against
- * `js/onboarding.js` on `onboarding.html` — so they count as existing. They are
+ * reachable by the shared modules — `journey.ts` runs against
+ * `onboarding.ts` on `onboarding.html` — so they count as existing. They are
  * separate documents from the assembled app, so they are excluded from the
  * duplicate-id check.
  */
@@ -59,7 +57,7 @@ const STANDALONE_PAGES = fs.readdirSync(ROOT)
 
 /** Every static markup file and Svelte component a literal lookup may resolve in. */
 const SVELTE_FILES = walk('src/svelte').filter((f) => f.endsWith('.svelte'));
-const HTML_FILES = [...FRAGMENT_FILES, ...STANDALONE_PAGES];
+const HTML_FILES = [...STANDALONE_PAGES];
 const MARKUP_FILES = [...HTML_FILES, ...SVELTE_FILES];
 
 /** Every authored client module (.js / .ts, excluding type declarations and compiled bundles). */
@@ -104,7 +102,7 @@ function elementIds() {
  * document, so sharing an id with it is not a collision.
  * @param {string[]} [files]
  */
-function allIdOccurrences(files = FRAGMENT_FILES) {
+function allIdOccurrences(files = SHELL_SVELTE_FILES) {
   const occurrences = [];
   for (const file of files) {
     for (const match of read(file).matchAll(/\sid="([^"]+)"/g)) {
@@ -185,7 +183,10 @@ test('no element id is defined twice', () => {
 test('no static element id is defined twice across Svelte components', () => {
   const seen = new Map();
   const duplicates = [];
-  for (const file of SVELTE_FILES) {
+  const islandSvelteFiles = SVELTE_FILES.filter(
+    (f) => !f.startsWith('src/svelte/shell/') && !f.startsWith('src/svelte/pages/')
+  );
+  for (const file of islandSvelteFiles) {
     for (const match of read(file).matchAll(/\sid="([^"{]+)"/g)) {
       if (seen.has(match[1])) duplicates.push(`#${match[1]} (${seen.get(match[1])} and ${file})`);
       else seen.set(match[1], file);
@@ -237,7 +238,7 @@ test('every data-action emitted by the markup or the renderers is handled', () =
 });
 
 test('modal-confirm-action buttons have valid data-actions', () => {
-  const modalHtml = read('html/modals/transactions.html');
+  const modalHtml = read('src/svelte/shell/modals/TransactionsModals.svelte');
   assert.match(modalHtml, /data-action="cancel-confirm-action"/);
   assert.match(modalHtml, /data-action="confirm-action-submit"/);
 });

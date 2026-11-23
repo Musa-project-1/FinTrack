@@ -19,7 +19,6 @@ const ROOT = path.resolve(__dirname, '..');
 
 const SW_PATH = path.join(ROOT, 'sw.js');
 const SW_REGISTER_PATH = path.join(ROOT, 'src', 'sw-register.js');
-const TEMPLATE_PATH = path.join(ROOT, 'html', 'index.template.html');
 const ONBOARDING_PATH = path.join(ROOT, 'onboarding.html');
 const PRIVACY_PATH = path.join(ROOT, 'privacy.html');
 
@@ -59,8 +58,8 @@ if (fs.existsSync(SW_REGISTER_PATH)) {
   fs.writeFileSync(SW_REGISTER_PATH, updatedReg, 'utf8');
 }
 
-// 4. Update html/index.template.html, onboarding.html, and privacy.html
-for (const pagePath of [TEMPLATE_PATH, ONBOARDING_PATH, PRIVACY_PATH]) {
+// 4. Update onboarding.html and privacy.html
+for (const pagePath of [ONBOARDING_PATH, PRIVACY_PATH]) {
   if (!fs.existsSync(pagePath)) continue;
   const pageContent = fs.readFileSync(pagePath, 'utf8');
   const updatedPage = pageContent.replace(
@@ -71,8 +70,8 @@ for (const pagePath of [TEMPLATE_PATH, ONBOARDING_PATH, PRIVACY_PATH]) {
 }
 
 // 6. Automatically rebuild index.html
-console.log('Rebuilding index.html...');
-execSync('node scripts/build-html.cjs', { cwd: ROOT, stdio: 'inherit' });
+console.log('Rendering index.html...');
+execSync('node scripts/render-shells.mjs', { cwd: ROOT, stdio: 'inherit' });
 
 // 7. Verify parity
 console.log('Running verify checks...');

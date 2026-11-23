@@ -1,38 +1,3 @@
-﻿<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Finkas</title>
-  <meta name="description" content="Aplikasi Manajemen Kas & Iuran Anggota">
-  <meta name="theme-color" content="#f4f7fb">
-
-  <!-- Social Preview / Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Finkas">
-  <meta property="og:title" content="Finkas: Pembukuan Kas & Iuran Anggota">
-  <meta property="og:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
-  <meta property="og:image" content="icons/icon-512.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Finkas: Pembukuan Kas & Iuran Anggota">
-  <meta name="twitter:description" content="Pembukuan kas kelompok yang sederhana, rapi, dan terbuka.">
-  <meta name="twitter:image" content="icons/icon-512.png">
-
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-
-  <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=309">
-</head>
-<body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">
-  <script src="src/workspace-boot-theme.js?v=309"></script>
   <div class="bg-stage" id="bg-stage" aria-hidden="true">
     <!-- Mode: aurora (default) -->
     <div class="bg-layer bg-aurora">
@@ -671,8 +636,3 @@
       <span>Bayar</span>
     </button>
   </nav>
-
-  <script type="module" src="src/app.js?v=309"></script>
-  <script src="src/sw-register.js?v=309" defer></script>
-</body>
-</html>

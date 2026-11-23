@@ -1,4 +1,4 @@
-  <!-- 7. Navigation Menu Modal Sheet (Hybrid Kinetic Command Hub) -->
+<!-- 7. Navigation Menu Modal Sheet (Hybrid Kinetic Command Hub) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-menu" aria-labelledby="modal-menu-title">
     <div class="modal-content modal-md command-hub-modal">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>

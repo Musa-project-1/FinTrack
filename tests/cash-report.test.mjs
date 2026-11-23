@@ -235,7 +235,7 @@ test('handles empty transactions ledger gracefully', () => {
   assert.equal(report.hasErrors, false);
 });
 
-const reportsHtml = readFileSync(new URL('../html/modals/reports.html', import.meta.url), 'utf8');
+const reportsHtml = readFileSync(new URL('../src/svelte/shell/modals/ReportsModals.svelte', import.meta.url), 'utf8');
 
 function installReportDom(t, initialMonth = '2026-10') {
   const previous = { ...getState() };

@@ -1,4 +1,4 @@
-  <!-- 0c. Modal Kelola Grup: khusus admin pemilik (Hybrid Kinetic 2-Tab Sheet) -->
+<!-- 0c. Modal Kelola Grup: khusus admin pemilik (Hybrid Kinetic 2-Tab Sheet) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-group-admin" aria-labelledby="modal-group-admin-title">
     <div class="modal-content modal-md modal-data-dialog group-admin-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>

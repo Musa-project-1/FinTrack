@@ -15,9 +15,7 @@ after(() => { globalThis.Date = realDate; globalThis.fetch = realFetch; });
 const { setState, setCurrentRekapYear } = await import('../src/ui/svelte-dashboard.js');
 const { renderTableRekap } = await import('../src/ui/svelte-dashboard.js');
 const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/ui/svelte-dashboard.js');
-const read = path => readFileSync(new URL('../html/' + path, import.meta.url), 'utf8');
-const html = read('index.template.html').replace('<!-- @@INJECT_MODALS@@ -->',
-  () => read('modals/transactions.html') + read('modals/reports.html'));
+const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const { window } = new JSDOM(html, { url: 'https://example.test', pretendToBeVisual: true });
 for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text',
   'Comment', 'Event', 'CustomEvent', 'Option', 'MutationObserver', 'navigator', 'requestAnimationFrame']) {

@@ -99,7 +99,7 @@ test('unrelated pointers cannot cancel or release the active drag', () => {
 
 test('each PIN screen has one named native password input associated with its error', () => {
   for (const [file, messageId] of [
-    ['html/modals/group-pin.html', 'group-pin-msg'], ['onboarding.html', 'pin-msg']
+    ['src/svelte/shell/modals/GroupPinModal.svelte', 'group-pin-msg'], ['onboarding.html', 'pin-msg']
   ]) {
     const html = read(file);
     const input = html.match(/<input\b[^>]*id="group-pin"[^>]*>/g);

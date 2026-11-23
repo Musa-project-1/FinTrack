@@ -1,4 +1,4 @@
-  <!-- 13. Modal Catat Transaksi Baru (Wizard 3-Langkah: Iuran & Operasional) -->
+<!-- 13. Modal Catat Transaksi Baru (Wizard 3-Langkah: Iuran & Operasional) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-transaksi" aria-labelledby="modal-transaksi-title">
     <div class="modal-content modal-xl modal-data-dialog trx-record-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>

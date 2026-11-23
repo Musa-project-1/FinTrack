@@ -1,5 +1,31 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-canvas: var(--bg-color);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text-main);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-border: var(--accent-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --shadow-pop: var(--shadow-pop);
+}
+
 /* === FINKAS GRANULAR MODULAR ARCHITECTURE (AUTHORED MODULES < 750 LINES) === */
 @import "./modules/tokens.css";
 @import "./modules/typography.css";
@@ -14,7 +40,6 @@
 @import "./modules/pin-input.css";
 @import "./modules/modals.css";
 @import "./modules/view-tampilan.css";
-@import "./modules/view-dues.css";
 @import "./modules/toasts.css";
 @import "./modules/widgets.css";
 @import "./modules/helpers.css";
@@ -27,7 +52,6 @@
 @import "./modules/auth-modal.css";
 @import "./modules/groups-picker.css";
 @import "./modules/about-modal.css";
-@import "./modules/queue.css";
 @import "./modules/mpick.css";
 @import "./modules/dpick.css";
 @import "./modules/responsive-tablet.css";
@@ -47,3 +71,4 @@
 @import "./modules/hybrid-spotlight.css";
 @import "./modules/hybrid-workspace.css";
 @import "./modules/group-transition.css";
+@import "./svelte-scoped.css";

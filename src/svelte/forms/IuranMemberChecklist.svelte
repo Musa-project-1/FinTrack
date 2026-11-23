@@ -24,3 +24,12 @@
     </label>
   {/each}
 {/key}
+
+<style>
+  :global {
+    .item-partial {
+      border-color: rgba(217, 119, 6, 0.35);
+      background: rgba(217, 119, 6, 0.06);
+    }
+  }
+</style>

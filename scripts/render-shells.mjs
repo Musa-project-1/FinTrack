@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { compile } from 'svelte/compiler';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
+const stripStyleBlocks = (src) => src.replace(/<style\b[^>]*>[\s\S]*?<\/style>\s*/g, '');
 const swSource = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 const swVerMatch = /const CACHE_NAME = 'finkas-v(\d+)';/.exec(swSource);
 if (!swVerMatch) throw new Error('[render-shells] Could not read CACHE_NAME version from sw.js');
@@ -22,11 +24,11 @@ const modalOrder = [
   ['struk.html', 'StrukModal.svelte'],
 ];
 
-const shellBody = fs.readFileSync(path.join(ROOT, 'src/svelte/shell/WorkspaceShell.svelte'), 'utf8').trimEnd();
+const shellBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/shell/WorkspaceShell.svelte'), 'utf8')).trimEnd();
 const modalsContent = modalOrder
   .map(([label, file]) =>
     `  <!-- === Modal Module: ${label} === -->\n` +
-    fs.readFileSync(path.join(ROOT, 'src/svelte/shell/modals', file), 'utf8').trim()
+    stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/shell/modals', file), 'utf8')).trim()
   )
   .join('\n\n');
 
@@ -77,7 +79,7 @@ ${shellBody.replace(marker, () => modalsContent)}
 </body>
 </html>\n`;
 
-const onboardingBody = fs.readFileSync(path.join(ROOT, 'src/svelte/pages/OnboardingShell.svelte'), 'utf8').trimEnd();
+const onboardingBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/pages/OnboardingShell.svelte'), 'utf8')).trimEnd();
 const onboardingHtml = `<!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
@@ -118,7 +120,7 @@ ${onboardingBody}
 </body>
 </html>\n`;
 
-const privacyBody = fs.readFileSync(path.join(ROOT, 'src/svelte/pages/PrivacyShell.svelte'), 'utf8').trimEnd();
+const privacyBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/pages/PrivacyShell.svelte'), 'utf8')).trimEnd();
 const privacyHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -142,7 +144,37 @@ ${privacyBody}
 </body>
 </html>\n`;
 
-fs.writeFileSync(path.join(ROOT, 'index.html'), indexHtml, 'utf8');
-fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
-fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
-console.log(`[render-shells] Rendered index.html (${indexHtml.split('\n').length} lines), onboarding.html (${onboardingHtml.split('\n').length} lines), and privacy.html (${privacyHtml.split('\n').length} lines) at v${v}.`);
+function collectSvelteFiles(dir, out = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) collectSvelteFiles(full, out);
+    else if (entry.isFile() && entry.name.endsWith('.svelte')) out.push(full);
+  }
+  return out;
+}
+
+const svelteStyleChunks = [];
+for (const filePath of collectSvelteFiles(path.join(ROOT, 'src', 'svelte'))) {
+  const source = fs.readFileSync(filePath, 'utf8');
+  if (!/<style\b/.test(source)) continue;
+  const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
+  const compiled = compile(source, { filename: rel });
+  const css = compiled.css?.code?.trim();
+  if (css) svelteStyleChunks.push(`/* ${rel} */\n${css}`);
+}
+const writeIfChanged = (filePath, content) => {
+  if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === content) return false;
+  fs.writeFileSync(filePath, content, 'utf8');
+  return true;
+};
+
+const scopedHeader = '/* Generated from Svelte <style> blocks by scripts/render-shells.mjs. */\n';
+writeIfChanged(
+  path.join(ROOT, 'css', 'svelte-scoped.css'),
+  scopedHeader + (svelteStyleChunks.length ? `${svelteStyleChunks.join('\n\n')}\n` : '')
+);
+
+writeIfChanged(path.join(ROOT, 'index.html'), indexHtml);
+writeIfChanged(path.join(ROOT, 'onboarding.html'), onboardingHtml);
+writeIfChanged(path.join(ROOT, 'privacy.html'), privacyHtml);
+console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length} style blocks) at v${v}.`);

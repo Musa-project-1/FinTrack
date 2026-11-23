@@ -188,7 +188,11 @@ for (const [htmlFile, shellFile] of [
  * generated bundle, so touching them must not demand a rebuild.
  */
 function newestCssMtime() {
-  const candidates = [CSS_ENTRY, ...collectFiles(CSS_MODULE_DIR, /\.css$/)];
+  const candidates = [
+    CSS_ENTRY,
+    path.join(ROOT, 'css', 'svelte-scoped.css'),
+    ...collectFiles(CSS_MODULE_DIR, /\.css$/)
+  ];
 
   let newest = 0;
   for (const file of candidates) {

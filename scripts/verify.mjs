@@ -24,7 +24,6 @@ const SHELL_PATH = path.join(ROOT, 'src', 'svelte', 'shell', 'WorkspaceShell.sve
 const SHELL_MODALS_DIR = path.join(ROOT, 'src', 'svelte', 'shell', 'modals');
 const STYLE_PATH = path.join(ROOT, 'style.css');
 const CSS_ENTRY = path.join(ROOT, 'src', 'input.css');
-const CSS_MODULE_DIR = path.join(ROOT, 'css', 'modules');
 
 const failures = [];
 
@@ -166,7 +165,9 @@ if (!fs.existsSync(INDEX_PATH)) {
 
 for (const [htmlFile, shellFile] of [
   ['onboarding.html', 'src/svelte/pages/OnboardingShell.svelte'],
-  ['privacy.html', 'src/svelte/pages/PrivacyShell.svelte']
+  ['privacy.html', 'src/svelte/pages/PrivacyShell.svelte'],
+  ['404.html', 'src/pages/404.html'],
+  ['offline.html', 'src/pages/offline.html']
 ]) {
   const htmlAbs = path.join(ROOT, htmlFile);
   const shellAbs = path.join(ROOT, shellFile);
@@ -177,21 +178,20 @@ for (const [htmlFile, shellFile] of [
   }
 }
 
-/* ── 4. style.css freshness ──────────────────────────────────────── */
+/* ── 4. style.css & onboarding-scoped.css freshness ──────────────── */
+
+const ONBOARDING_STYLE_PATH = path.join(ROOT, 'css', 'onboarding-scoped.css');
+if (!fs.existsSync(ONBOARDING_STYLE_PATH)) {
+  failures.push('css/onboarding-scoped.css is missing — run `npm run build`.');
+}
 
 /**
- * Newest modification time among the Tailwind entrypoint and the module files
- * it imports.
- *
- * Only `css/input.css` and `css/modules/**` are considered: the onboarding
- * stylesheets are linked directly by `onboarding.html` and are not part of the
- * generated bundle, so touching them must not demand a rebuild.
+ * Newest modification time among the Tailwind entrypoint and compiled Svelte styles.
  */
 function newestCssMtime() {
   const candidates = [
     CSS_ENTRY,
-    path.join(ROOT, 'css', 'svelte-scoped.css'),
-    ...collectFiles(CSS_MODULE_DIR, /\.css$/)
+    path.join(ROOT, 'css', 'svelte-scoped.css')
   ];
 
   let newest = 0;

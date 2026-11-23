@@ -194,216 +194,350 @@
 
 <style>
   :global {
-    /* === UNIVERSAL MONTH/YEAR PICKER (custom popup, no native input) === */
-
-    .mpick {
-      position: relative;
-      display: block;
-      flex: 1;
-      min-width: 0;
+    /* === TAMPILAN SEGMENTED MODAL (VERCEL / LINEAR BENCHMARK) === */
+    .tampilan-segmented-modal {
+      width: min(580px, calc(100vw - 28px)) !important;
+      max-width: 100%;
+      padding: 20px !important;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden !important;
     }
 
-    .mpick > input.mpick {
-      position: absolute;
-      opacity: 0;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      pointer-events: none;
-      border: 0;
-      padding: 0;
-      clip-path: inset(50%);
-      overflow: hidden;
+    .tampilan-top-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+
+    .tampilan-top-tabs .tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-radius: var(--r-pill);
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
       white-space: nowrap;
     }
 
-    .mpick-field {
+    .tampilan-top-tabs .tab-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: color-mix(in oklab, var(--surface-3) 65%, transparent);
+    }
+
+    .tampilan-top-tabs .tab-btn.active {
+      background: var(--surface);
+      color: var(--text-main);
+      border-color: var(--border);
+      box-shadow: var(--hybrid-card-shadow);
+    }
+
+    .tampilan-tab-body {
+      min-height: 280px;
+    }
+
+    .tampilan-tab-body .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .tampilan-tab-body .tab-content.active {
+      display: flex;
+    }
+
+    .tampilan-section {
+      padding: 0;
+    }
+
+    .tampilan-section-label {
+      margin-bottom: 6px;
+      padding: 0 2px;
+    }
+
+    .tampilan-section-label span {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .tampilan-section-label small {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Grids inside sections */
+    .tampilan-grid {
+      display: grid;
+      gap: 8px;
+    }
+    .tampilan-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .tampilan-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .tampilan-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .tampilan-card-tile {
+      border: 1px solid var(--border) !important;
+      border-radius: var(--r-md) !important;
+      background: var(--surface) !important;
+      padding: 9px 12px !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+      width: 100%;
+    }
+
+    .tampilan-card-tile:hover {
+      background: var(--surface-2) !important;
+      border-color: var(--border-strong) !important;
+    }
+
+    .tampilan-card-tile.active {
+      background: var(--accent-tint) !important;
+      border-color: var(--accent) !important;
+      box-shadow: inset 0 0 0 1px var(--accent) !important;
+    }
+
+    .indicator-style-grid {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .style-option-card {
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      width: 100%;
-      min-height: 44px;
-      padding: 10px 14px;
-      background: var(--surface-2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      color: var(--text-main);
-      font-size: 13.5px;
-      font-weight: 600;
-      font-family: inherit;
-      text-align: left;
+      padding: 8px 12px;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      background: transparent;
       cursor: pointer;
-      transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 140ms ease;
-    }
-
-    .mpick-field:hover {
-      border-color: var(--border-strong);
-      background: var(--surface);
-    }
-
-    .mpick-field:active:not(:disabled) {
-      transform: scale(0.99);
-      transition-duration: 90ms;
-    }
-
-    .mpick.open .mpick-field,
-    .mpick-field:focus-visible {
-      background: var(--surface);
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-tint);
-      outline: none;
-    }
-
-    .mpick-label {
-      flex: 1;
+      text-align: left;
+      transition: background 0.12s ease;
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
+    .style-option-card:last-child { border-bottom: none; }
+    .style-option-card:hover { background: var(--surface-2); }
+    .style-option-card.active { background: var(--accent-tint); box-shadow: inset 1px 0 0 0 var(--accent); }
 
-    .mpick-label.is-placeholder {
-      color: var(--text-faint);
-      font-weight: 400;
-    }
-
-    .mpick-cal {
-      flex-shrink: 0;
-      font-size: 18px;
-      color: var(--text-muted);
-    }
-
-    /* Floating popup matching Hybrid Kinetic design system */
-    .mpick-pop {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      right: 0;
-      width: 100%;
-      min-width: 260px;
-      max-width: 320px;
-      z-index: 140;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow-pop);
-      padding: 14px;
-      transform-origin: top center;
-      animation: dropdownFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .mpick-head {
+    .style-option-left {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      min-width: 0;
+      flex: 1 1 0%;
     }
 
-    .mpick-year {
-      font-family: var(--font-mono);
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: var(--tracking-tight);
-      font-variant-numeric: tabular-nums;
-      color: var(--text-main);
-      text-align: center;
-      flex: 1;
-    }
-
-    .mpick-nav {
-      display: inline-flex;
+    .style-preview-wrap {
+      width: 32px;
+      height: 32px;
+      padding: 6px;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
+      border-radius: var(--r-sm);
+      background: var(--surface-2);
       border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text-main);
-      font-size: 13px;
-      cursor: pointer;
-      padding: 0;
-      transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
-    }
-
-    .mpick-nav:hover {
-      border-color: var(--border-strong);
-      background: var(--surface-3);
-      color: var(--accent-strong);
-    }
-
-    .mpick-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-
-    .mpick-m {
-      padding: 9px 0;
-      border: 1.5px solid transparent;
-      border-radius: 10px;
-      background: var(--surface-2);
-      color: var(--text-main);
-      font-size: 12.5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
       font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      text-align: center;
-      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+      color: var(--text-muted);
+    }
+    .color-danger { color: #e11d48; }
+    .color-warning { color: #b45309; }
+
+    .style-option-info {
+      min-width: 0;
+      flex: 1 1 0%;
+    }
+    .style-option-info strong { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-main); }
+    .style-option-info span {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: normal;
+      line-height: 1.3;
     }
 
-    .mpick-m:hover {
-      background: var(--surface);
-      border-color: var(--border-strong);
-      color: var(--accent-strong);
-    }
-
-    .mpick-m.selected {
-      background: var(--accent-tint);
-      border-color: var(--accent-border);
-      color: var(--accent-strong);
-      font-weight: 700;
-    }
-
-    .mpick-foot {
+    .style-check-indicator {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border-radius: var(--r-pill);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
+      justify-content: center;
+      font-size: 10px;
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.16s ease-out, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .style-option-card.active .style-check-indicator { opacity: 1; transform: scale(1); }
+
+    /* === TAMPILAN RESPONSIVE MOBILE (<= 768px) === */
+    @media (max-width: 768px) {
+      #modal-tampilan .modal-header-standard {
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        gap: 8px;
+      }
+
+      #modal-tampilan .modal-badge-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+      }
+
+      #modal-tampilan .modal-title-wrap h2 {
+        font-size: 15px;
+      }
+
+      #modal-tampilan .modal-title-wrap p {
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .tampilan-segmented-modal {
+        padding: 14px 12px !important;
+      }
+
+      .tampilan-top-tabs {
+        gap: 3px;
+        padding: 3px;
+        margin-bottom: 10px;
+      }
+
+      .tampilan-top-tabs .tab-btn {
+        padding: 6px 4px;
+        font-size: 11px;
+        gap: 4px;
+      }
+
+      .tampilan-top-tabs .tab-btn i {
+        font-size: 13px;
+      }
+
+      .tampilan-top-tabs .tab-btn span {
+        display: inline !important;
+        font-size: 10.5px;
+      }
+
+      .tampilan-tab-body {
+        min-height: auto;
+      }
+
+      .tampilan-tab-body .tab-content {
+        gap: 10px;
+      }
+
+      .tampilan-section-label {
+        margin-bottom: 4px;
+        padding: 0;
+      }
+
+      .tampilan-section-label span {
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+      }
+
+      .tampilan-section-label small {
+        display: none !important;
+      }
+
+      /* Grid 3 (Tema & Tekstur): 3 kolom sebaris, tanpa kartu orphan */
+      .tampilan-grid-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+      }
+
+      /* Grid 4 (Palet Aksen Warna): 4 kolom sebaris ramping */
+      .tampilan-grid-4 {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 5px !important;
+      }
+
+      .tampilan-grid-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
+      }
+
+      /* Kartu Opsi Tema & Tekstur */
+      .tampilan-card-tile {
+        padding: 6px 8px !important;
+        min-height: 44px !important;
+        gap: 6px !important;
+        justify-content: center !important;
+        border-radius: var(--r-sm) !important;
+      }
+
+      .tampilan-card-tile .flex-row {
+        gap: 6px !important;
+        justify-content: center !important;
+        width: 100% !important;
+      }
+
+      .tampilan-card-tile .style-option-info {
+        text-align: center;
+      }
+
+      .tampilan-card-tile .style-option-info strong {
+        font-size: 11px !important;
+        line-height: 1.2;
+        display: block;
+      }
+
+      .tampilan-card-tile .style-option-info span {
+        display: none !important;
+      }
+
+      .tampilan-card-tile .style-check-indicator {
+        display: none !important;
+      }
     }
 
-    .mpick-link {
-      border: none;
-      background: transparent;
-      color: var(--accent-strong);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      padding: 5px 10px;
-      border-radius: 8px;
-      transition: background-color 140ms ease, color 140ms ease;
-    }
+    #palette-picker [data-palette="terracotta"] { --palette-sample: var(--sample-terracotta); }
+    #palette-picker [data-palette="cobalt"] { --palette-sample: var(--sample-cobalt); }
+    #palette-picker [data-palette="charcoal"] { --palette-sample: var(--sample-charcoal); }
+    #palette-picker [data-palette="indigo"] { --palette-sample: var(--sample-indigo); }
+    #palette-picker .style-preview-wrap { color: var(--palette-sample); }
 
-    .mpick-link:hover {
-      background: var(--accent-tint);
-      text-decoration: none;
-    }
-
-    .mpick-field:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .is-invalid > .mpick-field {
-      border-color: var(--danger);
-      outline: 2px solid var(--danger);
-      outline-offset: 2px;
+    #indicator-style-picker .style-option-card { min-height: 50px; }
+    #indicator-style-picker .stamp-preview {
+      min-width: 44px;
+      min-height: 38px;
+      display: grid;
+      place-items: center;
     }
   }
 </style>

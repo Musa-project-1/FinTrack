@@ -147,22 +147,35 @@ function collectSvelteFiles(dir, out = []) {
   return out;
 }
 
-const BASE_STYLE_ORDER = [
+const PRE_STYLE_ORDER = [
   'src/svelte/shell/styles/TokensStyle.svelte',
-  'src/svelte/shell/modals/TransactionsModals.svelte',
+  'src/svelte/shell/styles/TypographyStyle.svelte',
   'src/svelte/shell/styles/BaseStyle.svelte',
-  'src/svelte/shell/modals/NavigationModals.svelte',
-  'src/svelte/shell/modals/AuthModals.svelte',
-  'src/svelte/shell/modals/ReportsModals.svelte',
-  'src/svelte/shell/modals/SelfPayModal.svelte',
-  'src/svelte/shell/modals/StrukModal.svelte',
-  'src/svelte/shell/modals/MasterModals.svelte',
+  'src/svelte/shell/styles/LayoutStyle.svelte',
+  'src/svelte/shell/styles/CardsStyle.svelte',
+  'src/svelte/shell/styles/ButtonsStyle.svelte',
+  'src/svelte/shell/styles/TablesStyle.svelte',
+  'src/svelte/shell/styles/FormsStyle.svelte',
   'src/svelte/shell/modals/GroupAdminModals.svelte',
+  'src/svelte/modals/SuperAdminList.svelte',
   'src/svelte/shell/styles/ModalsBaseStyle.svelte',
   'src/svelte/shell/styles/ModalsSheetStyle.svelte',
+  'src/svelte/shell/styles/ToastsStyle.svelte',
+  'src/svelte/shell/styles/HelpersStyle.svelte',
   'src/svelte/shell/styles/CdropStyle.svelte',
-  'src/svelte/shell/modals/TampilanModal.svelte',
+  'src/svelte/shell/styles/MpickStyle.svelte',
+  'src/svelte/shell/styles/DpickStyle.svelte',
   'src/svelte/shell/styles/ResponsiveTabletStyle.svelte',
+];
+
+const POST_STYLE_ORDER = [
+  'src/svelte/shell/styles/ResponsiveMobileStyle.svelte',
+  'src/svelte/shell/styles/WorkspaceStyle.svelte',
+  'src/svelte/shell/styles/KasiMascotStyle.svelte',
+  'src/svelte/shell/styles/KasiStageStyle.svelte',
+  'src/svelte/shell/styles/HybridLayoutStyle.svelte',
+  'src/svelte/shell/styles/HybridMotionStyle.svelte',
+  'src/svelte/shell/styles/HybridWorkspaceStyle.svelte',
 ];
 
 const ONBOARDING_STYLE_ORDER = [
@@ -182,12 +195,14 @@ function compileStyleBlock(rel) {
   return css ? `/* ${rel} */\n${css}` : null;
 }
 
-const reserved = new Set([...BASE_STYLE_ORDER, ...ONBOARDING_STYLE_ORDER]);
+const reserved = new Set([...PRE_STYLE_ORDER, ...POST_STYLE_ORDER, ...ONBOARDING_STYLE_ORDER]);
 const featureRelPaths = collectSvelteFiles(path.join(ROOT, 'src', 'svelte'))
   .map((filePath) => path.relative(ROOT, filePath).split(path.sep).join('/'))
   .filter((rel) => !reserved.has(rel));
 
-const svelteStyleChunks = [...BASE_STYLE_ORDER, ...featureRelPaths].map(compileStyleBlock).filter(Boolean);
+const svelteStyleChunks = [...PRE_STYLE_ORDER, ...featureRelPaths, ...POST_STYLE_ORDER]
+  .map(compileStyleBlock)
+  .filter(Boolean);
 const onboardingStyleChunks = ONBOARDING_STYLE_ORDER.map(compileStyleBlock).filter(Boolean);
 
 const writeIfChanged = (filePath, content) => {

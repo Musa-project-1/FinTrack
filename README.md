@@ -44,7 +44,7 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 
 | Layer | Teknologi |
 |---|---|
-| **UI & Type Safety** | Svelte 5 (`^5.59.1`, `55` komponen `.svelte`), TypeScript 7 ketat (`noImplicitAny: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
+| **UI & Type Safety** | Svelte 5 (`^5.59.1`, `72` komponen `.svelte`), TypeScript 7 ketat (`noImplicitAny: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
 | **Styling & Shells** | Tailwind CSS v4 (`^4.0.0`, `@theme inline` di `src/input.css`), `<style>` Svelte terekstrak (`css/*-scoped.css`), Svelte HTML shells (`scripts/render-shells.mjs`), Phosphor Icons |
 | **PWA & Offline** | Service Worker (`sw.js`), Web App Manifest (`manifest.json`), IndexedDB (`finkas-offline-db`), View Transitions API |
 | **Backend & Database** | Vercel Serverless Functions TypeScript (Node.js native TS ESM di `api/`), Google Cloud Firestore REST via Service Account |
@@ -63,12 +63,12 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 │   ├── verify-group-pin.ts       # Verifikasi PIN 4 digit per grup
 │   └── _*.ts                     # Modul internal: sa, http, session, store, read, write-*, idempotency, attachments
 ├── src/
-│   ├── svelte/                   # Sumber Svelte 5 & TypeScript (55 .svelte + 87 .ts)
+│   ├── svelte/                   # Sumber Svelte 5 & TypeScript (72 .svelte + 87 .ts)
 │   │   ├── core/                 # Logika murni & sinkronisasi TS (config, state, dues, cash-report, mutation, offline*, utils)
 │   │   ├── dashboard/            # 8 komponen utama workspace (Overview, Bento, Spotlight, Matriks, Riwayat, Statistik)
 │   │   ├── modals/               # 14 komponen isi modal (GroupPicker/Admin, Queue, Profil, Struk, SelfPay, Master, Audit, Laporan Kas)
 │   │   ├── forms/                # 5 komponen kontrol interaktif (Checklist Iuran, Review Chips, QuickPay, YearGlider, StampPreview)
-│   │   ├── shell/                # WorkspaceShell.svelte, 12 kerangka modal, & 6 modul fondasi CSS di styles/
+│   │   ├── shell/                # WorkspaceShell.svelte, 12 kerangka modal, & 23 modul fondasi/chrome CSS di styles/
 │   │   ├── pages/                # OnboardingShell/PrivacyShell, 6 modul CSS di onboarding/, & kontroler pages (.ts)
 │   │   ├── handlers/             # 15 kontroler fitur & form TypeScript (auth, groups*, master, transactions*, quickpay, self-pay, export, backup)
 │   │   ├── render/               # 5 modul orkestrasi render UI TypeScript (index, dashboard, profile, receipt, rekap)

@@ -202,7 +202,7 @@ test('split modules are imported, precached, and authored batch sources stay und
     assert.ok(read('sw.js').includes(`'${file}'`));
   }
   assert.ok(read('src/input.css').includes('../css/svelte-scoped.css'));
-  for (const file of ['src/svelte/shell/modals/MasterModals.svelte', 'src/svelte/shell/modals/GroupAdminModals.svelte',
+  for (const file of ['src/svelte/shell/modals/GroupAdminModals.svelte', 'src/svelte/modals/SuperAdminList.svelte',
     'src/svelte/shell/styles/ModalsBaseStyle.svelte',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',

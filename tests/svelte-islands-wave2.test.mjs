@@ -323,18 +323,25 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     './hybrid-motion.js', './dues-status.js', './pagination.js', './bulk-dues.js', '../render/receipt.js', '../handlers/self-pay.js']));
   assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
   const map = JSON.parse(read(file + '.map'));
-  for (const file of ['GroupOverview.svelte', 'BentoDashboard.svelte', 'MemberSpotlight.svelte',
-    'AdminPriorities.svelte', 'HistoryLedger.svelte', 'WorkspaceStats.svelte', 'DuesMatrix.svelte',
-    'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
-    'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
-    'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
-    'PassbookMonths.svelte', 'ProfileHistoryList.svelte', 'ReceiptBody.svelte', 'SelfPayMonths.svelte',
-    'master.svelte.ts', 'MasterAnggotaRows.svelte', 'MasterKategoriRows.svelte', 'AuditLogRows.svelte',
-    'SkippedMonthsList.svelte', 'cash-report.svelte.ts', 'CashReportAlert.svelte', 'CashReportRows.svelte',
-    'transaction-form.svelte.ts', 'IuranMemberChecklist.svelte', 'IuranReviewChips.svelte', 'QuickPayPresets.svelte',
-    'year-glider.svelte.ts', 'YearGlider.svelte', 'stamp-preview.svelte.ts', 'StampStylePreview.svelte',
-    'profile.svelte.ts', 'receipt.svelte.ts', 'self-pay.svelte.ts',
-    'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
+  for (const file of [
+    'dashboard/GroupOverview.svelte', 'dashboard/BentoDashboard.svelte', 'dashboard/MemberSpotlight.svelte',
+    'dashboard/AdminPriorities.svelte', 'dashboard/HistoryLedger.svelte', 'dashboard/WorkspaceStats.svelte',
+    'dashboard/DuesMatrix.svelte', 'dashboard/DuesMobileCards.svelte',
+    'modals/GroupPickerList.svelte', 'modals/GroupAdminList.svelte', 'modals/SuperAdminList.svelte',
+    'modals/OfflineQueueList.svelte', 'modals/PassbookMonths.svelte', 'modals/ProfileHistoryList.svelte',
+    'modals/ReceiptBody.svelte', 'modals/SelfPayMonths.svelte', 'modals/MasterAnggotaRows.svelte',
+    'modals/MasterKategoriRows.svelte', 'modals/AuditLogRows.svelte', 'modals/SkippedMonthsList.svelte',
+    'modals/CashReportAlert.svelte', 'modals/CashReportRows.svelte',
+    'forms/IuranMemberChecklist.svelte', 'forms/IuranReviewChips.svelte', 'forms/QuickPayPresets.svelte',
+    'forms/YearGlider.svelte', 'forms/StampStylePreview.svelte',
+    'stores/rekap-model.ts', 'stores/rekap.svelte.ts', 'stores/history-model.ts', 'stores/stats-model.ts',
+    'stores/history.svelte.ts', 'stores/stats.svelte.ts', 'stores/store.svelte.ts', 'stores/spotlight-model.ts',
+    'stores/spotlight.svelte.ts', 'stores/master.svelte.ts', 'stores/cash-report.svelte.ts',
+    'stores/transaction-form.svelte.ts', 'stores/year-glider.svelte.ts', 'stores/stamp-preview.svelte.ts',
+    'stores/profile.svelte.ts', 'stores/receipt.svelte.ts', 'stores/self-pay.svelte.ts',
+    'stores/group-picker.svelte.ts', 'stores/group-admin.svelte.ts', 'stores/offline-queue.svelte.ts',
+    'components.ts', 'mount.ts'
+  ]) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
   }
   assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
@@ -347,8 +354,8 @@ test('onboarding ships a self-contained precached bundle with current source con
   const map = JSON.parse(read('src/ui/svelte-onboarding.js.map'));
   assert.equal(map.version, 3);
   assert.ok(map.mappings.length);
-  for (const file of ['OnboardingGroupList.svelte', 'onboarding.svelte.ts', 'onboarding-components.ts', 'onboarding-mount.ts']) {
-    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file), file);
+  for (const file of ['OnboardingGroupList.svelte', 'onboarding.svelte.ts', 'components.ts', 'mount.ts']) {
+    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/onboarding/' + file)], read('src/svelte/onboarding/' + file), file);
   }
   const assets = read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1];
   assert.ok(assets.includes("'src/ui/svelte-onboarding.js'"));

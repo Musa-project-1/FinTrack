@@ -11,7 +11,7 @@
   screenshot six times. Here every beat is pinned to an exact `t` and rendered
   side by side.
 
-  It loads the REAL stylesheets and imports the REAL curve from js/journey.js
+  It loads the REAL stylesheets and imports the REAL curve from src/pages/journey.js
   (skyLayerStatesAt), so what you see is the shipped artwork, not a copy.
   Open it over http(s) — ES modules do not run from file://.
 -->
@@ -35,7 +35,7 @@
 <body>
 <div class="qa-grid" id="qa-grid"></div>
 <script type="module">
-import { skyLayerStatesAt } from '../../src/journey.js';
+import { skyLayerStatesAt } from '../../src/pages/journey.js';
 
 /* The beats a visitor actually passes through: page top, the mockup band,
    the far ridge emerging, the feature tiles, the matrix, and the end. */

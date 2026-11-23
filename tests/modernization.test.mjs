@@ -207,7 +207,7 @@ test('split modules are imported, precached, and authored batch sources stay und
   }
   for (const file of ['css/modules/groups-modal.css', 'css/modules/groups-superadmin.css',
     'css/modules/pin-input.css', 'src/ui/pin-input.js', 'src/ui/gestures.js', 'src/handlers/groups.js',
-    'src/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
+    'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
 });
@@ -247,7 +247,7 @@ for (const screen of ['groups', 'onboarding']) {
       },
       showToast() {}, esc: (text) => text
     });
-    let source = read(screen === 'groups' ? 'src/handlers/groups.js' : 'src/onboarding.js')
+    let source = read(screen === 'groups' ? 'src/handlers/groups.js' : 'src/pages/onboarding.js')
       .replace(/^import[\s\S]*?from ["'][^"']+["'];\s*/gm, '')
       .replace(/^export \{[^}]*\} from ["'][^"']+["'];/gm, '')
       .replaceAll('export const ', 'const ');

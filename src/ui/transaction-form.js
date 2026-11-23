@@ -498,7 +498,7 @@ export const renderCheckboxIuran = () => {
   if (container) {
     const items = (state.anggota || []).filter(ang => ang.Status_Aktif === 'Aktif').map(ang => {
       const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: /** @type {const} */ ('unpaid'), owed: true };
-      /** @type {import('../svelte/transaction-form.svelte').IuranChecklistItem['variant']} */
+      /** @type {import('../svelte/stores/transaction-form.svelte').IuranChecklistItem['variant']} */
       let variant = 'unpaid';
       let statusLabel = 'BELUM BAYAR';
       if (month.status === 'paid') {

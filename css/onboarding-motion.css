@@ -210,7 +210,7 @@ html.theme-fading * {
   animation: lp-flash-veil var(--lp-t-state) ease-out both;
 }
 
-/* ── Sky Stage Layer Bindings (consumed by src/journey.js) ─────────────── */
+/* ── Sky Stage Layer Bindings (consumed by src/pages/journey.js) ───────── */
 .js-motion .sky-layer-sky {
   opacity: var(--lp-j-sky, 1);
   transform: translate3d(0, var(--lp-y-sky, 0%), 0);

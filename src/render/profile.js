@@ -79,7 +79,7 @@ export const bukaProfilAnggota = (idAnggota) => {
     const month = ledger.getMonth(member, index, year);
     const status = getDuesDisplayStatus(month);
     const kind = stampKind[status];
-    /** @type {import('../svelte/profile.svelte').ProfileInput['months'][number]['action']} */
+    /** @type {import('../svelte/stores/profile.svelte').ProfileInput['months'][number]['action']} */
     let action = '';
     if (status === 'Lunas') {
       action = 'open-month-receipt';

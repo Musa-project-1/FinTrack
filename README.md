@@ -1,53 +1,42 @@
 # Finkas
 
-Aplikasi manajemen kas anggota dan kas operasional berbasis web (**Progressive Web App / PWA**), didukung backend **Google Cloud Firestore**.
+Aplikasi manajemen kas anggota dan kas operasional komunitas berbasis web (**Offline-First Progressive Web App / PWA**), dibangun dengan **Svelte 5 + TypeScript + Tailwind CSS v4 + Vite 8** di frontend dan **Vercel Serverless Functions + Google Cloud Firestore** di backend.
+
+> Lihat [`PRD.md`](./PRD.md) untuk spesifikasi produk lengkap dan [`DESIGN.md`](./DESIGN.md) untuk token desain *Hybrid Kinetic*.
 
 ---
 
 ## ✨ Fitur Utama
 
-- **Dashboard Finansial** — Visualisasi saldo kas, total pemasukan, total pengeluaran, serta tren grafik bulanan interaktif (Chart.js).
-- **Rekap Matriks Iuran 12 Bulan** — Grid 12 bulan per anggota (desktop) dan card view adaptif dengan progress bar (mobile).
-- **Pencatatan Cepat (Quick Pay)** — Bendahara mencatat pembayaran anggota dalam satu klik via modal bottom sheet.
-- **Kas Operasional** — Mencatat transaksi masuk/keluar non-iuran dengan kategori kustom.
-- **Kelola Master Data (CRUD Khusus Admin)** — Menambah, menonaktifkan, atau menghapus anggota dan kategori kas.
-- **Bulan Libur (Skipped Months)** — Mengatur bulan libur agar tidak dihitung sebagai tunggakan.
-- **Riwayat & Filter Lengkap** — Pencarian instan, filter bulan/tahun periode iuran, serta preset rentang waktu.
-- **Profil & Statistik Anggota** — Riwayat kontribusi dan persentase pembayaran per individu.
-- **Ekspor & Pelaporan** — Ekspor CSV/Excel (dengan sanitasi formula injection), cetak struk, cetak rekap tahunan, dan generator pesan pengingat tagihan WhatsApp.
-- **Disaster Recovery (Backup & Restore JSON)** — Ekspor snapshot JSON terstruktur dan pemulihan aman dengan validasi keunikan dokumen sebelum penulisan database.
-- **Offline-First (PWA)** — Dapat diinstall di Android/iOS/Desktop. Saat internet mati, transaksi tetap tersimpan di IndexedDB dan disinkronkan otomatis saat kembali online.
-- **Multi-Grup** — Setiap kelompok punya ruang datanya sendiri, dilindungi PIN 4 digit.
+- **Portal Onboarding & Multi-Grup Terisolasi** — Halaman showcase publik (`onboarding.html`), pemilih grup instan, transisi arah *View Transitions*, serta isolasi data dan sesi per grup via PIN 4 digit.
+- **Dashboard & Bento KPI** — Ringkasan saldo total, pemasukan/pengeluaran, tingkat kepatuhan iuran, pengeluaran terbesar, serta *sparkline* saldo bergulir 12 bulan (`Asia/Jakarta`, WIB).
+- **Matriks Iuran 12 Bulan** — Grid 12 bulan per anggota (desktop) dan card adaptif (mobile) dengan dukungan cicilan (`Sebagian`), bulan libur (`Libur`), `Kas Start` grup, pagination, serta seleksi massal.
+- **Member Spotlight & Self-Pay** — Sematkan nama anggota untuk pantauan pribadi 12 bulan, buka struk bulan lunas, atau panduan bayar mandiri dengan pratinjau pesan WhatsApp bendahara.
+- **Wizard Transaksi, QuickPay & Bukti Lampiran** — Input iuran massal 3 langkah, pencatatan operasional, *QuickPay* satu ketuk, pratinjau selisih saldo saat edit, dan lampiran bukti tervalidasi (JPEG/PNG/WebP/PDF `<= 512 KiB`).
+- **Laporan Kas Bulanan (WIB) & Ekspor** — Kalkulasi Saldo Awal → Masuk/Keluar → Saldo Akhir WIB dengan audit integritas 7 invarian (ekspor PDF/CSV otomatis diblokir jika ada baris invalid), sanitasi *formula injection* CSV, cetak rekap tahunan, dan teks pengingat WhatsApp.
+- **Master Data, Audit Log & Snapshot JSON v2** — CRUD anggota/kategori/bulan libur/rekening kas, log aktivitas khusus Super Admin, serta backup/restore JSON tervalidasi.
+- **Offline-First & Idempotensi** — Transaksi offline disimpan di IndexedDB (`finkas-offline-db`) per `groupId` dan dilengkapi `operationId` idempoten agar sinkronisasi ulang bebas duplikasi.
 
 ---
 
 ## 🔐 Model Keamanan
 
-Browser **tidak pernah** mengakses Firestore secara langsung. Firestore rules menolak
-seluruh akses dari klien:
+Browser **tidak pernah** mengakses Firestore secara langsung; seluruh akses ditolak oleh `firestore.rules`:
 
 ```
 match /{document=**} { allow read, write: if false; }
 ```
 
-Semua baca/tulis melewati serverless function di `api/`, yang memakai service account
-(Admin SDK). Ringkasnya:
+Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 
 | Aspek | Implementasi |
 |---|---|
-| Sesi | Token bertanda tangan HMAC dengan masa berlaku (`api/_session.js`), pembersihan saat keluar/logout, dan pencabutan sisi server (`revokedAfter`) |
-| Password | scrypt (memory-hard) dengan salt acak per kredensial |
-| Password master | scrypt, dan hash-nya hanya ada di dokumen server-only `settings/app_config` |
-| PIN grup | Hash hanya tersimpan di `groups/{gid}/private/config` yang tak bisa dibaca klien |
-| Pembatasan percobaan | Dihitung di sisi **server** (per grup dan per IP) lewat koleksi `_ratelimit` |
-| Otorisasi | Per-peran: `member` (baca grupnya), `group_admin` (baca dan tulis grupnya), `superadmin` (semua grup) |
-| Integritas Transaksi | Entropi ID transaksi minimal 64-bit (`ID_BYTES = 8`) dan pencegahan duplikasi iuran atomik via commit precondition (`fsCreateIfAbsent` + deterministic hash `iuranId`) |
-| Proteksi Ekspor | Sanitasi formula injection CSV pada karakter awalan `=`, `+`, `-`, `@`, `\t`, `\r` |
-| Penyimpanan token di klien | `localStorage` dengan kedaluwarsa waktu nyata (TTL bertanda tangan HMAC) |
-| Header Keamanan | CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` (HSTS) |
-
-Data lama tetap kompatibel: hash format lama dibaca sekali, lalu otomatis ditingkatkan
-ke scrypt saat login/PIN berhasil pertama kali.
+| Sesi & Token | Token HMAC bertanda tangan dengan TTL dan pencabutan sisi server (`revokedAfter`) lewat `api/_session.js` |
+| Kredensial | Password pengurus, password master, dan PIN grup di-hash dengan `scrypt` (`groups/{gid}/private/config`, `settings/app_config`) |
+| Google Super Admin | Verifikasi token Google OAuth terhadap whitelist email server-only (`api/login-google.js`) |
+| Pembatasan Percobaan | Rate limiter sisi server di Firestore per grup & per IP (`_ratelimit`) |
+| Idempotensi & Integritas | Entropi ID `>= 64-bit`, `fsCreateIfAbsent` untuk cegah duplikat iuran, serta receipt atomik per `operationId` (`api/_transaction-idempotency.js`) |
+| Proteksi Klien & HTTP | Sanitasi formula CSV (`=`, `+`, `-`, `@`, `\t`, `\r`), zero `.innerHTML` di handler/renderer/form, plus CSP, HSTS, dan `X-Frame-Options: DENY` di `vercel.json` |
 
 ---
 
@@ -55,88 +44,72 @@ ke scrypt saat login/PIN berhasil pertama kali.
 
 | Layer | Teknologi |
 |---|---|
-| **Frontend** | HTML5, CSS3 (design tokens), Vanilla JavaScript (ES Modules) |
-| **PWA & Mobile** | Service Worker, Web App Manifest, ikon PNG dan SVG maskable, View Transitions API |
-| **Backend** | Vercel Serverless Functions (`api/`), Google Cloud Firestore REST via service account |
-| **Offline Engine** | IndexedDB (`finkas-offline-db`), Background Synchronization |
-| **Grafik & Ikon** | Chart.js, Phosphor Icons |
+| **UI Islands & Type Safety** | Svelte 5 (`^5.59.1`), TypeScript 7 (`checkJs: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
+| **Styling & Markup** | Tailwind CSS v4 (`^4.0.0`), CSS Design Tokens modular, fragmen HTML rakitan (`scripts/build-html.cjs`), Phosphor Icons |
+| **PWA & Offline** | Service Worker (`sw.js`), Web App Manifest (`manifest.json`), IndexedDB (`finkas-offline-db`), View Transitions API |
+| **Backend & Database** | Vercel Serverless Functions (Node.js ESM di `api/`), Google Cloud Firestore REST via Service Account |
+| **Testing & Verifikasi** | `node --test` (`410` uji kontrak DOM, akuntansi WIB, idempotensi, keamanan, & JSDOM Svelte) + `scripts/verify.mjs` |
 
 ---
 
 ## 📁 Struktur Direktori
 
 ```
-├── api/                      # Vercel serverless functions (satu-satunya jalur ke Firestore)
-│   ├── _sa.js                # Service account, REST Firestore, commit precondition (fsCreateIfAbsent), codec
-│   ├── _session.js           # Token sesi bertanda tangan, scrypt, pembatasan percobaan
-│   ├── _store.js             # Tata letak koleksi, path, entropi ID (newId, iuranId), audit log
-│   ├── _group-read.js        # Baca data satu grup
-│   ├── _group-write.js       # Mutasi data grup, de-duplikasi atomik, restore snapshot
-│   ├── data.js               # Gateway data yang terautentikasi (error-masked)
-│   ├── login.js              # Login admin grup dan admin master
-│   ├── login-google.js       # Login Google Super Admin dan kelola whitelist
-│   ├── create-group.js       # Kelola grup (khusus Super Admin)
-│   └── verify-group-pin.js   # Verifikasi PIN grup
-├── js/
-│   ├── core/                 # config, state, api-client, api, api-auth, offline, utils, analytics
-│   ├── handlers/             # auth, groups, transactions, master, navigation, export, backup, offlineQueue
-│   ├── render/               # dashboard, rekap, transactions, profile
-│   ├── ui/                   # modal, cdrop, mpick, theme
-│   └── app.js                # Orkestrasi aplikasi dan event delegation
-├── html/                     # Fragmen HTML modal + template
-├── css/                      # Design tokens dan modul CSS
-├── scripts/                  # build-html.cjs, verify.mjs, utilitas migrasi
-├── tests/                    # Suite node:test (168 pengujian regresi & kontrak)
-├── firestore.rules           # Menolak seluruh akses klien
-└── sw.js                     # Service Worker (precache + sinkronisasi offline)
+├── api/                          # Vercel serverless functions (gateway Firestore)
+│   ├── data.js                   # Gateway data terautentikasi (baca/tulis per grup)
+│   ├── login.js, login-google.js # Autentikasi pengurus, master admin & Google Super Admin
+│   ├── create-group.js           # Manajemen grup (khusus Super Admin)
+│   ├── verify-group-pin.js       # Verifikasi PIN 4 digit per grup
+│   └── _*.js                     # Modul internal: sa, session, store, read, write-*, idempotency, attachments
+├── src/
+│   ├── core/                     # Logika murni & sinkronisasi: config, state, dues, cash-report, mutation, offline*, utils
+│   ├── handlers/                 # Kontroler fitur & form: auth, groups, group-picker, master, transactions*, quickpay, self-pay, export, backup, cash-report
+│   ├── pages/                    # Skrip halaman mandiri: onboarding*, journey, privacy
+│   ├── render/                   # Penghubung rendering UI & modal: dashboard, profile, receipt, rekap, transactions
+│   ├── svelte/                   # Sumber Svelte 5 & store TypeScript (28 .svelte + 28 .ts/.d.ts)
+│   │   ├── dashboard/            # 8 komponen utama workspace (Overview, Bento, Spotlight, Matriks, Riwayat, Statistik)
+│   │   ├── modals/               # 14 komponen isi modal (GroupPicker/Admin, Queue, Profil, Struk, SelfPay, Master, Audit, Laporan Kas)
+│   │   ├── forms/                # 5 komponen kontrol interaktif (Checklist Iuran, Review Chips, QuickPay, YearGlider, StampPreview)
+│   │   ├── onboarding/           # Pulau Svelte mandiri untuk portal onboarding
+│   │   ├── stores/               # Store runes Svelte 5 (*.svelte.ts) & view-model murni (*-model.ts)
+│   │   └── types/                # Kontrak tipe modul .d.ts untuk alias Rollup/Vite
+│   ├── ui/                       # Utilitas UI (cdrop, dpick, mpick, keel, gestures, i18n, modal, theme) + hasil bundle + facade .d.ts
+│   ├── types/                    # Tipe domain global (finkas.d.ts)
+│   └── app.js                    # Entry aplikasi utama & delegasi aksi DOM
+├── html/                         # Template utama & 13 fragmen modal (dirakit -> index.html)
+├── css/                          # CSS modular & entry Tailwind (dirakit -> style.css)
+├── scripts/                      # build-html.cjs, authored-sourcemaps.mjs, bump.mjs, verify.mjs
+├── tests/                        # Suite node:test (410 uji) + fixtures + helpers
+├── PRD.md                        # Product Requirements Document resmi Finkas
+├── DESIGN.md                     # Spesifikasi sistem desain & palet Hybrid Kinetic
+├── firestore.rules               # Menolak seluruh akses langsung klien ke Firestore
+└── sw.js                         # Service Worker (precache & lifecycle offline)
 ```
 
 ---
 
 ## 🚀 Setup & Deployment
 
-### 1. Konfigurasi Firebase
+### 1. Environment Variables
+- `FIREBASE_SERVICE_ACCOUNT` *(wajib)* — JSON kredensial Service Account Firebase (mentah atau base64). Untuk lokal, simpan di `.service-account.local.json` (masuk `.gitignore`).
+- `FIREBASE_PROJECT_ID` *(opsional)* — Default `finkas-kas`.
+- `FINKAS_SESSION_SECRET` *(disarankan)* — Secret HMAC min. 32 karakter (bila kosong, diturunkan dari private key).
 
-1. Buat project di [Firebase Console](https://console.firebase.google.com/) dan aktifkan
-   **Cloud Firestore** (mode Native, misalnya `asia-southeast2`).
-2. Buat **Service Account** (Project Settings → Service Accounts → Generate new private key).
-3. Simpan kredensialnya sebagai environment variable `FIREBASE_SERVICE_ACCOUNT` (JSON mentah
-   atau base64 dari JSON tersebut). Untuk pengembangan lokal, letakkan sebagai
-   `.service-account.local.json` di root — file ini sudah masuk `.gitignore`.
-
-### 2. Environment Variables
-
-| Variable | Wajib | Keterangan |
-|---|---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | Ya | Kredensial service account (JSON atau base64). |
-| `FIREBASE_PROJECT_ID` | Tidak | Default `finkas-kas`. |
-| `FINKAS_SESSION_SECRET` | Disarankan | Minimal 32 karakter, untuk menandatangani sesi. Bila kosong, diturunkan dari private key service account. |
-
-### 3. Deploy Rules dan Hosting
-
+### 2. Deploy Firestore Rules & Vercel
 ```bash
-firebase deploy --only firestore:rules   # WAJIB, dan harus rilis bersama klien baru
+firebase deploy --only firestore:rules   # Rilis bersama klien terbaru agar klien lama tidak ditolak sepihak
 ```
-
-> ⚠️ **Deploy rules ini bersama klien, bukan sebelum.** Rules menolak semua akses langsung
-> dari browser. Klien versi lama masih membaca Firestore langsung dan akan langsung rusak
-> bila rules di-deploy lebih dulu.
-
-Hosting frontend bisa di **Vercel** (disarankan, karena `api/` adalah Vercel Functions),
-Netlify, Firebase Hosting, atau hosting statis lain yang mendukung serverless.
+Hosting menggunakan **Vercel** dengan build command `npm run build` di [vercel.json](./vercel.json).
 
 ---
 
 ## 🧑‍💻 Perintah Pengembangan
 
 ```bash
-npm run verify     # Cek sintaks semua modul, daftar precache SW, dan kesegaran index.html
-npm test           # Jalankan 168 node:test (codec, security, state, dom contract)
-npm run check      # verify + test
-npm run build      # Susun index.html dari fragmen, lalu build CSS
-npm run dev:css    # Watch CSS
+npm run check     # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 410 uji
+npm run release   # Naikkan versi cache/aset & sw.js (bump.mjs), lalu jalankan `npm run check`
+npm run build     # Rakit bundle Svelte dashboard & onboarding + index.html + style.css
+npm test          # Jalankan suite pengujian `node --test`
 ```
 
-`index.html` **dihasilkan** dari `html/index.template.html` dan `html/modals/*.html`.
-Setelah mengubah fragmen HTML, jalankan `npm run build:html` — `npm run verify` akan
-memberi tahu jika `index.html` sudah tertinggal.
+> Catatan: `index.html`, `style.css`, [src/ui/svelte-dashboard.js](./src/ui/svelte-dashboard.js), dan [src/ui/svelte-onboarding.js](./src/ui/svelte-onboarding.js) merupakan artefak hasil build. Jalankan `npm run check` setiap selesai mengubah `html/`, `css/`, atau `src/`.

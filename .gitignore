@@ -19,7 +19,6 @@ HARDENING-CHECKLIST.md
 .agents/
 .hermes/
 skills-lock.json
-js/list.md
 tmp/
 .test-localstorage.json
 .scratch/

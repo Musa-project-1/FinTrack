@@ -1,1 +1,1 @@
-export * from '../svelte/onboarding-mount';
+export * from '../svelte/onboarding/mount';

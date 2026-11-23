@@ -1,45 +1,45 @@
 import { flushSync, mount } from 'svelte';
 import { initHybridMotion } from 'finkas/hybrid-motion';
-import { resetDashboardGroupState, updateDashboardStore, type DashboardInput } from './store.svelte';
-import { resetSpotlightGroupState, registerSpotlightMount, setSpotlightStampStyle } from './spotlight.svelte';
-import { resetHistoryGroupState, registerHistoryMount } from './history.svelte';
-import { resetStatsGroupState, registerStatsMount } from './stats.svelte';
-import { resetRekapGroupState, registerRekapMount } from './rekap.svelte';
+import { resetDashboardGroupState, updateDashboardStore, type DashboardInput } from './stores/store.svelte';
+import { resetSpotlightGroupState, registerSpotlightMount, setSpotlightStampStyle } from './stores/spotlight.svelte';
+import { resetHistoryGroupState, registerHistoryMount } from './stores/history.svelte';
+import { resetStatsGroupState, registerStatsMount } from './stores/stats.svelte';
+import { resetRekapGroupState, registerRekapMount } from './stores/rekap.svelte';
 
-import { updateGroupPickerStore, type GroupPickerInput } from './group-picker.svelte';
-import { updateGroupAdminStore, updateSuperAdminStore, type GroupAdminInput, type SuperAdminInput } from './group-admin.svelte';
-import { updateOfflineQueueStore, resetOfflineQueueState, type OfflineQueueInput } from './offline-queue.svelte';
+import { updateGroupPickerStore, type GroupPickerInput } from './stores/group-picker.svelte';
+import { updateGroupAdminStore, updateSuperAdminStore, type GroupAdminInput, type SuperAdminInput } from './stores/group-admin.svelte';
+import { updateOfflineQueueStore, resetOfflineQueueState, type OfflineQueueInput } from './stores/offline-queue.svelte';
 
-import { updateProfileStore, setProfileStampStyle, resetProfileState, type ProfileInput } from './profile.svelte';
-import { updateReceiptStore, resetReceiptState, type ReceiptInput } from './receipt.svelte';
-import { updateSelfPayStore, resetSelfPayState, type SelfPayInput } from './self-pay.svelte';
+import { updateProfileStore, setProfileStampStyle, resetProfileState, type ProfileInput } from './stores/profile.svelte';
+import { updateReceiptStore, resetReceiptState, type ReceiptInput } from './stores/receipt.svelte';
+import { updateSelfPayStore, resetSelfPayState, type SelfPayInput } from './stores/self-pay.svelte';
 
 import {
   resetMasterState, updateMasterAnggotaStore, setMasterAnggotaQuery, updateMasterKategoriStore,
   updateAuditLogStore, updateSkippedMonthsStore, type MasterAnggotaRow, type MasterKategoriRow,
   type AuditLogInput, type SkippedMonthItem
-} from './master.svelte';
-import { resetCashReportState, updateCashReportStore, type CashReportInput } from './cash-report.svelte';
+} from './stores/master.svelte';
+import { resetCashReportState, updateCashReportStore, type CashReportInput } from './stores/cash-report.svelte';
 
 import {
   resetTransactionFormState, updateIuranChecklistStore, setIuranChecklistQuery,
   updateIuranReviewChipsStore, updateQuickPayPresetsStore, type IuranChecklistItem,
   type IuranReviewChip, type QuickPayPreset
-} from './transaction-form.svelte';
-import { resetYearGliderState, updateYearGliderSlot, type YearSlot } from './year-glider.svelte';
-import { resetStampPreviewState, updateStampPreviewStore } from './stamp-preview.svelte';
+} from './stores/transaction-form.svelte';
+import { resetYearGliderState, updateYearGliderSlot, type YearSlot } from './stores/year-glider.svelte';
+import { resetStampPreviewState, updateStampPreviewStore } from './stores/stamp-preview.svelte';
 
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
-  renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
-export { computeRekapViewModel } from './rekap-model';
-export { initHistoryPagination, renderTableTransaksi, computeHistoryViewModel } from './history.svelte';
-export { renderHybridChart, computeStatsViewModel, selectStatsMonth } from './stats.svelte';
-export { computeDashboardViewModel, updateDashboardStore, setSelectedSparkMonth } from './store.svelte';
+  renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './stores/rekap.svelte';
+export { computeRekapViewModel } from './stores/rekap-model';
+export { initHistoryPagination, renderTableTransaksi, computeHistoryViewModel } from './stores/history.svelte';
+export { renderHybridChart, computeStatsViewModel, selectStatsMonth } from './stores/stats.svelte';
+export { computeDashboardViewModel, updateDashboardStore, setSelectedSparkMonth } from './stores/store.svelte';
 
 export {
   initSpotlight, renderSpotlight, showSpotlightDetail, getPinnedMemberId, setMemberPin, toggleMemberPin,
   computeSpotlightViewModel
-} from './spotlight.svelte';
+} from './stores/spotlight.svelte';
 
 registerSpotlightMount(mountSvelteDashboard);
 registerHistoryMount(mountSvelteDashboard);

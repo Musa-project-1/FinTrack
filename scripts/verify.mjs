@@ -100,14 +100,37 @@ for (const entry of precache) {
 // Ensure sw.js cache name and src/sw-register.js query version match.
 const swSource = fs.readFileSync(SW_PATH, 'utf8');
 const swRegisterPath = path.join(ROOT, 'src', 'sw-register.js');
+let swVer = '';
 if (fs.existsSync(swRegisterPath)) {
   const regSource = fs.readFileSync(swRegisterPath, 'utf8');
-  const swVer = (/const CACHE_NAME = 'finkas-v([^']+)';/.exec(swSource) || [])[1];
+  swVer = (/const CACHE_NAME = 'finkas-v([^']+)';/.exec(swSource) || [])[1] || '';
   const regVer = (/sw\.js\?v=([^'&]+)/.exec(regSource) || [])[1];
   if (!swVer || !regVer) {
     failures.push('verify: could not read the service-worker version from sw.js and/or src/sw-register.js.');
   } else if (swVer !== regVer) {
     failures.push(`sw.js CACHE_NAME version ('${swVer}') does not match src/sw-register.js ('${regVer}').`);
+  }
+}
+
+if (swVer) {
+  const versionedPages = [
+    { label: 'html/index.template.html', filePath: path.join(HTML_DIR, 'index.template.html') },
+    { label: 'index.html', filePath: INDEX_PATH },
+    { label: 'onboarding.html', filePath: path.join(ROOT, 'onboarding.html') },
+    { label: 'privacy.html', filePath: path.join(ROOT, 'privacy.html') }
+  ];
+  for (const page of versionedPages) {
+    if (!fs.existsSync(page.filePath)) continue;
+    const htmlSource = fs.readFileSync(page.filePath, 'utf8');
+    const matches = [...htmlSource.matchAll(/\?v=(\d+)/g)];
+    if (matches.length === 0) {
+      failures.push(`verify: ${page.label} has no ?v= asset query versions.`);
+      continue;
+    }
+    const stale = [...new Set(matches.map((m) => m[1]).filter((v) => v !== swVer))];
+    if (stale.length > 0) {
+      failures.push(`${page.label} has stale ?v=${stale.join(', ?v=')} (expected ?v=${swVer}).`);
+    }
   }
 }
 

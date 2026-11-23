@@ -49,32 +49,22 @@ const updatedSw = swContent.replace(
 );
 fs.writeFileSync(SW_PATH, updatedSw, 'utf8');
 
-// 3. Update js/sw-register.js
+// 3. Update src/sw-register.js
 if (fs.existsSync(SW_REGISTER_PATH)) {
   const regContent = fs.readFileSync(SW_REGISTER_PATH, 'utf8');
   const updatedReg = regContent.replace(
-    new RegExp(`sw\\.js\\?v=${currentVersion}`, 'g'),
+    /sw\.js\?v=\d+/g,
     `sw.js?v=${newVersion}`
   );
   fs.writeFileSync(SW_REGISTER_PATH, updatedReg, 'utf8');
 }
 
-// 4. Update html/index.template.html
-if (fs.existsSync(TEMPLATE_PATH)) {
-  const tplContent = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-  const updatedTpl = tplContent.replace(
-    new RegExp(`\\?v=${currentVersion}`, 'g'),
-    `?v=${newVersion}`
-  );
-  fs.writeFileSync(TEMPLATE_PATH, updatedTpl, 'utf8');
-}
-
-// 5. Update onboarding.html and privacy.html
-for (const pagePath of [ONBOARDING_PATH, PRIVACY_PATH]) {
+// 4. Update html/index.template.html, onboarding.html, and privacy.html
+for (const pagePath of [TEMPLATE_PATH, ONBOARDING_PATH, PRIVACY_PATH]) {
   if (!fs.existsSync(pagePath)) continue;
   const pageContent = fs.readFileSync(pagePath, 'utf8');
   const updatedPage = pageContent.replace(
-    new RegExp(`\\?v=${currentVersion}`, 'g'),
+    /\?v=\d+/g,
     `?v=${newVersion}`
   );
   fs.writeFileSync(pagePath, updatedPage, 'utf8');

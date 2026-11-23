@@ -2,7 +2,10 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { createDuesLedger } from '../src/core/dues.js';
+import { bukaProfilAnggota } from '../src/render/profile.js';
+import { openReceipt } from '../src/render/receipt.js';
+import { initSelfPay, openSelfPay } from '../src/handlers/self-pay.js';
+import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
 import { NAMA_BULAN } from '../src/core/config.js';
 import { setActiveGroupId, setCurrentHistoryFilter, setCurrentRekapYear, setAdminSession, setAdminViewMode, setState } from '../src/core/state.js';
 import * as rekap from '../src/render/rekap.js';
@@ -86,6 +89,8 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
     'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
     'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
+    'PassbookMonths.svelte', 'ProfileHistoryList.svelte', 'ReceiptBody.svelte', 'SelfPayMonths.svelte',
+    'profile.svelte.ts', 'receipt.svelte.ts', 'self-pay.svelte.ts',
     'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
   }
@@ -658,4 +663,99 @@ test('offline queue shows active items and count-only notices and clears on grou
   ]);
   window.dispatchEvent(new CustomEvent('finkas:group-changed'));
   assert.equal(list.textContent.trim(), '');
+});
+
+function installModal(t, id) {
+  const byId = installDom(t, 'index.html');
+  byId(id).showModal = () => {};
+  setActiveGroupId('modal-test');
+  setAdminSession('');
+  setCurrentRekapYear(String(current.year));
+  setState({ ...state, kategori: [] });
+  return byId;
+}
+
+test('opening a profile renders keyed stamps, delegated actions and deposit history', t => {
+  const byId = installModal(t, 'modal-profil-anggota');
+  bukaProfilAnggota('A1');
+  const months = byId('passbook-months').children;
+  const history = byId('p-list-transaksi');
+  assert.equal(months.length, 12);
+  assert.deepEqual({ ...months[0].dataset }, { action: 'open-month-receipt', id: 'A1', month: '0', year: '2025' });
+  assert.ok(months[1].disabled && !months[1].hasAttribute('data-action'));
+  assert.deepEqual({ ...months[4].dataset }, { action: 'open-self-pay', id: 'A1', month: '4', year: '2025' });
+  const paid = months[0];
+  assert.ok(paid.querySelector('circle.seal-halo'));
+  bundle.refreshProfileStampStyle('shield');
+  assert.equal(months[0], paid);
+  assert.ok(paid.querySelector('path.seal-halo'));
+  assert.equal(history.children.length, 2);
+  const deposit = history.querySelector('[data-action="open-receipt"][data-id="A10"]');
+  assert.equal(deposit.querySelector('.ledger-title').textContent, 'Iuran Januari 2025');
+  assert.equal(deposit.querySelector('.ledger-amt').textContent, '+' + formatRp(10000));
+  setAdminSession('admin-token');
+  setAdminViewMode('admin');
+  bukaProfilAnggota('A3');
+  assert.deepEqual({ ...months[4].dataset }, { action: 'quickpay-card', anggota: 'A3', bulan: 'Mei', year: '2025' });
+  assert.equal(history.querySelector('.profile-history-empty').textContent, 'Belum ada riwayat setoran.');
+  window.dispatchEvent(new Event('finkas:group-changed'));
+  assert.equal(months.length, 0);
+});
+
+test('opening verified, pending and outflow receipts updates the same body', t => {
+  const byId = installModal(t, 'modal-struk');
+  const body = byId('receipt-body');
+  const base = { ...payment('A1', 0, 10000), Keterangan: '<b>Cash</b>' };
+  setState({ transaksi: [base, { ...base, ID_Transaksi: 'A-TEMP-1' },
+    { ...base, ID_Transaksi: 'out', Tipe_Arus: 'Keluar' }] });
+  for (const [id, pending, incoming, footer] of [
+    ['A10', false, true, 'TERVERIFIKASI · KAS SAH'],
+    ['A-TEMP-1', true, true, 'MENUNGGU SINKRON'],
+    ['out', false, false, 'TERCATAT · ARSIP KAS']
+  ]) {
+    openReceipt(id);
+    assert.equal(body.querySelector('.meta-chip').textContent.trim(), pending ? 'Menunggu sinkron' : 'Tercatat Sah');
+    assert.equal(body.querySelector('.meta-chip').classList.contains('paid'), !pending);
+    assert.ok(body.querySelector(pending ? '.ph-clock' : '.ph-check-circle'));
+    const amount = body.querySelector('.receipt-amount');
+    assert.equal(amount.dataset.flow, incoming ? 'in' : 'out');
+    assert.equal(amount.textContent, (incoming ? '+' : '−') + formatRp(10000));
+    assert.equal(body.querySelector('dd').textContent, '<b>Cash</b>');
+    assert.equal(body.querySelector('dd b'), null);
+    assert.equal(body.querySelector('.receipt-seal').dataset.tone, incoming && !pending ? 'verified' : 'neutral');
+    assert.equal(Boolean(body.querySelector('.seal-svg')), !pending);
+    assert.equal(body.querySelector('strong').textContent, footer);
+    assert.equal(body.querySelector('.receipt-seal-year').textContent, '2025');
+  }
+  localStorage.setItem('finkas_indicator_style', 'shield');
+  openReceipt('A10');
+  assert.ok(body.querySelector('path.seal-halo'));
+  window.dispatchEvent(new Event('finkas:group-changed'));
+  assert.equal(body.querySelectorAll('dd').length, 0);
+  assert.equal(body.querySelector('.receipt-seal-year').textContent, '');
+});
+
+test('self-pay preserves the selected tile and updates the transfer preview through delegated clicks', t => {
+  const byId = installModal(t, 'modal-bayar-anggota');
+  const year = billingPeriod().year + 2;
+  initSelfPay();
+  openSelfPay('A1', 0, year);
+  const grid = byId('self-pay-months');
+  assert.ok(grid.querySelectorAll('.self-pay-year').length >= 2);
+  const tile = () => grid.querySelector(`[data-payment-period="${year}:0"]`);
+  const jan = tile();
+  assert.equal(jan.closest('.self-pay-month-grid').previousElementSibling.textContent, String(year));
+  assert.equal(jan.getAttribute('aria-pressed'), 'true');
+  assert.equal(jan.querySelector('small').textContent, 'PILIH');
+  jan.querySelector('span').click();
+  assert.equal(tile(), jan);
+  assert.equal(jan.getAttribute('aria-pressed'), 'false');
+  assert.equal(jan.querySelector('small').textContent, jan.dataset.status.toUpperCase());
+  assert.equal(byId('self-pay-whatsapp').hasAttribute('href'), false);
+  jan.click();
+  assert.equal(jan.querySelector('small').textContent, 'PILIH');
+  assert.ok(byId('self-pay-preview').value.includes('Januari ' + year));
+  assert.equal(byId('self-pay-whatsapp').getAttribute('aria-disabled'), 'false');
+  window.dispatchEvent(new Event('finkas:group-changed'));
+  assert.equal(grid.children.length, 0);
 });

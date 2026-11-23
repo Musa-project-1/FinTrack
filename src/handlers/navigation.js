@@ -1,3 +1,4 @@
+import { refreshProfileStampStyle } from '../ui/svelte-dashboard.js';
 import { getActiveIndicatorStyle, renderLunasHtml, renderMiniStamp, renderPassbookEmblem, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
 import { setCurrentHistoryFilter, setCurrentRekapYear } from "../core/state.js";
 import { handleNominalInput } from "../core/utils.js";
@@ -146,7 +147,7 @@ export const openTampilanModal = (tab) => {
 export const setIndicatorStyle = (styleKey) => {
   if (!saveIndicatorStyle(styleKey)) return;
   updateStampPicker(true);
-  document.querySelectorAll('#passbook-months .paid .passbook-slot-seal').forEach((slot) => { slot.innerHTML = renderPassbookEmblem('paid', styleKey); });
+  refreshProfileStampStyle(styleKey);
   document.querySelectorAll('#spotlight-months .mini-stamp-ico').forEach((stamp) => { stamp.outerHTML = renderMiniStamp(styleKey); });
   renderTableRekap();
 };

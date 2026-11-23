@@ -1,9 +1,10 @@
+import { syncMemberProfile } from '../ui/svelte-dashboard.js';
 import { getPinnedMemberId } from '../ui/spotlight.js';
 import { createDuesLedger } from '../core/dues.js';
-import { getDuesDisplayStatus, renderPassbookEmblem } from '../ui/dues-status.js';
+import { getDuesDisplayStatus, getActiveIndicatorStyle } from '../ui/dues-status.js';
 import { byNewestTimestamp, NAMA_BULAN } from '../core/config.js';
 import { currentRekapYear, getIsAdminView, getState } from '../core/state.js';
-import { formatRp, escapeHtml, calculateMemberContribution, showToast } from '../core/utils.js';
+import { formatRp, calculateMemberContribution, showToast } from '../core/utils.js';
 import { animateHybridAmount } from '../ui/hybrid-motion.js';
 import { openModal } from '../ui/modal.js';
 
@@ -67,45 +68,34 @@ export const bukaProfilAnggota = (idAnggota) => {
   document.querySelector('#modal-profil-anggota .passbook-copy-field')?.remove();
 
   document.getElementById('passbook-year').textContent = `Kartu Cap Iuran ${year}`;
-  document.getElementById('passbook-months').innerHTML = NAMA_BULAN.map((name, index) => {
+  const months = NAMA_BULAN.map((name, index) => {
     const month = ledger.getMonth(member, index, year);
     const status = getDuesDisplayStatus(month);
     const kind = stampKind[status];
     let action = '';
     if (status === 'Lunas') {
-      action = `data-action="open-month-receipt" data-id="${escapeHtml(idAnggota)}" data-month="${index}" data-year="${year}"`;
+      action = 'open-month-receipt';
     } else if (active && month.remaining > 0) {
-      action = admin
-        ? `data-action="quickpay-card" data-anggota="${escapeHtml(idAnggota)}" data-bulan="${name}" data-year="${year}"`
-        : `data-action="open-self-pay" data-id="${escapeHtml(idAnggota)}" data-month="${index}" data-year="${year}"`;
+      action = admin ? 'quickpay-card' : 'open-self-pay';
     }
     const ariaLabel = `${name} ${year}, ${status}${month.paid ? `, setoran ${formatRp(month.paid)}` : ''}`;
-    return `<button type="button" class="passbook-stamp-btn ${kind}" style="--pass-i:${index}" aria-label="${escapeHtml(ariaLabel)}" ${action || 'disabled'}>
-      <span class="passbook-slot-head">
-        <span class="passbook-slot-mon">${name.slice(0, 3)}</span>
-        <span class="passbook-slot-num">${String(index + 1).padStart(2, '0')}</span>
-      </span>
-      <span class="passbook-slot-seal">${renderPassbookEmblem(kind)}</span>
-      <span class="passbook-slot-tag">${status.toUpperCase()}</span>
-    </button>`;
-  }).join('');
+    return {
+      index, shortName: name.slice(0, 3), numLabel: String(index + 1).padStart(2, '0'),
+      kind, statusUpper: status.toUpperCase(), ariaLabel, action, memberId: idAnggota,
+      monthName: name, year: String(year), disabled: !action
+    };
+  });
 
-  const deposits = transactions.filter((row) => row.Tipe_Arus === 'Masuk');
-  document.getElementById('p-list-transaksi').innerHTML = deposits.length ? deposits.map((row) => {
+  const deposits = transactions.filter((row) => row.Tipe_Arus === 'Masuk').map((row) => {
     const parsedDate = new Date(row.Timestamp);
     const date = Number.isFinite(parsedDate.valueOf())
       ? parsedDate.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric' })
       : '—';
     const category = state.kategori.find((item) => item.ID_Kategori === row.ID_Kategori)?.Nama_Kategori || 'Setoran';
     const note = row.Keterangan || (row.Bulan_Iuran && row.Bulan_Iuran !== '-' ? `Iuran ${row.Bulan_Iuran} ${row.Tahun_Iuran}` : category);
-    return `<button type="button" class="profil-history-row" data-action="open-receipt" data-id="${escapeHtml(row.ID_Transaksi)}">
-      <span class="ledger-main">
-        <span class="ledger-title">${escapeHtml(note)}</span>
-        <span class="ledger-meta"><span class="mono tnum">${escapeHtml(date)}</span><span>${escapeHtml(row.ID_Transaksi)}</span></span>
-      </span>
-      <span class="ledger-amt inflow nominal-val sensitive-amt">+${escapeHtml(formatRp(row.Nominal))}</span>
-    </button>`;
-  }).join('') : '<div class="profile-history-empty">Belum ada riwayat setoran.</div>';
+    return { id: row.ID_Transaksi, note, date, formattedAmount: formatRp(row.Nominal) };
+  });
+  syncMemberProfile({ stampStyle: getActiveIndicatorStyle(), months, deposits });
 
   openModal('modal-profil-anggota');
 };

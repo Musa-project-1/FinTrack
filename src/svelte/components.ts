@@ -10,3 +10,7 @@ export { default as GroupPickerList } from './GroupPickerList.svelte';
 export { default as GroupAdminList } from './GroupAdminList.svelte';
 export { default as SuperAdminList } from './SuperAdminList.svelte';
 export { default as OfflineQueueList } from './OfflineQueueList.svelte';
+export { default as PassbookMonths } from './PassbookMonths.svelte';
+export { default as ProfileHistoryList } from './ProfileHistoryList.svelte';
+export { default as ReceiptBody } from './ReceiptBody.svelte';
+export { default as SelfPayMonths } from './SelfPayMonths.svelte';

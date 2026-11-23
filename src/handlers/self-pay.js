@@ -1,3 +1,4 @@
+import { syncSelfPayMonths } from '../ui/svelte-dashboard.js';
 import { getDuesDisplayStatus } from '../ui/dues-status.js';
 import { NAMA_BULAN } from '../core/config.js';
 import { billingPeriod, createDuesLedger } from '../core/dues.js';
@@ -66,50 +67,22 @@ export const selectSelfPayPreset = (preset) => {
     picker.replaceChildren(...ledger.members.map(({ ang }) => new Option(ang.Nama_Anggota, ang.ID_Anggota)));
     picker.value = member.ID_Anggota;
   }
-  const monthGrid = document.getElementById('self-pay-months');
   const years = new Map();
   for (const month of sorted) {
     if (!years.has(month.year)) years.set(month.year, []);
-    years.get(month.year).push(month);
-  }
-  const tileKey = sorted.map((month) => `${periodKey(month)}:${getDuesDisplayStatus(month)}:${month.remaining}`).join('|');
-  if (monthGrid.dataset.tileKey !== tileKey) {
-    monthGrid.dataset.tileKey = tileKey;
-    const groups = [...years].map(([periodYear, months]) => {
-      const section = document.createElement('div');
-      const grid = document.createElement('div');
-      grid.className = 'self-pay-month-grid';
-      if (years.size > 1) {
-        const heading = document.createElement('h4');
-        heading.className = 'self-pay-year';
-        heading.textContent = periodYear;
-        section.append(heading);
-      }
-      for (const month of months) {
-        const choice = document.createElement('button');
-        choice.type = 'button';
-        choice.className = 'self-pay-month';
-        choice.dataset.paymentPeriod = periodKey(month);
-        choice.disabled = month.remaining === 0;
-        const status = getDuesDisplayStatus(month);
-        const title = document.createElement('span');
-        const label = document.createElement('small');
-        title.textContent = NAMA_BULAN[month.monthIndex].slice(0, 3);
-        choice.dataset.status = status;
-        choice.setAttribute('aria-label', `${describe(month)}, ${status}${month.remaining ? `, sisa ${formatRp(month.remaining)}` : ''}`);
-        choice.append(title, label);
-        grid.append(choice);
-      }
-      section.append(grid);
-      return section;
+    const key = periodKey(month);
+    const status = getDuesDisplayStatus(month);
+    years.get(month.year).push({
+      periodKey: key, shortLabel: NAMA_BULAN[month.monthIndex].slice(0, 3),
+      status, statusUpper: status.toUpperCase(), disabled: month.remaining === 0,
+      pressed: selectedPeriods.has(key),
+      ariaLabel: `${describe(month)}, ${status}${month.remaining ? `, sisa ${formatRp(month.remaining)}` : ''}`
     });
-    monthGrid.replaceChildren(...groups);
   }
-  for (const choice of monthGrid.querySelectorAll('button[data-payment-period]')) {
-    const selected = selectedPeriods.has(choice.dataset.paymentPeriod);
-    choice.setAttribute('aria-pressed', String(selected));
-    choice.lastElementChild.textContent = selected ? 'PILIH' : choice.dataset.status.toUpperCase();
-  }
+  syncSelfPayMonths({
+    showYearHeading: years.size > 1,
+    years: [...years].map(([year, months]) => ({ year, months }))
+  });
   const account = normalizePaymentAccount(state.paymentAccount);
   const transfer = account.bank && account.number
     ? `${account.bank} · ${account.number}${account.holder ? ` · a.n. ${account.holder}` : ''}` : '';

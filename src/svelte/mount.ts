@@ -10,6 +10,10 @@ import { updateGroupPickerStore, type GroupPickerInput } from './group-picker.sv
 import { updateGroupAdminStore, updateSuperAdminStore, type GroupAdminInput, type SuperAdminInput } from './group-admin.svelte';
 import { updateOfflineQueueStore, resetOfflineQueueState, type OfflineQueueInput } from './offline-queue.svelte';
 
+import { updateProfileStore, setProfileStampStyle, resetProfileState, type ProfileInput } from './profile.svelte';
+import { updateReceiptStore, resetReceiptState, type ReceiptInput } from './receipt.svelte';
+import { updateSelfPayStore, resetSelfPayState, type SelfPayInput } from './self-pay.svelte';
+
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
   renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
 export { computeRekapViewModel } from './rekap-model';
@@ -38,6 +42,9 @@ export function resetSvelteGroupViewState() {
   resetStatsGroupState();
   resetRekapGroupState();
   resetOfflineQueueState();
+  resetProfileState();
+  resetReceiptState();
+  resetSelfPayState();
   const doc = globalThis.document;
   for (const id of ['group-overview', 'member-spotlight', 'admin-priorities']) {
     const section = doc?.getElementById?.(id);
@@ -90,6 +97,31 @@ export function syncSuperAdminList(input: SuperAdminInput) {
 export function syncOfflineQueueList(input: OfflineQueueInput) {
   updateOfflineQueueStore(input);
   syncIsland('offline-queue-list', 'OfflineQueueList');
+}
+
+export function syncMemberProfile(input: ProfileInput) {
+  listenForGroupChanges();
+  updateProfileStore(input);
+  const doc = globalThis.document;
+  mountIsland(doc?.getElementById?.('passbook-months'), 'PassbookMonths');
+  mountIsland(doc?.getElementById?.('p-list-transaksi'), 'ProfileHistoryList');
+  if (mountedDocuments.has(doc)) flushSync();
+}
+
+export function refreshProfileStampStyle(styleKey: string) {
+  setProfileStampStyle(styleKey);
+  const target = globalThis.document?.getElementById?.('passbook-months');
+  if (target && mounted.has(target)) flushSync();
+}
+
+export function syncReceiptBody(input: ReceiptInput) {
+  updateReceiptStore(input);
+  syncIsland('receipt-body', 'ReceiptBody');
+}
+
+export function syncSelfPayMonths(input: SelfPayInput) {
+  updateSelfPayStore(input);
+  syncIsland('self-pay-months', 'SelfPayMonths');
 }
 
 export function mountSvelteDashboard() {

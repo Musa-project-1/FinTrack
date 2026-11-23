@@ -1,3 +1,4 @@
+import { syncReceiptBody } from '../ui/svelte-dashboard.js';
 import { NAMA_BULAN, byNewestTimestamp } from '../core/config.js';
 import { getActiveGroupId, getGroupName, getState } from '../core/state.js';
 import { escapeHtml, formatRp, showToast } from '../core/utils.js';
@@ -60,7 +61,8 @@ const fillReceipt = (receipt) => {
   const copyField = document.getElementById('receipt-copy-text');
   copyField.hidden = true;
   copyField.value = '';
-  document.getElementById('receipt-body').innerHTML = renderReceiptHtml(receipt);
+  const { pending, incoming, dateLabel, amount, rows, footer, group, year } = receipt;
+  syncReceiptBody({ pending, incoming, dateLabel, amount, rows, footer, group, year });
   document.getElementById('receipt-print').dataset.id = id;
   document.getElementById('receipt-edit').dataset.id = id;
   const attachment = document.getElementById('receipt-attachment');

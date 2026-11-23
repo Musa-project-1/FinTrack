@@ -1,4 +1,4 @@
-import test, { beforeEach, afterEach } from 'node:test';
+import test, { after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
@@ -16,10 +16,16 @@ const byId = id => document.getElementById(id);
 const settle = () => new Promise(resolve => setImmediate(resolve));
 const originals = new Map();
 let dom;
+after(() => dom?.window.close());
 
 beforeEach(() => {
-  dom = new JSDOM(html, { url: 'https://example.test' });
-  for (const key of ['window', 'document', 'localStorage', 'sessionStorage', 'CustomEvent', 'indexedDB']) {
+  dom ??= new JSDOM('', { url: 'https://example.test' });
+  dom.window.document.open();
+  dom.window.document.write(html);
+  dom.window.document.close();
+  dom.window.localStorage.clear();
+  dom.window.sessionStorage.clear();
+  for (const key of ['window', 'document', 'localStorage', 'sessionStorage', 'Element', 'HTMLElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent', 'indexedDB']) {
     originals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: dom.window[key] });
   }
@@ -35,7 +41,6 @@ beforeEach(() => {
 afterEach(() => {
   closeModal('modal-group-pin');
   closeModal('modal-groups');
-  dom.window.close();
   for (const [key, descriptor] of originals) {
     if (descriptor) Object.defineProperty(globalThis, key, descriptor);
     else delete globalThis[key];
@@ -73,7 +78,10 @@ test('picker shows access status and pending counts without transaction details'
   assert.equal(summary.hidden, false);
   assert.match(summary.textContent, /3 transaksi offline menunggu · 1 ada di grup lain/);
   assert.doesNotMatch(byId('modal-groups').innerHTML, /private memo/);
+  const focused = list.querySelector('[data-id="GRP-B"]');
+  focused.focus();
   renderGroupPicker({ queueCounts: { 'GRP-A': 2 } });
+  assert.equal(document.activeElement, focused);
   assert.match(summary.textContent, /2 transaksi offline menunggu sinkronisasi di grup aktif/);
   renderGroupPicker({ queueCounts: {} });
   assert.equal(summary.hidden, true);
@@ -99,6 +107,7 @@ test('PIN selection reuses stored sessions and exit locks only the exited group'
   t.mock.method(globalThis, 'setTimeout', () => 0);
   const changed = t.mock.fn();
   window.addEventListener('finkas:group-changed', changed);
+  t.after(() => dom.window.removeEventListener('finkas:group-changed', changed));
   openModal('modal-groups');
   requestGroupPin('GRP-A');
   assert.equal(changed.mock.callCount(), 0);

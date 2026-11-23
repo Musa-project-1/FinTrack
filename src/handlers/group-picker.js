@@ -1,7 +1,7 @@
 import { getActiveGroupId, getGroups, getGroupSession, getIsSuperAdmin, setGroups } from "../core/state.js";
 import { fetchGroupsApi } from "../core/api.js";
 import { countQueuedTransactions, countQueuedTransactionsByGroup } from "../core/offline.js";
-import { escapeHtml } from "../core/utils.js";
+import { syncGroupPickerList } from "../ui/svelte-dashboard.js";
 import { openModal } from "../ui/modal.js";
 
 let lastQueueCounts = {};
@@ -83,62 +83,35 @@ export const renderGroupPicker = ({ loading = false, queueCounts = null } = {}) 
     }
   }
 
-  if (loading && !list.length) {
-    box.innerHTML = `
-      <div class="group-picker-skeleton" aria-busy="true" aria-label="Memuat daftar grup...">
-        <div class="group-skel-row"></div>
-        <div class="group-skel-row"></div>
-      </div>`;
-    return;
-  }
-
   if (!list.length) {
-    box.innerHTML = `
-      <div class="group-picker-empty">
-        <span class="group-empty-ico" aria-hidden="true"><i class="ph ph-folders"></i></span>
-        <strong>Belum ada grup kas tersedia</strong>
-        <p>Hubungi pengurus pemilik untuk membuat ruang kas baru.</p>
-      </div>`;
+    syncGroupPickerList({ mode: loading ? "loading" : "empty", rows: [] });
     return;
   }
 
   const focusedId = box.contains(document.activeElement) ? document.activeElement.dataset.id : null;
   const isSA = getIsSuperAdmin();
-  box.innerHTML = list.map((g) => {
-    const rawName = g.nama || "?";
-    const safeName = escapeHtml(rawName);
-    const safeId = escapeHtml(g.id);
-    const initial = escapeHtml((Array.from(String(rawName).trim())[0] || '?').toUpperCase());
+  const rows = list.map((g) => {
+    const nama = g.nama || "?";
+    const initial = (Array.from(String(nama).trim())[0] || '?').toUpperCase();
     const isActive = g.id === active;
     const pendingCount = Math.max(0, Number(counts[g.id]) || 0);
     const isUnlocked = Boolean(getGroupSession(g.id));
     let subText = "Ketuk untuk masuk dengan PIN";
-    let trailBadge = '<span class="group-pin-badge" aria-hidden="true"><i class="ph ph-lock-simple"></i><span>PIN</span></span>';
+    let badgeKind = "pin";
     if (isActive) {
       subText = "Grup aktif saat ini";
-      trailBadge = '<span class="group-status-pill is-active"><span class="group-status-dot" aria-hidden="true"></span><span>Aktif</span></span>';
+      badgeKind = "active";
     } else if (isSA) {
       subText = "Akses langsung tanpa PIN";
-      trailBadge = '<span class="group-status-pill is-direct"><i class="ph ph-lightning" aria-hidden="true"></i><span>Instan</span></span>';
+      badgeKind = "direct";
     } else if (isUnlocked) {
       subText = "Sesi sudah terbuka — ketuk untuk masuk";
-      trailBadge = '<span class="group-status-pill is-unlocked"><i class="ph ph-lock-open" aria-hidden="true"></i><span>Terbuka</span></span>';
+      badgeKind = "unlocked";
     }
     if (pendingCount) subText += ` · ${pendingCount} antrean offline`;
-    return `
-    <button type="button" class="group-item${isActive ? " is-active" : ""}" data-action="request-group-pin" data-id="${safeId}" role="listitem"${isActive ? ' aria-current="true"' : ""}>
-      <span class="group-item-avatar" aria-hidden="true">${initial}</span>
-      <span class="group-item-meta">
-        <span class="group-item-name">${safeName}</span>
-        <span class="group-item-sub">${subText}</span>
-      </span>
-      <span class="group-item-trail">
-        ${pendingCount ? `<span class="group-queue-badge" data-queue-group="${safeId}" title="${pendingCount} transaksi offline menunggu sinkronisasi"><i class="ph ph-cloud-arrow-up" aria-hidden="true"></i><span>${pendingCount}</span></span>` : ""}
-        ${trailBadge}
-        <i class="ph ph-caret-right group-item-chev" aria-hidden="true"></i>
-      </span>
-    </button>`;
-  }).join("");
+    return { id: g.id, nama, initial, isActive, subText, pendingCount, badgeKind };
+  });
+  syncGroupPickerList({ mode: "list", rows });
   if (focusedId) {
     Array.from(box.querySelectorAll(".group-item")).find(row => row.dataset.id === focusedId)?.focus();
   }

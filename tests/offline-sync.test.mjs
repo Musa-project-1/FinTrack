@@ -1,4 +1,4 @@
-import { test, beforeEach } from 'node:test';
+import { test, after, beforeEach } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { installMockIndexedDB } from './helpers/mock-indexeddb.mjs';
@@ -140,10 +140,17 @@ test('offline replay simulation: skips queued items belonging to different group
 });
 
 const modalMarkup = readFileSync(new URL('../html/modals/master.html', import.meta.url), 'utf8');
+let dom;
+after(() => dom?.window.close());
 beforeEach(() => {
   installMockIndexedDB();
-  globalThis.window = new EventTarget();
-  globalThis.document = new JSDOM(modalMarkup).window.document;
+  dom ??= new JSDOM('');
+  dom.window.document.open();
+  dom.window.document.write(modalMarkup);
+  dom.window.document.close();
+  for (const key of ['window', 'document', 'Element', 'HTMLElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent']) {
+    globalThis[key] = dom.window[key];
+  }
   setActiveGroupId('GRP-A');
   for (const gid of ['GRP-A', 'GRP-B']) setGroupSession(gid, 'test-session');
   setAdminSession('test-admin');
@@ -207,16 +214,18 @@ for (const [outcome, status, body, consumed] of [
   ['unauthorized', 401, { status: false }, false],
   ['unreachable', 503, { status: false }, false]
 ]) {
-  test(`group switch during POST halts replay without toast, audit or callback (${outcome})`, async () => {
+  test(`group switch during POST halts replay without toast, audit or callback (${outcome})`, async t => {
     await seedMixedQueue();
     await queueOfflinePayload({ action: 'tambahAnggota' });
     const rows = await getOfflineTransactions();
     document.body.insertAdjacentHTML('beforeend', '<div id="toast-container"></div>');
     const sent = [];
     const idle = [];
-    window.addEventListener('finkas:queue-changed', ({ detail }) => {
+    const onQueueChanged = ({ detail }) => {
       if (detail.state === 'idle') idle.push([detail.groupId, detail.pendingCount]);
-    });
+    };
+    window.addEventListener('finkas:queue-changed', onQueueChanged);
+    t.after(() => window.removeEventListener('finkas:queue-changed', onQueueChanged));
     const started = Promise.withResolvers();
     const response = Promise.withResolvers();
     globalThis.fetch = (_, opts) => {

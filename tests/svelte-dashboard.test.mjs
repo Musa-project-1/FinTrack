@@ -85,7 +85,8 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     'AdminPriorities.svelte', 'HistoryLedger.svelte', 'WorkspaceStats.svelte', 'DuesMatrix.svelte',
     'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
     'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
-    'components.ts', 'mount.ts']) {
+    'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
+    'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
   }
   assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
@@ -591,4 +592,70 @@ test('dues pagination moves both views together and searching resets the page', 
   rekap.renderTableRekap();
   assert.equal(cards.querySelector('.iuran-card-name').textContent, 'Member 01');
   assert.equal(pager.hidden, true);
+});
+
+test('group admin renders empty states and preserves literal names and action IDs', t => {
+  const list = installDom(t, 'index.html')('group-admin-list');
+  for (const [emptyReason, message] of [
+    ['none', 'Belum ada grup terdaftar. Buat grup pertama di atas.'],
+    ['search', 'Tidak ada grup yang cocok dengan pencarian.']
+  ]) {
+    bundle.syncGroupAdminList({ emptyReason, rows: [] });
+    assert.equal(list.querySelector('.group-empty-state p').textContent, message);
+  }
+  const id = 'grp-"A"', nama = '<img src=x> & Kas';
+  bundle.syncGroupAdminList({ emptyReason: '', rows: [{ id, nama, initial: '<', isActive: true, colorIndex: 2 }] });
+  const card = list.querySelector('.group-card-item.is-active');
+  assert.equal(card.dataset.id, id);
+  assert.equal(card.querySelector('.group-card-title').textContent, nama);
+  assert.equal(card.querySelector('img'), null);
+  assert.equal(card.querySelector('.group-card-avatar').dataset.index, '2');
+  assert.equal(card.querySelector('.group-badge-active').textContent, 'Aktif');
+  const buttons = [...card.querySelectorAll('.btn-group-chip')];
+  assert.deepEqual(buttons.map(b => b.dataset.action), ['manage-group-creds', 'rename-group', 'reset-group-pin', 'remove-group']);
+  assert.ok(buttons.every(b => b.dataset.id === id));
+  assert.equal(buttons.at(-1).getAttribute('aria-label'), 'Hapus ' + nama);
+});
+
+test('superadmin loading and error states give way to owner and removable rows', t => {
+  const list = installDom(t, 'index.html')('superadmin-emails-list');
+  for (const [status, message] of [
+    ['loading', 'Memuat daftar superadmin...'], ['error', 'Tidak dapat memuat daftar superadmin.']
+  ]) {
+    bundle.syncSuperAdminList({ status, items: [] });
+    assert.equal(list.querySelector('.superadmin-empty-text').textContent, message);
+  }
+  const items = [{ email: 'owner@example.com', isPrimary: true }, { email: 'admin@example.com', isPrimary: false }];
+  bundle.syncSuperAdminList({ status: 'ready', items });
+  const [owner, admin] = list.querySelectorAll('.superadmin-email-item');
+  assert.ok(owner.querySelector('.ph-crown'));
+  assert.equal(owner.querySelector('strong').textContent, items[0].email);
+  assert.equal(owner.querySelector('.superadmin-email-tag').textContent, 'Pemilik Utama');
+  assert.equal(owner.querySelector('button'), null);
+  assert.ok(admin.querySelector('.ph-shield-check'));
+  assert.equal(admin.querySelector('[data-action="remove-superadmin-email"]').dataset.email, items[1].email);
+});
+
+test('offline queue shows active items and count-only notices and clears on group switch', t => {
+  const list = installDom(t, 'index.html')('offline-queue-list');
+  const empty = { groupId: 'GRP-A', items: [], otherGroupCount: 0, unscopedCount: 0 };
+  bundle.syncOfflineQueueList({ ...empty, status: 'error' });
+  assert.equal(list.querySelector('.queue-error strong').textContent, 'Gagal memuat antrean');
+  bundle.syncOfflineQueueList({ ...empty, status: 'ready' });
+  assert.equal(list.querySelector('.queue-empty strong').textContent, 'Semua tersinkron');
+  const item = { id: 42, label: 'Edit Transaksi', tone: 'warning', icon: 'ph-pencil-simple',
+    nominal: 1234, formattedTime: '13:10', summary: '<b>Kas</b>' };
+  bundle.syncOfflineQueueList({ ...empty, status: 'ready', items: [item], otherGroupCount: 2, unscopedCount: 3 });
+  const card = list.querySelector('.pending-item');
+  assert.ok(card.querySelector('.queue-action-pill.is-warning .ph-pencil-simple'));
+  assert.equal(card.querySelector('.pending-card-amount').textContent, formatRp(1234));
+  assert.equal(card.querySelector('.pending-card-time').textContent, '13:10 · GRP-A');
+  assert.equal(card.querySelector('.pending-card-payload').textContent, item.summary);
+  assert.equal(card.querySelector('[data-action="delete-offline-item"]').dataset.itemId, '42');
+  assert.deepEqual([...list.querySelectorAll('.queue-empty p')].map(p => p.textContent), [
+    '2 antrean milik grup lain menunggu — pindah ke grup tersebut untuk mengirim.',
+    '3 antrean lama tanpa ID grup dilewati demi isolasi data.'
+  ]);
+  window.dispatchEvent(new CustomEvent('finkas:group-changed'));
+  assert.equal(list.textContent.trim(), '');
 });

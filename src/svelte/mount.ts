@@ -6,6 +6,10 @@ import { resetHistoryGroupState, registerHistoryMount } from './history.svelte';
 import { resetStatsGroupState, registerStatsMount } from './stats.svelte';
 import { resetRekapGroupState, registerRekapMount } from './rekap.svelte';
 
+import { updateGroupPickerStore, type GroupPickerInput } from './group-picker.svelte';
+import { updateGroupAdminStore, updateSuperAdminStore, type GroupAdminInput, type SuperAdminInput } from './group-admin.svelte';
+import { updateOfflineQueueStore, resetOfflineQueueState, type OfflineQueueInput } from './offline-queue.svelte';
+
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
   renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
 export { computeRekapViewModel } from './rekap-model';
@@ -33,6 +37,7 @@ export function resetSvelteGroupViewState() {
   resetHistoryGroupState();
   resetStatsGroupState();
   resetRekapGroupState();
+  resetOfflineQueueState();
   const doc = globalThis.document;
   for (const id of ['group-overview', 'member-spotlight', 'admin-priorities']) {
     const section = doc?.getElementById?.(id);
@@ -49,6 +54,44 @@ function listenForGroupChanges() {
 }
 listenForGroupChanges();
 
+function mountIsland(target: Element | null, component: keyof typeof import('./components')) {
+  if (!target?.ownerDocument || typeof Element === 'undefined' || mounted.has(target)) return;
+  // Defer Svelte template initialization until a browser DOM exists.
+  const components: typeof import('./components') = require('./components');
+  target.replaceChildren();
+  mount(components[component], { target });
+  mounted.add(target);
+  mountedDocuments.add(target.ownerDocument);
+}
+
+function syncIsland(id: string, component: keyof typeof import('./components')) {
+  listenForGroupChanges();
+  const target = globalThis.document?.getElementById?.(id);
+  if (!target) return;
+  mountIsland(target, component);
+  if (mounted.has(target)) flushSync();
+}
+
+export function syncGroupPickerList(input: GroupPickerInput) {
+  updateGroupPickerStore(input);
+  syncIsland('group-picker-list', 'GroupPickerList');
+}
+
+export function syncGroupAdminList(input: GroupAdminInput) {
+  updateGroupAdminStore(input);
+  syncIsland('group-admin-list', 'GroupAdminList');
+}
+
+export function syncSuperAdminList(input: SuperAdminInput) {
+  updateSuperAdminStore(input);
+  syncIsland('superadmin-emails-list', 'SuperAdminList');
+}
+
+export function syncOfflineQueueList(input: OfflineQueueInput) {
+  updateOfflineQueueStore(input);
+  syncIsland('offline-queue-list', 'OfflineQueueList');
+}
+
 export function mountSvelteDashboard() {
   listenForGroupChanges();
   if (typeof document === 'undefined' || typeof Element === 'undefined' || typeof document.createElementNS !== 'function') return;
@@ -61,18 +104,12 @@ export function mountSvelteDashboard() {
   const matrix = document.getElementById?.('ui-table-rekap');
   const cards = document.getElementById?.('iuran-cards-mobile');
   if (![group, bento, member, admin, history, stats, matrix, cards].some(el => el?.ownerDocument && !mounted.has(el))) return;
-  // Rolldown defers component initialization until the browser DOM exists.
-  const components: typeof import('./components') = require('./components');
   for (const [target, component] of [
-    [group, components.GroupOverview], [bento, components.BentoDashboard], [member, components.MemberSpotlight],
-    [admin, components.AdminPriorities], [history, components.HistoryLedger], [stats, components.WorkspaceStats],
-    [matrix, components.DuesMatrix], [cards, components.DuesMobileCards]
+    [group, 'GroupOverview'], [bento, 'BentoDashboard'], [member, 'MemberSpotlight'],
+    [admin, 'AdminPriorities'], [history, 'HistoryLedger'], [stats, 'WorkspaceStats'],
+    [matrix, 'DuesMatrix'], [cards, 'DuesMobileCards']
   ] as const) {
-    if (!target?.ownerDocument || mounted.has(target)) continue;
-    target.replaceChildren();
-    mount(component, { target });
-    mounted.add(target);
-    mountedDocuments.add(target.ownerDocument);
+    mountIsland(target, component);
   }
   initHybridMotion();
 }

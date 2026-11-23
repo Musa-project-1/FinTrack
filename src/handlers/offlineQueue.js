@@ -1,6 +1,6 @@
 import { getGroupOfflineTransactions } from "../core/offline.js";
 import { getActiveGroupId } from "../core/state.js";
-import { formatRp, escapeHtml } from "../core/utils.js";
+import { syncOfflineQueueList } from "../ui/svelte-dashboard.js";
 import { openModal } from "../ui/modal.js";
 
 const QUEUE_SPECS = {
@@ -48,26 +48,16 @@ export const renderOfflineQueueList = async () => {
     refreshBtn.classList.add('is-loading');
   }
 
-  container.replaceChildren();
+  const empty = { groupId: getActiveGroupId().trim(), items: [], otherGroupCount: 0, unscopedCount: 0 };
+  syncOfflineQueueList({ ...empty, status: "loading" });
   syncQueueStatusUI(0);
   try {
     const { groupId, items, otherGroupCount, unscopedCount } = await getGroupOfflineTransactions(getActiveGroupId());
     if (renderId !== latestRender || groupId !== getActiveGroupId().trim()) return;
     syncQueueStatusUI(items.length);
 
-    if (!items.length) {
-      container.innerHTML = `
-        <div class="queue-empty">
-          <span class="queue-empty-ico"><i class="ph-fill ph-check-circle" aria-hidden="true"></i></span>
-          <div><strong>Semua tersinkron</strong><p>Tidak ada transaksi tertunda.</p></div>
-        </div>
-      `;
-    }
-
-    items.reverse().forEach((item) => {
-      const card = document.createElement('div');
-      card.className = 'pending-item';
-      const t = new Date(item.queuedAt).toLocaleString('id-ID', {
+    const rows = items.reverse().map((item) => {
+      const formattedTime = new Date(item.queuedAt).toLocaleString('id-ID', {
         day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
       });
       const action = item.payload?.action || 'unknown';
@@ -79,53 +69,13 @@ export const renderOfflineQueueList = async () => {
         || item.payload?.nama
         || item.payload?.month
         || '-';
-      const amountBadge = nominal > 0
-        ? `<span class="pending-card-amount">${formatRp(nominal)}</span>`
-        : '';
-
-      card.innerHTML = `
-        <div class="pending-card-row">
-          <div class="flex-1">
-            <div class="pending-card-top">
-              <span class="queue-action-pill is-${tone}"><i class="ph ${icon}" aria-hidden="true"></i> ${escapeHtml(label)}</span>
-              ${amountBadge}
-            </div>
-            <div class="pending-card-time">${escapeHtml(t)} · <span class="queue-gid-tag">${escapeHtml(groupId)}</span></div>
-            <div class="pending-card-payload">${escapeHtml(summary)}</div>
-          </div>
-          <div class="flex-align-gap">
-            <button type="button" class="btn btn-outline queue-del-btn" data-action="delete-offline-item" data-item-id="${item.id}" aria-label="Hapus">
-              <i class="ph ph-trash" aria-hidden="true"></i> <span>Hapus</span>
-            </button>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
+      return { id: item.id, label, tone, icon, nominal, formattedTime, summary };
     });
-    if (otherGroupCount || unscopedCount) {
-      const notice = document.createElement('div');
-      notice.className = 'queue-empty';
-      if (otherGroupCount) {
-        const message = document.createElement('p');
-        message.textContent = `${otherGroupCount} antrean milik grup lain menunggu — pindah ke grup tersebut untuk mengirim.`;
-        notice.append(message);
-      }
-      if (unscopedCount) {
-        const message = document.createElement('p');
-        message.textContent = `${unscopedCount} antrean lama tanpa ID grup dilewati demi isolasi data.`;
-        notice.append(message);
-      }
-      container.append(notice);
-    }
+    syncOfflineQueueList({ status: "ready", groupId, items: rows, otherGroupCount, unscopedCount });
   } catch (err) {
     if (renderId !== latestRender) return;
     syncQueueStatusUI(0);
-    container.innerHTML = `
-      <div class="queue-error">
-        <span class="queue-error-ico"><i class="ph-fill ph-warning-circle" aria-hidden="true"></i></span>
-        <div><strong>Gagal memuat antrean</strong><p>Coba tekan Refresh.</p></div>
-      </div>
-    `;
+    syncOfflineQueueList({ ...empty, status: "error" });
   } finally {
     if (refreshBtn && renderId === latestRender) {
       refreshBtn.disabled = false;

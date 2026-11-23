@@ -241,7 +241,7 @@ function browser(t) {
     <dialog id="modal-group-pin"><input id="group-pin"></dialog>
     <div id="offline-queue-list"></div><span id="queue-count-pill"></span><button id="btn-sync-offline-now"></button>
   `, { url: 'https://finkas.test' });
-  for (const key of ['window', 'document', 'localStorage', 'sessionStorage', 'CustomEvent', 'indexedDB', 'BroadcastChannel']) {
+  for (const key of ['window', 'document', 'localStorage', 'sessionStorage', 'Element', 'HTMLElement', 'Node', 'Text', 'Comment', 'Event', 'CustomEvent', 'indexedDB', 'BroadcastChannel']) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, key);
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: dom.window[key] });
     t.after(() => {

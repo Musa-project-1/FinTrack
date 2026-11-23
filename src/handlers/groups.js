@@ -29,7 +29,8 @@ import {
   removeSuperAdminApi
 } from "../core/api.js";
 import { apiPost } from "../core/api-client.js";
-import { escapeHtml, showToast } from "../core/utils.js";
+import { syncGroupAdminList, syncSuperAdminList } from "../ui/svelte-dashboard.js";
+import { showToast } from "../core/utils.js";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion.js";
 import { openModal, closeModal, switchTab } from "../ui/modal.js";
 import { handleUI, renderAdminUI } from "./auth.js";
@@ -359,62 +360,13 @@ export const renderGroupAdmin = () => {
     filterMeta.textContent = query ? `${filtered.length} dari ${list.length} grup` : `${list.length} grup terdaftar`;
   }
 
-  if (!list.length) {
-    box.innerHTML = `
-      <div class="group-empty-state">
-        <i class="ph-fill ph-users-three" aria-hidden="true"></i>
-        <p>Belum ada grup terdaftar. Buat grup pertama di atas.</p>
-      </div>`;
-    return;
-  }
-
-  if (!filtered.length) {
-    box.innerHTML = `
-      <div class="group-empty-state">
-        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        <p>Tidak ada grup yang cocok dengan pencarian.</p>
-      </div>`;
-    return;
-  }
-
   const activeId = getActiveGroupId();
-  box.innerHTML = filtered.map((g, idx) => {
-    const rawName = g.nama || "?";
-    const safeName = escapeHtml(rawName);
-    const safeId = escapeHtml(g.id);
-    const isActive = g.id === activeId;
-    const initial = escapeHtml((Array.from(String(rawName).trim())[0] || '?').toUpperCase());
-    return `
-    <div class="group-card-item${isActive ? " is-active" : ""}" data-id="${safeId}" role="listitem">
-      <div class="group-card-main">
-        <span class="group-card-avatar" data-index="${idx % 4}" aria-hidden="true">${initial}</span>
-        <div class="group-card-details">
-          <div class="group-card-title-row">
-            <h3 class="group-card-title">${safeName}</h3>
-            ${isActive ? '<span class="group-badge-active"><span class="group-status-dot" aria-hidden="true"></span><span>Aktif</span></span>' : ""}
-          </div>
-          <span class="group-card-id-pill"><i class="ph ph-hash" aria-hidden="true"></i> ${safeId}</span>
-        </div>
-      </div>
-      <div class="group-card-actions">
-        <button type="button" class="btn-group-chip" data-action="manage-group-creds" data-id="${safeId}" title="Atur Akun Admin Grup">
-          <i class="ph-bold ph-user-gear" aria-hidden="true"></i>
-          <span>Admin</span>
-        </button>
-        <button type="button" class="btn-group-chip" data-action="rename-group" data-id="${safeId}" title="Ubah Nama Grup">
-          <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>
-          <span>Nama</span>
-        </button>
-        <button type="button" class="btn-group-chip" data-action="reset-group-pin" data-id="${safeId}" title="Ubah PIN Grup">
-          <i class="ph-bold ph-key" aria-hidden="true"></i>
-          <span>PIN</span>
-        </button>
-        <button type="button" class="btn-group-chip danger" data-action="remove-group" data-id="${safeId}" title="Hapus Grup" aria-label="Hapus ${safeName}">
-          <i class="ph-bold ph-trash" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>`;
-  }).join("");
+  const rows = filtered.map((g, idx) => {
+    const nama = g.nama || "?";
+    const initial = (Array.from(String(nama).trim())[0] || '?').toUpperCase();
+    return { id: g.id, nama, initial, isActive: g.id === activeId, colorIndex: idx % 4 };
+  });
+  syncGroupAdminList({ emptyReason: !list.length ? 'none' : !rows.length ? 'search' : '', rows });
 };
 
 /** Render daftar email Super Admin. */
@@ -422,7 +374,7 @@ export const renderSuperAdminList = async () => {
   const container = document.getElementById("superadmin-emails-list");
   const countEl = document.getElementById("superadmin-count");
   if (!container) return;
-  container.innerHTML = '<span class="superadmin-empty-text">Memuat daftar superadmin...</span>';
+  syncSuperAdminList({ status: "loading", items: [] });
 
   const res = await fetchSuperAdminsApi();
   if (!res.status || !Array.isArray(res.data)) {
@@ -434,23 +386,15 @@ export const renderSuperAdminList = async () => {
       return;
     }
     if (countEl) countEl.textContent = "0";
-    container.innerHTML = '<span class="superadmin-empty-text">Tidak dapat memuat daftar superadmin.</span>';
+    syncSuperAdminList({ status: "error", items: [] });
     return;
   }
 
   if (countEl) countEl.textContent = String(res.data.length);
-  container.innerHTML = res.data.map((item) => {
-    const isPrimary = item.isPrimary;
-    const email = escapeHtml(item.email);
-    return `
-    <div class="superadmin-email-item" role="listitem">
-      <div class="superadmin-email-meta">
-        <span class="superadmin-avatar" aria-hidden="true"><i class="${isPrimary ? "ph-fill ph-crown" : "ph ph-shield-check"}"></i></span>
-        <span class="superadmin-email-text"><strong>${email}</strong> ${isPrimary ? '<span class="superadmin-email-tag">Pemilik Utama</span>' : ""}</span>
-      </div>
-      ${!isPrimary ? `<button type="button" class="superadmin-email-del" data-action="remove-superadmin-email" data-email="${email}" title="Cabut akses" aria-label="Cabut akses ${email}"><i class="ph-bold ph-trash" aria-hidden="true"></i></button>` : ""}
-    </div>`;
-  }).join("");
+  syncSuperAdminList({
+    status: "ready",
+    items: res.data.map(({ email, isPrimary }) => ({ email, isPrimary }))
+  });
 };
 
 /** Submit form tambah superadmin. */

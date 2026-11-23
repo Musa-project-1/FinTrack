@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { installMockIndexedDB } from './helpers/mock-indexeddb.mjs';
-import * as state from '../src/core/state.js';
-import { addOfflineTransaction, countQueuedTransactionsByGroup } from '../src/core/offline.js';
+import * as state from '../src/ui/svelte-dashboard.js';
+import { addOfflineTransaction, countQueuedTransactionsByGroup } from '../src/ui/svelte-dashboard.js';
 import {
   enterGroup, exitGroup, initGroupPickerListeners, renderGroupPicker, requestGroupPin
-} from '../src/handlers/groups.js';
-import { openModal, closeModal } from '../src/ui/modal.js';
+} from '../src/ui/svelte-dashboard.js';
+import { openModal, closeModal } from '../src/ui/svelte-dashboard.js';
 
 const groups = ['A', 'B', 'C'].map(letter => ({ id: 'GRP-' + letter, nama: 'Grup ' + letter }));
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');

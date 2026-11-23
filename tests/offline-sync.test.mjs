@@ -30,9 +30,9 @@ const {
   classifySyncResponse, isUnsyncedTempId, addOfflineTransaction, getOfflineTransactions,
   queueOfflinePayload, countQueuedTransactions, getGroupOfflineTransactions,
   deleteOfflineTransaction, syncOfflineTransactions
-} = await import('../src/core/offline.js');
-const { setActiveGroupId, setGroupSession, setAdminSession } = await import('../src/core/state.js');
-const { renderOfflineQueueList } = await import('../src/handlers/offlineQueue.js');
+} = await import('../src/ui/svelte-dashboard.js');
+const { setActiveGroupId, setGroupSession, setAdminSession } = await import('../src/ui/svelte-dashboard.js');
+const { renderOfflineQueueList } = await import('../src/ui/svelte-dashboard.js');
 
 test('classifySyncResponse returns unreachable when network or backend gives no response', () => {
   assert.equal(classifySyncResponse(null), 'unreachable');

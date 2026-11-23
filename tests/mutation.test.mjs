@@ -23,7 +23,7 @@ if (typeof globalThis.sessionStorage === 'undefined' || !globalThis.sessionStora
   globalThis.sessionStorage = makeStorage();
 }
 
-const { generateTempId } = await import('../src/core/mutation.js');
+const { generateTempId } = await import('../src/ui/svelte-dashboard.js');
 
 test('generateTempId generates IDs matching the prefix-TEMP-pattern', () => {
   const id1 = generateTempId('TRX');

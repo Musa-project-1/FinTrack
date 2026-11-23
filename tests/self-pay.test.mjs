@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
-import { normalizePaymentAccount } from '../src/core/payment-account.js';
-import { calculateSelfPay } from '../src/handlers/self-pay.js';
+import { billingPeriod, createDuesLedger } from '../src/ui/svelte-dashboard.js';
+import { normalizePaymentAccount } from '../src/ui/svelte-dashboard.js';
+import { calculateSelfPay } from '../src/ui/svelte-dashboard.js';
 import { setPaymentAccount } from '../api/_group-write.ts';
 
 const member = { ID_Anggota: 'm1', Nama_Anggota: 'Anggota Uji', Status_Aktif: 'Aktif', Tanggal_Gabung: '2026-11-12T00:00:00+07:00' };

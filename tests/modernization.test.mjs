@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import vm from 'node:vm';
-import { resetPinInput, wirePinInput } from '../src/ui/pin-input.js';
+import { resetPinInput, wirePinInput } from '../src/ui/svelte-dashboard.js';
 
 const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 const gestureSource = stripTypeScriptTypes(read('src/svelte/ui/gestures.ts'))
@@ -200,14 +200,14 @@ test('vendor scrollbar selectors only appear within unsupported-standard fallbac
 });
 
 test('split modules are imported, precached, and authored batch sources stay under 750 lines', () => {
-  for (const file of ['css/modules/groups-superadmin.css', 'css/modules/pin-input.css', 'src/ui/pin-input.js']) {
+  for (const file of ['css/modules/groups-superadmin.css', 'css/modules/pin-input.css', 'src/ui/svelte-dashboard.js']) {
     assert.ok(read('sw.js').includes(`'${file}'`));
   }
   for (const file of ['groups-modal.css', 'groups-superadmin.css', 'pin-input.css']) {
     assert.ok(read('css/input.css').includes(`./modules/${file}`));
   }
   for (const file of ['css/modules/groups-modal.css', 'css/modules/groups-superadmin.css',
-    'css/modules/pin-input.css', 'src/ui/pin-input.js', 'src/ui/gestures.js', 'src/handlers/groups.js',
+    'css/modules/pin-input.css',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',
     'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {

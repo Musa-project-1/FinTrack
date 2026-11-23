@@ -133,10 +133,10 @@ def check_workspace(browser, width, theme):
         page.locator('#modal-guided-tour [data-step="next"]').click()
     expect(page.locator("#modal-guided-tour")).to_be_hidden()
     page.evaluate("""async () => {
-        const state = await import('/src/core/state.js');
-        state.setAdminSession('fixture');
-        (await import('/src/handlers/auth.js')).handleUI();
-        (await import('/src/render/dashboard.js')).renderDashboard();
+        const dash = await import('/src/ui/svelte-dashboard.js');
+        dash.setAdminSession('fixture');
+        dash.handleUI();
+        dash.renderDashboard();
     }""")
     expect(page.locator("#priority-members button")).to_have_count(4)
     page.locator("#priority-members button").first.click()

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { getActiveGroupId, setActiveGroupId, setGroups } from '../src/core/state.js';
-import { enterGroup } from '../src/handlers/groups.js';
+import { getActiveGroupId, setActiveGroupId, setGroups } from '../src/ui/svelte-dashboard.js';
+import { enterGroup } from '../src/ui/svelte-dashboard.js';
 import {
   animateHybridAmount, enterHybridOverview, getLastGroupDirection, isGroupTransitionActive,
   resolveGroupDirection, runGroupSwitchTransition, runHybridThemeWipe
-} from '../src/ui/hybrid-motion.js';
+} from '../src/ui/svelte-dashboard.js';
 
 const groups = [{ id: 'GRP-A', nama: 'Grup A' }, { id: 'GRP-B', nama: 'Grup B' }];
 const byId = id => document.getElementById(id);

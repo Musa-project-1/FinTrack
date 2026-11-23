@@ -97,14 +97,14 @@ const {
   generateOperationId,
   stampMutation,
   deliverMutation
-} = await import('../src/core/mutation.js');
+} = await import('../src/ui/svelte-dashboard.js');
 
 const {
   classifySyncResponse,
   isRetryableServerError
-} = await import('../src/core/offline.js');
+} = await import('../src/ui/svelte-dashboard.js');
 
-const { setAdminSession, setActiveGroupId } = await import('../src/core/state.js');
+const { setAdminSession, setActiveGroupId } = await import('../src/ui/svelte-dashboard.js');
 setAdminSession('mock-admin-token-12345');
 setActiveGroupId('GRP-TEST-1');
 
@@ -236,7 +236,7 @@ test('deliverMutation queues safely when server returns 500 or 429', async () =>
 });
 
 test('syncOfflineTransactions processes legacy queued items without operationId without error', async () => {
-  const { queueOfflinePayload, syncOfflineTransactions } = await import('../src/core/offline.js');
+  const { queueOfflinePayload, syncOfflineTransactions } = await import('../src/ui/svelte-dashboard.js');
   const realFetch = globalThis.fetch;
   const sentPayloads = [];
 

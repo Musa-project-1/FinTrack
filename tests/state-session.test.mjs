@@ -20,10 +20,10 @@ const makeStorage = () => {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-const { CACHE_KEY, ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, ADMIN_VIEW_MODE_KEY, GROUP_SESSIONS_KEY } = await import('../src/core/config.js');
-const state = await import('../src/core/state.js');
+const { CACHE_KEY, ADMIN_SESSION_KEY, ADMIN_ROLE_KEY, ADMIN_VIEW_MODE_KEY, GROUP_SESSIONS_KEY } = await import('../src/ui/svelte-dashboard.js');
+const state = await import('../src/ui/svelte-dashboard.js');
 
-const { resolveGroupId, dataRequest } = await import('../src/core/api-client.js');
+const { resolveGroupId, dataRequest } = await import('../src/ui/svelte-dashboard.js');
 
 test('resolving an unscoped payload with no active group returns an empty id', () => {
   state.setActiveGroupId('');

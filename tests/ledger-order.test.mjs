@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { byNewestTimestamp } from '../src/core/config.js';
+import { byNewestTimestamp } from '../src/ui/svelte-dashboard.js';
 
 const row = (id, timestamp) => ({ ID_Transaksi: id, Timestamp: timestamp });
 

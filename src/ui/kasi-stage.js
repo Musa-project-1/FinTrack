@@ -1,1 +1,0 @@
-export { KASI_PET_QUOTES, KASI_BOOP_QUOTES, KASI_TRICKS, getPetCount, syncAllMascotMood, triggerAllMascotAction, setStageSpeech, renderAffectionUI, incrementKasiAffection, initKasiStage } from './svelte-dashboard.js';

@@ -17,7 +17,7 @@ import {
   parseKasStart,
   kasStartFirstOfMonth,
   isMonthOwedByGroup
-} from '../src/core/utils.js';
+} from '../src/ui/svelte-dashboard.js';
 
 test('formatRp formats numbers to IDR correctly', () => {
   const formatted = formatRp(50000);

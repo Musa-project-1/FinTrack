@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { openModal, closeModal, getActiveModalId, showConfirmDialog, executeConfirmAction } from '../src/ui/modal.js';
+import { openModal, closeModal, getActiveModalId, showConfirmDialog, executeConfirmAction } from '../src/ui/svelte-dashboard.js';
 
 const saved = {};
 let elements;

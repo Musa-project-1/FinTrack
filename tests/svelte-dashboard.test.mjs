@@ -2,18 +2,18 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { bukaProfilAnggota } from '../src/render/profile.js';
-import { openReceipt } from '../src/render/receipt.js';
-import { initSelfPay, openSelfPay } from '../src/handlers/self-pay.js';
-import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
-import { NAMA_BULAN } from '../src/core/config.js';
-import { setActiveGroupId, setCurrentHistoryFilter, setCurrentRekapYear, setAdminSession, setAdminViewMode, setState } from '../src/core/state.js';
-import * as rekap from '../src/render/rekap.js';
-import * as history from '../src/render/transactions.js';
-import * as stats from '../src/ui/hybrid-chart.js';
-import * as adapter from '../src/ui/spotlight.js';
+import { bukaProfilAnggota } from '../src/ui/svelte-dashboard.js';
+import { openReceipt } from '../src/ui/svelte-dashboard.js';
+import { initSelfPay, openSelfPay } from '../src/ui/svelte-dashboard.js';
+import { billingPeriod, createDuesLedger } from '../src/ui/svelte-dashboard.js';
+import { NAMA_BULAN } from '../src/ui/svelte-dashboard.js';
+import { setActiveGroupId, setCurrentHistoryFilter, setCurrentRekapYear, setAdminSession, setAdminViewMode, setState } from '../src/ui/svelte-dashboard.js';
+import * as rekap from '../src/ui/svelte-dashboard.js';
+import * as history from '../src/ui/svelte-dashboard.js';
+import * as stats from '../src/ui/svelte-dashboard.js';
+import * as adapter from '../src/ui/svelte-dashboard.js';
 import * as bundle from '../src/ui/svelte-dashboard.js';
-import { formatRp } from '../src/core/utils.js';
+import { formatRp } from '../src/ui/svelte-dashboard.js';
 import {
   computeDashboardViewModel, updateDashboardStore, setSelectedSparkMonth,
   mountSvelteDashboard, syncSvelteDashboard
@@ -173,8 +173,10 @@ test('spotlight view model resolves pins, skipped periods and partial dues', () 
 
 test('spotlight adapter re-exports the bundle API', () => {
   const names = ['getPinnedMemberId', 'initSpotlight', 'renderSpotlight', 'setMemberPin', 'showSpotlightDetail', 'toggleMemberPin'];
-  assert.deepEqual(Object.keys(adapter).sort(), names);
-  for (const name of names) assert.equal(adapter[name], bundle[name]);
+  for (const name of names) {
+    assert.equal(typeof bundle[name], 'function', name);
+    assert.equal(adapter[name], bundle[name]);
+  }
 });
 
 test('pin controls, monthly details, keyboard focus and admin arrears update synchronously', t => {

@@ -12,9 +12,9 @@ Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
 const realFetch = globalThis.fetch;
 globalThis.fetch = async () => { throw new Error('Network prohibited in isolated test'); };
 after(() => { globalThis.Date = realDate; globalThis.fetch = realFetch; });
-const { setState, setCurrentRekapYear } = await import('../src/core/state.js');
-const { renderTableRekap } = await import('../src/render/rekap.js');
-const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/handlers/export.js');
+const { setState, setCurrentRekapYear } = await import('../src/ui/svelte-dashboard.js');
+const { renderTableRekap } = await import('../src/ui/svelte-dashboard.js');
+const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/ui/svelte-dashboard.js');
 const read = path => readFileSync(new URL('../html/' + path, import.meta.url), 'utf8');
 const html = read('index.template.html').replace('<!-- @@INJECT_MODALS@@ -->',
   () => read('modals/transactions.html') + read('modals/reports.html'));
@@ -76,7 +76,7 @@ test('matrix and mobile strips distinguish overdue, future, skipped and pre-star
 });
 
 test('bulk payment form keeps partial member selectable and disables settled or exempt periods', async () => {
-  const { renderCheckboxIuran } = await import('../src/ui/modal.js');
+  const { renderCheckboxIuran } = await import('../src/ui/svelte-dashboard.js');
   byId('iuran-bulan').value = 'Oktober';
   byId('iuran-tahun').value = '2026';
   byId('iuran-nominal').value = '5.000';

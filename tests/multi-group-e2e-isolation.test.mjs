@@ -158,7 +158,7 @@ async function seedLedger(db, gid, name, nominal, kasStart, skipped, number) {
 
 test('shared operation IDs, proof moves, dues and cross-group restore preserve ledger ownership', async t => {
   const db = fixture(t);
-  const { createDuesLedger } = await import('../src/core/dues.js');
+  const { createDuesLedger } = await import('../src/ui/svelte-dashboard.js');
   const alpha = await seedLedger(db, A, 'Alpha', 4000, '01-2026', '02-2026', '001122');
   const beta = await seedLedger(db, B, 'Beta', 6000, '02-2026', '04-2026', '009988');
   const operationId = 'shared-op-id-0001';
@@ -257,13 +257,13 @@ function browser(t) {
 test('switching groups partitions the cached ledger, queue UI and authenticated offline replay', async t => {
   const db = fixture(t);
   const byId = browser(t);
-  const state = await import('../src/core/state.js');
-  const offline = await import('../src/core/offline.js');
-  const sync = await import('../src/core/sync.js');
-  const { CACHE_KEY, API } = await import('../src/core/config.js');
-  const { enterGroup, requestGroupPin, fetchGroups } = await import('../src/handlers/groups.js');
-  const { initGroupPickerListeners, renderGroupPicker } = await import('../src/handlers/group-picker.js');
-  const { renderOfflineQueueList } = await import('../src/handlers/offlineQueue.js');
+  const state = await import('../src/ui/svelte-dashboard.js');
+  const offline = await import('../src/ui/svelte-dashboard.js');
+  const sync = await import('../src/ui/svelte-dashboard.js');
+  const { CACHE_KEY, API } = await import('../src/ui/svelte-dashboard.js');
+  const { enterGroup, requestGroupPin, fetchGroups } = await import('../src/ui/svelte-dashboard.js');
+  const { initGroupPickerListeners, renderGroupPicker } = await import('../src/ui/svelte-dashboard.js');
+  const { renderOfflineQueueList } = await import('../src/ui/svelte-dashboard.js');
 
   const alpha = await seedLedger(db, A, 'Alpha', 1000, '01-2026', '02-2026', '001122');
   const beta = await seedLedger(db, B, 'Beta', 2000, '02-2026', '04-2026', '009988');

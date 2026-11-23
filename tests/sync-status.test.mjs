@@ -57,10 +57,10 @@ globalThis.BroadcastChannel = class {
   close() { this.closed = true; }
 };
 
-const { setActiveGroupId, setAdminSession, setGroupSession } = await import('../src/core/state.js');
-const { postToBackend } = await import('../src/core/api.js');
-const sync = await import('../src/core/sync.js');
-const saveStatusModule = await import('../src/ui/save-status.js').catch(() => null);
+const { setActiveGroupId, setAdminSession, setGroupSession } = await import('../src/ui/svelte-dashboard.js');
+const { postToBackend } = await import('../src/ui/svelte-dashboard.js');
+const sync = await import('../src/ui/svelte-dashboard.js');
+const saveStatusModule = await import('../src/ui/svelte-dashboard.js').catch(() => null);
 
 const READ = '2026-01-01T00:00:00.000Z';
 const REMOTE = '2026-01-02T00:00:00.000Z';
@@ -186,7 +186,7 @@ test('race check across group switch discards obsolete update check from previou
 });
 
 test('save-status: computeSaveStatus differentiates storage failure, pending queue, server confirmed, and remote unread without fake certainty', async () => {
-  const { computeSaveStatus } = await import('../src/ui/save-status.js');
+  const { computeSaveStatus } = await import('../src/ui/svelte-dashboard.js');
 
   // 1. Storage failure: must NEVER claim local persistence
   const failStatus = computeSaveStatus({
@@ -257,7 +257,7 @@ test('save-status: computeSaveStatus differentiates storage failure, pending que
 });
 
 test('save-status: initSaveStatus renders accessible container and updates on CustomEvents', async () => {
-  const { initSaveStatus, renderSaveStatus, destroySaveStatus } = await import('../src/ui/save-status.js');
+  const { initSaveStatus, renderSaveStatus, destroySaveStatus } = await import('../src/ui/svelte-dashboard.js');
 
   const container = document.getElementById('ui-save-status');
   initSaveStatus({ container });

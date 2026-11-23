@@ -14,12 +14,12 @@ import {
   validateSnapshot,
   restoreSnapshot
 } from '../api/_group-write.ts';
-import { createDuesLedger } from '../src/core/dues.js';
+import { createDuesLedger } from '../src/ui/svelte-dashboard.js';
 import {
   calculateMemberContribution,
   calculateMemberRekapProgress,
   calculateCompliance
-} from '../src/core/utils.js';
+} from '../src/ui/svelte-dashboard.js';
 import { decodeFields, encodeFields } from '../api/_sa.ts';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';

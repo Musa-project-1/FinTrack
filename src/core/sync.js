@@ -1,1 +1,0 @@
-export { initSyncEvents, checkForUpdate, getSyncStatus, getHasRemoteUpdate, getLastSyncedAt, getLastConfirmedWriteAt, initSync, destroySync, notifySynced, setSyncBadge, runManualSyncRekap } from '../ui/svelte-dashboard.js';

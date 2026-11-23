@@ -459,7 +459,7 @@ const {
   uploadAttachmentApi,
   deleteAttachmentApi,
   initAttachmentControls
-} = await import('../src/handlers/attachments.js');
+} = await import('../src/ui/svelte-dashboard.js');
 
 test('client formatFileSize formats bytes accurately', () => {
   assert.equal(formatFileSize(0), '0 B');

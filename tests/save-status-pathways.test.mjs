@@ -61,11 +61,11 @@ const element = {
 };
 document.getElementById = (id) => id === 'ui-save-status' ? element : null;
 
-const state = await import('../src/core/state.js');
-const ui = await import('../src/ui/save-status.js');
-const sync = await import('../src/core/sync.js');
-const offline = await import('../src/core/offline.js');
-const api = await import('../src/core/api.js');
+const state = await import('../src/ui/svelte-dashboard.js');
+const ui = await import('../src/ui/svelte-dashboard.js');
+const sync = await import('../src/ui/svelte-dashboard.js');
+const offline = await import('../src/ui/svelte-dashboard.js');
+const api = await import('../src/ui/svelte-dashboard.js');
 
 const makeLedger = () => ({
   anggota: [{ id: 'ANG-1', nama: 'Budi' }],

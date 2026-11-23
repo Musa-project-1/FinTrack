@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { trackEvent, initAnalytics } from '../src/core/analytics.js';
+import { trackEvent, initAnalytics } from '../src/ui/svelte-dashboard.js';
 
 test('trackEvent safely runs without window or gtag environment (no-op)', () => {
   assert.doesNotThrow(() => {

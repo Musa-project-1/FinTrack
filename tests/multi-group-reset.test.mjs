@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import * as state from '../src/core/state.js';
-import { ACTIVE_GROUP_NAME_KEY, GROUP_OPEN_KEY } from '../src/core/config.js';
-import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
-import { enterGroup, exitGroup, initGroupsUI } from '../src/handlers/groups.js';
-import { openModal, closeModal, showConfirmDialog, executeConfirmAction, closeGroupScopedModals } from '../src/ui/modal.js';
-import { setupRekapSearchListener, initAppFormAndInputListeners, resetGroupScopedUI } from '../src/handlers/navigation.js';
+import * as state from '../src/ui/svelte-dashboard.js';
+import { ACTIVE_GROUP_NAME_KEY, GROUP_OPEN_KEY } from '../src/ui/svelte-dashboard.js';
+import { billingPeriod, createDuesLedger } from '../src/ui/svelte-dashboard.js';
+import { enterGroup, exitGroup, initGroupsUI } from '../src/ui/svelte-dashboard.js';
+import { openModal, closeModal, showConfirmDialog, executeConfirmAction, closeGroupScopedModals } from '../src/ui/svelte-dashboard.js';
+import { setupRekapSearchListener, initAppFormAndInputListeners, resetGroupScopedUI } from '../src/ui/svelte-dashboard.js';
 import * as dashboard from '../src/ui/svelte-dashboard.js';
 
 const member = { ID_Anggota: 'A1', Nama_Anggota: 'From A', Status_Aktif: 'Aktif' };

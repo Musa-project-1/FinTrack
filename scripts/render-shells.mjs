@@ -174,7 +174,7 @@ writeIfChanged(
   scopedHeader + (svelteStyleChunks.length ? `${svelteStyleChunks.join('\n\n')}\n` : '')
 );
 
-writeIfChanged(path.join(ROOT, 'index.html'), indexHtml);
-writeIfChanged(path.join(ROOT, 'onboarding.html'), onboardingHtml);
-writeIfChanged(path.join(ROOT, 'privacy.html'), privacyHtml);
+fs.writeFileSync(path.join(ROOT, 'index.html'), indexHtml, 'utf8');
+fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
+fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
 console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length} style blocks) at v${v}.`);

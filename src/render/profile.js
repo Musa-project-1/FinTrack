@@ -8,13 +8,18 @@ import { formatRp, calculateMemberContribution, showToast } from '../core/utils.
 import { animateHybridAmount } from '../ui/hybrid-motion.js';
 import { openModal } from '../ui/modal.js';
 
-const stampKind = {
+const stampKind = /** @type {const} */ ({
   Lunas: 'paid', Sebagian: 'pending', Belum: 'unpaid', Nanti: 'upcoming', Libur: 'holiday'
+});
+
+const setText = (id, text) => {
+  const element = document.getElementById(id);
+  if (element) element.textContent = text;
 };
 
 export const copyPassbook = async () => {
   const text = ['p-nama-anggota', 'passbook-meta', 'p-total-kontribusi', 'passbook-paid-chip', 'passbook-unpaid-chip']
-    .map((id) => document.getElementById(id)).filter((element) => element && !element.hidden)
+    .map((id) => document.getElementById(id)).filter(element => element !== null).filter(element => !element.hidden)
     .map((element) => element.id === 'p-total-kontribusi' ? `Total kontribusi: ${element.dataset.fullValue}` : element.textContent)
     .join('\n');
   const dialog = document.getElementById('modal-profil-anggota');
@@ -22,7 +27,7 @@ export const copyPassbook = async () => {
     await navigator.clipboard.writeText(text);
     showToast('Ringkasan Buku Iuran disalin.');
   } catch {
-    const existing = dialog?.querySelector('.passbook-copy-field');
+    const existing = /** @type {HTMLTextAreaElement | null | undefined} */ (dialog?.querySelector('.passbook-copy-field'));
     const field = existing || document.createElement('textarea');
     field.className = 'passbook-copy-field form-control';
     field.readOnly = true;
@@ -39,6 +44,12 @@ export const bukaProfilAnggota = (idAnggota) => {
   const member = state.anggota.find((item) => item.ID_Anggota === idAnggota);
   if (!member) return;
 
+  const total = document.getElementById('p-total-kontribusi');
+  const unpaid = document.getElementById('passbook-unpaid-chip');
+  const pay = /** @type {HTMLButtonElement | null} */ (document.getElementById('passbook-pay'));
+  const pin = /** @type {HTMLButtonElement | null} */ (document.getElementById('passbook-pin'));
+  if (!total || !unpaid || !pay || !pin) return;
+
   const year = Number(currentRekapYear);
   const admin = getIsAdminView();
   const active = member.Status_Aktif === 'Aktif';
@@ -47,31 +58,28 @@ export const bukaProfilAnggota = (idAnggota) => {
   const ledger = createDuesLedger(state, { year });
   const summary = ledger.summarize(member);
   const paid = summary.months.filter((month) => month.status === 'paid').length;
-  document.getElementById('p-nama-anggota').textContent = member.Nama_Anggota;
-  document.getElementById('passbook-meta').textContent = `${member.ID_Anggota} · ${member.Status_Aktif} · ${year}`;
+  setText('p-nama-anggota', member.Nama_Anggota);
+  setText('passbook-meta', `${member.ID_Anggota} · ${member.Status_Aktif} · ${year}`);
   const contribution = calculateMemberContribution(transactions, idAnggota);
-  const total = document.getElementById('p-total-kontribusi');
   total.dataset.fullValue = formatRp(contribution);
   animateHybridAmount(total, contribution, { format: formatRp, from: 0 });
-  document.getElementById('passbook-paid-chip').textContent = `${paid}/${summary.months.length} Lunas`;
-  const unpaid = document.getElementById('passbook-unpaid-chip');
+  setText('passbook-paid-chip', `${paid}/${summary.months.length} Lunas`);
   unpaid.hidden = summary.unpaidMonths === 0;
   unpaid.textContent = `${summary.unpaidMonths} Tunggakan`;
-  const pay = document.getElementById('passbook-pay');
   pay.dataset.id = idAnggota;
   pay.disabled = !active;
-  const pin = document.getElementById('passbook-pin');
   pin.dataset.id = idAnggota;
   pin.disabled = !active;
   pin.setAttribute('aria-pressed', String(pinned));
-  document.getElementById('passbook-pin-label').textContent = pinned ? 'Lepas' : 'Sematkan';
+  setText('passbook-pin-label', pinned ? 'Lepas' : 'Sematkan');
   document.querySelector('#modal-profil-anggota .passbook-copy-field')?.remove();
 
-  document.getElementById('passbook-year').textContent = `Kartu Cap Iuran ${year}`;
+  setText('passbook-year', `Kartu Cap Iuran ${year}`);
   const months = NAMA_BULAN.map((name, index) => {
     const month = ledger.getMonth(member, index, year);
     const status = getDuesDisplayStatus(month);
     const kind = stampKind[status];
+    /** @type {import('../svelte/profile.svelte').ProfileInput['months'][number]['action']} */
     let action = '';
     if (status === 'Lunas') {
       action = 'open-month-receipt';

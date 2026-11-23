@@ -11,6 +11,14 @@ import { createDuesLedger, duesStatusLabel } from '../core/dues.js';
 
 import { syncIuranChecklist, syncIuranChecklistFilter, syncIuranReviewChips } from './svelte-dashboard.js';
 
+const getInput = id => /** @type {HTMLInputElement | null} */ (document.getElementById(id));
+
+const getSelect = id => /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
+
+/** @param {HTMLElement} root @param {string} selector */
+const htmlElements = (root, selector) =>
+  /** @type {NodeListOf<HTMLElement> | undefined} */ (root.querySelectorAll?.(selector));
+
 const MAX_REVIEW_CHIPS = 8;
 
 const STEP_LABELS = {
@@ -30,7 +38,7 @@ let wizardStep = 1;
 const isEnLang = () => typeof document !== 'undefined' && document.body?.dataset?.lang === 'en';
 
 const getSelectedLabel = (id, fallback = '-') => {
-  const sel = document.getElementById(id);
+  const sel = getSelect(id);
   if (!sel || !sel.value || sel.value === '-') return fallback;
   const opt = sel.options?.[sel.selectedIndex];
   const label = (opt?.textContent || sel.value || '').trim();
@@ -65,7 +73,7 @@ const setText = (id, text) => {
  * @param {string} idKat - ID of the category <select>.
  */
 export const filterKategori = (idTipe, idKat) => {
-  const tipe = document.getElementById(idTipe)?.value;
+  const tipe = getSelect(idTipe)?.value;
   const elKategori = document.getElementById(idKat);
   if (!elKategori) return;
   const placeholder = document.createElement('option');
@@ -85,12 +93,12 @@ export const filterKategori = (idTipe, idKat) => {
 const syncIuranReview = () => {
   const nominal = getRawNominal('iuran-nominal');
   const katLabel = getSelectedLabel('iuran-kategori', '-');
-  const rawBulan = document.getElementById('iuran-bulan')?.value || '';
+  const rawBulan = getSelect('iuran-bulan')?.value || '';
   const bulan = formatDisplayMonth(rawBulan);
-  const tahun = document.getElementById('iuran-tahun')?.value || '';
-  const tanggal = document.getElementById('iuran-tanggal')?.value || '';
+  const tahun = getInput('iuran-tahun')?.value || '';
+  const tanggal = getInput('iuran-tanggal')?.value || '';
 
-  const checked = Array.from(document.querySelectorAll('.chk-iuran:not(:disabled):checked'));
+  const checked = Array.from(/** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('.chk-iuran:not(:disabled):checked')));
   const totalChecked = checked.length;
 
   setText(
@@ -117,16 +125,16 @@ const syncIuranReview = () => {
 };
 
 const syncOpsReview = () => {
-  const tipe = document.getElementById('ops-tipe')?.value || 'Keluar';
+  const tipe = getSelect('ops-tipe')?.value || 'Keluar';
   const isMasuk = tipe === 'Masuk';
   const isEn = isEnLang();
   const flowText = isMasuk
     ? (isEn ? 'Inflow (+)' : 'Pemasukan (+)')
     : (isEn ? 'Outflow (−)' : 'Pengeluaran (−)');
   const katLabel = getSelectedLabel('ops-kategori', '-');
-  const tanggal = document.getElementById('ops-tanggal')?.value || '';
+  const tanggal = getInput('ops-tanggal')?.value || '';
   const anggotaLabel = getSelectedLabel('ops-anggota', isEn ? 'Not member-specific' : 'Bukan transaksi anggota');
-  const ket = (document.getElementById('ops-keterangan')?.value || '').trim() || '-';
+  const ket = (getInput('ops-keterangan')?.value || '').trim() || '-';
 
   setText('ops-step2-sub', katLabel !== '-' ? `${flowText} · ${katLabel}` : flowText);
   setText('rev-ops-kategori', katLabel);
@@ -149,7 +157,7 @@ const markControlInvalid = (el) => {
 
 const validateIuranStep = (step) => {
   if (step === 1) {
-    const katEl = document.getElementById('iuran-kategori');
+    const katEl = getSelect('iuran-kategori');
     const kat = katEl?.value;
     if (!kat || kat === '-') {
       markControlInvalid(katEl);
@@ -162,9 +170,9 @@ const validateIuranStep = (step) => {
       document.getElementById('iuran-nominal')?.focus?.();
       return false;
     }
-    const blnEl = document.getElementById('iuran-bulan');
+    const blnEl = getSelect('iuran-bulan');
     const bln = blnEl?.value;
-    const thn = Number(document.getElementById('iuran-tahun')?.value);
+    const thn = Number(getInput('iuran-tahun')?.value);
     if (!bln || !Number.isFinite(thn) || thn < 2000 || thn > 2100) {
       if (!bln) markControlInvalid(blnEl);
       showToast('Bulan dan tahun iuran wajib dipilih.', 'error');
@@ -185,7 +193,7 @@ const validateIuranStep = (step) => {
 
 const validateOpsStep = (step) => {
   if (step === 1) {
-    const katEl = document.getElementById('ops-kategori');
+    const katEl = getSelect('ops-kategori');
     const kat = katEl?.value;
     if (!kat || kat === '-') {
       markControlInvalid(katEl);
@@ -198,13 +206,13 @@ const validateOpsStep = (step) => {
     const nominal = getRawNominal('ops-nominal');
     if (Number.isNaN(nominal) || nominal <= 0) {
       showToast('Nominal transaksi harus lebih dari 0.', 'error');
-      document.getElementById('ops-nominal')?.focus?.();
+      getInput('ops-nominal')?.focus?.();
       return false;
     }
-    const ket = (document.getElementById('ops-keterangan')?.value || '').trim();
+    const ket = (getInput('ops-keterangan')?.value || '').trim();
     if (!ket) {
       showToast('Isi keterangan atau keperluan transaksi.', 'error');
-      document.getElementById('ops-keterangan')?.focus?.();
+      getInput('ops-keterangan')?.focus?.();
       return false;
     }
     return true;
@@ -236,7 +244,7 @@ export const setTrxWizardStep = (step, { focus = true } = {}) => {
     if (labelEl) labelEl.textContent = label;
   });
 
-  modal.querySelectorAll?.('[data-step-item]').forEach((item) => {
+  htmlElements(modal, '[data-step-item]')?.forEach((item) => {
     const n = Number(item.dataset.stepItem);
     const btn = item.querySelector?.('.trx-step-btn');
     item.classList.toggle('is-done', n < nextStep);
@@ -248,7 +256,7 @@ export const setTrxWizardStep = (step, { focus = true } = {}) => {
     }
   });
 
-  modal.querySelectorAll?.('[data-step-sep]').forEach((sep) => {
+  htmlElements(modal, '[data-step-sep]')?.forEach((sep) => {
     sep.classList.toggle('is-done', Number(sep.dataset.stepSep) < nextStep);
   });
 
@@ -258,10 +266,10 @@ export const setTrxWizardStep = (step, { focus = true } = {}) => {
   const formId = wizardTab === 'operasional' ? 'form-operasional' : 'form-iuran';
   const form = document.getElementById(formId);
   if (form) {
-    form.querySelectorAll?.('.trx-step-panel').forEach((panel) => {
+    htmlElements(form, '.trx-step-panel')?.forEach((panel) => {
       panel.hidden = Number(panel.dataset.step) !== nextStep;
     });
-    form.querySelectorAll?.('[data-trx-show-steps]').forEach((el) => {
+    htmlElements(form, '[data-trx-show-steps]')?.forEach((el) => {
       const steps = String(el.dataset.trxShowSteps || '').split(/\s+/);
       el.hidden = !steps.includes(String(nextStep));
     });
@@ -272,7 +280,7 @@ export const setTrxWizardStep = (step, { focus = true } = {}) => {
 
   if (focus && form) {
     const activePanel = form.querySelector?.(`.trx-step-panel[data-step="${nextStep}"]`);
-    const target = activePanel?.querySelector?.('h3[tabindex="-1"]');
+    const target = /** @type {HTMLElement | null | undefined} */ (activePanel?.querySelector?.('h3[tabindex="-1"]'));
     if (target?.focus) target.focus({ preventScroll: true });
   }
 };
@@ -291,22 +299,24 @@ export const resetTrxWizard = (tab = 'iuran', step = 1) => {
 
 /** Sync visible semantic flow radio cards with the hidden #ops-tipe select. */
 export const syncOpsFlowPills = () => {
-  const val = document.getElementById('ops-tipe')?.value || 'Keluar';
-  document.querySelectorAll?.('input[name="ops-tipe-radio"]').forEach((radio) => {
+  const val = getSelect('ops-tipe')?.value || 'Keluar';
+  const radios = /** @type {NodeListOf<HTMLInputElement> | undefined} */ (document.querySelectorAll?.('input[name="ops-tipe-radio"]'));
+  radios?.forEach((radio) => {
     radio.checked = radio.value === val;
   });
 };
 
 /** Bind wizard navigation, operational flow cards, presets, and keyboard rules inside #modal-transaksi. */
 export const initTransactionModalControls = () => {
-  const modal = document.getElementById('modal-transaksi');
+  const modal = /** @type {HTMLDialogElement | null} */ (document.getElementById('modal-transaksi'));
   if (!modal || modal.dataset?.trxBound) return;
   if (modal.dataset) modal.dataset.trxBound = '1';
 
   modal.addEventListener('change', (e) => {
-    const radio = e.target?.closest?.('input[name="ops-tipe-radio"]');
+    if (!(e.target instanceof Element)) return;
+    const radio = /** @type {HTMLInputElement | null} */ (e.target.closest('input[name="ops-tipe-radio"]'));
     if (radio) {
-      const select = document.getElementById('ops-tipe');
+      const select = getSelect('ops-tipe');
       if (select && select.value !== radio.value) {
         select.value = radio.value;
         select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -320,32 +330,34 @@ export const initTransactionModalControls = () => {
   });
 
   modal.addEventListener('input', (e) => {
-    if (e.target?.id === 'ops-keterangan' || e.target?.id === 'iuran-tahun') {
+    if (!(e.target instanceof Element)) return;
+    if (e.target.id === 'ops-keterangan' || e.target.id === 'iuran-tahun') {
       syncIuranReview();
       syncOpsReview();
     }
   });
 
   modal.addEventListener('click', (e) => {
-    const tabBtn = e.target?.closest?.('#btn-tab-iuran, #btn-tab-operasional');
+    if (!(e.target instanceof Element)) return;
+    const tabBtn = /** @type {HTMLElement | null} */ (e.target.closest('#btn-tab-iuran, #btn-tab-operasional'));
     if (tabBtn) {
       resetTrxWizard(tabBtn.dataset.tab === 'operasional' ? 'operasional' : 'iuran', 1);
       return;
     }
 
-    const nextBtn = e.target?.closest?.('[data-trx-next]');
+    const nextBtn = e.target.closest('[data-trx-next]');
     if (nextBtn) {
       if (validateCurrentStep(wizardStep)) setTrxWizardStep(wizardStep + 1);
       return;
     }
 
-    const prevBtn = e.target?.closest?.('[data-trx-prev]');
+    const prevBtn = e.target.closest('[data-trx-prev]');
     if (prevBtn) {
       if (wizardStep > 1) setTrxWizardStep(wizardStep - 1);
       return;
     }
 
-    const stepBtn = e.target?.closest?.('[data-trx-step]');
+    const stepBtn = /** @type {HTMLElement | null} */ (e.target.closest('[data-trx-step]'));
     if (stepBtn) {
       const targetStep = Number(stepBtn.dataset.trxStep) || 1;
       if (targetStep === wizardStep) return;
@@ -360,9 +372,9 @@ export const initTransactionModalControls = () => {
       return;
     }
 
-    const preset = e.target?.closest?.('[data-ops-preset]');
+    const preset = /** @type {HTMLElement | null} */ (e.target.closest('[data-ops-preset]'));
     if (!preset) return;
-    const input = document.getElementById('ops-nominal');
+    const input = getInput('ops-nominal');
     if (!input) return;
     const amount = Number(preset.dataset.opsPreset) || 0;
     input.value = new Intl.NumberFormat('id-ID').format(amount);
@@ -371,13 +383,14 @@ export const initTransactionModalControls = () => {
   });
 
   modal.addEventListener('keydown', (e) => {
+    if (!(e.target instanceof Element)) return;
     if (e.key !== 'Enter' || e.isComposing || wizardStep >= 3) return;
-    if (e.target?.closest?.('button, .cdrop-list, .dpick-pop, [role="listbox"]')) return;
-    if (e.target?.id === 'search-anggota-iuran') {
+    if (e.target.closest('button, .cdrop-list, .dpick-pop, [role="listbox"]')) return;
+    if (e.target.id === 'search-anggota-iuran') {
       e.preventDefault();
       return;
     }
-    if (!e.target?.closest?.('form')) return;
+    if (!e.target.closest('form')) return;
     e.preventDefault();
     if (validateCurrentStep(wizardStep)) setTrxWizardStep(wizardStep + 1);
   });
@@ -394,7 +407,7 @@ export const initTransactionModalControls = () => {
  */
 export const updateCounterOps = () => {
   const nominal = getRawNominal('ops-nominal');
-  const tipe = document.getElementById('ops-tipe')?.value || 'Keluar';
+  const tipe = getSelect('ops-tipe')?.value || 'Keluar';
   const isMasuk = tipe === 'Masuk';
   const isEn = isEnLang();
 
@@ -445,7 +458,7 @@ export const updateCounterIuran = () => {
   if (elTotal) elTotal.innerText = totalAmount;
   if (elStep2Total) elStep2Total.textContent = totalAmount;
 
-  const btnPilihSemua = document.getElementById('btn-pilih-semua');
+  const btnPilihSemua = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-pilih-semua'));
   if (btnPilihSemua) {
     if (totalElements.length === 0) {
       btnPilihSemua.innerText = 'Lunas Semua!';
@@ -465,7 +478,7 @@ export const updateCounterIuran = () => {
  * Toggle select-all / deselect-all for iuran checkboxes.
  */
 export const pilihSemuaIuran = () => {
-  const checkboxes = document.querySelectorAll('.chk-iuran:not(:disabled)');
+  const checkboxes = /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('.chk-iuran:not(:disabled)'));
   if (checkboxes.length === 0) return showToast('Semua anggota sudah lunas bulan ini!', 'success');
 
   const isAllChecked = Array.from(checkboxes).every((chk) => chk.checked);
@@ -479,8 +492,8 @@ export const pilihSemuaIuran = () => {
  * Render the checkbox list of members for iuran, marking paid members.
  */
 export const renderCheckboxIuran = () => {
-  const bln = document.getElementById('iuran-bulan')?.value || '';
-  const thn = Number(document.getElementById('iuran-tahun')?.value || new Date().getFullYear());
+  const bln = getSelect('iuran-bulan')?.value || '';
+  const thn = Number(getInput('iuran-tahun')?.value || new Date().getFullYear());
   const monthIndex = NAMA_BULAN.indexOf(bln);
   const state = getState();
   const ledger = createDuesLedger(state, { year: Number.isFinite(thn) ? thn : undefined });
@@ -488,7 +501,8 @@ export const renderCheckboxIuran = () => {
   const container = document.getElementById('iuran-checkbox-anggota') || document.getElementById('container-checkbox-anggota');
   if (container) {
     const items = (state.anggota || []).filter(ang => ang.Status_Aktif === 'Aktif').map(ang => {
-      const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: 'unpaid', owed: true };
+      const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: /** @type {const} */ ('unpaid'), owed: true };
+      /** @type {import('../svelte/transaction-form.svelte').IuranChecklistItem['variant']} */
       let variant = 'unpaid';
       let statusLabel = 'BELUM BAYAR';
       if (month.status === 'paid') {
@@ -506,7 +520,7 @@ export const renderCheckboxIuran = () => {
         variant, statusLabel, disabled: variant === 'lunas' || variant === 'not-owed', defaultChecked: variant === 'lunas'
       };
     });
-    syncIuranChecklist({ items, query: document.getElementById('search-anggota-iuran')?.value || '', target: container });
+    syncIuranChecklist({ items, query: getInput('search-anggota-iuran')?.value || '', target: container });
   }
   updateCounterIuran();
 };
@@ -517,7 +531,7 @@ export const renderCheckboxIuran = () => {
  * Filter the iuran checkbox list by search input.
  */
 export const filterAnggotaIuran = () => {
-  const input = document.getElementById('search-anggota-iuran')?.value || '';
+  const input = getInput('search-anggota-iuran')?.value || '';
   const container = document.getElementById('iuran-checkbox-anggota') || document.getElementById('container-checkbox-anggota');
   syncIuranChecklistFilter(input, container);
 };

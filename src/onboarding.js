@@ -9,7 +9,7 @@ import { resetPinInput, syncPinInput, wirePinInput } from './ui/pin-input.js';
 import { API, ACTIVE_GROUP_KEY, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from './core/config.js';
 import { apiPost } from './core/api-client.js';
 import { setGroupSession } from './core/state.js';
-import { escapeHtml as esc } from './core/utils.js';
+import { syncOnboardingGroupList } from './ui/svelte-onboarding.js';
 import { initSkyJourney } from './journey.js';
 import { INITIAL_DEMO_SALDO, initOnboardingStage } from './onboarding-stage.js';
 import {
@@ -27,16 +27,17 @@ let groups = [];
 /** @type {{id: string, nama: string}|null} */
 let active = null;
 
-/** Prevents duplicate concurrent /api/data?action=groups fetches. */
+/** Prevents duplicate concurrent /api/data?action=groups fetches. @type {Promise<void> | null} */
 let loadingGroupsPromise = null;
 
 /** Prevents double PIN submissions (Enter right after 4th digit) from costing attempts. */
 let submittingPin = false;
 
-/** Scroll & ambient state updater, wired during DOMContentLoaded. */
+/** Scroll & ambient state updater, wired during DOMContentLoaded. @type {(() => void) | null} */
 let refreshScrollState = null;
 
 const el = (id) => document.getElementById(id);
+const input = (id) => /** @type {HTMLInputElement | null} */ (el(id));
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /* ── Screen transitions ───────────────────────────────────────────── */
@@ -71,15 +72,14 @@ const showSlide = (name) => {
 const groupInitials = (nama) => {
   const clean = String(nama || '').replace(/^Kas\s+/i, '').trim();
   const letters = clean.slice(0, 2) || String(nama || '').charAt(0) || 'K';
-  return esc(letters.toUpperCase());
+  return letters.toUpperCase();
 };
 
 const renderList = (query = '') => {
-  const box = el('group-list');
-  if (!box) return;
+  if (!el('group-list')) return;
 
   if (!groups.length) {
-    box.innerHTML = '<p class="loading-state">Belum ada grup. Minta admin pemilik membuatkan grup.</p>';
+    syncOnboardingGroupList({ status: 'empty', onPick: pickGroup });
     return;
   }
 
@@ -89,41 +89,35 @@ const renderList = (query = '') => {
     : groups;
 
   if (!filtered.length) {
-    box.innerHTML = '<p class="loading-state">Grup kas tidak ditemukan.</p>';
+    syncOnboardingGroupList({ status: 'not-found', onPick: pickGroup });
     return;
   }
 
-  box.innerHTML = filtered.map((g) => `
-      <button type="button" class="group-item" data-id="${esc(g.id)}">
-        <span class="group-avatar" aria-hidden="true">${groupInitials(g.nama)}</span>
-        <span class="group-texts"><h3>${esc(g.nama)}</h3><small>Ketuk untuk masuk</small></span>
-        <i class="ph-bold ph-caret-right group-chev" aria-hidden="true"></i>
-      </button>`).join('');
-
-  box.querySelectorAll('.group-item').forEach((btn) => {
-    btn.addEventListener('click', () => pickGroup(btn.getAttribute('data-id')));
-  });
+  const items = filtered.map(g => ({
+    id: String(g.id), name: String(g.nama || ''), initials: groupInitials(g.nama)
+  }));
+  syncOnboardingGroupList({ status: 'ready', items, onPick: pickGroup });
 };
 
 const loadGroups = async () => {
   if (loadingGroupsPromise) return loadingGroupsPromise;
   const box = el('group-list');
   if (box && !groups.length) {
-    box.innerHTML = '<p class="loading-state">Memuat daftar grup...</p>';
+    syncOnboardingGroupList({ status: 'loading', onPick: pickGroup });
   }
   loadingGroupsPromise = (async () => {
     try {
       const res = await apiPost(API.DATA, { action: 'groups' });
       if (res && res.status && Array.isArray(res.data?.groups)) {
         groups = res.data.groups;
-        renderList(el('group-search-input')?.value || '');
+        renderList(input('group-search-input')?.value || '');
         return;
       }
     } catch (_) {
       // Handled by fallback message below
     }
     if (box && !groups.length) {
-      box.innerHTML = '<p class="loading-state">Gagal memuat. Periksa internet lalu muat ulang.</p>';
+      syncOnboardingGroupList({ status: 'error', onPick: pickGroup });
     }
   })().finally(() => {
     loadingGroupsPromise = null;
@@ -134,20 +128,20 @@ const loadGroups = async () => {
 /* ── PIN screen ───────────────────────────────────────────────────── */
 
 const pickGroup = (id) => {
-  active = groups.find((g) => g.id === id) || null;
+  active = groups.find((g) => String(g.id) === id) || null;
   if (!active) return;
 
   const nameEl = el('pin-name');
   if (nameEl) nameEl.replaceChildren(document.createTextNode(active.nama));
 
-  resetPinInput(el('group-pin'));
+  resetPinInput(input('group-pin'));
   setMsg('');
   showSlide('pin');
-  setTimeout(() => el('group-pin')?.focus(), 120);
+  setTimeout(() => input('group-pin')?.focus(), 120);
 };
 
 const setMsg = (text, isAlert = false) => {
-  el('group-pin')?.setAttribute('aria-invalid', String(isAlert));
+  input('group-pin')?.setAttribute('aria-invalid', String(isAlert));
   const msgEl = el('pin-msg');
   if (!msgEl) return;
   if (!text) {
@@ -155,8 +149,14 @@ const setMsg = (text, isAlert = false) => {
     return;
   }
 
-  if (isAlert) {
-    msgEl.innerHTML = `<span class="pin-msg-alert"><i class="ph-bold ph-warning-circle" aria-hidden="true"></i> ${esc(text)}</span>`;
+  if (isAlert && typeof document.createElement === 'function') {
+    const wrap = document.createElement('span');
+    wrap.className = 'pin-msg-alert';
+    const icon = document.createElement('i');
+    icon.className = 'ph-bold ph-warning-circle';
+    icon.setAttribute('aria-hidden', 'true');
+    wrap.append(icon, document.createTextNode(' ' + text));
+    msgEl.replaceChildren(wrap);
   } else {
     msgEl.replaceChildren(document.createTextNode(text));
   }
@@ -164,20 +164,30 @@ const setMsg = (text, isAlert = false) => {
 
 /* ── PIN submission — server-only verification ────────────────────── */
 
+/** @param {HTMLButtonElement} btn @param {string} iconClass @param {string} label */
+const setEnterButtonState = (btn, iconClass, label) => {
+  const icon = document.createElement('i');
+  icon.className = iconClass;
+  icon.setAttribute('aria-hidden', 'true');
+  const span = document.createElement('span');
+  span.textContent = label;
+  btn.replaceChildren(icon, document.createTextNode(' '), span);
+};
+
 const submitPin = async () => {
   if (!active || submittingPin) return;
 
-  const pin = el('group-pin')?.value || '';
+  const pin = input('group-pin')?.value || '';
   if (!/^\d{4}$/.test(pin)) {
     setMsg('Ketik 4 angka PIN dulu.', true);
     return;
   }
 
   submittingPin = true;
-  const btn = el('btn-enter');
+  const btn = /** @type {HTMLButtonElement | null} */ (el('btn-enter'));
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph-bold ph-spinner-gap lp-spin" aria-hidden="true"></i> <span>Memverifikasi...</span>';
+    setEnterButtonState(btn, 'ph-bold ph-spinner-gap lp-spin', 'Memverifikasi...');
   }
 
   try {
@@ -191,8 +201,8 @@ const submitPin = async () => {
 
     const message = (res && res.message) || 'PIN salah.';
     setMsg(message, true);
-    const firstPin = el('group-pin');
-    const pinRow = firstPin?.closest?.('.pin-input-row');
+    const firstPin = input('group-pin');
+    const pinRow = /** @type {HTMLElement | null | undefined} */ (firstPin?.closest?.('.pin-input-row'));
     if (pinRow) {
       pinRow.classList.remove('is-error');
       void pinRow.offsetWidth;
@@ -210,7 +220,7 @@ const submitPin = async () => {
     submittingPin = false;
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="ph-bold ph-sign-in" aria-hidden="true"></i> <span>Masuk Grup</span>';
+      setEnterButtonState(btn, 'ph-bold ph-sign-in', 'Masuk Grup');
     }
   }
 };
@@ -218,6 +228,7 @@ const submitPin = async () => {
 /* ── Enter app ────────────────────────────────────────────────────── */
 
 const enterApp = () => {
+  if (!active) return;
   try {
     localStorage.setItem(ACTIVE_GROUP_KEY, active.id);
     localStorage.setItem(ACTIVE_GROUP_NAME_KEY, active.nama);
@@ -229,7 +240,7 @@ const enterApp = () => {
   location.href = 'index.html';
 };
 
-const wirePinBoxes = () => wirePinInput(el('group-pin'), submitPin);
+const wirePinBoxes = () => wirePinInput(input('group-pin'), submitPin);
 
 /* ── Mobile Drawer & FAQ Accordion ────────────────────────────────── */
 
@@ -249,7 +260,8 @@ const initDrawerAndFaq = () => {
     drawer?.setAttribute('aria-hidden', 'false');
     drawer?.removeAttribute('inert');
     document.body.classList.add('nav-scroll-lock');
-    drawer?.querySelector('a, button')?.focus();
+    const first = /** @type {HTMLElement | null | undefined} */ (drawer?.querySelector('a, button'));
+    first?.focus();
   };
 
   const closeDrawer = () => {
@@ -274,8 +286,8 @@ const initDrawerAndFaq = () => {
 
   drawer?.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab' || !drawerOpen) return;
-    const focusable = Array.from(drawer.querySelectorAll('a, button')).filter(
-      (node) => !node.disabled && node.offsetParent !== null
+    const focusable = Array.from(/** @type {NodeListOf<HTMLElement>} */ (drawer.querySelectorAll('a, button'))).filter(
+      (node) => !node.hasAttribute('disabled') && node.offsetParent !== null
     );
     if (!focusable.length) return;
     const first = focusable[0];
@@ -323,6 +335,7 @@ const initDrawerAndFaq = () => {
 document.addEventListener('DOMContentLoaded', () => {
   initSkyJourney();
 
+  /** @type {ReturnType<typeof initHorizonSpline>} */
   let horizonCtrl = null;
   const stage = initOnboardingStage({
     reducedMotion,
@@ -361,14 +374,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const { closeDrawer } = initDrawerAndFaq();
 
   const openPortal = () => {
-    const searchInput = el('group-search-input');
+    const searchInput = input('group-search-input');
     if (searchInput) searchInput.value = '';
     showSlide('list');
     loadGroups();
   };
 
-  el('group-search-input')?.addEventListener('input', (e) => {
-    renderList(e.target.value || '');
+  const search = input('group-search-input');
+  search?.addEventListener('input', () => {
+    renderList(search.value);
   });
   el('btn-enter')?.addEventListener('click', submitPin);
   el('btn-to-list')?.addEventListener('click', openPortal);

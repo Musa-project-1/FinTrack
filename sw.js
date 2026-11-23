@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v305';
+const CACHE_NAME = 'finkas-v306';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -72,6 +72,7 @@ const LOCAL_ASSETS = [
   'src/ui/pagination.js',
   'src/ui/bento-dashboard.js',
   'src/ui/svelte-dashboard.js',
+  'src/ui/svelte-onboarding.js',
   'src/ui/spotlight.js',
   'src/ui/dues-status.js',
   'src/ui/kasi-mascot.js',

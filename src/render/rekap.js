@@ -8,7 +8,7 @@ export const populateTahunRekap = () => {
   const selects = [
     document.getElementById('ui-tahun-rekap-select'),
     document.getElementById('ui-tahun-rekap-select-mobile')
-  ].filter(Boolean);
+  ].filter(select => select !== null);
 
   const state = getState();
   const currentYear = billingPeriod().year;
@@ -19,7 +19,7 @@ export const populateTahunRekap = () => {
     if (t.Tahun_Iuran && t.Tahun_Iuran !== '-') yearsSet.add(t.Tahun_Iuran.toString());
   });
 
-  const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+  const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
 
   selects.forEach((select) => {
     const options = sortedYears.map((y) => {
@@ -30,7 +30,7 @@ export const populateTahunRekap = () => {
       return option;
     });
     select.replaceChildren(...options);
-    const group = select.closest('.year-pill')?.querySelector('.hybrid-year-glider');
+    const group = /** @type {HTMLElement | null | undefined} */ (select.closest('.year-pill')?.querySelector('.hybrid-year-glider'));
     if (group) {
       const slot = select.id?.endsWith('-mobile') ? 'mobile' : 'desktop';
       const hidden = sortedYears.length > (slot === 'mobile' ? 2 : 3);

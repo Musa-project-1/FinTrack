@@ -12,6 +12,7 @@ import { filterAnggotaIuran, filterKategori, renderCheckboxIuran, pilihSemuaIura
 import { openQuickPaySheet } from '../src/handlers/quickpay.js';
 import { setIndicatorStyle } from '../src/handlers/navigation.js';
 import { renderSpotlight, syncAuditLogRows, syncMasterAnggotaRows } from '../src/ui/svelte-dashboard.js';
+import { syncOnboardingGroupList } from '../src/ui/svelte-onboarding.js';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const literal = '<img src=x>';
@@ -308,4 +309,72 @@ test('dropdowns preserve default options and treat category and member values as
   filterKategori('ops-tipe', 'ops-kategori');
   assert.deepEqual(options('ops-kategori'), [['', '-- Pilih Kategori --'], [literal, literal]]);
   assert.equal(byId('ops-kategori').querySelector('img'), null);
+});
+
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+
+test('the shipped ESM shares core and motion dependencies and is available offline', () => {
+  const file = 'src/ui/svelte-dashboard.js';
+  const js = read(file);
+  const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
+  assert.deepEqual(new Set(imports), new Set(['../core/config.js', '../core/utils.js', '../core/dues.js', '../core/state.js',
+    './hybrid-motion.js', './dues-status.js', './pagination.js', './bulk-dues.js', '../render/receipt.js', '../handlers/self-pay.js']));
+  assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
+  const map = JSON.parse(read(file + '.map'));
+  for (const file of ['GroupOverview.svelte', 'BentoDashboard.svelte', 'MemberSpotlight.svelte',
+    'AdminPriorities.svelte', 'HistoryLedger.svelte', 'WorkspaceStats.svelte', 'DuesMatrix.svelte',
+    'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
+    'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
+    'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
+    'PassbookMonths.svelte', 'ProfileHistoryList.svelte', 'ReceiptBody.svelte', 'SelfPayMonths.svelte',
+    'master.svelte.ts', 'MasterAnggotaRows.svelte', 'MasterKategoriRows.svelte', 'AuditLogRows.svelte',
+    'SkippedMonthsList.svelte', 'cash-report.svelte.ts', 'CashReportAlert.svelte', 'CashReportRows.svelte',
+    'transaction-form.svelte.ts', 'IuranMemberChecklist.svelte', 'IuranReviewChips.svelte', 'QuickPayPresets.svelte',
+    'year-glider.svelte.ts', 'YearGlider.svelte', 'stamp-preview.svelte.ts', 'StampStylePreview.svelte',
+    'profile.svelte.ts', 'receipt.svelte.ts', 'self-pay.svelte.ts',
+    'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
+    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
+  }
+  assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
+});
+
+test('onboarding ships a self-contained precached bundle with current source contents', () => {
+  const js = read('src/ui/svelte-onboarding.js');
+  assert.equal([...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].length, 0);
+  assert.match(js, /\/\/# sourceMappingURL=svelte-onboarding\.js\.map\s*$/);
+  const map = JSON.parse(read('src/ui/svelte-onboarding.js.map'));
+  assert.equal(map.version, 3);
+  assert.ok(map.mappings.length);
+  for (const file of ['OnboardingGroupList.svelte', 'onboarding.svelte.ts', 'onboarding-components.ts', 'onboarding-mount.ts']) {
+    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file), file);
+  }
+  const assets = read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1];
+  assert.ok(assets.includes("'src/ui/svelte-onboarding.js'"));
+});
+
+test('onboarding list renders all states and passes the literal group ID on selection', t => {
+  const onboardingHtml = readFileSync(new URL('../onboarding.html', import.meta.url), 'utf8');
+  const byId = installSvelteDom(t, onboardingHtml);
+  const list = byId('group-list');
+  for (const [status, message] of [
+    ['loading', 'Memuat daftar grup...'],
+    ['empty', 'Belum ada grup. Minta admin pemilik membuatkan grup.'],
+    ['not-found', 'Grup kas tidak ditemukan.'],
+    ['error', 'Gagal memuat. Periksa internet lalu muat ulang.']
+  ]) {
+    syncOnboardingGroupList({ status });
+    assert.equal(list.querySelector('.loading-state').textContent, message);
+    assert.equal(list.children.length, 1);
+  }
+
+  const item = { id: '"><img src=x>', name: 'Kas <script>test</script><img src=x>', initials: '<S' };
+  const picked = [];
+  syncOnboardingGroupList({ status: 'ready', items: [item], onPick: id => picked.push(id) });
+  const button = list.querySelector('button.group-item');
+  assert.equal(button.dataset.id, item.id);
+  assert.equal(button.querySelector('h3').textContent, item.name);
+  assert.equal(button.querySelector('.group-avatar').textContent, item.initials);
+  assert.equal(list.querySelector('img, script, .loading-state'), null);
+  button.click();
+  assert.deepEqual(picked, [item.id]);
 });

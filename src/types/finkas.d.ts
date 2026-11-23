@@ -36,7 +36,7 @@ export interface Transaksi {
   Tahun_Iuran: string | number;
   Nominal: number;
   Keterangan: string;
-  Bukti?: ProofMetadata;
+  Bukti?: ProofMetadata | null;
   groupId?: GroupId;
   operationId?: string;
 }

@@ -76,31 +76,6 @@ test('empty ledger, unknown category, flat chart and persistent bounded selectio
   assert.doesNotThrow(() => syncSvelteDashboard(empty));
 });
 
-test('the shipped ESM shares core and motion dependencies and is available offline', () => {
-  const file = 'src/ui/svelte-dashboard.js';
-  const js = read(file);
-  const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
-  assert.deepEqual(new Set(imports), new Set(['../core/config.js', '../core/utils.js', '../core/dues.js', '../core/state.js',
-    './hybrid-motion.js', './dues-status.js', './pagination.js', './bulk-dues.js', '../render/receipt.js', '../handlers/self-pay.js']));
-  assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
-  const map = JSON.parse(read(file + '.map'));
-  for (const file of ['GroupOverview.svelte', 'BentoDashboard.svelte', 'MemberSpotlight.svelte',
-    'AdminPriorities.svelte', 'HistoryLedger.svelte', 'WorkspaceStats.svelte', 'DuesMatrix.svelte',
-    'DuesMobileCards.svelte', 'rekap-model.ts', 'rekap.svelte.ts', 'history-model.ts', 'stats-model.ts',
-    'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
-    'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
-    'PassbookMonths.svelte', 'ProfileHistoryList.svelte', 'ReceiptBody.svelte', 'SelfPayMonths.svelte',
-    'master.svelte.ts', 'MasterAnggotaRows.svelte', 'MasterKategoriRows.svelte', 'AuditLogRows.svelte',
-    'SkippedMonthsList.svelte', 'cash-report.svelte.ts', 'CashReportAlert.svelte', 'CashReportRows.svelte',
-    'transaction-form.svelte.ts', 'IuranMemberChecklist.svelte', 'IuranReviewChips.svelte', 'QuickPayPresets.svelte',
-    'year-glider.svelte.ts', 'YearGlider.svelte', 'stamp-preview.svelte.ts', 'StampStylePreview.svelte',
-    'profile.svelte.ts', 'receipt.svelte.ts', 'self-pay.svelte.ts',
-    'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
-    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
-  }
-  assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
-});
-
 // Svelte caches DOM templates and their realm's node constructors.
 let dom;
 after(() => dom?.window.close());

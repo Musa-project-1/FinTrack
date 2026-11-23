@@ -11,7 +11,8 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const lerp = (a, b, k) => a + (b - a) * k;
 
 /* ── 1. Theme Sync + Circular View Transition Wipe ─────────────────────── */
-export const initThemeToggle = ({ reducedMotion, onThemeApplied } = {}) => {
+/** @param {{ reducedMotion?: MediaQueryList, onThemeApplied?: () => void }} options */
+export const initThemeToggle = ({ reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)'), onThemeApplied } = {}) => {
   let activeWipe;
   let fadeTimer;
 
@@ -81,9 +82,10 @@ export const initThemeToggle = ({ reducedMotion, onThemeApplied } = {}) => {
 
 /* ── 2. Living Horizon Spline Canvas ───────────────────────────────────── */
 export const initHorizonSpline = ({ reducedMotion, getSaldo, initialSaldo }) => {
-  const canvas = el('horizon-canvas');
+  const canvas = /** @type {HTMLCanvasElement | null} */ (el('horizon-canvas'));
   if (!canvas || !canvas.getContext) return null;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOV', 'DES'];
   const baseKnots = [0.16, 0.23, 0.30, 0.36, 0.44, 0.50, 0.58, 0.66, 0.74, 0.83, 0.90, 0.98];
 
@@ -312,9 +314,9 @@ export const initSectionReveal = (reducedMotion, onBlurReveal) => {
 export const initAmbientMotion = ({ reducedMotion, horizonCtrl, isWelcomeVisible }) => {
   const nav = el('landing-nav');
   const progress = el('nav-progress');
-  const heroContentEl = document.querySelector('.hero-content');
-  const stageFrame = document.querySelector('.stage-frame');
-  const spySections = ['fitur', 'matriks', 'demo-simulator', 'faq'].map(el).filter(Boolean);
+  const heroContentEl = /** @type {HTMLElement | null} */ (document.querySelector('.hero-content'));
+  const stageFrame = /** @type {HTMLElement | null} */ (document.querySelector('.stage-frame'));
+  const spySections = ['fitur', 'matriks', 'demo-simulator', 'faq'].map(el).filter(section => section !== null);
   const spyLinks = document.querySelectorAll('.nav-spy-link');
   let scrollFrame = 0;
 
@@ -481,7 +483,7 @@ const WIZ_DATA = {
 };
 
 export const initFeatureDossier = ({ reducedMotion, horizonCtrl }) => {
-  const tabs = Array.from(document.querySelectorAll('[data-dossier-tab]'));
+  const tabs = Array.from(/** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('[data-dossier-tab]')));
   const indicator = el('dossier-indicator');
   const counter = el('dossier-counter');
   if (!tabs.length) return;
@@ -560,7 +562,7 @@ export const initFeatureDossier = ({ reducedMotion, horizonCtrl }) => {
     const lbl = copyBtn.querySelector('span');
     if (lbl) lbl.textContent = '✓ Tersalin ke Clipboard';
     copyBtn.classList.add('is-done');
-    copyTimer = setTimeout(() => {
+    copyTimer = window.setTimeout(() => {
       if (lbl) lbl.textContent = 'Salin Teks WA';
       copyBtn.classList.remove('is-done');
     }, 2200);
@@ -625,7 +627,7 @@ export const initEditorialFooter = ({ reducedMotion, horizonCtrl }) => {
     const tickClock = () => { wibClock.textContent = `${formatWibClock()} WIB`; };
     const startClock = () => {
       tickClock();
-      if (!clockTimer && !document.hidden) clockTimer = setInterval(tickClock, 1000);
+      if (!clockTimer && !document.hidden) clockTimer = window.setInterval(tickClock, 1000);
     };
     const stopClock = () => {
       if (clockTimer) {
@@ -659,7 +661,7 @@ export const initEditorialFooter = ({ reducedMotion, horizonCtrl }) => {
         sealPill.classList.remove('is-stamped');
         void sealPill.offsetWidth;
         sealPill.classList.add('is-stamped');
-        sealTimer = setTimeout(() => {
+        sealTimer = window.setTimeout(() => {
           sealPill.classList.remove('is-stamped');
           sealPill.textContent = defaultSealLabel;
         }, 2600);

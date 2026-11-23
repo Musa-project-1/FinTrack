@@ -126,7 +126,8 @@ const launchLedgerImpulse = (fromEl, toEl, isPositive, reducedMotion, onLand) =>
   requestAnimationFrame(step);
 };
 
-export const initOnboardingStage = ({ reducedMotion, onWave } = {}) => {
+/** @param {{ reducedMotion?: MediaQueryList, onWave?: (direction: number) => void }} options */
+export const initOnboardingStage = ({ reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)'), onWave } = {}) => {
   let currentSaldo = INITIAL_DEMO_SALDO;
   let isBudiPaid = false;
   let hasHeroRolled = false;
@@ -209,7 +210,7 @@ export const initOnboardingStage = ({ reducedMotion, onWave } = {}) => {
   };
 
   /* Optical Audit Transparency Lens */
-  const stageFrameEl = document.querySelector('.stage-frame');
+  const stageFrameEl = /** @type {HTMLElement | null} */ (document.querySelector('.stage-frame'));
   const lensRail = el('audit-lens-rail');
   const defaultLensPct = () => (window.innerWidth <= 640 ? 85 : 76);
   let lensSweepCancelled = false;
@@ -297,19 +298,22 @@ export const initOnboardingStage = ({ reducedMotion, onWave } = {}) => {
   };
 
   matrixBody?.addEventListener('pointerover', (e) => {
+    if (!(e.target instanceof Element)) return;
     const td = e.target.closest('td');
     if (td) highlightCrosshair(td);
   });
   matrixBody?.addEventListener('pointerleave', clearCrosshair);
   matrixBody?.addEventListener('focusin', (e) => {
+    if (!(e.target instanceof Element)) return;
     const td = e.target.closest('td');
     if (td) highlightCrosshair(td);
   });
   matrixBody?.addEventListener('focusout', (e) => {
-    if (!matrixBody.contains(e.relatedTarget)) clearCrosshair();
+    if (!(e.relatedTarget instanceof Node) || !matrixBody.contains(e.relatedTarget)) clearCrosshair();
   });
 
   document.querySelectorAll('[data-matrix-cell]').forEach((btn) => {
+    if (!(btn instanceof HTMLElement)) return;
     btn.addEventListener('click', () => {
       const wasPaid = btn.classList.contains('is-paid');
       const cell = btn.closest('td');
@@ -379,7 +383,7 @@ export const initOnboardingStage = ({ reducedMotion, onWave } = {}) => {
       badge.textContent = 'BELUM';
     }
     document.querySelectorAll('[data-matrix-cell]').forEach((btn) => {
-      const isInitialPaid = btn.dataset.initial === 'paid';
+      const isInitialPaid = btn.getAttribute('data-initial') === 'paid';
       btn.classList.toggle('is-paid', isInitialPaid);
       btn.classList.toggle('is-unpaid', !isInitialPaid);
       btn.classList.remove('is-toggled', 'is-ink-ripple', 'is-stamped-in');

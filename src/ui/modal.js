@@ -26,7 +26,7 @@ const finishClose = (el) => {
   if (el.id === 'modal-confirm-action') pendingConfirmAction = null;
   if (!activeModalStack.length) {
     document.body.classList.remove('modal-open');
-    const panel = document.querySelector?.('.workspace-tabs [aria-selected="true"]')?.dataset?.panel;
+    const panel = document.querySelector?.('.workspace-tabs [aria-selected="true"]')?.getAttribute('data-panel') ?? '';
     const action = { history: 'nav-riwayat', stats: 'nav-stats' }[panel] || 'nav-rekap';
     document.querySelectorAll('.bottom-nav-item').forEach((b) => {
       const active = b.getAttribute('data-action') === action;
@@ -68,7 +68,7 @@ const bindDialog = (el) => {
 export const openModal = (id) => {
   closeMobileMenu();
   if (id !== 'modal-menu') closeModal('modal-menu');
-  const el = document.getElementById(id);
+  const el = /** @type {HTMLDialogElement | null} */ (document.getElementById(id));
   if (!el) {
     console.error('openModal: Element not found with id:', id);
     return;
@@ -100,7 +100,7 @@ export const openModal = (id) => {
 
 /** Close a modal and synchronously synchronize application state. */
 export const closeModal = (id, immediate = false) => {
-  const el = document.getElementById(id);
+  const el = /** @type {HTMLDialogElement | null} */ (document.getElementById(id));
   if (!el) return;
   if (immediate && duesExitAnimations.has(el)) {
     duesExitAnimations.delete(el);
@@ -110,7 +110,7 @@ export const closeModal = (id, immediate = false) => {
       !(globalThis.CSS?.supports('overlay: auto') && globalThis.CSS.supports('transition-behavior: allow-discrete'))) {
     if (el.hasAttribute('data-dues-closing')) return;
     el.setAttribute('data-dues-closing', '');
-    const transitions = el.getAnimations().filter((animation) => animation.transitionProperty === 'opacity');
+    const transitions = el.getAnimations().filter((animation) => 'transitionProperty' in animation && animation.transitionProperty === 'opacity');
     if (transitions.length) {
       duesExitAnimations.set(el, transitions);
       Promise.allSettled(transitions.map((animation) => animation.finished)).then(() => {
@@ -130,6 +130,7 @@ export const closeModal = (id, immediate = false) => {
 };
 
 /* ── Unified Database Confirmation Dialog ────────────────────────── */
+/** @type {(() => unknown) | null} */
 let pendingConfirmAction = null;
 
 const GLOBAL_SAFE_MODALS = new Set([
@@ -146,7 +147,7 @@ export const closeGroupScopedModals = () => {
 
 /**
  * Buka dialog konfirmasi aksi database.
- * @param {object} options
+ * @param {{title?: string, message?: string, icon?: string, badgeClass?: string, confirmText?: string, confirmClass?: string, onConfirm?: () => unknown}} options
  */
 export const showConfirmDialog = ({
   title = 'Konfirmasi Perubahan',
@@ -184,7 +185,7 @@ export const showConfirmDialog = ({
     submitBtn.className = `btn ${confirmClass}`;
   }
 
-  pendingConfirmAction = onConfirm;
+  pendingConfirmAction = onConfirm ?? null;
   openModal('modal-confirm-action');
 };
 

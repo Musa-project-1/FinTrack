@@ -14,7 +14,7 @@
     "build:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --minify",
     "build": "npm run build:svelte && npm run build:html && npm run build:css",
     "dev:css": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --watch",
-    "build:svelte": "vite build"
+    "build:svelte": "vite build && vite build --config vite.onboarding.config.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

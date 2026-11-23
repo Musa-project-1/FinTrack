@@ -63,9 +63,9 @@ export const renderDropdowns = () => {
 
   filterKategori('ops-tipe', 'ops-kategori');
   const { year, monthIndex } = billingPeriod();
-  const tahunEl = document.getElementById('iuran-tahun');
-  const bulanEl = document.getElementById('iuran-bulan');
-  if (tahunEl) tahunEl.value = year;
+  const tahunEl = /** @type {HTMLInputElement | null} */ (document.getElementById('iuran-tahun'));
+  const bulanEl = /** @type {HTMLSelectElement | null} */ (document.getElementById('iuran-bulan'));
+  if (tahunEl) tahunEl.value = String(year);
   if (bulanEl) bulanEl.value = NAMA_BULAN[monthIndex];
 };
 

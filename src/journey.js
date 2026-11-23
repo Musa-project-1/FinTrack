@@ -101,7 +101,7 @@ const collectStops = () => {
       const offset = element.getBoundingClientRect().top + window.scrollY;
       return { t, offset: Math.min(Math.max(offset, 0), maxScroll) };
     })
-    .filter(Boolean)
+    .filter(marker => marker !== null)
     .sort((a, b) => a.offset - b.offset);
 
   const stops = [{ t: 0, offset: 0 }];

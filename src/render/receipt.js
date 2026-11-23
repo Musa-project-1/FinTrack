@@ -57,15 +57,21 @@ export const renderReceiptHtml = (receipt) => `
 
 const fillReceipt = (receipt) => {
   const id = receipt.transaction.ID_Transaksi;
-  document.getElementById('receipt-group').textContent = `${id} · ${receipt.group}`;
-  const copyField = document.getElementById('receipt-copy-text');
-  copyField.hidden = true;
-  copyField.value = '';
+  const label = document.getElementById('receipt-group');
+  if (label) label.textContent = `${id} · ${receipt.group}`;
+  const copyField = /** @type {HTMLTextAreaElement | null} */ (document.getElementById('receipt-copy-text'));
+  if (copyField) {
+    copyField.hidden = true;
+    copyField.value = '';
+  }
   const { pending, incoming, dateLabel, amount, rows, footer, group, year } = receipt;
   syncReceiptBody({ pending, incoming, dateLabel, amount, rows, footer, group, year });
-  document.getElementById('receipt-print').dataset.id = id;
-  document.getElementById('receipt-edit').dataset.id = id;
+  for (const buttonId of ['receipt-print', 'receipt-edit']) {
+    const button = document.getElementById(buttonId);
+    if (button) button.dataset.id = id;
+  }
   const attachment = document.getElementById('receipt-attachment');
+  if (!attachment) return;
   attachment.dataset.id = id;
   attachment.hidden = !receipt.transaction.Bukti || receipt.pending;
 };
@@ -80,7 +86,8 @@ export const copyReceipt = async () => {
     await navigator.clipboard.writeText(text);
     showToast('Struk disalin.');
   } catch {
-    const field = document.getElementById('receipt-copy-text');
+    const field = /** @type {HTMLTextAreaElement | null} */ (document.getElementById('receipt-copy-text'));
+    if (!field) return;
     field.value = text;
     field.hidden = false;
     field.focus();
@@ -118,11 +125,11 @@ export const downloadReceiptAttachment = async (button) => {
 };
 
 export const initReceipt = () => {
-  const dialog = document.getElementById('modal-struk');
+  const dialog = /** @type {HTMLDialogElement | null} */ (document.getElementById('modal-struk'));
   if (!dialog) return;
   document.addEventListener('finkas:state-changed', () => {
     if (!dialog.open) return;
-    const receipt = getReceiptData(document.getElementById('receipt-print').dataset.id);
+    const receipt = getReceiptData(document.getElementById('receipt-print')?.dataset.id);
     if (receipt) fillReceipt(receipt);
     else closeModal('modal-struk');
   });

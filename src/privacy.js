@@ -150,17 +150,17 @@ const applyLanguage = (lang) => {
   document.querySelector('meta[name="description"]')?.setAttribute('content', dict.pageDesc);
 
   document.querySelectorAll('[data-i18n]').forEach((el) => {
-    const key = el.dataset.i18n;
+    const key = el.getAttribute('data-i18n');
     if (key && dict[key]) el.textContent = dict[key];
   });
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
-    const key = el.dataset.i18nAria;
+    const key = el.getAttribute('data-i18n-aria');
     if (key && dict[key]) el.setAttribute('aria-label', dict[key]);
   });
   document.getElementById('btn-privacy-theme')?.setAttribute('aria-label', dict.themeAria);
 
   document.querySelectorAll('[data-privacy-lang]').forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(btn.dataset.privacyLang === code));
+    btn.setAttribute('aria-pressed', String(btn.getAttribute('data-privacy-lang') === code));
   });
 };
 
@@ -192,10 +192,10 @@ const initScrollspy = () => {
     };
     syncAriaCurrent();
     document.addEventListener('scrollend', syncAriaCurrent);
-    let scrollTimer = null;
+    let scrollTimer = 0;
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(syncAriaCurrent, 120);
+      scrollTimer = window.setTimeout(syncAriaCurrent, 120);
     }, { passive: true });
     return;
   }
@@ -222,7 +222,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('[data-privacy-lang]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const next = btn.dataset.privacyLang === 'en' ? 'en' : 'id';
+      const next = btn.getAttribute('data-privacy-lang') === 'en' ? 'en' : 'id';
       safeSet('finkas_lang', next);
       applyLanguage(next);
     });

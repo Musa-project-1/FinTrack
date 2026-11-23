@@ -46,7 +46,7 @@ export const formatFileSize = (bytes) => {
  * Validate a File or Blob object on the client side before any network operation.
  *
  * @param {File|Blob|{name?: string, size: number, type: string}} file
- * @returns {{valid: boolean, error?: string}}
+ * @returns {{valid: true} | {valid: false, error: string}}
  */
 export function validateClientAttachment(file) {
   if (!file) {
@@ -65,7 +65,7 @@ export function validateClientAttachment(file) {
   }
 
   const mime = String(file.type || '').toLowerCase().trim();
-  const name = String(file.name || '').toLowerCase().trim();
+  const name = String(('name' in file && file.name) || '').toLowerCase().trim();
 
   const mimeMatches = ALLOWED_MIME_TYPES.includes(mime);
   const extMatches = ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
@@ -150,8 +150,8 @@ export function triggerBlobDownload(blob, filename = 'bukti-transaksi') {
 /**
  * Upload an attachment for an existing saved transaction (Admin only, online only).
  *
- * @param {{idTransaksi: string, file: File|Blob, groupId?: string}} params
- * @returns {Promise<{status: boolean, message: string, data?: object}>}
+ * @param {{idTransaksi: string, file: File|Blob, groupId?: string | null}} params
+ * @returns {Promise<{status: boolean, message?: string, data?: object}>}
  */
 export async function uploadAttachmentApi({ idTransaksi, file, groupId = null }) {
   if (!isOnline()) {
@@ -175,6 +175,7 @@ export async function uploadAttachmentApi({ idTransaksi, file, groupId = null })
     return { status: false, message: msg };
   }
 
+  const filename = ('name' in file && file.name) || `bukti_${idTransaksi}`;
   const gid = groupId || getActiveGroupId();
   const res = await dataRequest({
     action: 'uploadAttachment',
@@ -182,7 +183,7 @@ export async function uploadAttachmentApi({ idTransaksi, file, groupId = null })
       groupId: gid,
       idTransaksi,
       file: {
-        name: file.name || `bukti_${idTransaksi}`,
+        name: filename,
         type: file.type || 'image/jpeg',
         size: file.size,
         base64
@@ -203,7 +204,7 @@ export async function uploadAttachmentApi({ idTransaksi, file, groupId = null })
       const tx = state?.transaksi?.find((t) => t.ID_Transaksi === idTransaksi);
       if (tx) {
         tx.Bukti = res.data?.bukti || {
-          name: file.name,
+          name: filename,
           type: file.type,
           size: file.size,
           uploadedAt: new Date().toISOString()
@@ -223,8 +224,8 @@ export async function uploadAttachmentApi({ idTransaksi, file, groupId = null })
 /**
  * Delete an attachment for a saved transaction (Admin only, online only).
  *
- * @param {{idTransaksi: string, groupId?: string}} params
- * @returns {Promise<{status: boolean, message: string}>}
+ * @param {{idTransaksi: string, groupId?: string | null}} params
+ * @returns {Promise<{status: boolean, message?: string}>}
  */
 export async function deleteAttachmentApi({ idTransaksi, groupId = null }) {
   if (!isOnline()) {
@@ -270,8 +271,8 @@ export async function deleteAttachmentApi({ idTransaksi, groupId = null }) {
 /**
  * Fetch the proof document and original base64 for a transaction (Group reader).
  *
- * @param {{idTransaksi: string, groupId?: string}} params
- * @returns {Promise<{status: boolean, message: string, data?: object, notFound?: boolean}>}
+ * @param {{idTransaksi: string, groupId?: string | null}} params
+ * @returns {Promise<{status: boolean, message?: string, data?: {base64: string, type: string, name: string, size: number}, notFound?: boolean}>}
  */
 export async function readAttachmentApi({ idTransaksi, groupId = null }) {
   const gid = groupId || getActiveGroupId();
@@ -293,7 +294,7 @@ export async function readAttachmentApi({ idTransaksi, groupId = null }) {
 /**
  * Download the exact original attachment Blob for a saved transaction.
  *
- * @param {{idTransaksi: string, groupId?: string}} params
+ * @param {{idTransaksi: string, groupId?: string | null}} params
  * @returns {Promise<{blob: Blob, name: string, type: string, size: number}>}
  */
 export async function downloadAttachmentBlob({ idTransaksi, groupId = null }) {
@@ -311,7 +312,7 @@ export async function downloadAttachmentBlob({ idTransaksi, groupId = null }) {
 /**
  * Export all attachments in the active group (Admin only).
  *
- * @param {string} [groupId=null]
+ * @param {string | null} [groupId=null]
  * @returns {Promise<Array<{idTransaksi: string, name: string, type: string, size: number, base64: string}>>}
  */
 export async function exportAttachmentsApi(groupId = null) {
@@ -349,15 +350,15 @@ export function initAttachmentControls(options = {}) {
 
   if (!container) return;
 
-  const fileInput = container.querySelector('input[type="file"]') || document.getElementById('trx-attachment-file');
-  const uploadBtn = container.querySelector('[data-action="upload-attachment"]') || document.getElementById('btn-upload-attachment');
-  const deleteBtn = container.querySelector('[data-action="delete-attachment"]') || document.getElementById('btn-delete-attachment');
-  const downloadBtn = container.querySelector('[data-action="download-attachment"]') || document.getElementById('btn-download-attachment');
+  const fileInput = /** @type {HTMLInputElement | null} */ (container.querySelector('input[type="file"]') || document.getElementById('trx-attachment-file'));
+  const uploadBtn = /** @type {HTMLButtonElement | null} */ (container.querySelector('[data-action="upload-attachment"]') || document.getElementById('btn-upload-attachment'));
+  const deleteBtn = /** @type {HTMLButtonElement | null} */ (container.querySelector('[data-action="delete-attachment"]') || document.getElementById('btn-delete-attachment'));
+  const downloadBtn = /** @type {HTMLButtonElement | null} */ (container.querySelector('[data-action="download-attachment"]') || document.getElementById('btn-download-attachment'));
   const statusEl = container.querySelector('[data-attachment-status]') || document.getElementById('trx-attachment-status');
 
   const getId = () => {
     if (typeof options.getIdTransaksi === 'function') return options.getIdTransaksi();
-    const editIdInput = document.getElementById('edit-id');
+    const editIdInput = /** @type {HTMLInputElement | null} */ (document.getElementById('edit-id'));
     return (editIdInput?.value || '').trim();
   };
 

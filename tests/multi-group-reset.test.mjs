@@ -135,6 +135,8 @@ test('direct and event-driven cleanup cancel both searches and reset every input
 
 test('a mounted dashboard clears all five views in the group-change dispatch', t => {
   installDom(t, readFileSync(new URL('../index.html', import.meta.url), 'utf8'));
+  state.setAdminSession('');
+  state.setAdminRole('');
   state.setActiveGroupId('GRP-A');
   state.setState(ledger);
   state.setCurrentRekapYear(2025);

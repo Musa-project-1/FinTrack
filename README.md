@@ -44,8 +44,8 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 
 | Layer | Teknologi |
 |---|---|
-| **UI & Type Safety** | Svelte 5 (`^5.59.1`, `43` komponen `.svelte`), TypeScript 7 ketat (`noImplicitAny: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
-| **Styling & Shells** | Tailwind CSS v4 (`^4.0.0`), CSS Design Tokens modular, Svelte HTML shells (`scripts/render-shells.mjs`), Phosphor Icons |
+| **UI & Type Safety** | Svelte 5 (`^5.59.1`, `55` komponen `.svelte`), TypeScript 7 ketat (`noImplicitAny: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
+| **Styling & Shells** | Tailwind CSS v4 (`^4.0.0`, `@theme inline` di `css/input.css`), `<style>` Svelte terekstrak (`css/svelte-scoped.css` & `css/onboarding-scoped.css`), Svelte HTML shells (`scripts/render-shells.mjs`), Phosphor Icons |
 | **PWA & Offline** | Service Worker (`sw.js`), Web App Manifest (`manifest.json`), IndexedDB (`finkas-offline-db`), View Transitions API |
 | **Backend & Database** | Vercel Serverless Functions TypeScript (Node.js native TS ESM di `api/`), Google Cloud Firestore REST via Service Account |
 | **Testing & Verifikasi** | `node --test` (`411` uji kontrak DOM, akuntansi WIB, idempotensi, keamanan, & JSDOM Svelte) + Playwright smoke + `scripts/verify.mjs` |
@@ -62,13 +62,13 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 │   ├── verify-group-pin.ts       # Verifikasi PIN 4 digit per grup
 │   └── _*.ts                     # Modul internal: sa, http, session, store, read, write-*, idempotency, attachments
 ├── src/
-│   ├── svelte/                   # Sumber Svelte 5 & TypeScript (43 .svelte + 87 .ts)
+│   ├── svelte/                   # Sumber Svelte 5 & TypeScript (55 .svelte + 87 .ts)
 │   │   ├── core/                 # Logika murni & sinkronisasi TS (config, state, dues, cash-report, mutation, offline*, utils)
 │   │   ├── dashboard/            # 8 komponen utama workspace (Overview, Bento, Spotlight, Matriks, Riwayat, Statistik)
 │   │   ├── modals/               # 14 komponen isi modal (GroupPicker/Admin, Queue, Profil, Struk, SelfPay, Master, Audit, Laporan Kas)
 │   │   ├── forms/                # 5 komponen kontrol interaktif (Checklist Iuran, Review Chips, QuickPay, YearGlider, StampPreview)
-│   │   ├── shell/                # WorkspaceShell.svelte & 12 kerangka modal (.svelte -> index.html)
-│   │   ├── pages/                # Halaman OnboardingShell/PrivacyShell (.svelte) + kontroler onboarding*, journey, privacy (.ts)
+│   │   ├── shell/                # WorkspaceShell.svelte, 12 kerangka modal, & 6 modul fondasi CSS di styles/
+│   │   ├── pages/                # OnboardingShell/PrivacyShell, 6 modul CSS di onboarding/, & kontroler pages (.ts)
 │   │   ├── handlers/             # 15 kontroler fitur & form TypeScript (auth, groups*, master, transactions*, quickpay, self-pay, export, backup)
 │   │   ├── render/               # 5 modul orkestrasi render UI TypeScript (index, dashboard, profile, receipt, rekap)
 │   │   ├── stores/               # Store runes Svelte 5 (*.svelte.ts) & view-model murni (*-model.ts)
@@ -78,7 +78,7 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 │   ├── pages/                    # Entrypoint tipis onboarding.js, onboarding-boot-theme.js, & privacy.js
 │   ├── types/                    # Tipe domain global (finkas.d.ts)
 │   └── app.js                    # Entrypoint modul utama aplikasi
-├── css/                          # CSS modular & entry Tailwind (dirakit -> style.css)
+├── css/                          # Entry Tailwind v4 (@theme inline di input.css) + CSS terekstrak (*-scoped.css) -> style.css
 ├── scripts/                      # render-shells.mjs, authored-sourcemaps.mjs, bump.mjs, verify.mjs
 ├── tests/                        # Suite node:test (411 uji) + Playwright smoke + fixtures + helpers
 ├── PRD.md                        # Product Requirements Document resmi Finkas
@@ -109,9 +109,9 @@ Hosting menggunakan **Vercel** dengan build command `npm run build` di [vercel.j
 ```bash
 npm run check                  # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 411 uji
 npm run release                # Naikkan versi cache/aset & sw.js (bump.mjs), lalu jalankan `npm run check`
-npm run build                  # Rakit bundle Svelte + index.html/onboarding.html/privacy.html + style.css
+npm run build                  # Rakit bundle Svelte + HTML shells + *-scoped.css + style.css
 npm test                       # Jalankan suite pengujian `node --test`
 python3 tests/browser/smoke.py # Jalankan smoke test Playwright (Desktop & Mobile, tanpa koneksi eksternal)
 ```
 
-> Catatan: `index.html`, `onboarding.html`, `privacy.html`, `style.css`, [src/ui/svelte-dashboard.js](./src/ui/svelte-dashboard.js), dan [src/ui/svelte-onboarding.js](./src/ui/svelte-onboarding.js) merupakan artefak hasil build. Jalankan `npm run check` setiap selesai mengubah `src/`, `api/`, atau `css/`.
+> Catatan: `index.html`, `onboarding.html`, `privacy.html`, `style.css`, `css/svelte-scoped.css`, `css/onboarding-scoped.css`, [src/ui/svelte-dashboard.js](./src/ui/svelte-dashboard.js), dan [src/ui/svelte-onboarding.js](./src/ui/svelte-onboarding.js) merupakan artefak hasil build. Jalankan `npm run check` setiap selesai mengubah `src/`, `api/`, atau `css/`.

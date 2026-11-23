@@ -106,10 +106,11 @@ Hosting menggunakan **Vercel** dengan build command `npm run build` di [vercel.j
 ## 🧑‍💻 Perintah Pengembangan
 
 ```bash
-npm run check     # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 410 uji
-npm run release   # Naikkan versi cache/aset & sw.js (bump.mjs), lalu jalankan `npm run check`
-npm run build     # Rakit bundle Svelte dashboard & onboarding + index.html + style.css
-npm test          # Jalankan suite pengujian `node --test`
+npm run check                  # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 410 uji
+npm run release                # Naikkan versi cache/aset & sw.js (bump.mjs), lalu jalankan `npm run check`
+npm run build                  # Rakit bundle Svelte dashboard & onboarding + index.html + style.css
+npm test                       # Jalankan suite pengujian `node --test`
+python3 tests/browser/smoke.py # Jalankan smoke test Playwright (Desktop & Mobile, tanpa koneksi eksternal)
 ```
 
 > Catatan: `index.html`, `style.css`, [src/ui/svelte-dashboard.js](./src/ui/svelte-dashboard.js), dan [src/ui/svelte-onboarding.js](./src/ui/svelte-onboarding.js) merupakan artefak hasil build. Jalankan `npm run check` setiap selesai mengubah `html/`, `css/`, atau `src/`.

@@ -1,3 +1,4 @@
+import { yearGliderStore } from './year-glider.svelte';
 import { flushSync } from 'svelte';
 import { createPagination } from 'finkas/pagination';
 import { getActiveIndicatorStyle } from 'finkas/dues-status';
@@ -107,11 +108,10 @@ export function renderIuranMobileCards(members: Anggota[], ledger = createDuesLe
 export function renderTableRekap() {
   const doc = globalThis.document;
   for (const group of doc?.querySelectorAll?.<HTMLElement>('.hybrid-year-glider:not([hidden])') ?? []) {
-    group.querySelectorAll('button').forEach((button, index) => {
-      const active = button.dataset.year === currentRekapYear;
-      button.setAttribute('aria-pressed', String(active));
-      if (active) group.style.setProperty('--year-index', String(index));
-    });
+    const mobile = group.closest('.year-pill')?.querySelector('select')?.id.endsWith('-mobile');
+    const state = yearGliderStore[mobile ? 'mobile' : 'desktop'];
+    state.activeYear = currentRekapYear;
+    group.style.setProperty('--year-index', String(Math.max(0, state.years.indexOf(currentRekapYear))));
   }
   const tbody = doc?.getElementById?.('ui-table-rekap');
   if (!tbody) return;

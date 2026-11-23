@@ -15,7 +15,7 @@ export function installSvelteDom(t, html) {
 
   const descriptors = new Map();
   for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text',
-    'Comment', 'Event', 'CustomEvent', 'localStorage']) {
+    'Comment', 'Event', 'CustomEvent', 'MutationObserver', 'localStorage']) {
     descriptors.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
     Object.defineProperty(globalThis, name, { value: window[name], configurable: true });
   }

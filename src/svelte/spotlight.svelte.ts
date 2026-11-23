@@ -124,3 +124,7 @@ export function setMemberPin(id: string, focusPicker = false) {
 }
 
 export const toggleMemberPin = (id: string) => setMemberPin(id === getPinnedMemberId() ? '' : id);
+
+export function setSpotlightStampStyle(styleKey: string) {
+  spotlightStore.stampStyle = styleKey;
+}

@@ -11,6 +11,7 @@ import { classifySyncResponse } from "../core/offline.js";
 import { deliverMutation, generateOperationId } from "../core/mutation.js";
 import { withLiquidSave } from "../ui/keel.js";
 import { openModal, closeModal, showConfirmDialog } from "../ui/modal.js";
+import { syncQuickPayPresets } from "../ui/svelte-dashboard.js";
 import { syncDpick } from "../ui/dpick.js";
 import { markNewlyPaidCells } from "../render.js";
 import {
@@ -40,14 +41,9 @@ const renderQuickPayPresets = () => {
   if (!presetsWrap || !qpContext) return;
   const { remaining, isPartial } = qpContext;
   const fullLabel = isPartial ? "Lunasi Sisa" : "Lunasi";
-  const chips = [
-    `<button type="button" class="qp-preset-chip" data-qp-preset="${remaining}">${fullLabel}</button>`
-  ];
-  const half = Math.round(remaining / 2);
-  if (remaining >= 2000 && half > 0 && half < remaining) {
-    chips.push(`<button type="button" class="qp-preset-chip" data-qp-preset="${half}">50%</button>`);
-  }
-  presetsWrap.innerHTML = chips.join("");
+  const chips = [{ amount: remaining, label: fullLabel }];
+  if (remaining >= 2000) chips.push({ amount: Math.round(remaining / 2), label: "50%" });
+  syncQuickPayPresets({ chips });
 };
 
 const renderQuickPayMeta = () => {

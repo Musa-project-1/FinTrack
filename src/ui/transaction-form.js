@@ -6,8 +6,10 @@
 
 import { NAMA_BULAN } from '../core/config.js';
 import { getState } from '../core/state.js';
-import { showToast, getRawNominal, formatRp, escapeHtml, getInitials } from '../core/utils.js';
+import { showToast, getRawNominal, formatRp, getInitials } from '../core/utils.js';
 import { createDuesLedger, duesStatusLabel } from '../core/dues.js';
+
+import { syncIuranChecklist, syncIuranChecklistFilter, syncIuranReviewChips } from './svelte-dashboard.js';
 
 const MAX_REVIEW_CHIPS = 8;
 
@@ -63,15 +65,19 @@ const setText = (id, text) => {
  * @param {string} idKat - ID of the category <select>.
  */
 export const filterKategori = (idTipe, idKat) => {
-  const tipe = document.getElementById(idTipe).value;
+  const tipe = document.getElementById(idTipe)?.value;
   const elKategori = document.getElementById(idKat);
-  const options = ['<option value="">-- Pilih Kategori --</option>'];
-  getState().kategori.forEach((kat) => {
-    if (kat.Tipe === tipe) {
-      options.push(`<option value="${escapeHtml(kat.ID_Kategori)}">${escapeHtml(kat.Nama_Kategori)}</option>`);
-    }
+  if (!elKategori) return;
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '-- Pilih Kategori --';
+  const options = getState().kategori.filter(kat => kat.Tipe === tipe).map(kat => {
+    const option = document.createElement('option');
+    option.value = kat.ID_Kategori;
+    option.textContent = kat.Nama_Kategori;
+    return option;
   });
-  elKategori.innerHTML = options.join('');
+  elKategori.replaceChildren(placeholder, ...options);
 };
 
 /* ── Live Review & Context Sync ────────────────────────────────── */
@@ -104,13 +110,9 @@ const syncIuranReview = () => {
   if (chipsWrap) {
     const visible = checked.slice(0, MAX_REVIEW_CHIPS).map((chk) => {
       const name = chk.dataset?.memberName || chk.closest?.('.checkbox-item')?.querySelector?.('.chk-name-pending, .chk-name-lunas')?.textContent?.trim() || chk.value;
-      return `<span class="trx-rev-chip"><span class="trx-rev-chip-av" aria-hidden="true">${escapeHtml(getInitials(name))}</span><span>${escapeHtml(name)}</span></span>`;
+      return { key: chk.value, initials: getInitials(name), name };
     });
-    if (checked.length > MAX_REVIEW_CHIPS) {
-      const extra = checked.length - MAX_REVIEW_CHIPS;
-      visible.push(`<span class="trx-rev-chip trx-rev-chip-more">+${extra} ${isEnLang() ? 'more' : 'lainnya'}</span>`);
-    }
-    chipsWrap.innerHTML = visible.join('');
+    syncIuranReviewChips({ visible, extraCount: checked.length - visible.length, moreLabel: isEnLang() ? 'more' : 'lainnya' });
   }
 };
 
@@ -483,66 +485,30 @@ export const renderCheckboxIuran = () => {
   const state = getState();
   const ledger = createDuesLedger(state, { year: Number.isFinite(thn) ? thn : undefined });
 
-  const htmlParts = [];
-  (state.anggota || []).forEach((ang) => {
-    if (ang.Status_Aktif === 'Aktif') {
-      const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: 'unpaid', paid: 0, remaining: ledger.monthlyFee, owed: true };
-      const isLunas = month.status === 'paid';
-      const notOwed = !month.owed;
-      const safeId = escapeHtml(ang.ID_Anggota);
-      const safeName = escapeHtml(ang.Nama_Anggota);
-      const initials = escapeHtml(getInitials(ang.Nama_Anggota));
-
-      if (isLunas) {
-        htmlParts.push(`
-          <label class="checkbox-item item-disabled-lunas" for="chk-iuran-${safeId}">
-            <span class="chk-avatar" aria-hidden="true">${initials}</span>
-            <div class="chk-info-col">
-              <span class="chk-name-lunas">${safeName}</span>
-              <div class="chk-badge-lunas"><i class="ph-fill ph-check-circle" aria-hidden="true"></i> LUNAS</div>
-            </div>
-            <input type="checkbox" id="chk-iuran-${safeId}" name="iuran-anggota" class="chk-iuran" value="${safeId}" data-member-name="${safeName}" disabled checked>
-          </label>`);
-      } else if (notOwed) {
-        htmlParts.push(`
-          <label class="checkbox-item item-disabled-lunas" for="chk-iuran-${safeId}">
-            <span class="chk-avatar" aria-hidden="true">${initials}</span>
-            <div class="chk-info-col">
-              <span class="chk-name-lunas">${safeName}</span>
-              <div class="chk-badge-pending">${escapeHtml(duesStatusLabel(month))}</div>
-            </div>
-            <input type="checkbox" id="chk-iuran-${safeId}" name="iuran-anggota" class="chk-iuran" value="${safeId}" data-member-name="${safeName}" disabled>
-          </label>`);
-      } else if (month.status === 'partial') {
-        htmlParts.push(`
-          <label class="checkbox-item item-partial" for="chk-iuran-${safeId}">
-            <span class="chk-avatar" aria-hidden="true">${initials}</span>
-            <div class="chk-info-col">
-              <span class="chk-name-pending">${safeName}</span>
-              <div class="chk-badge-pending">SEBAGIAN (Sisa ${escapeHtml(formatRp(month.remaining))})</div>
-            </div>
-            <input type="checkbox" id="chk-iuran-${safeId}" name="iuran-anggota" class="chk-iuran" value="${safeId}" data-member-name="${safeName}">
-          </label>`);
-      } else {
-        htmlParts.push(`
-          <label class="checkbox-item" for="chk-iuran-${safeId}">
-            <span class="chk-avatar" aria-hidden="true">${initials}</span>
-            <div class="chk-info-col">
-              <span class="chk-name-pending">${safeName}</span>
-              <div class="chk-badge-pending">BELUM BAYAR</div>
-            </div>
-            <input type="checkbox" id="chk-iuran-${safeId}" name="iuran-anggota" class="chk-iuran" value="${safeId}" data-member-name="${safeName}">
-          </label>`);
-      }
-    }
-  });
   const container = document.getElementById('iuran-checkbox-anggota') || document.getElementById('container-checkbox-anggota');
   if (container) {
-    container.innerHTML = htmlParts.join('');
+    const items = (state.anggota || []).filter(ang => ang.Status_Aktif === 'Aktif').map(ang => {
+      const month = monthIndex >= 0 ? ledger.getMonth(ang, monthIndex, thn) : { status: 'unpaid', owed: true };
+      let variant = 'unpaid';
+      let statusLabel = 'BELUM BAYAR';
+      if (month.status === 'paid') {
+        variant = 'lunas';
+        statusLabel = 'LUNAS';
+      } else if (!month.owed) {
+        variant = 'not-owed';
+        statusLabel = duesStatusLabel(month);
+      } else if (month.status === 'partial') {
+        variant = 'partial';
+        statusLabel = `SEBAGIAN (Sisa ${formatRp(month.remaining)})`;
+      }
+      return {
+        id: ang.ID_Anggota, name: ang.Nama_Anggota, initials: getInitials(ang.Nama_Anggota),
+        variant, statusLabel, disabled: variant === 'lunas' || variant === 'not-owed', defaultChecked: variant === 'lunas'
+      };
+    });
+    syncIuranChecklist({ items, query: document.getElementById('search-anggota-iuran')?.value || '', target: container });
   }
-
   updateCounterIuran();
-  filterAnggotaIuran();
 };
 
 /* ── Search member filter in iuran checkbox grid ───────────────── */
@@ -551,13 +517,9 @@ export const renderCheckboxIuran = () => {
  * Filter the iuran checkbox list by search input.
  */
 export const filterAnggotaIuran = () => {
-  const input = document.getElementById('search-anggota-iuran')?.value.toLowerCase() || '';
-  const items = document.querySelectorAll('.checkbox-grid .checkbox-item');
-  items.forEach((item) => {
-    const nameEl = item.querySelector?.('.chk-name-pending, .chk-name-lunas');
-    const text = (nameEl?.textContent || item.innerText || '').toLowerCase();
-    item.style.display = text.includes(input) ? 'flex' : 'none';
-  });
+  const input = document.getElementById('search-anggota-iuran')?.value || '';
+  const container = document.getElementById('iuran-checkbox-anggota') || document.getElementById('container-checkbox-anggota');
+  syncIuranChecklistFilter(input, container);
 };
 
 /* ── Edit Delta Preview ─────────────────────────────────────────── */

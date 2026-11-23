@@ -1,7 +1,7 @@
 import { flushSync, mount } from 'svelte';
 import { initHybridMotion } from 'finkas/hybrid-motion';
 import { resetDashboardGroupState, updateDashboardStore, type DashboardInput } from './store.svelte';
-import { resetSpotlightGroupState, registerSpotlightMount } from './spotlight.svelte';
+import { resetSpotlightGroupState, registerSpotlightMount, setSpotlightStampStyle } from './spotlight.svelte';
 import { resetHistoryGroupState, registerHistoryMount } from './history.svelte';
 import { resetStatsGroupState, registerStatsMount } from './stats.svelte';
 import { resetRekapGroupState, registerRekapMount } from './rekap.svelte';
@@ -20,6 +20,14 @@ import {
   type AuditLogInput, type SkippedMonthItem
 } from './master.svelte';
 import { resetCashReportState, updateCashReportStore, type CashReportInput } from './cash-report.svelte';
+
+import {
+  resetTransactionFormState, updateIuranChecklistStore, setIuranChecklistQuery,
+  updateIuranReviewChipsStore, updateQuickPayPresetsStore, type IuranChecklistItem,
+  type IuranReviewChip, type QuickPayPreset
+} from './transaction-form.svelte';
+import { resetYearGliderState, updateYearGliderSlot, type YearSlot } from './year-glider.svelte';
+import { resetStampPreviewState, updateStampPreviewStore } from './stamp-preview.svelte';
 
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
   renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
@@ -54,6 +62,9 @@ export function resetSvelteGroupViewState() {
   resetSelfPayState();
   resetMasterState();
   resetCashReportState();
+  resetTransactionFormState();
+  resetYearGliderState();
+  resetStampPreviewState();
   const doc = globalThis.document;
   const alertEl = doc?.getElementById?.('cash-report-alert');
   if (typeof HTMLElement !== 'undefined' && alertEl instanceof HTMLElement) alertEl.style.display = 'none';
@@ -72,17 +83,24 @@ function listenForGroupChanges() {
 }
 listenForGroupChanges();
 
-function mountIsland(target: Element | null, component: keyof typeof import('./components')) {
+type Components = typeof import('./components');
+type SimpleIsland = Exclude<keyof Components, 'YearGlider'>;
+
+function mountOnce(target: Element | null, render: (components: Components, target: Element) => void) {
   if (!target?.ownerDocument || typeof Element === 'undefined' || mounted.has(target)) return;
   // Defer Svelte template initialization until a browser DOM exists.
   const components: typeof import('./components') = require('./components');
   target.replaceChildren();
-  mount(components[component], { target });
+  render(components, target);
   mounted.add(target);
   mountedDocuments.add(target.ownerDocument);
 }
 
-function syncIsland(id: string, component: keyof typeof import('./components')) {
+function mountIsland(target: Element | null, component: SimpleIsland) {
+  mountOnce(target, (components, el) => mount(components[component], { target: el }));
+}
+
+function syncIsland(id: string, component: SimpleIsland) {
   listenForGroupChanges();
   const target = globalThis.document?.getElementById?.(id);
   if (!target) return;
@@ -207,4 +225,61 @@ export function syncCashReport(input: CashReportInput) {
   mountIsland(doc?.getElementById?.('cash-report-alert'), 'CashReportAlert');
   mountIsland(doc?.getElementById?.('cash-report-details'), 'CashReportRows');
   if (mountedDocuments.has(doc)) flushSync();
+}
+
+export function syncIuranChecklist(input: { items: IuranChecklistItem[]; query?: string; target?: Element | null }) {
+  listenForGroupChanges();
+  updateIuranChecklistStore(input);
+  const target = input.target ?? globalThis.document?.getElementById?.('iuran-checkbox-anggota');
+  mountIsland(target, 'IuranMemberChecklist');
+  if (target && mounted.has(target)) flushSync();
+}
+
+export function syncIuranChecklistFilter(query: string, target = globalThis.document?.getElementById?.('iuran-checkbox-anggota')) {
+  setIuranChecklistQuery(query);
+  if (target && mounted.has(target)) {
+    flushSync();
+    return;
+  }
+  const q = query.toLowerCase();
+  globalThis.document?.querySelectorAll<HTMLElement>('.checkbox-grid .checkbox-item').forEach(item => {
+    const name = item.querySelector?.('.chk-name-pending, .chk-name-lunas')?.textContent || item.innerText || '';
+    item.style.display = name.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+}
+
+export function syncIuranReviewChips(input: { visible: IuranReviewChip[]; extraCount: number; moreLabel: string }) {
+  updateIuranReviewChipsStore(input);
+  syncIsland('rev-iuran-chips', 'IuranReviewChips');
+}
+
+export function syncQuickPayPresets(input: { chips: QuickPayPreset[] }) {
+  updateQuickPayPresetsStore(input);
+  syncIsland('qp-presets', 'QuickPayPresets');
+}
+
+export function syncYearGlider({ target, slot, years, activeYear, hidden }: {
+  target: HTMLElement | null; slot: YearSlot; years: string[]; activeYear: string; hidden: boolean
+}) {
+  if (!target) return;
+  listenForGroupChanges();
+  target.hidden = hidden;
+  if (!hidden) {
+    target.style.setProperty('--year-count', String(years.length));
+    target.style.setProperty('--year-index', String(Math.max(0, years.indexOf(activeYear))));
+  }
+  updateYearGliderSlot(slot, { years: hidden ? [] : years, activeYear });
+  mountOnce(target, (components, el) => mount(components.YearGlider, { target: el, props: { slot } }));
+  if (mounted.has(target)) flushSync();
+}
+
+export function syncStampStylePreview(input: { styleKey: string; animate: boolean }) {
+  updateStampPreviewStore(input);
+  syncIsland('hybrid-stamp-sample', 'StampStylePreview');
+}
+
+export function refreshSpotlightStampStyle(styleKey: string) {
+  setSpotlightStampStyle(styleKey);
+  const target = globalThis.document?.getElementById?.('member-spotlight');
+  if (target && mounted.has(target)) flushSync();
 }

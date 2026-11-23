@@ -1,7 +1,7 @@
-import { syncSkippedMonthsList } from '../ui/svelte-dashboard.js';
+import { syncSkippedMonthsList, syncYearGlider } from '../ui/svelte-dashboard.js';
 import { GROUP_START_YEAR, NAMA_BULAN } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
-import { escapeHtml, parseKasStart } from "../core/utils.js";
+import { parseKasStart } from "../core/utils.js";
 import { billingPeriod } from "../core/dues.js";
 
 export const populateTahunRekap = () => {
@@ -22,27 +22,19 @@ export const populateTahunRekap = () => {
   const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
 
   selects.forEach((select) => {
-    select.innerHTML = '';
-    sortedYears.forEach((y) => {
+    const options = sortedYears.map((y) => {
       const option = document.createElement('option');
       option.value = y;
       option.text = y;
       if (y === currentRekapYear) option.selected = true;
-      select.appendChild(option);
+      return option;
     });
+    select.replaceChildren(...options);
     const group = select.closest('.year-pill')?.querySelector('.hybrid-year-glider');
     if (group) {
-      const limit = select.id?.endsWith('-mobile') ? 2 : 3;
-      group.hidden = sortedYears.length > limit;
-      if (group.hidden) {
-        group.replaceChildren();
-        return;
-      }
-      const years = [...sortedYears].reverse();
-      group.style.setProperty('--year-count', years.length);
-      group.style.setProperty('--year-index', Math.max(0, years.indexOf(currentRekapYear)));
-      group.innerHTML = '<span class="year-glider-indicator" aria-hidden="true"></span>' + years.map((year) => `<button type="button"
-        data-action="select-rekap-year" data-year="${escapeHtml(year)}" aria-pressed="${year === currentRekapYear}">${escapeHtml(year)}</button>`).join('');
+      const slot = select.id?.endsWith('-mobile') ? 'mobile' : 'desktop';
+      const hidden = sortedYears.length > (slot === 'mobile' ? 2 : 3);
+      syncYearGlider({ target: group, slot, years: hidden ? [] : [...sortedYears].reverse(), activeYear: currentRekapYear, hidden });
     }
   });
 };

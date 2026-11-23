@@ -2,7 +2,6 @@ import { renderHybridChart } from '../ui/hybrid-chart.js';
 import { enterHybridOverview } from '../ui/hybrid-motion.js';
 import { NAMA_BULAN } from "../core/config.js";
 import { getState } from "../core/state.js";
-import { escapeHtml } from "../core/utils.js";
 import { billingPeriod, createDuesLedger } from "../core/dues.js";
 import { syncSvelteDashboard } from "../ui/svelte-dashboard.js";
 import { renderSpotlight } from "../ui/spotlight.js";
@@ -39,22 +38,28 @@ export const renderDashboard = () => {
 
 /* ── Dropdown population ───────────────────────────────────────── */
 
+function setSelectOptions(id, items) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const nodes = items.map(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    return option;
+  });
+  select.replaceChildren(...nodes);
+}
+
 export const renderDropdowns = () => {
   const { anggota, kategori } = getState();
 
-  let optAnggota = '<option value="-">-- Bukan transaksi anggota --</option>';
-  anggota.forEach((ang) => {
-    if (ang.Status_Aktif === 'Aktif') optAnggota += `<option value="${escapeHtml(ang.ID_Anggota)}">${escapeHtml(ang.Nama_Anggota)}</option>`;
-  });
-  document.getElementById('edit-anggota').innerHTML = optAnggota;
-  document.getElementById('ops-anggota').innerHTML = optAnggota;
+  const members = anggota.filter(ang => ang.Status_Aktif === 'Aktif').map(ang => [ang.ID_Anggota, ang.Nama_Anggota]);
+  members.unshift(['-', '-- Bukan transaksi anggota --']);
+  setSelectOptions('edit-anggota', members);
+  setSelectOptions('ops-anggota', members);
 
-  let optKatMasuk = '';
-  kategori.forEach((kat) => {
-    if (kat.Tipe === 'Masuk') optKatMasuk += `<option value="${escapeHtml(kat.ID_Kategori)}">${escapeHtml(kat.Nama_Kategori)}</option>`;
-  });
-  if (optKatMasuk === '') optKatMasuk = '<option value="">-- Buat Kategori Masuk Dulu --</option>';
-  document.getElementById('iuran-kategori').innerHTML = optKatMasuk;
+  const income = kategori.filter(kat => kat.Tipe === 'Masuk').map(kat => [kat.ID_Kategori, kat.Nama_Kategori]);
+  setSelectOptions('iuran-kategori', income.length ? income : [['', '-- Buat Kategori Masuk Dulu --']]);
 
   filterKategori('ops-tipe', 'ops-kategori');
   const { year, monthIndex } = billingPeriod();

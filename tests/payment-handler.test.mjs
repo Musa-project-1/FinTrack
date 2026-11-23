@@ -33,6 +33,7 @@ function makeElement(id = '') {
       }
     },
     children,
+    replaceChildren: (...items) => children.splice(0, children.length, ...items),
     appendChild: (c) => children.push(c),
     append: (...items) => children.push(...items),
     remove: () => {},

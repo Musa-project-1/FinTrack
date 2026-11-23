@@ -2,11 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { installSvelteDom } from './helpers/svelte-dom.mjs';
-import { getState, setState, setActiveGroupId, setAdminRole, setAdminSession } from '../src/core/state.js';
+import { getState, setState, setActiveGroupId, setAdminRole, setAdminSession, setCurrentRekapYear, currentRekapYear } from '../src/core/state.js';
 import { filterMasterAnggota, renderAuditLogList, renderMasterAnggotaTable, renderMasterKategoriTable } from '../src/handlers/master.js';
-import { renderSkippedMonthsList } from '../src/render/rekap.js';
+import { populateTahunRekap, renderSkippedMonthsList, renderTableRekap } from '../src/render/rekap.js';
 import { renderMonthlyCashReport } from '../src/handlers/cash-report.js';
-import { syncAuditLogRows, syncMasterAnggotaRows } from '../src/ui/svelte-dashboard.js';
+import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
+import { renderDropdowns } from '../src/render/dashboard.js';
+import { filterAnggotaIuran, filterKategori, renderCheckboxIuran, pilihSemuaIuran, updateCounterIuran } from '../src/ui/transaction-form.js';
+import { openQuickPaySheet } from '../src/handlers/quickpay.js';
+import { setIndicatorStyle } from '../src/handlers/navigation.js';
+import { renderSpotlight, syncAuditLogRows, syncMasterAnggotaRows } from '../src/ui/svelte-dashboard.js';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const literal = '<img src=x>';
@@ -141,4 +146,166 @@ test('switching groups clears mounted rows, the member query, and cash report wa
     { id: 'a', name: 'Ana', initials: 'A', isAktif: true, rawWa: '', waHref: '', searchText: 'Ana' }
   ] });
   assert.equal(byId('master-anggota-tbody').rows[0].style.display, '');
+});
+
+const januaryPayment = (id, amount) => ({
+  ID_Anggota: id, Tipe_Arus: 'Masuk', Bulan_Iuran: 'Januari', Tahun_Iuran: '2026', Nominal: amount
+});
+
+test('dues checklist keeps manual selections through filtering and resets them on render', t => {
+  const byId = installDom(t);
+  setState({
+    kasStart: '01-2026',
+    anggota: [member, { ...member, ID_Anggota: 'paid' }, { ...member, ID_Anggota: 'unpaid', Nama_Anggota: 'Budi' },
+      { ...member, ID_Anggota: 'exempt', Tanggal_Gabung: '2026-02-01' }],
+    transaksi: [januaryPayment(member.ID_Anggota, 5000), januaryPayment('paid', 10000)]
+  });
+  byId('iuran-bulan').value = 'Januari';
+  byId('iuran-tahun').value = '2026';
+  renderCheckboxIuran();
+  const grid = byId('iuran-checkbox-anggota');
+  const [partial, paid, unpaid, exempt] = grid.querySelectorAll('input');
+  assert.equal(grid.querySelector('img'), null);
+  assert.equal(partial.labels[0].querySelector('.chk-name-pending').textContent, member.Nama_Anggota);
+  assert.equal(partial.disabled, false);
+  assert.match(partial.labels[0].className, /item-partial/);
+  assert.match(partial.labels[0].textContent, /SEBAGIAN.*5\.000/);
+  assert.equal(paid.disabled, true);
+  assert.equal(paid.checked, true);
+  assert.match(paid.labels[0].textContent, /LUNAS/);
+  assert.equal(exempt.disabled, true);
+  assert.equal(exempt.checked, false);
+  assert.match(exempt.labels[0].textContent, /Tidak ditagih/);
+  assert.equal(unpaid.disabled, false);
+  assert.match(unpaid.labels[0].textContent, /BELUM BAYAR/);
+  partial.click();
+  for (const query of ['BUDI', 'ana']) {
+    byId('search-anggota-iuran').value = query;
+    filterAnggotaIuran();
+    assert.equal(partial.labels[0].style.display, query === 'BUDI' ? 'none' : 'flex');
+    assert.equal(grid.querySelector('input'), partial);
+    assert.equal(partial.checked, true);
+  }
+  renderCheckboxIuran();
+  assert.equal(grid.querySelector('input').checked, false);
+  assert.equal(byId('rev-iuran-member-count').textContent, '0');
+});
+
+test('wizard review shows eight literal names and updates overflow when selection changes', t => {
+  const byId = installDom(t);
+  const anggota = Array.from({ length: 10 }, (_, i) => ({ ...member, ID_Anggota: String(i) }));
+  setState({ anggota, kasStart: '01-2026' });
+  renderCheckboxIuran();
+  pilihSemuaIuran();
+  const review = byId('rev-iuran-chips');
+  const chips = review.querySelectorAll('.trx-rev-chip:not(.trx-rev-chip-more)');
+  assert.equal(chips.length, 8);
+  assert.equal(chips[0].lastElementChild.textContent, member.Nama_Anggota);
+  assert.equal(review.querySelector('img'), null);
+  assert.equal(review.lastElementChild.textContent, '+2 lainnya');
+  byId('iuran-checkbox-anggota').addEventListener('change', updateCounterIuran);
+  byId('chk-iuran-0').click();
+  assert.equal(review.lastElementChild.textContent, '+1 lainnya');
+  pilihSemuaIuran();
+  pilihSemuaIuran();
+  assert.equal(review.childElementCount, 0);
+});
+
+test('quick pay offers full and half presets down to the 2000 threshold', t => {
+  const byId = installDom(t);
+  setAdminSession('test');
+  t.after(() => setAdminSession(''));
+  setState({ anggota: [member], kasStart: '01-2026' });
+  byId('modal-quickpay').showModal = function () { this.open = true; };
+  const chips = () => Array.from(byId('qp-presets').children, btn => [btn.textContent, btn.dataset.qpPreset]);
+  openQuickPaySheet(member.ID_Anggota, 'Januari', '2026');
+  assert.deepEqual(chips(), [['Lunasi', '10000'], ['50%', '5000']]);
+  byId('qp-presets').lastElementChild.click();
+  assert.equal(byId('qp-nominal').value, '5.000');
+  setState({ transaksi: [januaryPayment(member.ID_Anggota, 8000)] });
+  openQuickPaySheet(member.ID_Anggota, 'Januari', '2026');
+  assert.deepEqual(chips(), [['Lunasi Sisa', '2000'], ['50%', '1000']]);
+  setState({ transaksi: [januaryPayment(member.ID_Anggota, 8001)] });
+  openQuickPaySheet(member.ID_Anggota, 'Januari', '2026');
+  assert.deepEqual(chips(), [['Lunasi Sisa', '1999']]);
+});
+
+test('desktop and mobile year gliders hide and repopulate independently', t => {
+  const byId = installDom(t);
+  const previousYear = currentRekapYear;
+  t.after(() => setCurrentRekapYear(previousYear));
+  const { year } = billingPeriod();
+  setCurrentRekapYear(year);
+  setState({ kasStart: '01-' + (year - 1) });
+  const glider = suffix => byId('ui-tahun-rekap-select' + suffix).closest('.year-pill').querySelector('.hybrid-year-glider');
+  const desktop = glider(''), mobile = glider('-mobile');
+  const check = (group, years, active = year) => {
+    assert.equal(group.hidden, !years.length);
+    assert.equal(group.querySelectorAll('.year-glider-indicator').length, years.length ? 1 : 0);
+    assert.deepEqual(Array.from(group.querySelectorAll('button'), b => Number(b.dataset.year)), years);
+    if (years.length) {
+      assert.equal(group.style.getPropertyValue('--year-count'), String(years.length));
+      assert.equal(group.style.getPropertyValue('--year-index'), String(years.indexOf(active)));
+      assert.deepEqual(Array.from(group.querySelectorAll('[aria-pressed="true"]'), b => Number(b.dataset.year)), [active]);
+    }
+  };
+  const twoYears = [year - 1, year];
+  populateTahunRekap();
+  check(mobile, twoYears);
+  setState({ transaksi: [{ Tahun_Iuran: year - 2 }] });
+  populateTahunRekap();
+  check(desktop, [year - 2, ...twoYears]);
+  check(mobile, []);
+  setState({ transaksi: [{ Tahun_Iuran: year - 2 }, { Tahun_Iuran: year - 3 }] });
+  populateTahunRekap();
+  check(desktop, []);
+  setState({ transaksi: [] });
+  populateTahunRekap();
+  check(desktop, twoYears);
+  check(mobile, twoYears);
+  setCurrentRekapYear(year - 1);
+  renderTableRekap();
+  check(desktop, twoYears, year - 1);
+  setCurrentRekapYear(year);
+  populateTahunRekap();
+  check(desktop, twoYears);
+});
+
+test('indicator changes update both stamp previews and preserve spotlight month buttons', t => {
+  const byId = installDom(t);
+  setActiveGroupId('stage-four-stamp');
+  localStorage.setItem('finkas_spotlight:stage-four-stamp', member.ID_Anggota);
+  setState({ kasStart: '01-2026', anggota: [member], transaksi: [januaryPayment(member.ID_Anggota, 10000)] });
+  renderSpotlight(createDuesLedger(getState(), { year: 2026 }), { year: 2026, monthIndex: 0 });
+  const months = byId('spotlight-months');
+  const january = months.querySelector('button');
+  assert.ok(january.querySelector('circle.mini-seal-bg'));
+  setIndicatorStyle('shield');
+  assert.equal(months.querySelector('button'), january);
+  assert.ok(january.querySelector('path.mini-seal-bg'));
+  const sample = byId('hybrid-stamp-sample');
+  const stamp = sample.querySelector('.is-newly-paid[data-stamp="shield"]');
+  assert.ok(stamp);
+  assert.ok(sample.querySelector('.tampilan-preview-stamp path.seal-halo'));
+  setIndicatorStyle('shield');
+  assert.notEqual(sample.querySelector('.is-newly-paid'), stamp);
+  assert.equal(months.querySelector('button'), january);
+});
+
+test('dropdowns preserve default options and treat category and member values as text', t => {
+  const byId = installDom(t);
+  const options = id => Array.from(byId(id).options, o => [o.value, o.textContent]);
+  setState({ anggota: [member, { ...member, Status_Aktif: 'Nonaktif' }] });
+  renderDropdowns();
+  for (const id of ['edit-anggota', 'ops-anggota']) {
+    assert.deepEqual(options(id), [['-', '-- Bukan transaksi anggota --'], [literal, member.Nama_Anggota]]);
+  }
+  assert.deepEqual(options('iuran-kategori'), [['', '-- Buat Kategori Masuk Dulu --']]);
+  setState({ kategori: [category, { ID_Kategori: 'out', Nama_Kategori: 'Biaya', Tipe: 'Keluar' }] });
+  renderDropdowns();
+  assert.deepEqual(options('iuran-kategori'), [[literal, literal]]);
+  byId('ops-tipe').value = 'Masuk';
+  filterKategori('ops-tipe', 'ops-kategori');
+  assert.deepEqual(options('ops-kategori'), [['', '-- Pilih Kategori --'], [literal, literal]]);
+  assert.equal(byId('ops-kategori').querySelector('img'), null);
 });

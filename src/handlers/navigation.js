@@ -1,5 +1,5 @@
-import { refreshProfileStampStyle } from '../ui/svelte-dashboard.js';
-import { getActiveIndicatorStyle, renderLunasHtml, renderMiniStamp, renderPassbookEmblem, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
+import { refreshProfileStampStyle, refreshSpotlightStampStyle, syncStampStylePreview } from '../ui/svelte-dashboard.js';
+import { getActiveIndicatorStyle, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
 import { setCurrentHistoryFilter, setCurrentRekapYear } from "../core/state.js";
 import { handleNominalInput } from "../core/utils.js";
 import { syncCdrop } from "../ui/cdrop.js";
@@ -112,11 +112,7 @@ const updateStampPicker = (animate = false) => {
   const sampleEl = document.getElementById('hybrid-stamp-sample');
   if (titleEl) titleEl.textContent = meta.label;
   if (labelEl) labelEl.textContent = meta.sub;
-  if (sampleEl) {
-    sampleEl.innerHTML =
-      `<span class="tampilan-preview-cell paid">${renderLunasHtml(animate, currentStyle)}</span>` +
-      `<span class="tampilan-preview-stamp">${renderPassbookEmblem('paid', currentStyle)}</span>`;
-  }
+  if (sampleEl) syncStampStylePreview({ styleKey: currentStyle, animate });
 };
 
 export const openDuesLegend = () => {
@@ -148,7 +144,7 @@ export const setIndicatorStyle = (styleKey) => {
   if (!saveIndicatorStyle(styleKey)) return;
   updateStampPicker(true);
   refreshProfileStampStyle(styleKey);
-  document.querySelectorAll('#spotlight-months .mini-stamp-ico').forEach((stamp) => { stamp.outerHTML = renderMiniStamp(styleKey); });
+  refreshSpotlightStampStyle(styleKey);
   renderTableRekap();
 };
 

@@ -33,3 +33,32 @@
     <span class="receipt-seal-year">{vm.year}</span>
   </div>
 </footer>
+
+<style>
+  :global {
+    .modal-overlay.guided-tour[open] {
+      position:fixed; inset:0; padding:0; overflow:hidden; background:transparent;
+    }
+    .guided-tour::backdrop { background:transparent; }
+    .guided-tour-highlight {
+      position:fixed; border:2px solid var(--accent);
+      border-radius:14px; box-shadow:0 0 0 150vmax rgb(5 10 23 / .68);
+      pointer-events:none;
+    }
+    .guided-tour .guided-tour-card {
+      position:fixed; width:min(380px,calc(100vw - 16px)); max-height:calc(100dvh - 20px);
+      padding:16px; border-radius:16px; transform:none;
+    }
+    .guided-tour-head { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .guided-tour-head-text { min-width:0; }
+    #guided-tour-count { color:var(--accent-strong); font:700 11px var(--font-mono); }
+    #guided-tour-title { margin:2px 0 0; font-size:18px; font-weight:800; }
+    #guided-tour-title:focus { outline:none; }
+    #guided-tour-description { font-size:13px; color:var(--text-muted); }
+    .guided-tour-actions { display:flex; flex-wrap:wrap; gap:6px; justify-content:end; margin-top:14px; }
+    .guided-tour-actions button { min-height:44px; }
+    .guided-tour-actions [hidden] { display:none; }
+    .faq-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .faq-tabs .tab-btn, #tab-faq-glossary > .btn { min-height:44px; }
+  }
+</style>

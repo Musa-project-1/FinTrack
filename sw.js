@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v309';
+const CACHE_NAME = 'finkas-v310';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -89,6 +89,17 @@ function offlineResponse() {
   return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
 }
 
+// Chromium aborts navigation responses whose `redirected` flag is true or type is opaqueredirect.
+function cleanResponse(response) {
+  if (!response || response.type === 'opaqueredirect') return null;
+  if (!response.redirected) return response;
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  });
+}
+
 // Register the entire write lifetime synchronously, before any cache lookup settles.
 function cacheNetworkResponse(event, network, allowOpaque = false) {
   event.waitUntil(network.then((response) => {
@@ -105,10 +116,13 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   if (url.origin === location.origin) {
-    const network = fetch(event.request).catch(() => null);
+    const isNavigate = event.request.mode === 'navigate';
+    const network = (isNavigate ? fetch(event.request.url) : fetch(event.request))
+      .then((res) => (isNavigate ? cleanResponse(res) : res))
+      .catch(() => null);
     cacheNetworkResponse(event, network);
 
-    if (event.request.mode === 'navigate') {
+    if (isNavigate) {
       event.respondWith((async () => {
         let timer;
         const timeout = new Promise((resolve) => {
@@ -117,11 +131,15 @@ self.addEventListener('fetch', (event) => {
         const response = await Promise.race([network, timeout]);
         clearTimeout(timer);
         if (response && response.ok) return response;
-        const exact = await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
+        const exact = cleanResponse(
+          await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true })
+        );
         if (exact) return exact;
-        const fallback = (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
+        const fallback = cleanResponse(
+          (await caches.match('index.html', { cacheName: CACHE_NAME })) ||
           (await caches.match('/', { cacheName: CACHE_NAME })) ||
-          (await caches.match('offline.html', { cacheName: CACHE_NAME }));
+          (await caches.match('offline.html', { cacheName: CACHE_NAME }))
+        );
         return fallback || response || offlineResponse();
       })());
     } else {

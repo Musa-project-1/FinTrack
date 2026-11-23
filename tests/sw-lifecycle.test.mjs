@@ -172,6 +172,55 @@ test('offline navigation serves exact precached standalone pages before falling 
   await event.done();
 });
 
+test('navigation unwraps redirected cached/network responses and never returns opaqueredirect', async () => {
+  const redirectedCached = {
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers({ 'content-type': 'text/html' }),
+    redirected: true,
+    body: 'cached onboarding'
+  };
+  const opaqueRedirect = { ok: false, status: 0, type: 'opaqueredirect' };
+  const w1 = worker({
+    fetch: async () => opaqueRedirect,
+    caches: {
+      match: async (key) => (typeof key === 'object' ? redirectedCached : undefined)
+    }
+  });
+  const ev1 = w1.dispatch('fetch', request('onboarding.html', 'navigate'));
+  const res1 = await ev1.response;
+  assert.equal(res1.redirected, false);
+  assert.equal(await res1.text(), 'cached onboarding');
+  await ev1.done();
+
+  const w2 = worker({
+    fetch: async (target) => {
+      assert.equal(typeof target, 'string');
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'text/html' }),
+        redirected: true,
+        body: 'followed network'
+      };
+    }
+  });
+  const ev2 = w2.dispatch('fetch', request('onboarding.html', 'navigate'));
+  const res2 = await ev2.response;
+  assert.equal(res2.redirected, false);
+  assert.equal(await res2.text(), 'followed network');
+  await ev2.done();
+
+  const w3 = worker({ fetch: async () => opaqueRedirect });
+  const ev3 = w3.dispatch('fetch', request('onboarding.html', 'navigate'));
+  const res3 = await ev3.response;
+  assert.notEqual(res3.type, 'opaqueredirect');
+  assert.equal(res3.status, 503);
+  await ev3.done();
+});
+
 test('CDN misses cache opaque responses under waitUntil; hits avoid fetch', async () => {
   const opaque = { ok: false, type: 'opaque', clone() { return this; } };
   const w = worker({ fetch: async () => opaque });

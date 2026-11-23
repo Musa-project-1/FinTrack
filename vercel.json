@@ -1,7 +1,12 @@
 {
   "version": 2,
   "name": "finkas",
-  "cleanUrls": true,
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/onboarding", "destination": "/onboarding.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/offline", "destination": "/offline.html" }
+  ],
   "buildCommand": "npm run build",
   "outputDirectory": ".",
   "headers": [

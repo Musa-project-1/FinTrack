@@ -43,9 +43,6 @@
 @import "./modules/toasts.css";
 @import "./modules/widgets.css";
 @import "./modules/helpers.css";
-@import "./modules/view-iuran.css";
-@import "./modules/view-riwayat.css";
-@import "./modules/view-riwayat-mobile.css";
 @import "./modules/view-master.css";
 @import "./modules/cdrop.css";
 @import "./modules/navmenu.css";
@@ -54,11 +51,10 @@
 @import "./modules/about-modal.css";
 @import "./modules/mpick.css";
 @import "./modules/dpick.css";
+@import "./svelte-scoped.css";
 @import "./modules/responsive-tablet.css";
 @import "./modules/responsive-mobile.css";
 @import "./modules/workspace.css";
-@import "./modules/bento-dashboard.css";
-@import "./modules/spotlight.css";
 @import "./modules/self-pay.css";
 @import "./modules/passbook.css";
 @import "./modules/guided-tour.css";
@@ -68,7 +64,5 @@
 @import "./modules/hybrid-motion.css";
 @import "./modules/hybrid-settings.css";
 @import "./modules/trx-modal.css";
-@import "./modules/hybrid-spotlight.css";
 @import "./modules/hybrid-workspace.css";
 @import "./modules/group-transition.css";
-@import "./svelte-scoped.css";

@@ -1,5 +1,7 @@
 # Finkas
 
+[![CI](https://github.com/Musa-project-1/FinTrack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Musa-project-1/FinTrack/actions/workflows/ci.yml) · **[Live App — finkas.vercel.app](https://finkas.vercel.app)**
+
 Aplikasi manajemen kas anggota dan kas operasional komunitas berbasis web (**Offline-First Progressive Web App / PWA**), dibangun dengan **Svelte 5 + TypeScript + Tailwind CSS v4 + Vite 8** di frontend dan **Vercel Serverless Functions + Google Cloud Firestore** di backend.
 
 > Lihat [`PRD.md`](./.github/PRD.md) untuk spesifikasi produk lengkap dan [`DESIGN.md`](./.github/DESIGN.md) untuk token desain *Hybrid Kinetic*.

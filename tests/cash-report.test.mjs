@@ -2,7 +2,9 @@
  * Monthly cash report test suite.
  * Seams: pure core calculations, synthetic ledgers, DOM event integration, no browser storage or network.
  */
-import { test, after, beforeEach } from 'node:test';
+import { test, after } from 'node:test';
+import { readFileSync } from 'node:fs';
+import { installSvelteDom } from './helpers/svelte-dom.mjs';
 import assert from 'node:assert/strict';
 
 // Install isolated environment before state imports
@@ -233,325 +235,190 @@ test('handles empty transactions ledger gracefully', () => {
   assert.equal(report.hasErrors, false);
 });
 
-// Helper for synthetic DOM mock
-function createMockDOM(initialMonth = '2026-10') {
-  const elements = new Map();
-  const listeners = new Map();
+const reportsHtml = readFileSync(new URL('../html/modals/reports.html', import.meta.url), 'utf8');
 
-  function makeEl(tag = 'div') {
-    const el = {
-      tagName: tag.toUpperCase(),
-      value: '',
-      textContent: '',
-      innerHTML: '',
-      style: { display: '' },
-      classList: {
-        _classes: new Set(),
-        add(c) { this._classes.add(c); },
-        remove(c) { this._classes.delete(c); },
-        contains(c) { return this._classes.has(c); }
-      },
-      attributes: new Map(),
-      setAttribute(k, v) { this.attributes.set(k, String(v)); },
-      removeAttribute(k) { this.attributes.delete(k); },
-      getAttribute(k) { return this.attributes.get(k) || null; },
-      _events: new Map(),
-      addEventListener(type, fn) {
-        if (!this._events.has(type)) this._events.set(type, []);
-        this._events.get(type).push(fn);
-      },
-      removeEventListener(type, fn) {
-        const arr = this._events.get(type) || [];
-        this._events.set(type, arr.filter((f) => f !== fn));
-      },
-      dispatchEvent(event) {
-        const arr = this._events.get(event.type) || [];
-        arr.forEach((fn) => fn(event));
-      }
-    };
-    return el;
-  }
-
-  // Pre-populate standard reports modal elements
-  const ids = [
-    'cash-report-month',
-    'cash-report-saldo-awal',
-    'cash-report-pemasukan',
-    'cash-report-pengeluaran',
-    'cash-report-saldo-akhir',
-    'cash-report-details',
-    'cash-report-alert',
-    'btn-print-monthly-report',
-    'btn-export-monthly-csv',
-    'modal-export'
-  ];
-  ids.forEach((id) => elements.set(id, makeEl()));
-  elements.get('cash-report-month').value = initialMonth;
-
-  const windowEvents = new Map();
-
-  const mockWindow = {
-    addEventListener(type, fn) {
-      if (!windowEvents.has(type)) windowEvents.set(type, []);
-      windowEvents.get(type).push(fn);
-    },
-    removeEventListener(type, fn) {
-      const arr = windowEvents.get(type) || [];
-      windowEvents.set(type, arr.filter((f) => f !== fn));
-    },
-    dispatchEvent(event) {
-      const arr = windowEvents.get(event.type) || [];
-      arr.forEach((fn) => fn(event));
-    },
-    open: () => ({
-      document: { open() {}, write() {}, close() {} },
-      focus() {},
-      addEventListener() {},
-      print() {}
-    })
-  };
-
-  const mockDocument = {
-    getElementById: (id) => elements.get(id) || null,
-    createElement: (tag) => {
-      const el = makeEl(tag);
-      el.parentNode = mockDocument.body;
-      el.click = () => {};
-      return el;
-    },
-    body: {
-      appendChild: (el) => { el.parentNode = mockDocument.body; },
-      removeChild: (el) => { el.parentNode = null; }
-    },
-    addEventListener: (type, fn) => mockWindow.addEventListener(type, fn),
-    removeEventListener: (type, fn) => mockWindow.removeEventListener(type, fn),
-    dispatchEvent: (event) => mockWindow.dispatchEvent(event)
-  };
-
-  return { elements, mockDocument, mockWindow, windowEvents };
+function installReportDom(t, initialMonth = '2026-10') {
+  const previous = { ...getState() };
+  t.after(() => {
+    cashReportHandler.destroyCashReportListeners();
+    setState(previous);
+  });
+  const byId = installSvelteDom(t, `<!doctype html><html><body>${reportsHtml}</body></html>`);
+  byId('cash-report-month').value = initialMonth;
+  window.open = () => ({
+    document: { open() {}, write() {}, close() {} },
+    focus() {}, addEventListener() {}, print() {}, close() {}
+  });
+  t.mock.method(window.HTMLAnchorElement.prototype, 'click', () => {});
+  cashReportHandler.destroyCashReportListeners();
+  return byId;
 }
 
-test('cash report handler renders monthly report and populates DOM elements', () => {
-  const { elements, mockDocument, mockWindow } = createMockDOM('2026-10');
-  const oldDoc = globalThis.document;
-  const oldWin = globalThis.window;
-  globalThis.document = mockDocument;
-  globalThis.window = mockWindow;
+test('cash report handler renders monthly report and populates DOM elements', t => {
+  const byId = installReportDom(t);
 
-  try {
-    const prevState = getState();
-    setState({
-      transaksi: structuredClone(boundaryLedger),
-      anggota: [],
-      kategori: []
-    });
+  setState({
+    transaksi: structuredClone(boundaryLedger),
+    anggota: [],
+    kategori: []
+  });
 
-    const report = cashReportHandler.renderMonthlyCashReport('2026-10');
-    assert.equal(report.month, '2026-10');
-    assert.equal(elements.get('cash-report-saldo-awal').textContent, 'Rp\u00A015.000');
-    assert.equal(elements.get('cash-report-pemasukan').textContent, '+Rp\u00A07.000');
-    assert.equal(elements.get('cash-report-pengeluaran').textContent, '-Rp\u00A01.000');
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A021.000');
-    assert.ok(elements.get('cash-report-details').innerHTML.includes('Rp\u00A021.000'));
-    assert.equal(elements.get('cash-report-alert').style.display, 'none');
+  const report = cashReportHandler.renderMonthlyCashReport('2026-10');
+  assert.equal(report.month, '2026-10');
+  assert.equal(byId('cash-report-saldo-awal').textContent, 'Rp\u00A015.000');
+  assert.equal(byId('cash-report-pemasukan').textContent, '+Rp\u00A07.000');
+  assert.equal(byId('cash-report-pengeluaran').textContent, '-Rp\u00A01.000');
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A021.000');
+  assert.ok(byId('cash-report-details').textContent.includes('Rp\u00A021.000'));
+  assert.ok(byId('cash-report-details').innerHTML.includes('Rp&nbsp;21.000'));
+  assert.equal(byId('cash-report-alert').style.display, 'none');
 
-    // Export buttons should be enabled
-    assert.equal(elements.get('btn-print-monthly-report').classList.contains('disabled'), false);
-    assert.equal(elements.get('btn-export-monthly-csv').classList.contains('disabled'), false);
-
-    setState(prevState);
-  } finally {
-    globalThis.document = oldDoc;
-    globalThis.window = oldWin;
-  }
+  // Export buttons should be enabled
+  assert.equal(byId('btn-print-monthly-report').classList.contains('disabled'), false);
+  assert.equal(byId('btn-export-monthly-csv').classList.contains('disabled'), false);
 });
 
-test('cash report handler surfaces alert box and flags export buttons when invalid transactions are present', () => {
-  const { elements, mockDocument, mockWindow } = createMockDOM('2026-10');
-  const oldDoc = globalThis.document;
-  const oldWin = globalThis.window;
-  globalThis.document = mockDocument;
-  globalThis.window = mockWindow;
+test('cash report handler surfaces alert box and flags export buttons when invalid transactions are present', t => {
+  const byId = installReportDom(t);
 
-  try {
-    const prevState = getState();
-    setState({
-      transaksi: [
-        row('good', '2026-10-05T00:00:00.000Z', 10000, 'Masuk'),
-        row('bad-1', 'invalid-timestamp', 5000, 'Masuk'),
-        row('bad-2', '2026-10-06T00:00:00.000Z', 100.5, 'Masuk')
-      ],
-      anggota: [],
-      kategori: []
-    });
+  setState({
+    transaksi: [
+      row('good', '2026-10-05T00:00:00.000Z', 10000, 'Masuk'),
+      row('bad-1', 'invalid-timestamp', 5000, 'Masuk'),
+      row('bad-2', '2026-10-06T00:00:00.000Z', 100.5, 'Masuk'),
+      ...Array.from({ length: 4 }, () => row('bad-1', 'invalid-timestamp', 5000))
+    ],
+    anggota: [],
+    kategori: []
+  });
 
-    cashReportHandler.renderMonthlyCashReport('2026-10');
-    assert.equal(elements.get('cash-report-alert').style.display, 'block');
-    assert.ok(elements.get('cash-report-alert').innerHTML.includes('bad-1'));
-    assert.ok(elements.get('cash-report-alert').innerHTML.includes('bad-2'));
-    assert.ok(elements.get('cash-report-alert').innerHTML.includes('dilewati'));
+  cashReportHandler.renderMonthlyCashReport('2026-10');
+  assert.equal(byId('cash-report-alert').style.display, 'block');
+  assert.ok(byId('cash-report-alert').textContent.includes('bad-1'));
+  assert.ok(byId('cash-report-alert').textContent.includes('bad-2'));
+  assert.ok(byId('cash-report-alert').textContent.includes('dilewati'));
 
-    // Export buttons should reflect disabled/warning state
-    assert.equal(elements.get('btn-print-monthly-report').classList.contains('disabled'), true);
-    assert.equal(elements.get('btn-export-monthly-csv').classList.contains('disabled'), true);
+  assert.equal(byId('cash-report-alert').querySelectorAll('li b').length, 5);
+  assert.match(byId('cash-report-alert').textContent, /dan 1 data lainnya/);
 
-    setState(prevState);
-  } finally {
-    globalThis.document = oldDoc;
-    globalThis.window = oldWin;
-  }
+  // Export buttons should reflect disabled/warning state
+  assert.equal(byId('btn-print-monthly-report').classList.contains('disabled'), true);
+  assert.equal(byId('btn-export-monthly-csv').classList.contains('disabled'), true);
 });
 
-test('strict exports block: print and CSV are rejected when ledger has invalid transactions', () => {
-  const { mockDocument, mockWindow } = createMockDOM('2026-10');
-  const oldDoc = globalThis.document;
-  const oldWin = globalThis.window;
-  globalThis.document = mockDocument;
-  globalThis.window = mockWindow;
+test('strict exports block: print and CSV are rejected when ledger has invalid transactions', t => {
+  installReportDom(t);
 
-  try {
-    const prevState = getState();
-    setState({
-      transaksi: [
-        row('good', '2026-10-05T00:00:00.000Z', 10000, 'Masuk'),
-        row('bad-date', 'not-a-date', 5000, 'Masuk')
-      ],
-      anggota: [],
-      kategori: []
-    });
+  setState({
+    transaksi: [
+      row('good', '2026-10-05T00:00:00.000Z', 10000, 'Masuk'),
+      row('bad-date', 'not-a-date', 5000, 'Masuk')
+    ],
+    anggota: [],
+    kategori: []
+  });
 
-    // Print should block
-    const printRes = cashReportHandler.printMonthlyCashReport('2026-10');
-    assert.equal(printRes.blocked, true);
-    assert.equal(printRes.printed, false);
-    assert.equal(printRes.error, 'has_errors');
+  // Print should block
+  const printRes = cashReportHandler.printMonthlyCashReport('2026-10');
+  assert.equal(printRes.blocked, true);
+  assert.equal(printRes.printed, false);
+  assert.equal(printRes.error, 'has_errors');
 
-    // CSV export should block
-    const csvRes = cashReportHandler.exportMonthlyCashCSV('2026-10');
-    assert.equal(csvRes.blocked, true);
-    assert.equal(csvRes.exported, false);
-    assert.equal(csvRes.error, 'has_errors');
-
-    setState(prevState);
-  } finally {
-    globalThis.document = oldDoc;
-    globalThis.window = oldWin;
-  }
+  // CSV export should block
+  const csvRes = cashReportHandler.exportMonthlyCashCSV('2026-10');
+  assert.equal(csvRes.blocked, true);
+  assert.equal(csvRes.exported, false);
+  assert.equal(csvRes.error, 'has_errors');
 });
 
-test('printMonthlyCashReport and exportMonthlyCashCSV succeed when ledger is valid', () => {
-  const { mockDocument, mockWindow } = createMockDOM('2026-10');
-  const oldDoc = globalThis.document;
-  const oldWin = globalThis.window;
-  globalThis.document = mockDocument;
-  globalThis.window = mockWindow;
+test('printMonthlyCashReport and exportMonthlyCashCSV succeed when ledger is valid', t => {
+  installReportDom(t);
 
-  const prevState = getState();
   setState({
     transaksi: structuredClone(boundaryLedger),
     anggota: [{ ID_Anggota: '-', Nama_Anggota: 'Kas Umum' }],
     kategori: [{ ID_Kategori: 'operasional', Nama_Kategori: 'Operasional' }]
   });
 
-  try {
-    const printRes = cashReportHandler.printMonthlyCashReport('2026-10');
-    assert.equal(printRes.blocked, false);
-    assert.equal(printRes.printed, true);
-    assert.equal(printRes.report.month, '2026-10');
-    assert.ok(printRes.html.includes('Laporan Kas Bulanan'));
-    assert.ok(printRes.html.includes('Rp&nbsp;21.000') || printRes.html.includes('Rp 21.000') || printRes.html.includes('21.000'));
+  const printRes = cashReportHandler.printMonthlyCashReport('2026-10');
+  assert.equal(printRes.blocked, false);
+  assert.equal(printRes.printed, true);
+  assert.equal(printRes.report.month, '2026-10');
+  assert.ok(printRes.html.includes('Laporan Kas Bulanan'));
+  assert.ok(printRes.html.includes('Rp&nbsp;21.000') || printRes.html.includes('Rp 21.000') || printRes.html.includes('21.000'));
 
-    const csvRes = cashReportHandler.exportMonthlyCashCSV('2026-10');
-    assert.equal(csvRes.blocked, false);
-    assert.equal(csvRes.exported, true);
-    assert.equal(csvRes.report.month, '2026-10');
-    assert.ok(csvRes.csv.startsWith('\uFEFF'));
-    assert.ok(csvRes.csv.includes('21000'));
-  } finally {
-    setState(prevState);
-    globalThis.document = oldDoc;
-    globalThis.window = oldWin;
-  }
+  const csvRes = cashReportHandler.exportMonthlyCashCSV('2026-10');
+  assert.equal(csvRes.blocked, false);
+  assert.equal(csvRes.exported, true);
+  assert.equal(csvRes.report.month, '2026-10');
+  assert.ok(csvRes.csv.startsWith('\uFEFF'));
+  assert.ok(csvRes.csv.includes('21000'));
 });
 
-test('controller integration: month input changes and window events trigger report updates', () => {
-  const { elements, mockDocument, mockWindow } = createMockDOM('2026-10');
-  const oldDoc = globalThis.document;
-  const oldWin = globalThis.window;
-  globalThis.document = mockDocument;
-  globalThis.window = mockWindow;
+test('controller integration: month input changes and window events trigger report updates', t => {
+  const byId = installReportDom(t);
 
-  try {
-    const prevState = getState();
-    setState({
-      transaksi: [
-        row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
-        row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk')
-      ],
-      anggota: [],
-      kategori: []
-    });
+  setState({
+    transaksi: [
+      row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
+      row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk')
+    ],
+    anggota: [],
+    kategori: []
+  });
 
-    cashReportHandler.destroyCashReportListeners();
-    // Initialize controller idempotently
-    cashReportHandler.initMonthlyCashReport();
-    cashReportHandler.initMonthlyCashReport(); // Idempotency check: 2nd call must not duplicate listeners
+  // Initialize controller idempotently
+  cashReportHandler.initMonthlyCashReport();
+  cashReportHandler.initMonthlyCashReport(); // Idempotency check: 2nd call must not duplicate listeners
 
-    // Verify initial render for October
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A017.000');
+  // Verify initial render for October
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A017.000');
 
-    // 1. User changes month in input element
-    const monthInput = elements.get('cash-report-month');
-    monthInput.value = '2026-09';
-    monthInput.dispatchEvent({ type: 'change' });
+  // 1. User changes month in input element
+  const monthInput = byId('cash-report-month');
+  monthInput.value = '2026-09';
+  monthInput.dispatchEvent(new window.Event('change'));
 
-    // Should re-render for September (Saldo Akhir = 5000)
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A05.000');
+  // Should re-render for September (Saldo Akhir = 5000)
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A05.000');
 
-    // 2. Window event finkas:modal-opened for modal-export
-    monthInput.value = '2026-10';
-    mockWindow.dispatchEvent({ type: 'finkas:modal-opened', detail: { id: 'modal-export' } });
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A017.000');
+  // 2. Window event finkas:modal-opened for modal-export
+  monthInput.value = '2026-10';
+  window.dispatchEvent(new window.CustomEvent('finkas:modal-opened', { detail: { id: 'modal-export' } }));
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A017.000');
 
-    // 3. Window event finkas:state-changed when modal-export is open
-    const modalExport = elements.get('modal-export');
-    modalExport.classList.add('active');
+  // 3. Window event finkas:state-changed when modal-export is open
+  const modalExport = byId('modal-export');
+  modalExport.classList.add('active');
 
-    // Add a new transaction to state
-    setState({
-      transaksi: [
-        row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
-        row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk'),
-        row('oct-2', '2026-10-15T12:00:00.000Z', 3000, 'Masuk')
-      ],
-      anggota: [],
-      kategori: []
-    });
-    mockWindow.dispatchEvent({ type: 'finkas:state-changed' });
+  // Add a new transaction to state
+  setState({
+    transaksi: [
+      row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
+      row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk'),
+      row('oct-2', '2026-10-15T12:00:00.000Z', 3000, 'Masuk')
+    ],
+    anggota: [],
+    kategori: []
+  });
+  window.dispatchEvent(new window.CustomEvent('finkas:state-changed'));
 
-    // October ending balance should now be 5000 + 12000 + 3000 = 20000
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A020.000');
+  // October ending balance should now be 5000 + 12000 + 3000 = 20000
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A020.000');
 
-    // 4. When modal-export is inactive, state-changed does not update DOM
-    modalExport.classList.remove('active');
-    setState({
-      transaksi: [
-        row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
-        row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk'),
-        row('oct-2', '2026-10-15T12:00:00.000Z', 3000, 'Masuk'),
-        row('oct-3', '2026-10-20T12:00:00.000Z', 10000, 'Masuk')
-      ],
-      anggota: [],
-      kategori: []
-    });
-    mockWindow.dispatchEvent({ type: 'finkas:state-changed' });
-    // Still 20000 because modal is closed
-    assert.equal(elements.get('cash-report-saldo-akhir').textContent, 'Rp\u00A020.000');
-
-    setState(prevState);
-    cashReportHandler.destroyCashReportListeners();
-  } finally {
-    globalThis.document = oldDoc;
-    globalThis.window = oldWin;
-  }
+  // 4. When modal-export is inactive, state-changed does not update DOM
+  modalExport.classList.remove('active');
+  setState({
+    transaksi: [
+      row('sep-1', '2026-09-10T10:00:00.000Z', 5000, 'Masuk'),
+      row('oct-1', '2026-10-10T10:00:00.000Z', 12000, 'Masuk'),
+      row('oct-2', '2026-10-15T12:00:00.000Z', 3000, 'Masuk'),
+      row('oct-3', '2026-10-20T12:00:00.000Z', 10000, 'Masuk')
+    ],
+    anggota: [],
+    kategori: []
+  });
+  window.dispatchEvent(new window.CustomEvent('finkas:state-changed'));
+  // Still 20000 because modal is closed
+  assert.equal(byId('cash-report-saldo-akhir').textContent, 'Rp\u00A020.000');
 });

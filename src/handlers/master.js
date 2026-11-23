@@ -1,11 +1,12 @@
 import { getState, getIsAdminSession, getIsSuperAdmin } from "../core/state.js";
 import { fetchAuditLogApi } from "../core/api.js";
 import { isUnsyncedTempId } from "../core/offline.js";
-import { showToast, showDatabaseToast, escapeHtml, getInitials } from "../core/utils.js";
+import { showToast, showDatabaseToast, getInitials } from "../core/utils.js";
 import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import { renderSkippedMonthsList } from "../render.js";
+import { syncMasterAnggotaRows, syncMasterAnggotaFilter, syncMasterKategoriRows, syncAuditLogRows } from "../ui/svelte-dashboard.js";
 
 const refreshAppData = async () => { requestAppRefresh(); };
 
@@ -49,6 +50,7 @@ let cachedAuditLog = [];
 let auditFilterCat = 'all';
 let auditSearchQuery = '';
 let auditBound = false;
+let auditRequest = 0;
 
 const formatAuditDate = (ts) =>
   new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -83,22 +85,27 @@ const paintAuditLogRows = () => {
     if (auditFilterCat !== 'all' && meta.cat !== auditFilterCat) return false;
     if (!q) return true;
     return `${meta.label} ${entry.Aksi || ''} ${entry.Detail || ''} ${formatAuditDate(entry.Timestamp)}`.toLowerCase().includes(q);
+  }).map((entry, index) => {
+    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
+    return {
+      key: `${index}-${entry.Timestamp}`, timestampText: formatAuditDate(entry.Timestamp),
+      label: meta.label, tone: meta.tone, icon: meta.icon, detail: String(entry.Detail || '')
+    };
   });
   updateAuditCount(rows.length, cachedAuditLog.length);
-  if (rows.length === 0) {
-    const msg = cachedAuditLog.length === 0 ? 'Belum ada aktivitas tercatat.' : 'Tidak ada aktivitas yang cocok dengan filter.';
-    tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center">${msg}</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = rows.map((entry) => {
-    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
-    return `<tr><td class="td-audit-time">${escapeHtml(formatAuditDate(entry.Timestamp))}</td><td class="td-audit-aksi ws-nowrap"><span class="audit-action-pill is-${meta.tone}"><i class="ph ${meta.icon}" aria-hidden="true"></i> ${escapeHtml(meta.label)}</span></td><td class="td-audit-detail">${escapeHtml(String(entry.Detail || ''))}</td></tr>`;
-  }).join('');
+  syncAuditLogRows({ status: 'ready', totalCount: cachedAuditLog.length, rows });
 };
 
 const ensureAuditLogBound = () => {
   if (auditBound) return;
   auditBound = true;
+  window.addEventListener('finkas:group-changed', () => {
+    auditRequest++;
+    cachedAuditLog = [];
+    updateAuditCount(0, 0);
+    const refreshBtn = document.getElementById('btn-refresh-audit-log');
+    if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
+  });
   document.getElementById('search-audit-log')?.addEventListener('input', (e) => {
     auditSearchQuery = e.target.value || '';
     paintAuditLogRows();
@@ -112,31 +119,32 @@ const ensureAuditLogBound = () => {
 };
 
 export const renderAuditLogList = async () => {
+  if (!document.getElementById('audit-log-tbody')) return;
   if (!guardAuditSuperAdmin(true)) return;
-  const tbody = document.getElementById('audit-log-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Memuat...</td></tr>';
+  ensureAuditLogBound();
+  const request = ++auditRequest;
+  syncAuditLogRows({ status: 'loading', totalCount: cachedAuditLog.length, rows: [] });
   const refreshBtn = document.getElementById('btn-refresh-audit-log');
   if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.classList.add('is-loading'); }
   try {
     const res = await fetchAuditLogApi();
+    if (request !== auditRequest) return;
     if (!res || !res.status) {
       cachedAuditLog = [];
       updateAuditCount(0, 0);
-      tbody.innerHTML = `<tr><td colspan="3" class="td-muted-center text-danger">${escapeHtml(res?.message || 'Gagal memuat log.')}</td></tr>`;
+      syncAuditLogRows({ status: 'error', errorMessage: res?.message || 'Gagal memuat log.', totalCount: 0, rows: [] });
       return;
     }
     cachedAuditLog = res.data?.log || [];
     paintAuditLogRows();
   } finally {
-    if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
+    if (refreshBtn && request === auditRequest) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
   }
 };
 
 /** Open the Admin Activity Audit Log modal (Super Admin only). */
 export const openAuditLogModal = () => {
   if (!guardAuditSuperAdmin(false)) return;
-  ensureAuditLogBound();
   auditSearchQuery = '';
   const searchEl = document.getElementById('search-audit-log');
   if (searchEl) searchEl.value = '';
@@ -275,97 +283,34 @@ const syncMasterTabCounts = () => {
 };
 
 export const filterMasterAnggota = () => {
-  const q = (document.getElementById('search-master-anggota')?.value || '').trim().toLowerCase();
-  document.querySelectorAll?.('#master-anggota-tbody tr.master-row').forEach((row) => {
-    const hay = (row.dataset?.search || row.textContent || '').toLowerCase();
-    row.style.display = !q || hay.includes(q) ? '' : 'none';
-  });
+  syncMasterAnggotaFilter(document.getElementById('search-master-anggota')?.value || '');
 };
 
 export const renderMasterAnggotaTable = () => {
-  const tbody = document.getElementById('master-anggota-tbody');
-  if (!tbody) return;
-  const anggota = getState().anggota || [];
+  if (!document.getElementById('master-anggota-tbody')) return;
   syncMasterTabCounts();
-  if (anggota.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="td-muted-center">Belum ada anggota terdaftar.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = anggota.map((ang) => {
-    const isAktif = ang.Status_Aktif === 'Aktif';
-    const statusBadge = isAktif
-      ? '<span class="badge badge-masuk"><i class="ph-bold ph-check" aria-hidden="true"></i> Aktif</span>'
-      : '<span class="badge badge-keluar"><i class="ph-bold ph-x" aria-hidden="true"></i> Nonaktif</span>';
-    const rawWa = (ang.Nomor_WA || '').trim();
+  const rows = (getState().anggota || []).map((ang) => {
+    const id = String(ang.ID_Anggota ?? '');
+    const name = String(ang.Nama_Anggota ?? '');
+    const rawWa = String(ang.Nomor_WA || '').trim();
     const cleanWa = rawWa.replace(/\D/g, '');
-    const waDisplay = cleanWa
-      ? `<a href="https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}" target="_blank" rel="noopener" class="master-wa-link" title="Chat WhatsApp"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i> <span>${escapeHtml(rawWa)}</span></a>`
-      : '<span class="text-muted">-</span>';
-    const initials = escapeHtml(getInitials(ang.Nama_Anggota));
-
-    return `
-      <tr class="master-row ${isAktif ? 'is-aktif' : 'is-nonaktif'}" data-search="${escapeHtml(`${ang.Nama_Anggota} ${ang.ID_Anggota} ${rawWa}`)}">
-        <td class="td-name-col">
-          <div class="master-cell-identity">
-            <span class="master-avatar ${isAktif ? '' : 'is-inactive'}" aria-hidden="true">${initials}</span>
-            <div class="master-name-wrap">
-              <span class="master-name-text">${escapeHtml(ang.Nama_Anggota)}</span>
-              <span class="master-id-pill">${escapeHtml(ang.ID_Anggota)}</span>
-            </div>
-          </div>
-        </td>
-        <td class="td-wa-col">${waDisplay}</td>
-        <td class="td-status-col text-center">${statusBadge}</td>
-        <td class="td-action-col">
-          <div class="master-actions-wrap">
-            <button type="button" class="btn btn-outline btn-master-action" data-action="edit-master-anggota" data-id="${escapeHtml(ang.ID_Anggota)}" title="Kelola Anggota">
-              <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> <span>Edit</span>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
-  filterMasterAnggota();
+    const waHref = cleanWa ? `https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}` : '';
+    return {
+      id, name, initials: getInitials(name), isAktif: ang.Status_Aktif === 'Aktif',
+      rawWa, waHref, searchText: `${name} ${id} ${rawWa}`
+    };
+  });
+  syncMasterAnggotaRows({ rows, query: document.getElementById('search-master-anggota')?.value || '' });
 };
 
 export const renderMasterKategoriTable = () => {
-  const tbody = document.getElementById('master-kategori-tbody');
-  if (!tbody) return;
-  const kategori = getState().kategori || [];
+  if (!document.getElementById('master-kategori-tbody')) return;
   syncMasterTabCounts();
-  if (kategori.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="td-muted-center">Belum ada kategori.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = kategori.map((kat) => {
-    const isMasuk = kat.Tipe === 'Masuk';
-    const badge = isMasuk
-      ? '<span class="badge badge-masuk"><i class="ph-bold ph-arrow-down-left" aria-hidden="true"></i> Masuk</span>'
-      : '<span class="badge badge-keluar"><i class="ph-bold ph-arrow-up-right" aria-hidden="true"></i> Keluar</span>';
-
-    return `
-      <tr class="master-row ${isMasuk ? 'is-masuk' : 'is-keluar'}">
-        <td class="td-name-col">
-          <div class="master-cell-identity">
-            <span class="master-kat-icon ${isMasuk ? 'is-masuk' : 'is-keluar'}" aria-hidden="true"><i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
-            <div class="master-name-wrap">
-              <span class="master-name-text">${escapeHtml(kat.Nama_Kategori)}</span>
-              <span class="master-id-pill">${escapeHtml(kat.ID_Kategori)}</span>
-            </div>
-          </div>
-        </td>
-        <td class="td-status-col text-center">${badge}</td>
-        <td class="td-action-col">
-          <div class="master-actions-wrap">
-            <button type="button" class="btn btn-outline btn-master-action" data-action="edit-master-kategori" data-id="${escapeHtml(kat.ID_Kategori)}" title="Kelola Kategori">
-              <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i> <span>Edit</span>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  const rows = (getState().kategori || []).map((kat) => ({
+    id: String(kat.ID_Kategori ?? ''), name: String(kat.Nama_Kategori ?? ''),
+    tipe: String(kat.Tipe ?? ''), isMasuk: kat.Tipe === 'Masuk'
+  }));
+  syncMasterKategoriRows({ rows });
 };
 
 export const bukaModalEditMasterAnggota = (idAnggota) => {
@@ -477,16 +422,19 @@ export const bukaModalEditMasterKategori = (idKategori) => {
   const namaEl = document.getElementById('edit-master-kategori-nama');
   if (namaEl) namaEl.textContent = kat.Nama_Kategori;
 
+  const icon = document.createElement('i');
+  icon.className = `ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}`;
+  icon.setAttribute('aria-hidden', 'true');
   const iconWrap = document.getElementById('edit-master-kategori-icon');
   if (iconWrap) {
     iconWrap.className = `master-kat-icon is-lg ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
-    iconWrap.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}" aria-hidden="true"></i>`;
+    iconWrap.replaceChildren(icon);
   }
 
   const tipeBadge = document.getElementById('edit-master-kategori-tipe-badge');
   if (tipeBadge) {
     tipeBadge.className = `badge ${isMasuk ? 'badge-masuk' : 'badge-keluar'}`;
-    tipeBadge.innerHTML = `<i class="ph-bold ${isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}" aria-hidden="true"></i> Kas ${escapeHtml(kat.Tipe)}`;
+    tipeBadge.replaceChildren(icon.cloneNode(), document.createTextNode(` Kas ${kat.Tipe}`));
   }
 
   openModal('modal-edit-master-kategori');

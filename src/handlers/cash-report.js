@@ -11,8 +11,9 @@
  * - Idempotent listener management on window events (finkas:modal-opened, finkas:state-changed).
  */
 
+import { syncCashReport } from '../ui/svelte-dashboard.js';
 import { getState, getActiveGroupId, getGroupName } from '../core/state.js';
-import { formatRp, escapeHtml, showToast } from '../core/utils.js';
+import { formatRp, showToast } from '../core/utils.js';
 import {
   buildMonthlyCashReport,
   formatReportToCSV,
@@ -124,80 +125,26 @@ export const renderMonthlyCashReport = (targetMonth) => {
     }
   }
 
-  // Alert box for invalid transactions
+  const invalid = report.invalidTransactions || [];
+  const hasAlert = report.hasErrors && invalid.length > 0;
   const alertEl = document.getElementById('cash-report-alert');
-  if (alertEl) {
-    if (report.hasErrors && report.invalidTransactions?.length > 0) {
-      const count = report.invalidTransactions.length;
-      const sampleList = report.invalidTransactions
-        .slice(0, 5)
-        .map((bad) => `<li><b>${escapeHtml(bad.id)}</b>: ${escapeHtml(bad.reason)}</li>`)
-        .join('');
-      const moreText = count > 5 ? `<li>...dan ${count - 5} data lainnya</li>` : '';
+  if (alertEl) alertEl.style.display = hasAlert ? 'block' : 'none';
 
-      alertEl.style.display = 'block';
-      alertEl.innerHTML = `
-        <div class="report-invalid-alert">
-          <div class="report-invalid-head">
-            <i class="ph-bold ph-warning-circle" aria-hidden="true"></i>
-            <span>Perhatian: Ditemukan ${count} transaksi invalid yang dilewati dari buku kas!</span>
-          </div>
-          <div class="report-invalid-sub">Periksa data berikut agar uang kas tidak hilang tanpa pencatatan:</div>
-          <ul class="report-invalid-list">${sampleList}${moreText}</ul>
-        </div>
-      `;
-    } else {
-      alertEl.style.display = 'none';
-      alertEl.innerHTML = '';
-    }
-  }
-
-  // Detail table rows
-  const tbody = document.getElementById('cash-report-details');
-  if (tbody) {
-    if (report.details.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="td-muted-center">
-            Tidak ada transaksi tercatat pada periode ${escapeHtml(report.month)}.
-          </td>
-        </tr>
-      `;
-    } else {
-      tbody.innerHTML = report.details
-        .map((item, idx) => {
-          const isIn = item.type === 'Masuk';
-          const masukStr = isIn ? `+${formatRp(item.nominal)}` : '-';
-          const keluarStr = !isIn ? `-${formatRp(item.nominal)}` : '-';
-          const masukCls = isIn ? 'is-income' : 'is-muted';
-          const keluarCls = !isIn ? 'is-danger' : 'is-muted';
-
-          const metaParts = [];
-          if (item.kategoriNama && item.kategoriNama !== '-') metaParts.push(escapeHtml(item.kategoriNama));
-          if (item.anggotaNama && item.anggotaNama !== '-') metaParts.push(escapeHtml(item.anggotaNama));
-          const metaHtml = metaParts.length > 0 ? `<div class="report-row-meta">${metaParts.join(' • ')}</div>` : '';
-          const ketHtml = item.keterangan ? escapeHtml(item.keterangan) : `<span class="text-muted">(${isIn ? 'Pemasukan' : 'Pengeluaran'})</span>`;
-
-          return `
-            <tr data-type="${isIn ? 'in' : 'out'}">
-              <td class="col-no report-row-num">${idx + 1}</td>
-              <td class="col-waktu report-row-time">
-                <div class="report-row-date">${escapeHtml(item.dateStr)}</div>
-                <div class="report-row-clock">${escapeHtml(item.timeStr)} WIB</div>
-              </td>
-              <td class="col-ket report-row-desc">
-                <div>${ketHtml}</div>
-                ${metaHtml}
-              </td>
-              <td class="col-amt report-row-amt report-row-in ${masukCls}">${masukStr}</td>
-              <td class="col-amt report-row-amt report-row-out ${keluarCls}">${keluarStr}</td>
-              <td class="col-saldo report-row-saldo">${formatRp(item.balance)}</td>
-            </tr>
-          `;
-        })
-        .join('');
-    }
-  }
+  const details = report.details.map((item, idx) => ({
+    key: `${idx}-${item.id ?? ''}`,
+    isIn: item.type === 'Masuk',
+    dateStr: String(item.dateStr || ''),
+    timeStr: String(item.timeStr || ''),
+    keterangan: String(item.keterangan || ''),
+    metaText: [item.kategoriNama, item.anggotaNama].filter(name => name && name !== '-').join(' • '),
+    nominalFormatted: formatRp(item.nominal),
+    balanceFormatted: formatRp(item.balance)
+  }));
+  syncCashReport({
+    month: report.month, hasErrors: Boolean(report.hasErrors), invalidCount: invalid.length,
+    invalidSample: invalid.slice(0, 5).map(bad => ({ id: String(bad.id || ''), reason: String(bad.reason || '') })),
+    moreCount: Math.max(0, invalid.length - 5), details
+  });
 
   return report;
 };

@@ -14,6 +14,13 @@ import { updateProfileStore, setProfileStampStyle, resetProfileState, type Profi
 import { updateReceiptStore, resetReceiptState, type ReceiptInput } from './receipt.svelte';
 import { updateSelfPayStore, resetSelfPayState, type SelfPayInput } from './self-pay.svelte';
 
+import {
+  resetMasterState, updateMasterAnggotaStore, setMasterAnggotaQuery, updateMasterKategoriStore,
+  updateAuditLogStore, updateSkippedMonthsStore, type MasterAnggotaRow, type MasterKategoriRow,
+  type AuditLogInput, type SkippedMonthItem
+} from './master.svelte';
+import { resetCashReportState, updateCashReportStore, type CashReportInput } from './cash-report.svelte';
+
 export { initDuesPagination, filterDuesStatus, markNewlyPaidCells, renderTableRekap,
   renderIuranMobileCards, toggleIuranCard, resetRekapFilter } from './rekap.svelte';
 export { computeRekapViewModel } from './rekap-model';
@@ -45,7 +52,11 @@ export function resetSvelteGroupViewState() {
   resetProfileState();
   resetReceiptState();
   resetSelfPayState();
+  resetMasterState();
+  resetCashReportState();
   const doc = globalThis.document;
+  const alertEl = doc?.getElementById?.('cash-report-alert');
+  if (typeof HTMLElement !== 'undefined' && alertEl instanceof HTMLElement) alertEl.style.display = 'none';
   for (const id of ['group-overview', 'member-spotlight', 'admin-priorities']) {
     const section = doc?.getElementById?.(id);
     if (section) section.hidden = true;
@@ -152,4 +163,48 @@ export function syncSvelteDashboard(input: DashboardInput) {
   flushSync();
   const group = globalThis.document?.getElementById?.('group-overview');
   if (group) group.hidden = !model.visible;
+}
+
+export function syncMasterAnggotaRows(input: { rows: MasterAnggotaRow[]; query?: string }) {
+  updateMasterAnggotaStore(input);
+  syncIsland('master-anggota-tbody', 'MasterAnggotaRows');
+}
+
+export function syncMasterAnggotaFilter(query: string) {
+  setMasterAnggotaQuery(query);
+  const target = globalThis.document?.getElementById?.('master-anggota-tbody');
+  if (!target) return;
+  if (mounted.has(target)) {
+    flushSync();
+    return;
+  }
+  const q = query.trim().toLowerCase();
+  target.querySelectorAll?.<HTMLElement>('tr.master-row').forEach(row => {
+    const text = row.dataset.search || row.textContent || '';
+    row.style.display = text.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+export function syncMasterKategoriRows(input: { rows: MasterKategoriRow[] }) {
+  updateMasterKategoriStore(input);
+  syncIsland('master-kategori-tbody', 'MasterKategoriRows');
+}
+
+export function syncAuditLogRows(input: AuditLogInput) {
+  updateAuditLogStore(input);
+  syncIsland('audit-log-tbody', 'AuditLogRows');
+}
+
+export function syncSkippedMonthsList(input: { items: SkippedMonthItem[] }) {
+  updateSkippedMonthsStore(input);
+  syncIsland('skipped-months-list', 'SkippedMonthsList');
+}
+
+export function syncCashReport(input: CashReportInput) {
+  listenForGroupChanges();
+  updateCashReportStore(input);
+  const doc = globalThis.document;
+  mountIsland(doc?.getElementById?.('cash-report-alert'), 'CashReportAlert');
+  mountIsland(doc?.getElementById?.('cash-report-details'), 'CashReportRows');
+  if (mountedDocuments.has(doc)) flushSync();
 }

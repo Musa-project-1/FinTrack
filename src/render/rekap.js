@@ -1,3 +1,4 @@
+import { syncSkippedMonthsList } from '../ui/svelte-dashboard.js';
 import { GROUP_START_YEAR, NAMA_BULAN } from "../core/config.js";
 import { getState, currentRekapYear } from "../core/state.js";
 import { escapeHtml, parseKasStart } from "../core/utils.js";
@@ -54,20 +55,10 @@ export const renderSkippedMonthsList = () => {
   const { skippedMonths } = getState();
   if (countBadge) countBadge.textContent = String((skippedMonths || []).length);
   if (!container) return;
-  container.innerHTML = '';
-
-  if (!skippedMonths || skippedMonths.length === 0) {
-    container.innerHTML = '<div class="text-muted">Belum ada bulan libur yang diatur.</div>';
-    return;
-  }
-
-  const sorted = skippedMonths.slice().sort().reverse();
-  sorted.forEach((mm) => {
-    const card = document.createElement('div');
-    card.className = 'skip-month-card';
+  const items = (skippedMonths || []).slice().sort().reverse().map((mm) => {
     const parts = mm.split('-');
     const label = parts.length === 2 ? `${NAMA_BULAN[parseInt(parts[0], 10) - 1]} ${parts[1]}` : mm;
-    card.innerHTML = `<span class="skip-month-label"><i class="ph ph-calendar-x" aria-hidden="true"></i><strong>${escapeHtml(label)}</strong></span><div class="flex-align-gap"><button type="button" class="btn btn-outline btn-master-action btn-danger-outline admin-only" data-action="remove-skip" data-month="${escapeHtml(mm)}">Hapus</button></div>`;
-    container.appendChild(card);
+    return { mm, label };
   });
+  syncSkippedMonthsList({ items });
 };

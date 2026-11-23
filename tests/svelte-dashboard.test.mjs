@@ -90,6 +90,8 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     'history.svelte.ts', 'stats.svelte.ts', 'store.svelte.ts', 'spotlight-model.ts', 'spotlight.svelte.ts',
     'GroupPickerList.svelte', 'GroupAdminList.svelte', 'SuperAdminList.svelte', 'OfflineQueueList.svelte',
     'PassbookMonths.svelte', 'ProfileHistoryList.svelte', 'ReceiptBody.svelte', 'SelfPayMonths.svelte',
+    'master.svelte.ts', 'MasterAnggotaRows.svelte', 'MasterKategoriRows.svelte', 'AuditLogRows.svelte',
+    'SkippedMonthsList.svelte', 'cash-report.svelte.ts', 'CashReportAlert.svelte', 'CashReportRows.svelte',
     'profile.svelte.ts', 'receipt.svelte.ts', 'self-pay.svelte.ts',
     'group-picker.svelte.ts', 'group-admin.svelte.ts', 'offline-queue.svelte.ts', 'components.ts', 'mount.ts']) {
     assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));

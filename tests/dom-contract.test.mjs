@@ -227,13 +227,13 @@ test('every label for= points at an input that exists', () => {
 });
 
 test('every data-action emitted by the markup or the renderers is handled', () => {
-  // The delegated switch in src/app.js is the only click router for [data-action].
+  // The delegated switch in src/svelte/app.ts is the only click router for [data-action].
   const handled = new Set(
-    [...read('src/app.js').matchAll(/case\s+'([a-z0-9-]+)':/g)].map((match) => match[1])
+    [...read('src/svelte/app.ts').matchAll(/case\s+'([a-z0-9-]+)':/g)].map((match) => match[1])
   );
   const emitted = attrValues('data-action');
   const unhandled = [...emitted].filter((action) => !handled.has(action));
-  assert.deepEqual(unhandled, [], `data-action with no handler in src/app.js: ${unhandled.join(', ')}`);
+  assert.deepEqual(unhandled, [], `data-action with no handler in src/svelte/app.ts: ${unhandled.join(', ')}`);
 });
 
 test('modal-confirm-action buttons have valid data-actions', () => {

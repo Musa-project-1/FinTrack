@@ -81,7 +81,6 @@ function listenForGroupChanges() {
   win.addEventListener('finkas:group-changed', resetSvelteGroupViewState);
   listeningWindows.add(win);
 }
-listenForGroupChanges();
 
 type Components = typeof import('./components');
 type SimpleIsland = Exclude<keyof Components, 'YearGlider'>;
@@ -312,7 +311,11 @@ export * from './handlers/auth';
 export * from './handlers/backup';
 export * from './handlers/cash-report';
 export * from './handlers/export';
-export * from './handlers/group-picker';
+export * from './handlers/groups';
+export * from './ui/gestures';
+export * from './ui/pin-input';
+export * from './ui/bento-dashboard';
+export { initApp, bootWorkspaceApp } from './app';
 export * from './handlers/master';
 export * from './handlers/navigation';
 export * from './handlers/offlineQueue';

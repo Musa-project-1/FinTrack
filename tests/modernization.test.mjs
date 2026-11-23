@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { stripTypeScriptTypes } from 'node:module';
 import vm from 'node:vm';
 import { resetPinInput, wirePinInput } from '../src/ui/pin-input.js';
 
 const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
-const gestureSource = read('src/ui/gestures.js')
-  .replace(/import .*?from '\.\/modal.js';/, '')
+const gestureSource = stripTypeScriptTypes(read('src/svelte/ui/gestures.ts'))
+  .replace(/import .*?from '\.\/modal';/, '')
   .replaceAll('export const ', 'var ');
 
 function gestureHarness(reduced = false) {
@@ -207,6 +208,7 @@ test('split modules are imported, precached, and authored batch sources stay und
   }
   for (const file of ['css/modules/groups-modal.css', 'css/modules/groups-superadmin.css',
     'css/modules/pin-input.css', 'src/ui/pin-input.js', 'src/ui/gestures.js', 'src/handlers/groups.js',
+    'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
@@ -240,6 +242,7 @@ for (const screen of ['groups', 'onboarding']) {
         payload = body;
         return { status: false, message: 'PIN salah.' };
       },
+      getInput: () => input,
       syncPinInput: (node) => {
         node.parentElement.querySelectorAll().forEach((box, i) => {
           box.textContent = i < node.value.length ? '•' : '';
@@ -247,7 +250,7 @@ for (const screen of ['groups', 'onboarding']) {
       },
       showToast() {}, esc: (text) => text
     });
-    let source = read(screen === 'groups' ? 'src/handlers/groups.js' : 'src/pages/onboarding.js')
+    let source = (screen === 'groups' ? stripTypeScriptTypes(read('src/svelte/handlers/groups.ts')) : read('src/pages/onboarding.js'))
       .replace(/^import[\s\S]*?from ["'][^"']+["'];\s*/gm, '')
       .replace(/^export \{[^}]*\} from ["'][^"']+["'];/gm, '')
       .replaceAll('export const ', 'const ');

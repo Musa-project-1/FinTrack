@@ -352,6 +352,7 @@ test('the shipped ESM shares core and motion dependencies and is available offli
     'ui/dpick.ts', 'ui/mpick.ts', 'ui/kasi-effects.ts', 'ui/kasi-stage.ts',
     'ui/kasi-mascot.ts', 'render/dashboard.ts', 'render/profile.ts', 'render/rekap.ts',
     'render/index.ts', 'render/receipt.ts', 'ui/workspace.ts',
+    'app.ts', 'handlers/groups.ts', 'ui/gestures.ts', 'ui/pin-input.ts', 'ui/bento-dashboard.ts',
     'ui/guided-tour.ts', 'handlers/attachments.ts', 'handlers/auth.ts',
     'handlers/backup.ts', 'handlers/cash-report.ts', 'handlers/export.ts',
     'handlers/group-picker.ts', 'handlers/master.ts', 'handlers/navigation.ts',

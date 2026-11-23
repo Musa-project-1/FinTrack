@@ -76,11 +76,12 @@ let onUpdateChange = null;
 
 /* ── BroadcastChannel (same-browser, cross-tab) ──────────────────── */
 
-const channel = typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined'
-  ? new BroadcastChannel(CHANNEL_NAME)
-  : null;
+/** @type {BroadcastChannel|null} */
+let channel = null;
 
-if (channel) {
+function openMutationChannel() {
+  if (typeof BroadcastChannel === 'undefined') return;
+  channel = new BroadcastChannel(CHANNEL_NAME);
   channel.onmessage = (event) => {
     const data = event?.data;
     if (!data || data.type !== 'mutation') return;
@@ -138,7 +139,12 @@ function handleMutationSuccess(e) {
   dispatchSyncStatus();
 }
 
-if (typeof globalThis.window?.addEventListener === 'function') {
+let eventsBound = false;
+
+export function initSyncEvents() {
+  if (eventsBound || typeof globalThis.window?.addEventListener !== 'function') return;
+  eventsBound = true;
+  openMutationChannel();
   window.addEventListener('finkas:mutation-success', handleMutationSuccess);
   window.addEventListener('finkas:group-changed', (e) => {
     const newGroup = e.detail?.groupId || getActiveGroupId();
@@ -288,6 +294,7 @@ export const getLastConfirmedWriteAt = () => getSyncStatus().lastConfirmedWriteA
  * @param {(hasUpdate: boolean) => void} [onChange] Called with true = has update, false = up to date
  */
 export const initSync = (onChange) => {
+  initSyncEvents();
   onUpdateChange = onChange || null;
   lastSyncedGroupId = getActiveGroupId();
   if (typeof document !== 'undefined') {

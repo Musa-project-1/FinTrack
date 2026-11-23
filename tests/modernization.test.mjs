@@ -99,7 +99,7 @@ test('unrelated pointers cannot cancel or release the active drag', () => {
 
 test('each PIN screen has one named native password input associated with its error', () => {
   for (const [file, messageId] of [
-    ['src/svelte/shell/modals/GroupPinModal.svelte', 'group-pin-msg'], ['onboarding.html', 'pin-msg']
+    ['src/svelte/shell/modals/GroupPinModal.svelte', 'group-pin-msg'], ['src/svelte/pages/OnboardingShell.svelte', 'pin-msg']
   ]) {
     const html = read(file);
     const input = html.match(/<input\b[^>]*id="group-pin"[^>]*>/g);
@@ -210,7 +210,7 @@ test('split modules are imported, precached, and authored batch sources stay und
     'css/modules/pin-input.css',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',
-    'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
+    'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'src/svelte/pages/OnboardingShell.svelte', 'css/onboarding.css', 'css/onboarding-motion.css']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
 });

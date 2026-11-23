@@ -164,6 +164,19 @@ if (!fs.existsSync(INDEX_PATH)) {
   }
 }
 
+for (const [htmlFile, shellFile] of [
+  ['onboarding.html', 'src/svelte/pages/OnboardingShell.svelte'],
+  ['privacy.html', 'src/svelte/pages/PrivacyShell.svelte']
+]) {
+  const htmlAbs = path.join(ROOT, htmlFile);
+  const shellAbs = path.join(ROOT, shellFile);
+  if (!fs.existsSync(htmlAbs)) {
+    failures.push(`${htmlFile} is missing — run \`npm run build\`.`);
+  } else if (fs.existsSync(shellAbs) && fs.statSync(shellAbs).mtimeMs > fs.statSync(htmlAbs).mtimeMs) {
+    failures.push(`${htmlFile} is older than ${shellFile} — run \`npm run build\`.`);
+  }
+}
+
 /* ── 4. style.css freshness ──────────────────────────────────────── */
 
 /**

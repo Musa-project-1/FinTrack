@@ -19,8 +19,6 @@ const ROOT = path.resolve(__dirname, '..');
 
 const SW_PATH = path.join(ROOT, 'sw.js');
 const SW_REGISTER_PATH = path.join(ROOT, 'src', 'sw-register.js');
-const ONBOARDING_PATH = path.join(ROOT, 'onboarding.html');
-const PRIVACY_PATH = path.join(ROOT, 'privacy.html');
 
 // 1. Detect current version from sw.js
 const swContent = fs.readFileSync(SW_PATH, 'utf8');
@@ -58,19 +56,8 @@ if (fs.existsSync(SW_REGISTER_PATH)) {
   fs.writeFileSync(SW_REGISTER_PATH, updatedReg, 'utf8');
 }
 
-// 4. Update onboarding.html and privacy.html
-for (const pagePath of [ONBOARDING_PATH, PRIVACY_PATH]) {
-  if (!fs.existsSync(pagePath)) continue;
-  const pageContent = fs.readFileSync(pagePath, 'utf8');
-  const updatedPage = pageContent.replace(
-    /\?v=\d+/g,
-    `?v=${newVersion}`
-  );
-  fs.writeFileSync(pagePath, updatedPage, 'utf8');
-}
-
-// 6. Automatically rebuild index.html
-console.log('Rendering index.html...');
+// 4. Render HTML shells from Svelte shell components with the new ?v=
+console.log('Rendering index.html, onboarding.html, and privacy.html...');
 execSync('node scripts/render-shells.mjs', { cwd: ROOT, stdio: 'inherit' });
 
 // 7. Verify parity

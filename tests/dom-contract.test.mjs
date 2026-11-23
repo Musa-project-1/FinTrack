@@ -46,19 +46,20 @@ const SHELL_SVELTE_FILES = [
 ];
 
 /**
- * Standalone pages that ship their own markup and scripts. Their ids are
- * reachable by the shared modules — `journey.ts` runs against
- * `onboarding.ts` on `onboarding.html` — so they count as existing. They are
- * separate documents from the assembled app, so they are excluded from the
- * duplicate-id check.
+ * Standalone pages that ship their own Svelte shell markup and scripts.
+ * Kept separate from `SHELL_SVELTE_FILES` so shared element ids across distinct
+ * documents (like `#group-pin` in GroupPinModal vs OnboardingShell) are excluded
+ * from the single-document duplicate-id check.
  */
-const STANDALONE_PAGES = fs.readdirSync(ROOT)
-  .filter((f) => f.endsWith('.html') && f !== 'index.html' && !f.startsWith('prototype-'));
+const STANDALONE_PAGES = [
+  'src/svelte/pages/OnboardingShell.svelte',
+  'src/svelte/pages/PrivacyShell.svelte'
+];
 
-/** Every static markup file and Svelte component a literal lookup may resolve in. */
+/** Every authored markup file and Svelte component a literal lookup may resolve in. */
 const SVELTE_FILES = walk('src/svelte').filter((f) => f.endsWith('.svelte'));
-const HTML_FILES = [...STANDALONE_PAGES];
-const MARKUP_FILES = [...HTML_FILES, ...SVELTE_FILES];
+const HTML_FILES = [];
+const MARKUP_FILES = [...STANDALONE_PAGES, ...SVELTE_FILES];
 
 /** Every authored client module (.js / .ts, excluding type declarations and compiled bundles). */
 const JS_FILES = walk('src').filter(

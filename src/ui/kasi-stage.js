@@ -126,6 +126,7 @@ export const renderAffectionUI = () => {
   if (fill) fill.style.width = `${pct}%`;
 };
 
+/** @param {number} [delta] @param {Element|null} [anchorEl] @param {((text:string, duration:number)=>void)|null} [onBubble] */
 export const incrementKasiAffection = (delta = 20, anchorEl = null, onBubble = null) => {
   if (flipResetTimer) {
     clearTimeout(flipResetTimer);
@@ -188,8 +189,10 @@ const stageBoop = (anchorEl) => {
 };
 
 const attachStageRub = (zone) => {
+  /** @type {{id: number, x: number, y: number, dist: number, lastFire: number} | null} */
   let drag = null;
-  let hover = { x: null, y: null, segs: [], lastFire: 0 };
+  /** @type {{x:number|null, y:number|null, segs:{t:number, d:number}[], lastFire:number}} */
+  const hover = { x: null, y: null, segs: [], lastFire: 0 };
   zone.addEventListener('pointerdown', (e) => {
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, dist: 0, lastFire: 0 };
   });
@@ -209,7 +212,7 @@ const attachStageRub = (zone) => {
       return;
     }
     if (e.pointerType === 'touch') return;
-    const step = hover.x === null ? 0 : Math.hypot(e.clientX - hover.x, e.clientY - hover.y);
+    const step = hover.x === null || hover.y === null ? 0 : Math.hypot(e.clientX - hover.x, e.clientY - hover.y);
     hover.x = e.clientX;
     hover.y = e.clientY;
     if (step > 0 && step < 180) hover.segs.push({ t: now, d: step });
@@ -234,7 +237,7 @@ const attachStageRub = (zone) => {
 };
 
 export const initKasiStage = () => {
-  const modal = document.getElementById('modal-faq');
+  const modal = /** @type {HTMLDialogElement | null} */ (document.getElementById('modal-faq'));
   const zone = document.getElementById('kasi-stage-pet-zone');
   if (!modal || !zone) return;
 
@@ -308,7 +311,7 @@ export const initKasiStage = () => {
       const r = stageSvg.getBoundingClientRect();
       const px = Math.max(-1.5, Math.min(1.5, (e.clientX - r.left - r.width / 2) / 90));
       const py = Math.max(-1.5, Math.min(1.5, (e.clientY - r.top - r.height / 2) / 90));
-      for (const p of stagePupils) p.style.transform = `translate(${px.toFixed(2)}px, ${py.toFixed(2)}px)`;
+      for (const p of stagePupils) /** @type {SVGElement} */ (p).style.transform = `translate(${px.toFixed(2)}px, ${py.toFixed(2)}px)`;
     });
   }, { passive: true });
 

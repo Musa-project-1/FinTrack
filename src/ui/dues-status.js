@@ -13,7 +13,7 @@ export const getActiveIndicatorStyle = () => {
   let saved;
   try { saved = localStorage.getItem('finkas_indicator_style'); }
   catch {}
-  if (STAMP_STYLES.includes(saved)) return saved;
+  if (saved && STAMP_STYLES.includes(saved)) return saved;
   return saved === 'star' || saved === 'round-star' ? 'rosette' : 'seal';
 };
 

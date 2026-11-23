@@ -3,8 +3,8 @@
   const { body } = document;
   try {
     const theme = localStorage.getItem('theme');
-    const palette = localStorage.getItem('finkas_palette');
-    const canvas = localStorage.getItem('finkas_bg_texture');
+    const palette = localStorage.getItem('finkas_palette') || '';
+    const canvas = localStorage.getItem('finkas_bg_texture') || '';
     const legacyCanvas = { dots: 'aurora', grid: 'paper', solid: 'clean' };
     const dark = theme === 'dark' ||
       (theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);

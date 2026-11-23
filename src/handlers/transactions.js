@@ -10,7 +10,7 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, addTransaction, getIsAdminSession, getActiveGroupId, saveCache, notifyStateChange } from "../core/state.js";
 import { billingPeriod } from "../core/dues.js";
-import { formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "../core/utils.js";
+import { getInput, getSelect, requiredField, formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "../core/utils.js";
 import { isUnsyncedTempId, classifySyncResponse } from "../core/offline.js";
 import { deliverMutation, generateOperationId } from "../core/mutation.js";
 import { withBusyButton, withLiquidSave } from "../ui/keel.js";
@@ -44,41 +44,41 @@ const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHL
 export const bukaModalTransaksi = (selection) => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
   switchTab("iuran", "modal-transaksi");
-  document.getElementById("search-anggota-iuran").value = "";
+  requiredField("search-anggota-iuran").value = "";
   const defaultPeriod = billingPeriod(new Date());
-  document.getElementById("iuran-tahun").value = selection?.year ?? defaultPeriod.year;
-  document.getElementById("iuran-bulan").value = NAMA_BULAN[selection?.month ?? defaultPeriod.monthIndex];
+  requiredField("iuran-tahun").value = selection?.year ?? defaultPeriod.year;
+  requiredField("iuran-bulan").value = NAMA_BULAN[selection?.month ?? defaultPeriod.monthIndex];
   syncCdrop("iuran-bulan");
   syncCdrop("iuran-kategori");
   renderCheckboxIuran();
 
   document.getElementById("tab-operasional")?.querySelector("form")?.reset?.();
-  document.getElementById("ops-anggota").value = "-";
-  document.getElementById("ops-tipe").value = "Keluar";
+  requiredField("ops-anggota").value = "-";
+  requiredField("ops-tipe").value = "Keluar";
   filterKategori("ops-tipe", "ops-kategori");
   syncCdrop("ops-anggota");
   syncCdrop("ops-kategori");
   updateCounterOps();
 
-  document.getElementById("iuran-nominal").value = selection
+  requiredField("iuran-nominal").value = selection
     ? new Intl.NumberFormat("id-ID").format(selection.amount) : DEFAULT_FEE_DISPLAY;
   if (selection) {
     const selectedMembers = new Set(selection.memberIds);
-    document.querySelectorAll(".chk-iuran:not(:disabled)").forEach((input) => {
+    /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll(".chk-iuran:not(:disabled)")).forEach((input) => {
       input.checked = selectedMembers.has(input.value);
     });
   }
   updateCounterIuran();
-  const iuranTgl = document.getElementById("iuran-tanggal");
+  const iuranTgl = getInput("iuran-tanggal");
   if (iuranTgl) iuranTgl.value = "";
-  const opsTgl = document.getElementById("ops-tanggal");
+  const opsTgl = getInput("ops-tanggal");
   if (opsTgl) opsTgl.value = "";
   syncDpick("iuran-tanggal");
   syncDpick("ops-tanggal");
   const hasPreselected = Boolean(
     selection?.memberIds?.length > 0 &&
-    document.querySelectorAll(".chk-iuran:not(:disabled):checked").length > 0 &&
-    document.getElementById("iuran-kategori")?.value
+    /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll(".chk-iuran:not(:disabled):checked")).length > 0 &&
+    getSelect("iuran-kategori")?.value
   );
   resetTrxWizard("iuran", hasPreselected ? 3 : 1);
   openModal("modal-transaksi");
@@ -90,14 +90,14 @@ export const bukaModalTransaksi = (selection) => {
 export const submitIuran = async (e) => {
   e?.preventDefault?.();
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
-  const checkboxes = document.querySelectorAll(".chk-iuran:not(:disabled):checked");
+  const checkboxes = /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll(".chk-iuran:not(:disabled):checked"));
   if (checkboxes.length === 0) return showToast("Pilih minimal 1 anggota!", "error");
 
   const formNominal = getRawNominal("iuran-nominal");
-  const formKategori = document.getElementById("iuran-kategori").value;
-  const formBulan = document.getElementById("iuran-bulan").value;
-  const formTahun = document.getElementById("iuran-tahun").value;
-  const formTanggalIso = dateInputToIso(document.getElementById("iuran-tanggal")?.value);
+  const formKategori = requiredField("iuran-kategori").value;
+  const formBulan = requiredField("iuran-bulan").value;
+  const formTahun = requiredField("iuran-tahun").value;
+  const formTanggalIso = dateInputToIso(getInput("iuran-tanggal")?.value);
 
   if (isNaN(formNominal) || formNominal <= 0) return showToast("Nominal iuran harus lebih dari 0.", "error");
   if (!formKategori || formKategori === "-") return showToast("Pilih kategori iuran terlebih dahulu.", "error");
@@ -199,7 +199,7 @@ export const submitIuran = async (e) => {
               markNewlyPaidCells(arrIdAnggota, formBulan, formTahun);
               rerenderAfterLedgerChange();
               renderCheckboxIuran();
-              const nomInput = document.getElementById("iuran-nominal");
+              const nomInput = getInput("iuran-nominal");
               if (nomInput) nomInput.value = DEFAULT_FEE_DISPLAY;
             } else {
               applyIuranOptimistically(
@@ -236,7 +236,7 @@ const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timest
   markNewlyPaidCells(ids, bulan, tahun);
   rerenderAfterLedgerChange();
   renderCheckboxIuran();
-  const nomInput = document.getElementById("iuran-nominal");
+  const nomInput = getInput("iuran-nominal");
   if (nomInput) nomInput.value = DEFAULT_FEE_DISPLAY;
 };
 
@@ -245,7 +245,7 @@ const applyIuranOptimistically = (ids, idKategori, bulan, tahun, nominal, timest
  * change until the queued mutation replays. Field names map dataForm → stored
  * transaction shape. No-op when the row is not in local state.
  * @param {string} idTransaksi
- * @param {object} dataForm
+ * @param {{tipeArus: import('../types/finkas.d.ts').ArusTipe, idKategori:string, idAnggota:string, bulanIuran:string, tahunIuran:string, nominal:number, keterangan:string, timestamp?:string}} dataForm
  */
 const applyEditOptimistically = (idTransaksi, dataForm) => {
   const trx = getState().transaksi.find((t) => t.ID_Transaksi === idTransaksi);
@@ -283,14 +283,14 @@ const removeTransactionOptimistically = (idTarget) => {
 export const submitOperasional = async (e) => {
   e?.preventDefault?.();
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat transaksi.", "error");
-  const formTipe = document.getElementById("ops-tipe")?.value;
-  const formKategori = document.getElementById("ops-kategori")?.value;
+  const formTipe = getSelect("ops-tipe")?.value;
+  const formKategori = getSelect("ops-kategori")?.value;
   const formNominal = getRawNominal("ops-nominal");
-  const formAnggota = document.getElementById("ops-anggota")?.value || "-";
-  const formKeterangan = (document.getElementById("ops-keterangan")?.value || "").trim();
-  const formTanggalIso = dateInputToIso(document.getElementById("ops-tanggal")?.value);
+  const formAnggota = getSelect("ops-anggota")?.value || "-";
+  const formKeterangan = (getInput("ops-keterangan")?.value || "").trim();
+  const formTanggalIso = dateInputToIso(getInput("ops-tanggal")?.value);
 
-  if (!formTipe || !["Masuk", "Keluar"].includes(formTipe)) {
+  if (formTipe !== "Masuk" && formTipe !== "Keluar") {
     return showToast("Pilih tipe transaksi yang valid (Masuk/Keluar).", "error");
   }
   if (!formKategori || formKategori === "-" || formKategori === "") {
@@ -355,6 +355,7 @@ export const submitOperasional = async (e) => {
             if (getActiveGroupId() !== targetGroupId) return;
             if (!delivered) {
               showDatabaseToast("Operasional Disimpan (Offline)", `${formTipe} ${formatRp(formNominal)} disimpan lokal.`);
+              /** @type {import('../types/finkas.d.ts').Transaksi} */
               const offlineRow = {
                 ID_Transaksi: tempTransactionId(),
                 Timestamp: formTanggalIso || new Date().toISOString(),
@@ -380,9 +381,9 @@ export const submitOperasional = async (e) => {
             rerenderAfterLedgerChange();
 
             document.getElementById("tab-operasional")?.querySelector("form")?.reset?.();
-            const opsAnggota = document.getElementById("ops-anggota");
+            const opsAnggota = getSelect("ops-anggota");
             if (opsAnggota) opsAnggota.value = "-";
-            const opsTipe = document.getElementById("ops-tipe");
+            const opsTipe = getSelect("ops-tipe");
             if (opsTipe) opsTipe.value = "Keluar";
             filterKategori("ops-tipe", "ops-kategori");
             syncCdrop("ops-anggota");
@@ -400,6 +401,17 @@ export const submitOperasional = async (e) => {
    EDIT / DELETE
    ══════════════════════════════════════════════════════════════════ */
 
+/** @type {WeakMap<HTMLElement, EventListener>} */
+const editPreviewListeners = new WeakMap();
+
+const bindEditPreview = (field, event, listener) => {
+  if (!field) return;
+  const previous = editPreviewListeners.get(field);
+  if (previous) field.removeEventListener(event, previous);
+  field.addEventListener(event, listener);
+  editPreviewListeners.set(field, listener);
+};
+
 /**
  * Open the edit modal prefilled from a transaction.
  * @param {string} idTrx
@@ -409,22 +421,22 @@ export const bukaModalEdit = (idTrx) => {
   const trx = getState().transaksi.find((t) => t.ID_Transaksi === idTrx);
   if (!trx) return;
 
-  document.getElementById("edit-id").value = trx.ID_Transaksi;
-  document.getElementById("edit-tipe").value = trx.Tipe_Arus;
+  requiredField("edit-id").value = trx.ID_Transaksi;
+  requiredField("edit-tipe").value = trx.Tipe_Arus;
   filterKategori("edit-tipe", "edit-kategori");
-  document.getElementById("edit-kategori").value = trx.ID_Kategori;
+  requiredField("edit-kategori").value = trx.ID_Kategori;
   syncCdrop("edit-tipe");
   syncCdrop("edit-kategori");
 
-  document.getElementById("edit-nominal").value = new Intl.NumberFormat("id-ID").format(trx.Nominal || 0);
-  document.getElementById("edit-anggota").value = trx.ID_Anggota || "-";
-  document.getElementById("edit-bulan").value = trx.Bulan_Iuran || "-";
+  requiredField("edit-nominal").value = new Intl.NumberFormat("id-ID").format(trx.Nominal || 0);
+  requiredField("edit-anggota").value = trx.ID_Anggota || "-";
+  requiredField("edit-bulan").value = trx.Bulan_Iuran || "-";
   syncCdrop("edit-anggota");
   syncCdrop("edit-bulan");
-  document.getElementById("edit-tahun").value = trx.Tahun_Iuran || "";
-  document.getElementById("edit-keterangan").value = trx.Keterangan || "";
+  requiredField("edit-tahun").value = String(trx.Tahun_Iuran || "");
+  requiredField("edit-keterangan").value = trx.Keterangan || "";
 
-  const editTanggal = document.getElementById("edit-tanggal");
+  const editTanggal = getInput("edit-tanggal");
   if (editTanggal) editTanggal.value = isoToDateInput(trx.Timestamp);
   syncDpick("edit-tanggal");
 
@@ -433,16 +445,13 @@ export const bukaModalEdit = (idTrx) => {
   const _originalTipe = trx.Tipe_Arus;
   updateEditDelta(_originalTipe, _originalNominal, _originalTipe, _originalNominal);
 
-  const _rebind = () => {
-    const newTipe = document.getElementById("edit-tipe")?.value || _originalTipe;
+  const refreshPreview = () => {
+    const newTipe = getSelect("edit-tipe")?.value || _originalTipe;
     const newNominal = getRawNominal("edit-nominal");
     updateEditDelta(_originalTipe, _originalNominal, newTipe, newNominal);
   };
-  // Remove previous listeners if any then attach
-  const nomEl = document.getElementById("edit-nominal");
-  const tipeEl = document.getElementById("edit-tipe");
-  if (nomEl) { nomEl.removeEventListener("input", nomEl._deltaHandler); nomEl._deltaHandler = _rebind; nomEl.addEventListener("input", _rebind); }
-  if (tipeEl) { tipeEl.removeEventListener("change", tipeEl._deltaHandler); tipeEl._deltaHandler = _rebind; tipeEl.addEventListener("change", _rebind); }
+  bindEditPreview(getInput("edit-nominal"), "input", refreshPreview);
+  bindEditPreview(getSelect("edit-tipe"), "change", refreshPreview);
 
   openModal("modal-edit-transaksi");
 };
@@ -451,13 +460,13 @@ export const bukaModalEdit = (idTrx) => {
 export const submitEditTransaksi = async (e) => {
   e?.preventDefault?.();
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mengedit transaksi.", "error");
-  const idTransaksi = (document.getElementById("edit-id")?.value || "").trim();
-  const tipeArus = document.getElementById("edit-tipe")?.value;
-  const idKategori = document.getElementById("edit-kategori")?.value;
+  const idTransaksi = (getInput("edit-id")?.value || "").trim();
+  const tipeArus = getSelect("edit-tipe")?.value;
+  const idKategori = getSelect("edit-kategori")?.value;
   const nominal = getRawNominal("edit-nominal");
 
   if (!idTransaksi) return showToast("ID transaksi tidak ditemukan.", "error");
-  if (!["Masuk", "Keluar"].includes(tipeArus)) return showToast("Pilih tipe transaksi yang valid.", "error");
+  if (tipeArus !== "Masuk" && tipeArus !== "Keluar") return showToast("Pilih tipe transaksi yang valid.", "error");
   if (!idKategori || idKategori === "-") return showToast("Pilih kategori transaksi.", "error");
   if (isNaN(nominal) || nominal <= 0) return showToast("Nominal transaksi harus lebih dari 0.", "error");
 
@@ -486,16 +495,17 @@ export const submitEditTransaksi = async (e) => {
         '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
         "UPDATE DATA",
         async () => {
+          /** @type {Parameters<typeof applyEditOptimistically>[1] & {idTransaksi:string}} */
           const dataForm = {
             idTransaksi,
             tipeArus,
             idKategori,
-            idAnggota: document.getElementById("edit-anggota")?.value || "-",
-            bulanIuran: document.getElementById("edit-bulan")?.value || "-",
-            tahunIuran: document.getElementById("edit-tahun")?.value || "-",
+            idAnggota: getSelect("edit-anggota")?.value || "-",
+            bulanIuran: getSelect("edit-bulan")?.value || "-",
+            tahunIuran: getInput("edit-tahun")?.value || "-",
             nominal,
-            keterangan: (document.getElementById("edit-keterangan")?.value || "").trim(),
-            timestamp: dateInputToIso(document.getElementById("edit-tanggal")?.value) || undefined
+            keterangan: (getInput("edit-keterangan")?.value || "").trim(),
+            timestamp: dateInputToIso(getInput("edit-tanggal")?.value) || undefined
           };
 
           const { delivered, result } = await deliverMutation({ action: "editTransaksi", idTransaksi, dataForm });
@@ -534,15 +544,15 @@ export const submitEditTransaksi = async (e) => {
  */
 export const konfirmasiHapus = (idTrx) => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang menghapus transaksi.", "error");
-  document.getElementById("hapus-id-target").value = idTrx;
-  document.getElementById("modal-hapus").style.zIndex = "110";
+  requiredField("hapus-id-target").value = idTrx;
+  /** @type {HTMLDialogElement} */ (document.getElementById("modal-hapus")).style.zIndex = "110";
   openModal("modal-hapus");
 };
 
 /** Delete the transaction awaiting confirmation. */
 export const eksekusiHapus = async () => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang menghapus transaksi.", "error");
-  const idTarget = (document.getElementById("hapus-id-target")?.value || "").trim();
+  const idTarget = (getInput("hapus-id-target")?.value || "").trim();
   if (!idTarget) return showToast("ID transaksi tidak ditemukan.", "error");
 
   // A temp id is an optimistic row whose create has not been confirmed yet;

@@ -1,3 +1,4 @@
+import { htmlElements } from '../core/utils.js';
 /**
  * @module ui/i18n
  * Client-side Indonesian/English DOM interface translation engine.
@@ -32,8 +33,8 @@ const EXACT_EN = {
   'Total Pengeluaran': 'Total Outflow', 'Belum ada pengeluaran': 'No outflows yet', 'Keluar': 'Outflow', 'Keluar →': 'Outflows →',
   // Spotlight & Priority Arrears
   'Pantau Iuran Saya': 'Track My Dues',
-  'Elus': 'Pet', 'Koin': 'Coin', 'Ikan': 'Fish', 'Salto': 'Flip', 'Trik': 'Trick', 'Panduan': 'Guide',
-  'Interaksi Kasi': 'Kasi Actions', 'Maskot Interaktif': 'Interactive Mascot',
+  'Trik': 'Trick',
+  'Interaksi Kasi': 'Kasi Actions',
   'Sayang Kasi': 'Kasi Love', 'Elus Kasi': 'Pet Kasi', 'Kasih Koin': 'Toss Coin',
   'Beri Ikan': 'Give Fish', 'Trik & Tidur': 'Tricks & Nap', 'Salto 360': '360 Flip',
   'Sapaan Maneki': 'Maneki Wave', 'Mode Detektif': 'Detective Mode', 'Tidur Zzz': 'Sleepy Zzz',
@@ -147,7 +148,7 @@ const EXACT_EN = {
   'Grup aktif': 'Active group', 'Grup aktif saat ini': 'Currently active group',
   'Ketuk untuk masuk': 'Tap to unlock', 'Ketuk untuk masuk dengan PIN': 'Tap to unlock with PIN',
   'Langsung masuk': 'Instant access', 'Akses langsung tanpa PIN': 'Direct access without PIN',
-  'Aktif': 'Active', 'Instan': 'Instant',
+  'Instan': 'Instant',
   'Belum ada grup. Minta admin pemilik membuatkan grup.': 'No cash groups yet. Ask the owner admin to create one.',
   'Belum ada grup kas tersedia': 'No cash groups available yet',
   'Hubungi pengurus pemilik untuk membuat ruang kas baru.': 'Contact the owner admin to create a new cash group.',
@@ -330,6 +331,7 @@ const EXACT_EN = {
   'Berpindah antara Status Iuran, Riwayat Arus Kas, dan Kesehatan & Grafik Kas.': 'Switch seamlessly between the Dues Matrix, Cash Flow Ledger, and Analytics & Charts.'
 };
 
+/** @type {Array<[RegExp, (match:string, ...groups:string[]) => string]>} */
 const PATTERN_EN = [
   [/^Iuran\s+(.+)\/bln$/i, (_, amt) => `Dues ${amt}/mo`],
   [/^(\d+)\s+anggota aktif$/i, (_, n) => `${n} active members`],
@@ -410,6 +412,7 @@ const origAttrMap = new WeakMap();
 const lastEnAttrMap = new WeakMap();
 const I18N_ATTRS = ['placeholder', 'title', 'aria-label'];
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'CODE']);
+/** @type {MutationObserver | null} */
 let i18nObserver = null;
 let isApplyingI18n = false;
 
@@ -517,7 +520,7 @@ export const applyLanguagePreference = () => {
   document.documentElement.lang = lang;
   document.body.dataset.lang = lang;
 
-  document.querySelectorAll('[data-action="select-language"]').forEach((btn) => {
+  htmlElements('[data-action="select-language"]').forEach((btn) => {
     const active = btn.dataset.lang === lang;
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', String(active));

@@ -6,14 +6,10 @@
 
 import { NAMA_BULAN } from '../core/config.js';
 import { getState } from '../core/state.js';
-import { showToast, getRawNominal, formatRp, getInitials } from '../core/utils.js';
+import { getInput, getSelect, showToast, getRawNominal, formatRp, getInitials } from '../core/utils.js';
 import { createDuesLedger, duesStatusLabel } from '../core/dues.js';
 
 import { syncIuranChecklist, syncIuranChecklistFilter, syncIuranReviewChips } from './svelte-dashboard.js';
-
-const getInput = id => /** @type {HTMLInputElement | null} */ (document.getElementById(id));
-
-const getSelect = id => /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
 
 /** @param {HTMLElement} root @param {string} selector */
 const htmlElements = (root, selector) =>

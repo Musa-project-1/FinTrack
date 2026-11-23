@@ -1,7 +1,7 @@
 import { NAMA_BULAN } from '../core/config.js';
 import { createDuesLedger } from '../core/dues.js';
 import { getActiveGroupId, getIsAdminView, getState } from '../core/state.js';
-import { formatRp, showToast } from '../core/utils.js';
+import { htmlElements, closestHtml, formatRp, showToast } from '../core/utils.js';
 
 const cellSelector = '[data-bulk-month]';
 const selected = new Set();
@@ -20,17 +20,18 @@ const updateBulkUI = () => {
   if (!dock) return;
   if (!getIsAdminView() || (period && period.group !== getActiveGroupId())) clearSelection();
   const matrix = document.getElementById('workspace-iuran');
+  if (!matrix) return;
   const selecting = active && getIsAdminView();
   matrix.classList.toggle('bulk-selecting', selecting);
   dock.hidden = !selecting;
   document.querySelectorAll('[data-action="bulk-toggle"][aria-pressed]').forEach((button) => {
     button.setAttribute('aria-pressed', String(selecting));
   });
-  document.getElementById('bulk-status').textContent = period
+  /** @type {HTMLElement} */ (document.getElementById('bulk-status')).textContent = period
     ? `${selected.size} anggota · ${NAMA_BULAN[period.month]} ${period.year} · ${formatRp(period.amount)} per anggota`
     : 'Pilih sel yang belum lunas. Satu bulan dan nominal sisa yang sama per pembayaran.';
-  dock.querySelector('[data-action="bulk-review"]').disabled = selected.size === 0;
-  matrix.querySelectorAll(cellSelector).forEach((cell) => {
+  /** @type {HTMLButtonElement} */ (dock.querySelector('[data-action="bulk-review"]')).disabled = selected.size === 0;
+  htmlElements(cellSelector, matrix).forEach((cell) => {
     const checked = Boolean(selecting && period && cell.dataset.bulkMonth === String(period.month) &&
       cell.dataset.bulkYear === String(period.year) && selected.has(cell.dataset.anggota));
     cell.classList.toggle('bulk-cell-selected', checked);
@@ -73,7 +74,7 @@ export const toggleBulkMode = (switchWorkspace) => {
   else {
     active = true;
     switchWorkspace('iuran');
-    document.getElementById('workspace-iuran').scrollIntoView({ block: 'start' });
+    /** @type {HTMLElement} */ (document.getElementById('workspace-iuran')).scrollIntoView({ block: 'start' });
   }
   updateBulkUI();
 };
@@ -105,7 +106,7 @@ export const initBulkDues = () => {
   const cellAtPointer = (event) => document.elementFromPoint(event.clientX, event.clientY)?.closest(cellSelector);
 
   matrix.addEventListener('click', (event) => {
-    const cell = event.target.closest(cellSelector);
+    const cell = closestHtml(event.target, cellSelector);
     if (!getIsAdminView() || (!active && !event.shiftKey) || (!cell && !suppressClick)) return;
     event.preventDefault();
     event.stopPropagation();
@@ -114,7 +115,7 @@ export const initBulkDues = () => {
   }, true);
 
   matrix.addEventListener('pointerdown', (event) => {
-    const cell = event.target.closest(cellSelector);
+    const cell = closestHtml(event.target, cellSelector);
     suppressClick = false;
     if (cell && active && getIsAdminView() && event.isPrimary && event.button === 0) {
       drag = { pointerId: event.pointerId, cell, x: event.clientX, y: event.clientY, moved: false };

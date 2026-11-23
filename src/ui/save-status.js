@@ -29,17 +29,19 @@ import { countQueuedTransactions } from '../core/offline.js';
  * @typedef {'danger' | 'warning' | 'info' | 'success' | 'offline' | 'loading' | 'neutral'} StatusLevel
  */
 
+/** @type {HTMLElement|null} */
 let activeContainer = null;
+/** @type {((status: ReturnType<typeof computeSaveStatus>) => void)|null} */
 let onChangeCallback = null;
 
 let state = {
-  groupId: null,
+  groupId: /** @type {string|null} */ (null),
   storageState: 'unknown', // 'saved' | 'failed' | 'unknown'
   pendingCount: 0,
   queueState: 'idle',
   hasRemoteUpdate: false,
-  lastSyncedAt: null,
-  lastConfirmedWriteAt: null,
+  lastSyncedAt: /** @type {string|null} */ (null),
+  lastConfirmedWriteAt: /** @type {string|null} */ (null),
   isOnline: true,
   isSyncing: false
 };
@@ -49,7 +51,7 @@ let state = {
 /**
  * Compute truthful textual status and accessible metadata.
  *
- * @param {object} s State input
+ * @param {typeof state} s State input
  * @returns {{
  *   level: StatusLevel,
  *   text: string,
@@ -354,7 +356,7 @@ function handleNetworkChange() {
  *
  * @param {object} [options]
  * @param {string|HTMLElement} [options.container] DOM container or element ID
- * @param {function(object): void} [options.onChange] Callback on status update
+ * @param {(status: ReturnType<typeof computeSaveStatus>) => void} [options.onChange] Callback on status update
  */
 export const initSaveStatus = (options = {}) => {
   activeContainer = resolveContainer(options.container);
@@ -389,13 +391,13 @@ export const initSaveStatus = (options = {}) => {
     document.addEventListener('finkas:sync-status', handleSyncStatus);
   }
 
-  renderSaveStatus(activeContainer);
+  renderSaveStatus(activeContainer ?? undefined);
 
   // Read actual pending count from IDB asynchronously without blocking initial render
   void countQueuedTransactions(currentGroup).then((count) => {
     if (state.groupId === currentGroup && count > 0) {
       state.pendingCount = count;
-      renderSaveStatus(activeContainer);
+      renderSaveStatus(activeContainer ?? undefined);
     }
   }).catch(() => {});
 };

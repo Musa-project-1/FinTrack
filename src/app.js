@@ -11,7 +11,7 @@ import {
   setState, saveCache, loadCache, getIsAdminView, getState, getActiveGroupId
 } from "./core/state.js";
 import { fetchInitialData } from "./core/api.js";
-import { showToast, setConnectionStatus, isOnline } from "./core/utils.js";
+import { getInput, getSelect, closestHtml, showToast, setConnectionStatus, isOnline } from "./core/utils.js";
 import { syncOfflineTransactions, deleteOfflineTransaction, countQueuedTransactions } from "./core/offline.js";
 import { initAnalytics } from "./core/analytics.js";
 import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "./core/config.js";
@@ -101,16 +101,16 @@ if (typeof window !== 'undefined') {
    ══════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('click', (e) => {
-  const target = e.target.closest('[data-action]');
+  const target = closestHtml(e.target, '[data-action]');
   if (!target) return;
 
-  const action = target.getAttribute('data-action');
+  const action = target.getAttribute('data-action') || '';
 
   // Menu sheet: close itself before opening the target modal (no stacking)
   if (target.closest('#modal-menu') && action !== 'close-modal' && !['logout', 'close-dropdown'].includes(action)) {
     closeModal('modal-menu');
   }
-  const id = target.getAttribute('data-id');
+  const id = target.getAttribute('data-id') || '';
   const month = target.getAttribute('data-month');
   const anggota = target.getAttribute('data-anggota');
   const bulan = target.getAttribute('data-bulan');
@@ -138,15 +138,16 @@ document.addEventListener('click', (e) => {
     case 'toggle-member-pin': toggleMemberPin(id); break;
     case 'spotlight-pay': showSpotlightDetail('pay'); break;
     case 'select-rekap-year': {
-      const select = target.closest('.year-pill').querySelector('select');
+      const select = target.closest('.year-pill')?.querySelector('select');
+      if (!select || !target.dataset.year) break;
       select.value = target.dataset.year;
       select.dispatchEvent(new Event('change', { bubbles: true }));
       break;
     }
-    case 'filter-dues-status': filterDuesStatus(target.dataset.statusFilter); break;
+    case 'filter-dues-status': filterDuesStatus(target.dataset.statusFilter || 'all'); break;
     case 'switch-workspace': switchWorkspace(target.dataset.panel); break;
     case 'select-palette': setPalette(target.dataset.palette, e, target); break;
-    case 'select-language': setLanguage(target.dataset.lang); break;
+    case 'select-language': setLanguage(target.dataset.lang === 'en' ? 'en' : 'id'); break;
     case 'set-role-view': setAdminViewModeAction(target.dataset.role); break;
     case 'toggle-privacy': setPrivacyMode(document.body.classList.contains('privacy-mode') ? 'off' : 'on'); break;
     case 'toggle-theme':      toggleTheme(e, target); break;
@@ -160,7 +161,11 @@ document.addEventListener('click', (e) => {
     case 'open-tampilan':     openTampilanModal(); break;
     case 'select-indicator-style': setIndicatorStyle(target.getAttribute('data-style')); break;
     case 'select-currency-format': setCurrencyFormat(target.getAttribute('data-format')); break;
-    case 'select-theme-mode': setTheme(target.getAttribute('data-theme'), e, target); break;
+    case 'select-theme-mode': {
+      const theme = target.dataset.theme;
+      if (theme === 'auto' || theme === 'light' || theme === 'dark') setTheme(theme, e, target);
+      break;
+    }
     case 'select-texture': setBgTexture(target.getAttribute('data-texture')); break;
     case 'toggle-mobile-menu':
     case 'open-menu-modal':
@@ -184,8 +189,8 @@ document.addEventListener('click', (e) => {
     case 'hapus-master-anggota': hapusMasterAnggotaAction(id); break;
     case 'hapus-master-kategori': hapusMasterKategoriAction(id); break;
     case 'toggle-status-from-modal': {
-      const idAng = document.getElementById('edit-master-anggota-id')?.value;
-      const nextSt = document.getElementById('edit-master-status-select')?.value;
+      const idAng = getInput('edit-master-anggota-id')?.value;
+      const nextSt = getSelect('edit-master-status-select')?.value;
       if (idAng && nextSt) {
         closeModal('modal-edit-master-anggota');
         toggleStatusAnggotaAction(idAng, nextSt);
@@ -193,7 +198,7 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'view-profil-from-modal': {
-      const idAng = document.getElementById('edit-master-anggota-id')?.value;
+      const idAng = getInput('edit-master-anggota-id')?.value;
       if (idAng) {
         closeModal('modal-edit-master-anggota');
         bukaProfilAnggota(idAng);
@@ -201,7 +206,7 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'hapus-anggota-from-modal': {
-      const idAng = document.getElementById('edit-master-anggota-id')?.value;
+      const idAng = getInput('edit-master-anggota-id')?.value;
       if (idAng) {
         closeModal('modal-edit-master-anggota');
         hapusMasterAnggotaAction(idAng);
@@ -209,7 +214,7 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'hapus-kategori-from-modal': {
-      const idKat = document.getElementById('edit-master-kategori-id')?.value;
+      const idKat = getInput('edit-master-kategori-id')?.value;
       if (idKat) {
         closeModal('modal-edit-master-kategori');
         hapusMasterKategoriAction(idKat);
@@ -252,7 +257,11 @@ document.addEventListener('click', (e) => {
       if (modalEl?.id) closeModal(modalEl.id);
       break;
     }
-    case 'switch-tab':        switchTab(target.getAttribute('data-tab'), target.closest('.modal-content').closest('.modal-overlay').id); break;
+    case 'switch-tab': {
+      const modal = target.closest('.modal-content')?.closest('.modal-overlay');
+      if (modal && target.dataset.tab) switchTab(target.dataset.tab, modal.id);
+      break;
+    }
 
     /* ── Member profile ───────────────────────────── */
     case 'open-self-pay': openSelfPay(id, month === null ? undefined : Number(month), Number(target.dataset.year)); break;
@@ -270,12 +279,12 @@ document.addEventListener('click', (e) => {
     case 'edit':              e.stopPropagation(); bukaModalEdit(id); break;
     case 'hapus':             e.stopPropagation(); konfirmasiHapus(id); break;
     case 'cetak-dari-edit': {
-      const idTrx = document.getElementById('edit-id')?.value;
+      const idTrx = getInput('edit-id')?.value;
       if (idTrx) cetakStruk(idTrx);
       break;
     }
     case 'hapus-dari-edit': {
-      const idTrx = document.getElementById('edit-id')?.value;
+      const idTrx = getInput('edit-id')?.value;
       if (idTrx) {
         closeModal('modal-edit-transaksi');
         konfirmasiHapus(idTrx);
@@ -285,7 +294,7 @@ document.addEventListener('click', (e) => {
 
     /* ── Quick pay ────────────────────────────────── */
     case 'quickpay':
-    case 'quickpay-card':     e.stopPropagation(); openQuickPaySheet(anggota, bulan, target.dataset.year); break;
+    case 'quickpay-card':     e.stopPropagation(); if (anggota && bulan) openQuickPaySheet(anggota, bulan, target.dataset.year); break;
 
     /* ── Mobile card accordion ────────────────────── */
     case 'toggle-card':       toggleIuranCard(target.closest('.iuran-member-card')); break;
@@ -335,7 +344,7 @@ document.addEventListener('click', (e) => {
     case 'sync-now':          syncOfflineTransactions(() => { initApp(); renderChart(); }); break;
     case 'refresh-offline':   renderOfflineQueueList(); break;
     case 'delete-offline-item': {
-      const itemId = parseInt(target.getAttribute('data-item-id'), 10);
+      const itemId = parseInt(target.dataset.itemId || '', 10);
       const groupId = getActiveGroupId();
       if (!groupId?.trim()) break;
       deleteOfflineTransaction(itemId, groupId).then(() => { renderOfflineQueueList(); });
@@ -354,7 +363,7 @@ document.addEventListener('change', (e) => {
 /* Close dropdown on outside click */
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('header-dropdown');
-  if (dropdown && !dropdown.contains(e.target) && dropdown.classList.contains('open')) {
+  if (dropdown && !dropdown.contains(/** @type {Node | null} */ (e.target)) && dropdown.classList.contains('open')) {
     closeHeaderDropdown();
   }
 });
@@ -416,7 +425,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
   try {
     const resJSON = await fetchInitialData(group);
     if (getActiveGroupId() !== group) return false;
-    if (resJSON && resJSON.status) {
+    if (resJSON?.status && resJSON.data) {
       setState({
         anggota: resJSON.data.anggota || [],
         kategori: resJSON.data.kategori || [],
@@ -426,7 +435,7 @@ export const initApp = async (forceRemote = false, isUserInitiated = false) => {
         paymentAccount: resJSON.data.settings?.paymentAccount || null
       });
       saveCache(group);
-      notifySynced(resJSON.data?.updatedAt, resJSON.data?.groupId || localStorage.getItem(GROUP_OPEN_KEY));
+      notifySynced(resJSON.data?.updatedAt, resJSON.groupId || group || undefined);
       setSyncBadge('is-clean');
       if (boot.workspaceState !== 'ready') {
         await runGroupSwitchTransition(() => {

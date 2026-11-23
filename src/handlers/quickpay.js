@@ -6,7 +6,7 @@
 import { NAMA_BULAN, DEFAULT_MONTHLY_FEE } from "../core/config.js";
 import { getState, currentRekapYear, getIsAdminSession, getActiveGroupId, addTransaction, saveCache } from "../core/state.js";
 import { createDuesLedger } from "../core/dues.js";
-import { formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso } from "../core/utils.js";
+import { getInput, requiredField, closestHtml, formatRp, showToast, showDatabaseToast, getRawNominal, getInitials, dateInputToIso } from "../core/utils.js";
 import { classifySyncResponse } from "../core/offline.js";
 import { deliverMutation, generateOperationId } from "../core/mutation.js";
 import { withLiquidSave } from "../ui/keel.js";
@@ -21,6 +21,7 @@ import {
   rerenderAfterLedgerChange
 } from "./transaction-shared.js";
 
+/** @type {{idAnggota:string, nama:string, bulan:string, tahun:string, monthlyFee:number, paid:number, remaining:number, isPartial:boolean, baseBalance:number} | null} */
 let qpContext = null;
 let qpLangBound = false;
 const boundQpModals = new WeakSet();
@@ -89,7 +90,7 @@ const updateQuickPayPreview = () => {
   setText("qp-impact-amount", isZero ? formatRp(0) : `+ ${formatRp(nominal)}`);
 
   document.querySelectorAll?.("#qp-presets [data-qp-preset]").forEach((btn) => {
-    const presetVal = Number(btn.dataset?.qpPreset) || 0;
+    const presetVal = Number(btn.getAttribute('data-qp-preset')) || 0;
     btn.classList?.toggle?.("is-active", nominal > 0 && nominal === presetVal);
   });
 };
@@ -99,14 +100,14 @@ const ensureQuickPayBound = () => {
   if (modal && !boundQpModals.has(modal)) {
     boundQpModals.add(modal);
     modal.addEventListener?.("input", (e) => {
-      if (e.target?.id === "qp-nominal") updateQuickPayPreview();
+      if (/** @type {Element|null} */ (e.target)?.id === "qp-nominal") updateQuickPayPreview();
     });
     modal.addEventListener?.("click", (e) => {
-      const btn = e.target?.closest?.("[data-qp-preset]");
+      const btn = closestHtml(e.target, "[data-qp-preset]");
       if (!btn) return;
-      const input = document.getElementById("qp-nominal");
+      const input = getInput("qp-nominal");
       if (!input) return;
-      const amount = Number(btn.dataset?.qpPreset) || 0;
+      const amount = Number(btn.getAttribute('data-qp-preset')) || 0;
       input.value = new Intl.NumberFormat("id-ID").format(amount);
       updateQuickPayPreview();
       input.focus?.();
@@ -115,7 +116,7 @@ const ensureQuickPayBound = () => {
   if (!qpLangBound && typeof document?.addEventListener === "function") {
     qpLangBound = true;
     document.addEventListener("finkas:language-changed", () => {
-      const activeModal = document.getElementById("modal-quickpay");
+      const activeModal = /** @type {HTMLDialogElement | null} */ (document.getElementById("modal-quickpay"));
       if (qpContext && (activeModal?.open || activeModal?.classList?.contains?.("active"))) {
         renderQuickPayMeta();
         updateQuickPayPreview();
@@ -159,19 +160,19 @@ export const openQuickPaySheet = (idAnggota, bulan, year = currentRekapYear) => 
     return;
   }
 
-  document.getElementById("qp-id-anggota").value = idAnggota;
-  document.getElementById("qp-bulan").value = bulan;
-  document.getElementById("qp-tahun").value = year;
-  document.getElementById("qp-nama").innerText = ang.Nama_Anggota;
-  document.getElementById("qp-periode").innerText = `Iuran ${bulan} ${year}`;
+  requiredField("qp-id-anggota").value = idAnggota;
+  requiredField("qp-bulan").value = bulan;
+  requiredField("qp-tahun").value = year;
+  /** @type {HTMLElement} */ (document.getElementById("qp-nama")).innerText = ang.Nama_Anggota;
+  /** @type {HTMLElement} */ (document.getElementById("qp-periode")).innerText = `Iuran ${bulan} ${year}`;
 
   const defaultNominal = monthInfo.remaining > 0 ? monthInfo.remaining : DEFAULT_MONTHLY_FEE;
-  document.getElementById("qp-nominal").value = new Intl.NumberFormat("id-ID").format(defaultNominal);
+  requiredField("qp-nominal").value = new Intl.NumberFormat("id-ID").format(defaultNominal);
 
-  const elTgl = document.getElementById("qp-tanggal");
+  const elTgl = getInput("qp-tanggal");
   if (elTgl) elTgl.value = "";
   syncDpick("qp-tanggal");
-  const elKet = document.getElementById("qp-keterangan");
+  const elKet = getInput("qp-keterangan");
   if (elKet) elKet.value = "";
 
   qpContext = {
@@ -198,12 +199,12 @@ export const openQuickPaySheet = (idAnggota, bulan, year = currentRekapYear) => 
 export const submitQuickPay = async (e) => {
   e.preventDefault();
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang mencatat iuran.", "error");
-  const idAnggota = document.getElementById("qp-id-anggota").value;
-  const bulan = document.getElementById("qp-bulan").value;
-  const tahun = document.getElementById("qp-tahun").value;
+  const idAnggota = requiredField("qp-id-anggota").value;
+  const bulan = requiredField("qp-bulan").value;
+  const tahun = requiredField("qp-tahun").value;
   const nominal = getRawNominal("qp-nominal");
-  const tanggalIso = dateInputToIso(document.getElementById("qp-tanggal")?.value);
-  const noteInput = (document.getElementById("qp-keterangan")?.value || "").trim();
+  const tanggalIso = dateInputToIso(getInput("qp-tanggal")?.value);
+  const noteInput = (getInput("qp-keterangan")?.value || "").trim();
   const keterangan = noteInput || "Iuran Anggota";
 
   if (!idAnggota || !bulan || !tahun) return showToast("Data iuran tidak lengkap.", "error");

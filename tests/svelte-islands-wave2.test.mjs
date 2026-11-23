@@ -9,6 +9,8 @@ import { renderMonthlyCashReport } from '../src/handlers/cash-report.js';
 import { billingPeriod, createDuesLedger } from '../src/core/dues.js';
 import { renderDropdowns } from '../src/render/dashboard.js';
 import { filterAnggotaIuran, filterKategori, renderCheckboxIuran, pilihSemuaIuran, updateCounterIuran } from '../src/ui/transaction-form.js';
+import { renderAdminUI, submitLoginAdmin } from '../src/handlers/auth.js';
+import { initAttachmentControls } from '../src/handlers/attachments.js';
 import { openQuickPaySheet } from '../src/handlers/quickpay.js';
 import { setIndicatorStyle } from '../src/handlers/navigation.js';
 import { renderSpotlight, syncAuditLogRows, syncMasterAnggotaRows } from '../src/ui/svelte-dashboard.js';
@@ -377,4 +379,51 @@ test('onboarding list renders all states and passes the literal group ID on sele
   assert.equal(list.querySelector('img, script, .loading-state'), null);
   button.click();
   assert.deepEqual(picked, [item.id]);
+});
+
+test('admin login shows a busy label and restores the original nodes after rejection', async t => {
+  const byId = installDom(t);
+  const login = document.createElement('button');
+  login.id = 'btn-login-admin';
+  document.body.append(login);
+  renderAdminUI();
+  assert.equal(login.firstChild.className, 'ph ph-lock-key');
+  assert.equal(login.lastChild.nodeValue, ' Login Admin');
+
+  const button = byId('btn-submit-login');
+  const original = Array.from(button.childNodes);
+  byId('input-admin-pwd').value = 'test-password';
+  const response = Promise.withResolvers();
+  t.mock.method(globalThis, 'fetch', () => response.promise);
+  const pending = submitLoginAdmin({ target: byId('form-login-admin') });
+  assert.equal(button.disabled, true);
+  assert.equal(button.getAttribute('aria-busy'), 'true');
+  assert.equal(button.querySelector('i.ph-spinner-gap.ph-spin').getAttribute('aria-hidden'), 'true');
+  assert.equal(button.querySelector('span').textContent, 'Mengecek...');
+
+  response.resolve(Response.json({ status: false, message: 'PIN salah' }));
+  await pending;
+  assert.equal(byId('auth-login-error-text').textContent, 'PIN salah');
+  assert.equal(button.disabled, false);
+  assert.equal(button.hasAttribute('aria-busy'), false);
+  assert.equal(button.childNodes.length, original.length);
+  original.forEach((node, index) => assert.equal(button.childNodes[index], node));
+});
+
+test('attachment upload restores the same children after file validation fails', async t => {
+  const byId = installDom(t);
+  byId('toast-container').remove();
+  initAttachmentControls({ getIdTransaksi: () => 'trx-1' });
+  const input = byId('trx-attachment-file');
+  Object.defineProperty(input, 'files', { value: [new window.File([], 'empty.pdf', { type: 'application/pdf' })] });
+  const button = byId('btn-upload-attachment');
+  const original = Array.from(button.childNodes);
+  button.click();
+  assert.equal(button.disabled, true);
+  assert.equal(button.firstChild.className, 'ph ph-spinner-gap ph-spin');
+  assert.equal(button.lastChild.nodeValue, ' Mengunggah...');
+  await Promise.resolve();
+  assert.equal(button.disabled, false);
+  assert.equal(button.childNodes.length, original.length);
+  original.forEach((node, index) => assert.equal(button.childNodes[index], node));
 });

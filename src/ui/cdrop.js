@@ -1,3 +1,4 @@
+import { closestHtml } from '../core/utils.js';
 /**
  * @module cdrop
  * Premium custom dropdown that enhances native <select class="cdrop">.
@@ -176,6 +177,7 @@ const setup = (select) => {
   const itemsBox = document.createElement('div');
   itemsBox.className = 'cdrop-items';
 
+  /** @type {HTMLInputElement | null} */
   let searchInput = null;
   if (select.hasAttribute('data-search')) {
     const searchWrap = document.createElement('div');
@@ -192,7 +194,7 @@ const setup = (select) => {
     }
     searchInput.placeholder = 'Cari...';
     searchInput.setAttribute('aria-label', 'Cari pilihan');
-    searchInput.addEventListener('input', () => filterItems(ui, searchInput.value));
+    searchInput.addEventListener('input', () => filterItems(ui, searchInput?.value || ''));
     searchInput.addEventListener('click', (e) => e.stopPropagation());
     searchInput.addEventListener('keydown', (e) => {
       e.stopPropagation();
@@ -205,8 +207,8 @@ const setup = (select) => {
         moveHighlight(ui, e.key === 'ArrowDown' ? 1 : -1);
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        const hl = itemsBox.querySelector('.cdrop-item.highlight');
-        const first = Array.from(itemsBox.querySelectorAll('.cdrop-item')).find((i) => i.style.display !== 'none' && !i.disabled);
+        const hl = /** @type {HTMLElement|null} */ (itemsBox.querySelector('.cdrop-item.highlight'));
+        const first = Array.from(/** @type {NodeListOf<HTMLButtonElement>} */ (itemsBox.querySelectorAll('.cdrop-item'))).find((i) => i.style.display !== 'none' && !i.disabled);
         if (hl) pick(ui, hl.dataset.value);
         else if (first) pick(ui, first.dataset.value);
       }
@@ -244,7 +246,7 @@ const setup = (select) => {
       e.preventDefault();
       moveHighlight(ui, e.key === 'ArrowDown' ? 1 : -1);
     } else if (e.key === 'Enter' || e.key === ' ') {
-      const item = e.target.closest('.cdrop-item');
+      const item = closestHtml(e.target, '.cdrop-item');
       if (item) { e.preventDefault(); pick(ui, item.dataset.value); }
     }
   });
@@ -260,7 +262,7 @@ const setup = (select) => {
     syncValue(ui);
     list.setAttribute('aria-required', String(select.required));
     for (const attr of ['aria-label', 'aria-labelledby']) {
-      if (btn.hasAttribute(attr)) list.setAttribute(attr, btn.getAttribute(attr));
+      if (btn.hasAttribute(attr)) list.setAttribute(attr, btn.getAttribute(attr) || '');
       else list.removeAttribute(attr);
     }
   }, () => setOpen(ui, false));
@@ -283,7 +285,7 @@ const moveHighlight = (ui, dir) => {
 export const initCustomDropdowns = () => {
   document.querySelectorAll('select.cdrop').forEach(setup);
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.cdrop')) closeAll();
+    if (!closestHtml(e.target, '.cdrop')) closeAll();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAll();
@@ -293,7 +295,7 @@ export const initCustomDropdowns = () => {
 };
 
 /** Re-read native select state into the custom UI. Call after programmatic .value sets. */
-export const syncCdrop = (id = null) => {
+export const syncCdrop = (id = /** @type {string | null} */ (null)) => {
   if (id) {
     const ui = registry.get(id);
     if (ui) {

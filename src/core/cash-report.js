@@ -276,7 +276,8 @@ export const buildMonthlyCashReport = (state, yearMonth, options = {}) => {
         keterangan: t.Keterangan || '',
         bulanIuran: t.Bulan_Iuran || '',
         tahunIuran: t.Tahun_Iuran || '',
-        raw: t
+        raw: t,
+        balance: 0
       });
     }
     // Future transactions (> targetYearMonth) are deliberately ignored

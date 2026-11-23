@@ -118,8 +118,8 @@ function jsLookups() {
   const lookups = [];
   for (const file of JS_FILES) {
     read(file).split('\n').forEach((line, index) => {
-      for (const match of line.matchAll(/getElementById\(\s*'([^']+)'\s*\)/g)) {
-        lookups.push({ id: match[1], file, line: index + 1 });
+      for (const match of line.matchAll(/(?:getElementById\(\s*'([^']+)'|(?:getInput|getSelect|requiredField)\(\s*['"]([^'"]+)['"])\s*\)/g)) {
+        lookups.push({ id: match[1] || match[2], file, line: index + 1 });
       }
       for (const match of line.matchAll(/querySelector(?:All)?\(\s*'#([^'\s.,:>[\]()+]+)'/g)) {
         lookups.push({ id: match[1], file, line: index + 1 });

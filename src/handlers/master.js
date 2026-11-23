@@ -1,7 +1,7 @@
 import { getState, getIsAdminSession, getIsSuperAdmin } from "../core/state.js";
 import { fetchAuditLogApi } from "../core/api.js";
 import { isUnsyncedTempId } from "../core/offline.js";
-import { showToast, showDatabaseToast, getInitials } from "../core/utils.js";
+import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "../core/utils.js";
 import { deliverMutation, generateTempId, requestAppRefresh } from "../core/mutation.js";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal.js";
 import { syncCdrop } from "../ui/cdrop.js";
@@ -62,7 +62,7 @@ const updateAuditCount = (shown, total) => {
 
 const setAuditFilterChip = (cat) => {
   auditFilterCat = cat || 'all';
-  document.querySelectorAll('#audit-filter-chips [data-audit-cat]').forEach((chip) => {
+  htmlElements('#audit-filter-chips [data-audit-cat]').forEach((chip) => {
     const active = chip.dataset.auditCat === auditFilterCat;
     chip.classList.toggle('active', active);
     chip.setAttribute('aria-selected', String(active));
@@ -103,15 +103,15 @@ const ensureAuditLogBound = () => {
     auditRequest++;
     cachedAuditLog = [];
     updateAuditCount(0, 0);
-    const refreshBtn = document.getElementById('btn-refresh-audit-log');
+    const refreshBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-refresh-audit-log'));
     if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
   });
   document.getElementById('search-audit-log')?.addEventListener('input', (e) => {
-    auditSearchQuery = e.target.value || '';
+    auditSearchQuery = /** @type {HTMLInputElement} */ (e.currentTarget).value || '';
     paintAuditLogRows();
   });
   document.getElementById('audit-filter-chips')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-audit-cat]');
+    const btn = closestHtml(e.target, '[data-audit-cat]');
     if (!btn) return;
     setAuditFilterChip(btn.dataset.auditCat);
     paintAuditLogRows();
@@ -124,7 +124,7 @@ export const renderAuditLogList = async () => {
   ensureAuditLogBound();
   const request = ++auditRequest;
   syncAuditLogRows({ status: 'loading', totalCount: cachedAuditLog.length, rows: [] });
-  const refreshBtn = document.getElementById('btn-refresh-audit-log');
+  const refreshBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-refresh-audit-log'));
   if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.classList.add('is-loading'); }
   try {
     const res = await fetchAuditLogApi();
@@ -146,7 +146,7 @@ export const renderAuditLogList = async () => {
 export const openAuditLogModal = () => {
   if (!guardAuditSuperAdmin(false)) return;
   auditSearchQuery = '';
-  const searchEl = document.getElementById('search-audit-log');
+  const searchEl = getInput('search-audit-log');
   if (searchEl) searchEl.value = '';
   setAuditFilterChip('all');
   openModal('modal-audit-log');
@@ -154,10 +154,10 @@ export const openAuditLogModal = () => {
 };
 
 export const addSkippedMonth = async () => {
-  const el = document.getElementById('input-skip-month');
+  const el = getInput('input-skip-month');
   if (!el || !el.value) return showToast('Pilih bulan terlebih dahulu.', 'error');
   const parts = el.value.split('-');
-  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return showToast('Format bulan salah.', 'error');
+  if (parts.length !== 2 || Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) return showToast('Format bulan salah.', 'error');
   const key = `${parts[1].padStart(2, '0')}-${parts[0]}`;
 
   showConfirmDialog({
@@ -221,7 +221,7 @@ export const removeSkippedMonth = async (key) => {
 
 /** Populate the kas-start month picker from state (YYYY-MM for input type=month). */
 export const populateKasStartInput = () => {
-  const el = document.getElementById('input-kas-start');
+  const el = getInput('input-kas-start');
   if (!el) return;
   const kasStart = getState().kasStart || '';
   // Stored as MM-YYYY; the month input needs YYYY-MM.
@@ -230,10 +230,10 @@ export const populateKasStartInput = () => {
 };
 
 export const saveKasStart = async () => {
-  const el = document.getElementById('input-kas-start');
+  const el = getInput('input-kas-start');
   if (!el || !el.value) return showToast('Pilih bulan awal mulai kas terlebih dahulu.', 'error');
   const parts = el.value.split('-'); // YYYY-MM from the month input
-  if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return showToast('Format bulan salah.', 'error');
+  if (parts.length !== 2 || Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) return showToast('Format bulan salah.', 'error');
   const key = `${parts[1].padStart(2, '0')}-${parts[0]}`; // → MM-YYYY
 
   showConfirmDialog({
@@ -283,7 +283,7 @@ const syncMasterTabCounts = () => {
 };
 
 export const filterMasterAnggota = () => {
-  syncMasterAnggotaFilter(document.getElementById('search-master-anggota')?.value || '');
+  syncMasterAnggotaFilter(getInput('search-master-anggota')?.value || '');
 };
 
 export const renderMasterAnggotaTable = () => {
@@ -300,7 +300,7 @@ export const renderMasterAnggotaTable = () => {
       rawWa, waHref, searchText: `${name} ${id} ${rawWa}`
     };
   });
-  syncMasterAnggotaRows({ rows, query: document.getElementById('search-master-anggota')?.value || '' });
+  syncMasterAnggotaRows({ rows, query: getInput('search-master-anggota')?.value || '' });
 };
 
 export const renderMasterKategoriTable = () => {
@@ -321,7 +321,7 @@ export const bukaModalEditMasterAnggota = (idAnggota) => {
   const cleanWa = rawWa.replace(/\D/g, '');
   const isAktif = (ang.Status_Aktif || 'Aktif') === 'Aktif';
 
-  const idInput = document.getElementById('edit-master-anggota-id');
+  const idInput = getInput('edit-master-anggota-id');
   if (idInput) idInput.value = ang.ID_Anggota;
 
   const avatarEl = document.getElementById('edit-master-anggota-avatar');
@@ -333,19 +333,19 @@ export const bukaModalEditMasterAnggota = (idAnggota) => {
   const idBadge = document.getElementById('edit-master-anggota-id-badge');
   if (idBadge) idBadge.textContent = ang.ID_Anggota;
 
-  const namaInput = document.getElementById('edit-master-nama-input');
+  const namaInput = getInput('edit-master-nama-input');
   if (namaInput) namaInput.value = ang.Nama_Anggota;
 
-  const waInput = document.getElementById('edit-master-wa-input');
+  const waInput = getInput('edit-master-wa-input');
   if (waInput) waInput.value = rawWa;
 
-  const statusSelect = document.getElementById('edit-master-status-select');
+  const statusSelect = getSelect('edit-master-status-select');
   if (statusSelect) {
     statusSelect.value = ang.Status_Aktif || 'Aktif';
     syncCdrop('edit-master-status-select');
   }
 
-  const waLink = document.getElementById('edit-master-anggota-wa-link');
+  const waLink = /** @type {HTMLAnchorElement | null} */ (document.getElementById('edit-master-anggota-wa-link'));
   if (waLink) {
     if (cleanWa) {
       waLink.href = `https://wa.me/${cleanWa.startsWith('0') ? '62' + cleanWa.slice(1) : cleanWa}`;
@@ -360,10 +360,10 @@ export const bukaModalEditMasterAnggota = (idAnggota) => {
 
 export const submitEditMasterAnggota = async (e) => {
   e?.preventDefault?.();
-  const idAnggota = (document.getElementById('edit-master-anggota-id')?.value || '').trim();
-  const nama = (document.getElementById('edit-master-nama-input')?.value || '').trim();
-  const noWa = (document.getElementById('edit-master-wa-input')?.value || '').trim();
-  const statusAktif = document.getElementById('edit-master-status-select')?.value || 'Aktif';
+  const idAnggota = (getInput('edit-master-anggota-id')?.value || '').trim();
+  const nama = (getInput('edit-master-nama-input')?.value || '').trim();
+  const noWa = (getInput('edit-master-wa-input')?.value || '').trim();
+  const statusAktif = getSelect('edit-master-status-select')?.value === 'Nonaktif' ? 'Nonaktif' : 'Aktif';
 
   if (!idAnggota) return showToast('ID anggota tidak ditemukan.', 'error');
   if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
@@ -375,7 +375,7 @@ export const submitEditMasterAnggota = async (e) => {
     return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengeditnya.', 'warning');
   }
 
-  const btn = document.getElementById('btn-submit-edit-anggota');
+  const btn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-submit-edit-anggota'));
   if (btn) btn.disabled = true;
 
   const { delivered, result } = await deliverMutation({
@@ -413,7 +413,7 @@ export const bukaModalEditMasterKategori = (idKategori) => {
   if (!kat) return;
 
   const isMasuk = kat.Tipe === 'Masuk';
-  const idInput = document.getElementById('edit-master-kategori-id');
+  const idInput = getInput('edit-master-kategori-id');
   if (idInput) idInput.value = kat.ID_Kategori;
 
   const idBadge = document.getElementById('edit-master-kategori-id-badge');
@@ -446,7 +446,7 @@ export const openKelolaMasterModal = () => {
     openModal('modal-login');
     return;
   }
-  const searchEl = document.getElementById('search-master-anggota');
+  const searchEl = getInput('search-master-anggota');
   if (searchEl) {
     searchEl.value = '';
     if (!searchEl.dataset?.masterBound) {
@@ -465,8 +465,8 @@ export const openKelolaMasterModal = () => {
 
 export const submitTambahAnggota = async (e) => {
   e.preventDefault();
-  const nama = (document.getElementById('input-nama-anggota')?.value || '').trim();
-  const noWa = (document.getElementById('input-wa-anggota')?.value || '').trim();
+  const nama = (getInput('input-nama-anggota')?.value || '').trim();
+  const noWa = (getInput('input-wa-anggota')?.value || '').trim();
   if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
   if (nama.length < 2) return showToast('Nama anggota minimal 2 karakter.', 'error');
 
@@ -485,8 +485,8 @@ export const submitTambahAnggota = async (e) => {
         // Offline — queued. Show an optimistic row with a temp id; the next
         // online refetch replaces it with the server record.
         getState().anggota.push({ ID_Anggota: tempMasterId('ANG'), Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' });
-        document.getElementById('input-nama-anggota').value = '';
-        document.getElementById('input-wa-anggota').value = '';
+        requiredField('input-nama-anggota').value = '';
+        requiredField('input-wa-anggota').value = '';
         showDatabaseToast('Anggota Disimpan (Offline)', `${nama} akan disinkronkan saat online.`);
         renderMasterAnggotaTable();
         return;
@@ -494,8 +494,8 @@ export const submitTambahAnggota = async (e) => {
 
       if (result.status) {
         showDatabaseToast('Anggota Baru Ditambahkan', `Anggota ${nama} berhasil didaftarkan ke database.`);
-        document.getElementById('input-nama-anggota').value = '';
-        document.getElementById('input-wa-anggota').value = '';
+        requiredField('input-nama-anggota').value = '';
+        requiredField('input-wa-anggota').value = '';
         await refreshAppData();
         renderMasterAnggotaTable();
       } else {
@@ -584,9 +584,9 @@ export const hapusMasterAnggotaAction = async (idAnggota) => {
 
 export const submitTambahKategori = async (e) => {
   e.preventDefault();
-  const tipe = document.getElementById('input-tipe-kategori')?.value;
-  const nama = (document.getElementById('input-nama-kategori')?.value || '').trim();
-  if (!['Masuk', 'Keluar'].includes(tipe)) return showToast('Pilih tipe kategori yang valid.', 'error');
+  const tipe = getSelect('input-tipe-kategori')?.value;
+  const nama = (getInput('input-nama-kategori')?.value || '').trim();
+  if (tipe !== 'Masuk' && tipe !== 'Keluar') return showToast('Pilih tipe kategori yang valid.', 'error');
   if (!nama) return showToast('Nama kategori tidak boleh kosong.', 'error');
 
   showConfirmDialog({
@@ -603,7 +603,7 @@ export const submitTambahKategori = async (e) => {
       if (!delivered) {
         // Offline — queued. Optimistic row with a temp id; reconciled on refetch.
         getState().kategori.push({ ID_Kategori: tempMasterId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K'), Nama_Kategori: nama, Tipe: tipe });
-        document.getElementById('input-nama-kategori').value = '';
+        requiredField('input-nama-kategori').value = '';
         showDatabaseToast('Kategori Disimpan (Offline)', `Kategori "${nama}" akan disinkronkan saat online.`);
         renderMasterKategoriTable();
         return;
@@ -611,7 +611,7 @@ export const submitTambahKategori = async (e) => {
 
       if (result.status) {
         showDatabaseToast('Kategori Kas Ditambahkan', `Kategori "${nama}" (${tipe}) berhasil disimpan.`);
-        document.getElementById('input-nama-kategori').value = '';
+        requiredField('input-nama-kategori').value = '';
         await refreshAppData();
         renderMasterKategoriTable();
       } else {

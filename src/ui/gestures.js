@@ -7,6 +7,11 @@
 
 import { closeModal } from './modal.js';
 
+/** @param {EventTarget|null} target */
+const holdButton = target => /** @type {HTMLButtonElement|null} */ (
+  /** @type {Element|null} */ (target)?.closest?.('.btn-danger-solid')
+);
+
 /**
  * Check if the user prefers reduced motion.
  * @returns {boolean}
@@ -22,12 +27,12 @@ export const prefersReducedMotion = () => {
  * Initialize swipe-down gestures on mobile bottom sheets.
  */
 export const initBottomSheetGestures = () => {
-  const sheets = document.querySelectorAll('.quickpay-sheet, .hybrid-dialog > .modal-content');
+  const sheets = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.quickpay-sheet, .hybrid-dialog > .modal-content'));
   sheets.forEach((sheet) => {
     if (sheet.dataset.gestureBound === '1') return;
     sheet.dataset.gestureBound = '1';
 
-    const overlay = sheet.closest('.modal-overlay');
+    const overlay = /** @type {HTMLDialogElement|null} */ (sheet.closest('.modal-overlay'));
     if (!overlay) return;
     const modalId = overlay.id;
     const hasDuesBackdrop = overlay.classList?.contains('dues-dialog');
@@ -41,7 +46,8 @@ export const initBottomSheetGestures = () => {
     let startTime = 0;
     let isDragging = false;
     let activePointer = null;
-    let settleTimer = null;
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let settleTimer;
     const cleanup = () => {
       sheet.style.removeProperty('transform');
       sheet.style.removeProperty('transition');
@@ -54,7 +60,7 @@ export const initBottomSheetGestures = () => {
     const onPointerDown = (e) => {
       if (isDragging) return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
-      if (e.target.closest('input, button, select, textarea, a, .close-modal-btn')) return;
+      if (e.target?.closest?.('input, button, select, textarea, a, .close-modal-btn')) return;
       if (sheet.scrollTop > 0) return;
 
       clearTimeout(settleTimer);
@@ -135,10 +141,10 @@ export const initBottomSheetGestures = () => {
     };
 
     const dragZones = [
-      sheet.querySelector('.quickpay-handle'),
-      sheet.querySelector('.hybrid-sheet-handle'),
-      sheet.classList?.contains('quickpay-sheet') ? sheet.querySelector('.modal-header-standard') : null
-    ].filter(Boolean);
+      /** @type {HTMLElement|null} */ (sheet.querySelector('.quickpay-handle')),
+      /** @type {HTMLElement|null} */ (sheet.querySelector('.hybrid-sheet-handle')),
+      sheet.classList?.contains('quickpay-sheet') ? /** @type {HTMLElement|null} */ (sheet.querySelector('.modal-header-standard')) : null
+    ].filter(el => el != null);
 
     dragZones.forEach((zone) => {
       zone.style.setProperty('touch-action', 'pan-y');
@@ -180,7 +186,8 @@ export const armHoldButton = (btn) => {
  * Initialize event-delegated hold-to-confirm on .btn-danger-solid.
  */
 export const initHoldToConfirm = () => {
-  let holdTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let holdTimer;
   let activeBtn = null;
   let hasFired = false;
 
@@ -233,25 +240,25 @@ export const initHoldToConfirm = () => {
   };
 
   document.addEventListener('pointerdown', (e) => {
-    const btn = e.target.closest('.btn-danger-solid');
+    const btn = holdButton(e.target);
     if (!btn) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     startHold(btn, e.pointerId);
   });
 
   document.addEventListener('pointerup', (e) => {
-    const btn = e.target.closest('.btn-danger-solid') || activeBtn;
+    const btn = holdButton(e.target) || activeBtn;
     if (btn) cancelHold(btn, e.pointerId);
   });
 
   document.addEventListener('pointercancel', (e) => {
-    const btn = e.target.closest('.btn-danger-solid') || activeBtn;
+    const btn = holdButton(e.target) || activeBtn;
     if (btn) cancelHold(btn, e.pointerId);
   });
 
   // Intercept accidental quick taps
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-danger-solid');
+    const btn = holdButton(e.target);
     if (!btn) return;
 
     // Allow programmatic clicks (tests), keyboard navigation (Enter/Space), and reduced motion

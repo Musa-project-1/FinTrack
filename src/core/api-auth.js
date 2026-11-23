@@ -92,7 +92,7 @@ export const loginGoogleSuperAdminApi = async (idToken) => {
 
 /**
  * List the Super Admin emails.
- * @returns {Promise<{status: boolean, data?: Array<{email: string, isPrimary: boolean}>|null, message?: string}>}
+ * @returns {Promise<{status: boolean, httpStatus?: number, data?: Array<{email: string, isPrimary: boolean}>|null, message?: string}>}
  */
 export const fetchSuperAdminsApi = async () => {
   /** @type {import('./api-client.js').ApiResponse<{email: string, isPrimary: boolean}[]>|null} */
@@ -103,6 +103,7 @@ export const fetchSuperAdminsApi = async () => {
 
 /**
  * Grant Super Admin access to another Google account.
+ * @returns {Promise<{status:boolean, httpStatus?:number, message?:string}>}
  * @param {string} emailToAdd
  */
 export const addSuperAdminApi = async (emailToAdd) => {
@@ -117,6 +118,7 @@ export const addSuperAdminApi = async (emailToAdd) => {
 
 /**
  * Revoke Super Admin access.
+ * @returns {Promise<{status:boolean, httpStatus?:number, message?:string}>}
  * @param {string} emailToRemove
  */
 export const removeSuperAdminApi = async (emailToRemove) => {

@@ -30,7 +30,7 @@ import {
 } from "../core/api.js";
 import { apiPost } from "../core/api-client.js";
 import { syncGroupAdminList, syncSuperAdminList } from "../ui/svelte-dashboard.js";
-import { showToast } from "../core/utils.js";
+import { getInput, showToast } from "../core/utils.js";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion.js";
 import { openModal, closeModal, switchTab } from "../ui/modal.js";
 import { handleUI, renderAdminUI } from "./auth.js";
@@ -66,7 +66,7 @@ export const generateRandomPassword = (len = 10) => {
 
 /**
  * Load the group directory (public endpoint — names only).
- * @returns {Promise<Array<{id: string, nama: string, dibuat: string}>>}
+ * @returns {Promise<Array<{id: string, nama: string, dibuat?: string}>>}
  */
 export const fetchGroups = async () => {
   const list = await fetchGroupsApi();
@@ -84,7 +84,7 @@ export const fetchGroups = async () => {
  *
  * @param {string} id
  * @param {string} pin
- * @returns {Promise<{status: boolean, message: string}>}
+ * @returns {Promise<{status: boolean, message?: string}>}
  */
 export const verifyGroupPin = async (id, pin) => {
   const clean = String(pin || "").replace(/\D/g, "").slice(0, 4);
@@ -130,18 +130,18 @@ export const requestGroupPin = (id) => {
 /** Kirim PIN yang diketik user. */
 export const submitGroupPin = async () => {
   if (!pendingGroupId) return;
-  const pin = document.getElementById("group-pin")?.value || "";
+  const pin = /** @type {HTMLInputElement | null} */ (document.getElementById("group-pin"))?.value || "";
   const msg = document.getElementById("group-pin-msg");
   const res = await verifyGroupPin(pendingGroupId, pin);
 
-  if (msg) msg.replaceChildren(document.createTextNode(res.message));
+  if (msg) msg.replaceChildren(document.createTextNode(res.message || ""));
   if (!res.status) {
     showToast(res.message, "error");
-    const firstPin = document.getElementById("group-pin");
+    const firstPin = /** @type {HTMLInputElement | null} */ (document.getElementById("group-pin"));
     const pinRow = firstPin?.closest?.(".pin-row");
     if (pinRow) {
       pinRow.classList.remove("is-error");
-      void pinRow.offsetWidth;
+      void /** @type {HTMLElement} */ (pinRow).offsetWidth;
       pinRow.classList.add("is-error");
     }
     if (firstPin) {
@@ -230,6 +230,7 @@ export const exitGroup = () => {
 /**
  * Call the group management endpoint with the current admin session.
  * @param {object} body Must include `action`.
+ * @returns {Promise<{status:boolean, message?:string, data?:{pin?:string, adminEmail?:string, adminPassword?:string}|null}>}
  */
 const callGroupAdmin = async (body) => {
   const res = await apiPost(API.GROUP_ADMIN, { ...body, sessionToken: getAdminSession() });
@@ -315,10 +316,10 @@ export const manageGroupCredsAction = async (id) => {
 
 /** Buka modal kelola grup. */
 export const openGroupAdmin = async () => {
-  const searchEl = document.getElementById("search-group-admin");
+  const searchEl = getInput("search-group-admin");
   if (searchEl) searchEl.value = "";
   switchTab("tab-group-list", "modal-group-admin");
-  const chk = document.getElementById("chk-group-admin-auto");
+  const chk = getInput("chk-group-admin-auto");
   const box = document.getElementById("box-group-admin-creds");
   if (chk && box) box.hidden = !chk.checked;
   await fetchGroups();
@@ -332,9 +333,9 @@ export const openGroupAdmin = async () => {
 
 /** Refresh nilai auto kredensial di form tambah grup. */
 export const refreshAutoAdminCreds = () => {
-  const namaEl = document.getElementById("input-group-nama");
-  const emailEl = document.getElementById("input-group-admin-email");
-  const pwdEl = document.getElementById("input-group-admin-pwd");
+  const namaEl = getInput("input-group-nama");
+  const emailEl = getInput("input-group-admin-email");
+  const pwdEl = getInput("input-group-admin-pwd");
 
   const nama = (namaEl?.value || "").trim();
   const slug = nama ? nama.toLowerCase().replace(/[^a-z0-9]/g, "") : "baru";
@@ -350,7 +351,7 @@ export const renderGroupAdmin = () => {
   const countEl = document.getElementById("group-admin-count");
   if (countEl) countEl.textContent = String(list.length);
 
-  const query = (document.getElementById("search-group-admin")?.value || "").trim().toLowerCase();
+  const query = (getInput("search-group-admin")?.value || "").trim().toLowerCase();
   const filtered = query
     ? list.filter((g) => (g.nama || "").toLowerCase().includes(query) || (g.id || "").toLowerCase().includes(query))
     : list;
@@ -400,7 +401,7 @@ export const renderSuperAdminList = async () => {
 /** Submit form tambah superadmin. */
 export const submitAddSuperAdminAction = async (e) => {
   e?.preventDefault?.();
-  const input = document.getElementById("input-add-superadmin");
+  const input = getInput("input-add-superadmin");
   const email = (input?.value || "").trim().toLowerCase();
   if (!email || !email.includes("@")) {
     showToast("Format email tidak valid.", "error");
@@ -440,11 +441,11 @@ export const removeSuperAdminAction = async (email) => {
 /** Buat grup baru dari form admin. */
 export const submitCreateGroup = async (e) => {
   e?.preventDefault?.();
-  const namaEl = document.getElementById("input-group-nama");
-  const pinEl = document.getElementById("input-group-pin");
-  const chkEl = document.getElementById("chk-group-admin-auto");
-  const emailEl = document.getElementById("input-group-admin-email");
-  const pwdEl = document.getElementById("input-group-admin-pwd");
+  const namaEl = getInput("input-group-nama");
+  const pinEl = getInput("input-group-pin");
+  const chkEl = getInput("chk-group-admin-auto");
+  const emailEl = getInput("input-group-admin-email");
+  const pwdEl = getInput("input-group-admin-pwd");
 
   const nama = (namaEl?.value || "").trim().slice(0, 60);
   const rawPin = (pinEl?.value || "").trim();
@@ -572,18 +573,18 @@ export const initGroupsUI = (onGroupChanged) => {
   document.getElementById("search-group-admin")?.addEventListener("input", renderGroupAdmin);
 
   document.getElementById("input-group-nama")?.addEventListener("input", (e) => {
-    const emailEl = document.getElementById("input-group-admin-email");
-    const val = (e.target.value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const emailEl = getInput("input-group-admin-email");
+    const val = (/** @type {HTMLInputElement} */ (e.currentTarget).value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
     if (emailEl) emailEl.value = `admin.${val || "baru"}@finkas.id`;
   });
 
   document.getElementById("chk-group-admin-auto")?.addEventListener("change", (e) => {
     const box = document.getElementById("box-group-admin-creds");
-    if (box) box.hidden = !e.target.checked;
+    if (box) box.hidden = !/** @type {HTMLInputElement} */ (e.currentTarget).checked;
   });
 
   document.getElementById("btn-refresh-admin-pwd")?.addEventListener("click", () => {
-    const pwdEl = document.getElementById("input-group-admin-pwd");
+    const pwdEl = getInput("input-group-admin-pwd");
     if (pwdEl) pwdEl.value = generateRandomPassword(10);
   });
 

@@ -13,7 +13,7 @@
 
 import { syncCashReport } from '../ui/svelte-dashboard.js';
 import { getState, getActiveGroupId, getGroupName } from '../core/state.js';
-import { formatRp, showToast } from '../core/utils.js';
+import { getInput, formatRp, showToast } from '../core/utils.js';
 import {
   buildMonthlyCashReport,
   formatReportToCSV,
@@ -22,8 +22,11 @@ import {
 } from '../core/cash-report.js';
 
 let listenersAttached = false;
+/** @type {EventListener | null} */
 let boundMonthHandler = null;
+/** @type {EventListener | null} */
 let boundModalOpenedHandler = null;
+/** @type {EventListener | null} */
 let boundStateChangedHandler = null;
 
 /**
@@ -60,7 +63,7 @@ const syncMonthValue = (input, month) => {
  */
 export const getCurrentReportMonth = () => {
   if (typeof document === 'undefined') return getDefaultJakartaYearMonth();
-  const input = document.getElementById('cash-report-month');
+  const input = getInput('cash-report-month');
   const val = input?.value?.trim();
   if (val && /^\d{4}-(0[1-9]|1[0-2])$/.test(val)) {
     return val;
@@ -257,7 +260,7 @@ export const attachCashReportListeners = () => {
   if (typeof document === 'undefined') return;
   if (listenersAttached) return;
 
-  const monthInput = document.getElementById('cash-report-month');
+  const monthInput = getInput('cash-report-month');
   if (monthInput) {
     if (!monthInput.value) {
       syncMonthValue(monthInput, getDefaultJakartaYearMonth());
@@ -271,7 +274,8 @@ export const attachCashReportListeners = () => {
   const eventTarget = typeof window !== 'undefined' ? window : document;
 
   boundModalOpenedHandler = (e) => {
-    const modalId = e?.detail?.id || e?.detail?.modalId;
+    const { detail } = /** @type {CustomEvent<{id?:string, modalId?:string}>} */ (e);
+    const modalId = detail?.id || detail?.modalId;
     if (modalId === 'modal-export') {
       renderMonthlyCashReport();
     }

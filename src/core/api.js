@@ -137,15 +137,16 @@ export const fetchInitialData = async (targetGroupId) => {
  * Returns `null` when the request never reached the server (offline), which
  * callers treat as "queue this payload and retry".
  *
+ * @template [T=import('../types/finkas.d.ts').MutationData]
  * @param {{action: string, groupId?: string, [key: string]: unknown}} payload Must carry an `action` matching a server write action.
- * @returns {Promise<{status: boolean, message?: string, data?: object|null, httpStatus?: number}|null>}
+ * @returns {Promise<{status: boolean, message?: string, data?: T|null, httpStatus: number}|null>}
  */
 export const postToBackend = async (payload) => {
   if (!payload || typeof payload !== 'object' || !payload.action) {
     return { status: false, httpStatus: 400, message: 'Payload tidak valid.', data: null };
   }
 
-  /** @type {ResponseFor<object>} */
+  /** @type {ResponseFor<T>} */
   const res = await dataRequest({ action: payload.action, payload, needsWrite: true });
   if (!res) return null;
   if (res.status && typeof window !== 'undefined') {

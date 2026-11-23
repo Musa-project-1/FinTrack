@@ -1,3 +1,4 @@
+import { getInput, htmlElements } from '../core/utils.js';
 import { renderChart, renderTableTransaksi } from '../render.js';
 import { setBottomNavActive, setHistoryFilter } from '../handlers/navigation.js';
 
@@ -8,15 +9,16 @@ export const syncWorkspaceGliders = (immediate = false) => {
 const syncAllGliders = () => syncWorkspaceGliders(false);
 
 export const switchWorkspace = (name) => {
-  const tabs = [...document.querySelectorAll('.workspace-tabs [role="tab"]')];
+  const tabs = [...htmlElements('.workspace-tabs [role="tab"]')];
   const index = tabs.findIndex((tab) => tab.dataset.panel === name);
   if (index < 0 || tabs[index].getAttribute('aria-selected') === 'true') return;
 
   tabs.forEach((tab, position) => {
     const active = position === index;
-    const panel = document.getElementById(tab.getAttribute('aria-controls'));
+    const panel = document.getElementById(tab.getAttribute('aria-controls') || '');
     tab.setAttribute('aria-selected', String(active));
     tab.tabIndex = active ? 0 : -1;
+    if (!panel) return;
     panel.classList.remove('cascade-enter', 'panel-switch-enter');
     panel.hidden = !active;
     if (active) {
@@ -38,10 +40,10 @@ export const switchWorkspace = (name) => {
 };
 
 export const openWorkspaceHistory = (filter) => {
-  const chip = [...document.querySelectorAll('[data-action="set-history-filter"]')]
+  const chip = [...htmlElements('[data-action="set-history-filter"]')]
     .find((button) => button.dataset.filter === filter);
   if (chip) {
-    const searchEl = document.getElementById('workspace-search-history');
+    const searchEl = getInput('workspace-search-history');
     if (searchEl) searchEl.value = '';
     setHistoryFilter(filter);
   }
@@ -52,14 +54,14 @@ export const openWorkspaceHistory = (filter) => {
 };
 
 export const initWorkspace = () => {
-  const tablist = document.querySelector('.workspace-tabs');
+  const tablist = /** @type {HTMLElement|null} */ (document.querySelector('.workspace-tabs'));
   if (!tablist) return;
-  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  const tabs = [...htmlElements('[role="tab"]', tablist)];
   gliderSyncers = [];
 
-  for (const track of document.querySelectorAll('.workspace-tabs, .workspace-status-filter, .role-switcher-track')) {
+  for (const track of htmlElements('.workspace-tabs, .workspace-status-filter, .role-switcher-track')) {
     const syncGlider = () => {
-      const selected = track.querySelector('[aria-selected="true"], [aria-pressed="true"]');
+      const selected = /** @type {HTMLElement|null} */ (track.querySelector('[aria-selected="true"], [aria-pressed="true"]'));
       if (!selected?.offsetWidth) return;
       track.style.setProperty('--glider-left', `${selected.offsetLeft}px`);
       track.style.setProperty('--glider-width', `${selected.offsetWidth}px`);
@@ -93,7 +95,7 @@ export const initWorkspace = () => {
   }
 
   tablist.addEventListener('keydown', (event) => {
-    const current = tabs.indexOf(event.target);
+    const current = tabs.findIndex(tab => tab === event.target);
     if (current < 0) return;
     const last = tabs.length - 1;
     const next = {

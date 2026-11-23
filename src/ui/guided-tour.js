@@ -44,7 +44,7 @@ const findTarget = (selector) => Array.from(document.querySelectorAll(selector))
 
 const placeTour = () => {
   frame = undefined;
-  const dialog = document.getElementById('modal-guided-tour');
+  const dialog = /** @type {HTMLDialogElement | null} */ (document.getElementById('modal-guided-tour'));
   if (!dialog?.open) return;
   const [selector] = stepsForRole()[step];
   const target = findTarget(selector);
@@ -54,9 +54,9 @@ const placeTour = () => {
   const left = Math.max(4, rect.left - 5);
   const width = Math.max(0, Math.min(innerWidth - left - 4, rect.right - left + 5));
   const height = Math.max(0, Math.min(innerHeight - 4, rect.bottom + 5) - top);
-  const highlight = dialog.querySelector('.guided-tour-highlight');
+  const highlight = /** @type {HTMLElement} */ (dialog.querySelector('.guided-tour-highlight'));
   for (const [name, value] of Object.entries({ top, left, width, height })) highlight.style[name] = `${value}px`;
-  const card = dialog.querySelector('.guided-tour-card');
+  const card = /** @type {HTMLElement} */ (dialog.querySelector('.guided-tour-card'));
   const cardHeight = card.offsetHeight;
   const below = top + height + 12;
   const above = top - cardHeight - 12;
@@ -77,11 +77,12 @@ const renderStep = () => {
   if (step === 2) switchWorkspace('iuran');
   const dialog = document.getElementById('modal-guided-tour');
   const heading = document.getElementById('guided-tour-title');
+  if (!dialog || !heading) return;
   heading.textContent = title;
-  document.getElementById('guided-tour-count').textContent = `Langkah ${step + 1} dari ${steps.length}`;
-  document.getElementById('guided-tour-description').textContent = description;
-  dialog.querySelector('[data-step="back"]').hidden = step === 0;
-  dialog.querySelector('[data-step="next"]').textContent = step === steps.length - 1 ? 'Selesai' : 'Lanjut';
+  /** @type {HTMLElement} */ (document.getElementById('guided-tour-count')).textContent = `Langkah ${step + 1} dari ${steps.length}`;
+  /** @type {HTMLElement} */ (document.getElementById('guided-tour-description')).textContent = description;
+  /** @type {HTMLElement} */ (dialog.querySelector('[data-step="back"]')).hidden = step === 0;
+  /** @type {HTMLElement} */ (dialog.querySelector('[data-step="next"]')).textContent = step === steps.length - 1 ? 'Selesai' : 'Lanjut';
   const target = findTarget(selector);
   const rect = target.getBoundingClientRect();
   if (rect.top < 72 || rect.bottom > innerHeight - 78) target.scrollIntoView({ block: 'center', behavior: 'instant' });
@@ -100,7 +101,7 @@ export const startGuidedTour = () => {
 };
 
 export const advanceGuidedTour = (action) => {
-  if (!document.getElementById('modal-guided-tour')?.open) return;
+  if (!/** @type {HTMLDialogElement | null} */ (document.getElementById('modal-guided-tour'))?.open) return;
   if (action === 'skip' || (action === 'next' && step === stepsForRole().length - 1)) {
     closeModal('modal-guided-tour');
     return;
@@ -110,7 +111,7 @@ export const advanceGuidedTour = (action) => {
 };
 
 export const initGuidedTour = () => {
-  const dialog = document.getElementById('modal-guided-tour');
+  const dialog = /** @type {HTMLDialogElement | null} */ (document.getElementById('modal-guided-tour'));
   if (!dialog) return;
   dialog.addEventListener('close', () => {
     markSeen(activeGroup);

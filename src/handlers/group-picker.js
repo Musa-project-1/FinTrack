@@ -1,3 +1,4 @@
+import { htmlElements } from '../core/utils.js';
 import { getActiveGroupId, getGroups, getGroupSession, getIsSuperAdmin, setGroups } from "../core/state.js";
 import { fetchGroupsApi } from "../core/api.js";
 import { countQueuedTransactions, countQueuedTransactionsByGroup } from "../core/offline.js";
@@ -8,9 +9,10 @@ let lastQueueCounts = {};
 let renderGeneration = 0;
 let badgeGeneration = 0;
 let openGeneration = 0;
+/** @type {AbortController | null} */
 let pickerListenersController = null;
 
-export const updateActiveGroupQueueBadge = async (count = null) => {
+export const updateActiveGroupQueueBadge = async (count = /** @type {number | null} */ (null)) => {
   const gen = ++badgeGeneration;
   const activeId = getActiveGroupId();
   const badge = document.getElementById("group-queue-badge");
@@ -50,7 +52,7 @@ const applyQueueSummaryAndCounts = (counts) => {
 };
 
 /** Gambar daftar grup ke dalam modal pilih grup. */
-export const renderGroupPicker = ({ loading = false, queueCounts = null } = {}) => {
+export const renderGroupPicker = ({ loading = false, queueCounts = /** @type {Record<string, number> | null} */ (null) } = {}) => {
   const box = document.getElementById("group-picker-list");
   if (!box) return;
   const list = getGroups();
@@ -88,7 +90,7 @@ export const renderGroupPicker = ({ loading = false, queueCounts = null } = {}) 
     return;
   }
 
-  const focusedId = box.contains(document.activeElement) ? document.activeElement.dataset.id : null;
+  const focusedId = document.activeElement instanceof HTMLElement && box.contains(document.activeElement) ? document.activeElement.dataset.id : null;
   const isSA = getIsSuperAdmin();
   const rows = list.map((g) => {
     const nama = g.nama || "?";
@@ -97,6 +99,7 @@ export const renderGroupPicker = ({ loading = false, queueCounts = null } = {}) 
     const pendingCount = Math.max(0, Number(counts[g.id]) || 0);
     const isUnlocked = Boolean(getGroupSession(g.id));
     let subText = "Ketuk untuk masuk dengan PIN";
+    /** @type {"pin"|"active"|"direct"|"unlocked"} */
     let badgeKind = "pin";
     if (isActive) {
       subText = "Grup aktif saat ini";
@@ -113,7 +116,7 @@ export const renderGroupPicker = ({ loading = false, queueCounts = null } = {}) 
   });
   syncGroupPickerList({ mode: "list", rows });
   if (focusedId) {
-    Array.from(box.querySelectorAll(".group-item")).find(row => row.dataset.id === focusedId)?.focus();
+    Array.from(htmlElements(".group-item", box)).find(row => row.dataset.id === focusedId)?.focus();
   }
 };
 
@@ -139,7 +142,7 @@ export const initGroupPickerListeners = () => {
     if (!groupId || groupId === getActiveGroupId()) {
       void updateActiveGroupQueueBadge(groupId && Number.isFinite(pendingCount) ? pendingCount : null);
     }
-    if (document.getElementById("modal-groups")?.open) renderGroupPicker();
+    if (/** @type {HTMLDialogElement | null} */ (document.getElementById("modal-groups"))?.open) renderGroupPicker();
   }, { signal });
   window.addEventListener("finkas:group-changed", () => { void updateActiveGroupQueueBadge(); }, { signal });
 };

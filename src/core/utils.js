@@ -82,7 +82,7 @@ export const getRawNominal = (id) => {
  * Indonesian timezone (WIB/WITA/WIT), so a payment dated "22 Sep" never slips
  * to the 21st or 23rd on display.
  *
- * @param {string} dateStr Value from a date input, e.g. "2026-01-22".
+ * @param {string|undefined} dateStr Value from a date input, e.g. "2026-01-22".
  * @returns {string} ISO timestamp, or '' when the input is empty/invalid.
  */
 export const dateInputToIso = (dateStr) => {
@@ -138,7 +138,7 @@ const syncToastPopoverState = (container) => {
 
 /**
  * Show a floating toast notification.
- * @param {string} message - Message text.
+ * @param {string|undefined} message - Message text.
  * @param {'success'|'error'|'warning'|'info'} [type='success'] - Toast type.
  * @param {{title?: string, badge?: string, icon?: string, duration?: number}} [options] - Additional options (title, badge, icon, duration).
  */
@@ -615,3 +615,35 @@ export const expectedDuesForMember = (months, skipSet, monthlyFee, joinDateIso) 
     return sum + monthlyFee;
   }, 0);
 };
+
+/** @param {string} id */
+export const getInput = id => /** @type {HTMLInputElement | null} */ (document.getElementById(id));
+
+/** @param {string} id */
+export const getSelect = id => /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
+
+/** Look up a required form control in a mounted transaction or member form. @param {string} id */
+export function requiredField(id) {
+  const field = document.getElementById(id);
+  if (!field) throw new Error(`Missing form control #${id}`);
+  return /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (field);
+}
+
+/** @param {string} classes */
+export function buttonIcon(classes) {
+  const icon = document.createElement('i');
+  icon.className = classes;
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
+}
+
+/** @param {EventTarget|null} target @param {string} selector */
+export function closestHtml(target, selector) {
+  const element = /** @type {Element|null} */ (target);
+  return /** @type {HTMLElement|null} */ (element?.closest?.(selector) ?? null);
+}
+
+/** @param {string} selector @param {ParentNode} [root] */
+export function htmlElements(selector, root = document) {
+  return /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(selector));
+}

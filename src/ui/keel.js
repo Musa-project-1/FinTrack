@@ -14,7 +14,7 @@ import { showToast } from '../core/utils.js';
  * @param {Function} task
  */
 export const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
-  const btn = document.getElementById(buttonId);
+  const btn = /** @type {HTMLButtonElement|null} */ (document.getElementById(buttonId));
   if (btn) {
     if (btn.disabled || btn.getAttribute("aria-busy") === "true") return;
     btn.innerHTML = busyHtml;
@@ -48,7 +48,7 @@ export const withBusyButton = async (buttonId, busyHtml, idleHtml, task) => {
  *   callback holding the modal-close / optimistic-update side effects.
  */
 export const withLiquidSave = async (buttonId, task) => {
-  const btn = document.getElementById(buttonId);
+  const btn = /** @type {HTMLButtonElement|null} */ (document.getElementById(buttonId));
   if (btn && (btn.disabled || btn.classList.contains("is-saving"))) return;
   const labelEl = btn?.querySelector?.(".keel-label");
   const originalLabelHtml = labelEl ? labelEl.innerHTML : "";

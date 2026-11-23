@@ -165,7 +165,7 @@ export const exportToCSV = () => {
   const lines = [header.map((h) => q(h, false)).join(';')];
 
   [...state.transaksi]
-    .sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp))
+    .sort((a, b) => Date.parse(a.Timestamp) - Date.parse(b.Timestamp))
     .forEach((row) => {
       const waktu = new Date(row.Timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       const kat = state.kategori.find((k) => k.ID_Kategori === row.ID_Kategori);

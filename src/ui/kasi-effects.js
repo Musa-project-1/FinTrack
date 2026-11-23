@@ -1,5 +1,5 @@
 export function createKasiVectorSvg(kind, clsName) {
-  var ns = 'http://www.w3.org/2000/svg';
+  const ns = 'http://www.w3.org/2000/svg';
   var svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');

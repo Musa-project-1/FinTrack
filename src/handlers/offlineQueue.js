@@ -23,7 +23,7 @@ const syncQueueStatusUI = (count) => {
   const dot = document.getElementById('queue-conn-dot');
   const txt = document.getElementById('queue-conn-text');
   const pill = document.getElementById('queue-count-pill');
-  const syncBtn = document.getElementById('btn-sync-offline-now');
+  const syncBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-sync-offline-now'));
 
   if (dot) {
     dot.classList.toggle('is-online', online);
@@ -42,7 +42,7 @@ export const renderOfflineQueueList = async () => {
   if (!container) return;
 
   const renderId = ++latestRender;
-  const refreshBtn = document.getElementById('btn-refresh-offline');
+  const refreshBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-refresh-offline'));
   if (refreshBtn) {
     refreshBtn.disabled = true;
     refreshBtn.classList.add('is-loading');

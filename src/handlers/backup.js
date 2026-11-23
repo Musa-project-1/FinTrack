@@ -49,6 +49,7 @@ export const exportJSONBackup = async () => {
 
   showToast('Mengambil snapshot atomic dari server...', 'info');
 
+  /** @type {import('../core/api-client.js').ApiResponse<{snapshot: import('../types/finkas.d.ts').SnapshotEnvelope}>|null} */
   const res = await postToBackend({ action: 'exportSnapshot' });
   if (!res) {
     return showToast('Tidak dapat terhubung ke server untuk mengambil snapshot database.', 'error');
@@ -100,7 +101,7 @@ export const restoreJSONBackup = (file) => {
   const reader = new FileReader();
   reader.onload = async (e) => {
     try {
-      const content = JSON.parse(e.target.result);
+      const content = JSON.parse(String(e.target?.result));
 
       // Schema verification
       if (!content || !content.data || !Array.isArray(content.data.anggota) || !Array.isArray(content.data.transaksi)) {
@@ -197,6 +198,7 @@ export const restoreJSONBackup = (file) => {
 
       showToast('Memulihkan database ke server...', 'info');
 
+      /** @type {import('../core/api-client.js').ApiResponse<{transaksi: number, attachments: number}>|null} */
       const res = await postToBackend({
         action: 'restoreSnapshot',
         sourceGroupId: srcGid,

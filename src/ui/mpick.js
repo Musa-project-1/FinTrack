@@ -1,3 +1,4 @@
+import { closestHtml } from '../core/utils.js';
 /**
  * @module mpick
  * Universal custom month/year picker. Enhance any
@@ -217,7 +218,7 @@ const setup = (input) => {
 export const initMonthPickers = () => {
   document.querySelectorAll('input.mpick').forEach(setup);
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.mpick')) closeAll();
+    if (!closestHtml(e.target, '.mpick')) closeAll();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAll();

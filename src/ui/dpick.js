@@ -1,3 +1,4 @@
+import { closestHtml } from '../core/utils.js';
 /**
  * @module dpick
  * Hybrid Kinetic calendar date picker. Enhances `<input type="date" class="dpick">`
@@ -142,7 +143,7 @@ const pick = (ui, iso) => {
   ui.field.focus();
 };
 
-const focusDay = (ui, targetIso = null) => {
+const focusDay = (ui, targetIso = /** @type {string | null} */ (null)) => {
   const target = (targetIso && ui.grid.querySelector(`[data-iso="${targetIso}"]`))
     || ui.grid.querySelector('.dpick-day.is-selected')
     || ui.grid.querySelector('.dpick-day.is-today')
@@ -224,11 +225,12 @@ const renderView = (ui) => {
 };
 
 const handleGridKey = (ui, e) => {
-  const btn = e.target.closest('.dpick-day');
+  const btn = closestHtml(e.target, '.dpick-day');
   if (!btn) return;
   const p = parseIsoDate(btn.dataset.iso);
   if (!p) return;
   const cur = new Date(p.year, p.monthIdx, p.day);
+  /** @type {Date | null} */
   let target = null;
   if (e.key === 'ArrowLeft') target = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - 1);
   else if (e.key === 'ArrowRight') target = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
@@ -367,7 +369,7 @@ const setup = (input) => {
     e.stopPropagation();
     ui.view = ui.view === 'months' ? 'days' : 'months';
     renderView(ui);
-    if (ui.view === 'months') (monthsGrid.querySelector('.is-selected') || monthsGrid.querySelector('button'))?.focus();
+    if (ui.view === 'months') (/** @type {HTMLElement|null} */ (monthsGrid.querySelector('.is-selected')) || monthsGrid.querySelector('button'))?.focus();
     else focusDay(ui);
   });
   prevBtn.addEventListener('click', (e) => {
@@ -387,7 +389,7 @@ const setup = (input) => {
   todayBtn.addEventListener('click', (e) => { e.stopPropagation(); pick(ui, todayParts().iso); });
   pop.addEventListener('click', (e) => e.stopPropagation());
   wrap.addEventListener('focusout', (e) => {
-    if (e.relatedTarget && !wrap.contains(e.relatedTarget)) closePop(ui);
+    if (e.relatedTarget instanceof Node && !wrap.contains(e.relatedTarget)) closePop(ui);
   });
   if (!hasPopover()) {
     wrap.addEventListener('keydown', (e) => {
@@ -404,7 +406,7 @@ export const initDatePickers = () => {
   });
   document.addEventListener('finkas:modal-opened', () => closeAll());
   if (!hasPopover()) {
-    document.addEventListener('click', (e) => { if (!e.target.closest('.dpick')) closeAll(); });
+    document.addEventListener('click', (e) => { if (!closestHtml(e.target, '.dpick')) closeAll(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
   }
   window.addEventListener('resize', () => registry.forEach((ui) => {
@@ -413,7 +415,7 @@ export const initDatePickers = () => {
 };
 
 /** Re-read native input value into custom trigger label after programmatic writes. */
-export const syncDpick = (id = null) => {
+export const syncDpick = (id = /** @type {string | null} */ (null)) => {
   if (id) {
     registry.get(id)?.update?.();
     return;

@@ -132,11 +132,46 @@ export interface SnapshotEnvelope {
   data: SnapshotData;
 }
 
+export interface MutationFields {
+  duplicate?: boolean;
+  isReplay?: boolean;
+  inserted?: number;
+  skipped?: string[];
+  transactions?: Transaksi[];
+  rows?: Transaksi[];
+  transaction?: Transaksi;
+  idTransaksi?: string;
+  skippedMonths?: string[];
+  kasStart?: string;
+}
+
+export type MutationData = MutationFields & (Transaksi | { ID_Transaksi?: undefined });
+
+interface InstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+}
+
+interface GoogleOAuth2 {
+  initTokenClient(options: {
+    client_id: string;
+    scope: string;
+    callback(response: { access_token?: string; error?: string; error_description?: string }): void;
+    error_callback(error: { message?: string }): void;
+  }): { requestAccessToken(options: { prompt: string }): void };
+}
+
 declare global {
+  interface DocumentEventMap {
+    'finkas:modal-opened': CustomEvent<{ id: string }>;
+  }
   interface WindowEventMap {
+    beforeinstallprompt: InstallPromptEvent;
+    'finkas:queue-changed': CustomEvent<{ groupId: GroupId; pendingCount: number; state: 'idle' | 'queued' | 'sending' | 'failed' }>;
     'finkas:group-changed': CustomEvent<{groupId: GroupId; previousGroupId: GroupId}>;
   }
   interface Window {
+    __pwaPrompt?: InstallPromptEvent;
+    google?: { accounts?: { oauth2?: GoogleOAuth2 } };
     dataLayer: IArguments[];
     gtag?: (...args: unknown[]) => void;
   }

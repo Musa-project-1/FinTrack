@@ -78,6 +78,8 @@ export const stampMutation = (payload) => {
   return stamped;
 };
 
+/** @typedef {import('./api-client.js').ApiResponse<import('../types/finkas.d.ts').MutationData>} MutationResponse */
+/** @returns {Promise<{delivered: true, result: MutationResponse} | {delivered: false, result: MutationResponse|null}>} */
 export const deliverMutation = async (payload) => {
   if (!payload || typeof payload !== 'object') {
     return { delivered: false, result: null };

@@ -1,7 +1,7 @@
 import { refreshProfileStampStyle, refreshSpotlightStampStyle, syncStampStylePreview } from '../ui/svelte-dashboard.js';
 import { getActiveIndicatorStyle, saveIndicatorStyle, STAMP_META } from '../ui/dues-status.js';
 import { setCurrentHistoryFilter, setCurrentRekapYear } from "../core/state.js";
-import { handleNominalInput } from "../core/utils.js";
+import { getInput, getSelect, htmlElements, handleNominalInput } from "../core/utils.js";
 import { syncCdrop } from "../ui/cdrop.js";
 import {
   openModal, closeModal, closeGroupScopedModals, getActiveModalId, switchTab,
@@ -30,7 +30,7 @@ export const closeActiveModal = () => {
 
 export const setHistoryFilter = (filter) => {
   setCurrentHistoryFilter(filter);
-  document.querySelectorAll('[data-action="set-history-filter"]').forEach((button) => {
+  htmlElements('[data-action="set-history-filter"]').forEach((button) => {
     const selected = button.dataset.filter === filter;
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
@@ -44,25 +44,27 @@ export const setHistoryFilter = (filter) => {
    SEARCH LISTENERS
    ══════════════════════════════════════════════════════════════════ */
 
-let rekapSearchTimer = null;
-let trxSearchTimer = null;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let rekapSearchTimer;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let trxSearchTimer;
 
 export const resetGroupScopedUI = () => {
   clearTimeout(rekapSearchTimer);
-  rekapSearchTimer = null;
+  rekapSearchTimer = undefined;
   clearTimeout(trxSearchTimer);
-  trxSearchTimer = null;
+  trxSearchTimer = undefined;
   for (const id of ['search-member-rekap', 'search-member-rekap-mobile', 'workspace-search-history',
     'search-anggota-iuran', 'master-search-anggota', 'audit-search-input']) {
-    const input = document.getElementById(id);
+    const input = getInput(id);
     if (input) input.value = '';
   }
-  for (const button of document.querySelectorAll('[data-action="set-history-filter"]')) {
+  for (const button of htmlElements('[data-action="set-history-filter"]')) {
     const active = button.dataset.filter === 'semua';
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   }
-  for (const button of document.querySelectorAll('[data-status-filter]')) {
+  for (const button of htmlElements('[data-status-filter]')) {
     button.setAttribute('aria-pressed', String(button.dataset.statusFilter === 'all'));
   }
   closeGroupScopedModals();
@@ -70,9 +72,9 @@ export const resetGroupScopedUI = () => {
 
 export const setupRekapSearchListener = () => {
   const inputs = [
-    document.getElementById('search-member-rekap'),
-    document.getElementById('search-member-rekap-mobile')
-  ].filter(Boolean);
+    getInput('search-member-rekap'),
+    getInput('search-member-rekap-mobile')
+  ].filter(el => el != null);
 
   inputs.forEach((input) => {
     input.addEventListener('input', (e) => {
@@ -102,7 +104,7 @@ export const applyPrivacyMode = () => {
 const updateStampPicker = (animate = false) => {
   const currentStyle = getActiveIndicatorStyle();
   const meta = STAMP_META[currentStyle] || STAMP_META.seal;
-  document.querySelectorAll('#indicator-style-picker .style-option-card').forEach((card) => {
+  htmlElements('#indicator-style-picker .style-option-card').forEach((card) => {
     const active = card.dataset.style === currentStyle;
     card.classList.toggle('active', active);
     card.setAttribute('aria-pressed', String(active));
@@ -178,7 +180,7 @@ export const setCurrencyFormat = (formatKey) => {
    ══════════════════════════════════════════════════════════════════ */
 
 const getVisibleNavItems = () =>
-  Array.from(document.querySelectorAll('#modal-menu .nav-item')).filter((it) => {
+  Array.from(htmlElements('#modal-menu .nav-item')).filter((it) => {
     if (it.classList.contains('is-search-hidden')) return false;
     return typeof getComputedStyle === 'function'
       ? getComputedStyle(it).display !== 'none'
@@ -187,7 +189,7 @@ const getVisibleNavItems = () =>
 
 const syncNavGroupVisibility = () => {
   document.querySelectorAll('#modal-menu .nav-group').forEach((group) => {
-    const visible = Array.from(group.querySelectorAll('.nav-item')).some((it) => {
+    const visible = Array.from(htmlElements('.nav-item', group)).some((it) => {
       if (it.classList.contains('is-search-hidden')) return false;
       return typeof getComputedStyle === 'function'
         ? getComputedStyle(it).display !== 'none'
@@ -202,7 +204,7 @@ const applyNavMenuFilter = (rawQuery) => {
   const clearBtn = document.getElementById('btn-clear-nav-search');
   if (clearBtn) clearBtn.hidden = !query;
 
-  document.querySelectorAll('#modal-menu .nav-item').forEach((item) => {
+  htmlElements('#modal-menu .nav-item').forEach((item) => {
     const text = (item.querySelector('.nav-txt')?.textContent || '').toLowerCase();
     const sub = (item.querySelector('.nav-sub')?.textContent || '').toLowerCase();
     const keywords = (item.getAttribute('data-keywords') || '').toLowerCase();
@@ -220,9 +222,9 @@ const applyNavMenuFilter = (rawQuery) => {
 };
 
 const prepareCommandHubModal = () => {
-  const searchInput = document.getElementById('search-nav-menu');
+  const searchInput = getInput('search-nav-menu');
   if (searchInput) searchInput.value = '';
-  document.querySelectorAll('#modal-menu .nav-item, #modal-menu .nav-group').forEach((el) => {
+  htmlElements('#modal-menu .nav-item, #modal-menu .nav-group').forEach((el) => {
     el.classList.remove('is-search-hidden', 'is-selected');
   });
   const clearBtn = document.getElementById('btn-clear-nav-search');
@@ -249,7 +251,7 @@ export const openCommandHubModal = () => {
 };
 
 export const setupMenuSearchListener = () => {
-  const searchInput = document.getElementById('search-nav-menu');
+  const searchInput = getInput('search-nav-menu');
   if (!searchInput || searchInput.dataset?.navBound === '1') return;
   if (searchInput.dataset) searchInput.dataset.navBound = '1';
 
@@ -265,7 +267,7 @@ export const setupMenuSearchListener = () => {
     if (e.detail?.id === 'modal-menu') prepareCommandHubModal();
   });
 
-  searchInput.addEventListener('input', (e) => applyNavMenuFilter(e.target.value));
+  searchInput.addEventListener('input', (e) => applyNavMenuFilter(searchInput.value));
 
   document.getElementById('btn-clear-nav-search')?.addEventListener('click', () => {
     searchInput.value = '';
@@ -305,7 +307,11 @@ export const setupMenuSearchListener = () => {
 
 /**
  * Bind application form submit handlers, header menu triggers, and ledger filters.
- * @param {object} callbacks
+ * @param {Pick<typeof import('./auth.js'), 'submitLoginAdmin'> &
+ * Pick<typeof import('./transactions.js'), 'submitIuran'|'submitOperasional'|'submitEditTransaksi'> &
+ * Pick<typeof import('./quickpay.js'), 'submitQuickPay'> &
+ * Pick<typeof import('./master.js'), 'submitTambahAnggota'|'submitTambahKategori'|'submitEditMasterAnggota'|'renderMasterAnggotaTable'|'renderMasterKategoriTable'> &
+ * Pick<typeof import('./backup.js'), 'restoreJSONBackup'>} callbacks
  */
 export const initAppFormAndInputListeners = ({
   submitLoginAdmin,
@@ -345,26 +351,26 @@ export const initAppFormAndInputListeners = ({
     submitQuickPay(e);
   });
 
-  [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(Boolean).forEach((btn) => {
+  [document.getElementById('btn-header-menu'), document.getElementById('btn-header-menu-mobile')].filter(el => el != null).forEach((btn) => {
     btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); openCommandHubModal(); });
   });
 
-  const iuranNominal = document.getElementById('iuran-nominal');
+  const iuranNominal = getInput('iuran-nominal');
   if (iuranNominal) iuranNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterIuran(); });
 
-  const opsNominal = document.getElementById('ops-nominal');
+  const opsNominal = getInput('ops-nominal');
   if (opsNominal) opsNominal.addEventListener('input', function () { handleNominalInput(this); updateCounterOps(); });
 
-  const qpNominal = document.getElementById('qp-nominal');
+  const qpNominal = getInput('qp-nominal');
   if (qpNominal) qpNominal.addEventListener('input', function () { handleNominalInput(this); });
 
-  const editNominal = document.getElementById('edit-nominal');
+  const editNominal = getInput('edit-nominal');
   if (editNominal) editNominal.addEventListener('input', function () { handleNominalInput(this); });
 
   const iuranBulan = document.getElementById('iuran-bulan');
   if (iuranBulan) iuranBulan.addEventListener('change', renderCheckboxIuran);
 
-  const iuranTahun = document.getElementById('iuran-tahun');
+  const iuranTahun = getInput('iuran-tahun');
   if (iuranTahun) {
     iuranTahun.addEventListener('input', function () {
       this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
@@ -378,7 +384,7 @@ export const initAppFormAndInputListeners = ({
   const editTipe = document.getElementById('edit-tipe');
   if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
 
-  const historySearches = ['workspace-search-history'].map((id) => document.getElementById(id)).filter(Boolean);
+  const historySearches = ['workspace-search-history'].map((id) => getInput(id)).filter(el => el != null);
   for (const input of historySearches) input.addEventListener('input', () => {
     for (const other of historySearches) if (other !== input) other.value = input.value;
     clearTimeout(trxSearchTimer);
@@ -391,13 +397,13 @@ export const initAppFormAndInputListeners = ({
   const btnPilihSemua = document.getElementById('btn-pilih-semua');
   if (btnPilihSemua) btnPilihSemua.addEventListener('click', pilihSemuaIuran);
 
-  const tahunRekapSelect = document.getElementById('ui-tahun-rekap-select');
-  const tahunRekapSelectMobile = document.getElementById('ui-tahun-rekap-select-mobile');
-  [tahunRekapSelect, tahunRekapSelectMobile].filter(Boolean).forEach((sel) => {
+  const tahunRekapSelect = getSelect('ui-tahun-rekap-select');
+  const tahunRekapSelectMobile = getSelect('ui-tahun-rekap-select-mobile');
+  [tahunRekapSelect, tahunRekapSelectMobile].filter(el => el != null).forEach((sel) => {
     sel.addEventListener('change', (e) => {
-      setCurrentRekapYear(e.target.value);
-      if (tahunRekapSelect) tahunRekapSelect.value = e.target.value;
-      if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = e.target.value;
+      setCurrentRekapYear(sel.value);
+      if (tahunRekapSelect) tahunRekapSelect.value = sel.value;
+      if (tahunRekapSelectMobile) tahunRekapSelectMobile.value = sel.value;
       syncCdrop('ui-tahun-rekap-select');
       syncCdrop('ui-tahun-rekap-select-mobile');
       renderTableRekap();
@@ -414,11 +420,11 @@ export const initAppFormAndInputListeners = ({
   const formEditMasterAnggota = document.getElementById('form-edit-master-anggota');
   if (formEditMasterAnggota) formEditMasterAnggota.addEventListener('submit', submitEditMasterAnggota);
 
-  const inputRestore = document.getElementById('input-restore-json');
+  const inputRestore = getInput('input-restore-json');
   if (inputRestore) inputRestore.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      restoreJSONBackup(e.target.files[0]);
-      e.target.value = '';
+    if (inputRestore.files && inputRestore.files[0]) {
+      restoreJSONBackup(inputRestore.files[0]);
+      inputRestore.value = '';
     }
   });
 

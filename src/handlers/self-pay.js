@@ -4,7 +4,7 @@ import { NAMA_BULAN } from '../core/config.js';
 import { billingPeriod, createDuesLedger } from '../core/dues.js';
 import { normalizePaymentAccount } from '../core/payment-account.js';
 import { getActiveGroupId, getGroupName, getIsAdminView, getState } from '../core/state.js';
-import { formatRp, showToast } from '../core/utils.js';
+import { getSelect, requiredField, closestHtml, formatRp, showToast } from '../core/utils.js';
 import { animateHybridAmount } from '../ui/hybrid-motion.js';
 import { openModal, closeModal } from '../ui/modal.js';
 
@@ -62,7 +62,8 @@ export const selectSelfPayPreset = (preset) => {
   }
   const sorted = [...choices.values()].sort((a, b) => a.year - b.year || a.monthIndex - b.monthIndex);
   const periods = sorted.filter((month) => month.remaining > 0 && selectedPeriods.has(periodKey(month)));
-  const picker = document.getElementById('self-pay-member');
+  const picker = getSelect('self-pay-member');
+  if (!picker) return;
   if (!picker.options.length || picker.value !== member.ID_Anggota) {
     picker.replaceChildren(...ledger.members.map(({ ang }) => new Option(ang.Nama_Anggota, ang.ID_Anggota)));
     picker.value = member.ID_Anggota;
@@ -91,16 +92,16 @@ export const selectSelfPayPreset = (preset) => {
   const breakdown = document.getElementById('self-pay-periods');
   const shortMonths = periods.map((month) => NAMA_BULAN[month.monthIndex].slice(0, 3) + (years.size > 1 ? ` ${month.year}` : ''));
   const equalAmounts = periods.every((month) => month.remaining === ledger.monthlyFee);
-  breakdown.textContent = total
+  if (breakdown) breakdown.textContent = total
     ? `${periods.length} bulan${equalAmounts ? ` × ${formatRp(ledger.monthlyFee)}` : ' sesuai sisa iuran'} (${shortMonths.join(', ')})`
     : 'Pilih minimal 1 bulan di atas (BELUM, SEBAGIAN, atau NANTI).';
   animateHybridAmount(document.getElementById('self-pay-total'), total, { format: formatRp });
-  document.getElementById('self-pay-total-announcement').textContent = formatRp(total);
+  /** @type {HTMLElement} */ (document.getElementById('self-pay-total-announcement')).textContent = formatRp(total);
   transferAmount = total;
   accountNumber = transfer ? account.number : '';
-  document.getElementById('self-pay-account-title').textContent = transfer ? account.bank : 'Bank Tujuan';
-  document.getElementById('self-pay-account').textContent = transfer ? account.number : '—';
-  document.getElementById('self-pay-account-holder').textContent = transfer
+  /** @type {HTMLElement} */ (document.getElementById('self-pay-account-title')).textContent = transfer ? account.bank : 'Bank Tujuan';
+  /** @type {HTMLElement} */ (document.getElementById('self-pay-account')).textContent = transfer ? account.number : '—';
+  /** @type {HTMLElement} */ (document.getElementById('self-pay-account-holder')).textContent = transfer
     ? (account.holder ? `a.n. ${account.holder}` : '')
     : 'Rekening belum diatur. Hubungi bendahara.';
   const group = document.getElementById('app-group-name')?.textContent || getGroupName(selection.groupId);
@@ -112,15 +113,15 @@ export const selectSelfPayPreset = (preset) => {
     ...(transfer ? [`Rekening kas: ${transfer}`] : []),
     'Mohon periksa transfer dan catat pembayaran saya. Terima kasih.'
   ].join('\n') : '';
-  document.getElementById('self-pay-preview').value = summary || 'Pilih bulan pembayaran untuk menyiapkan draf konfirmasi.';
-  const whatsapp = document.getElementById('self-pay-whatsapp');
-  whatsapp.setAttribute('aria-disabled', String(!summary));
-  document.querySelectorAll('#modal-bayar-anggota [data-action="self-pay-copy"]').forEach((button) => {
+  requiredField('self-pay-preview').value = summary || 'Pilih bulan pembayaran untuk menyiapkan draf konfirmasi.';
+  const whatsapp = /** @type {HTMLAnchorElement | null} */ (document.getElementById('self-pay-whatsapp'));
+  whatsapp?.setAttribute('aria-disabled', String(!summary));
+  /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('#modal-bayar-anggota [data-action="self-pay-copy"]')).forEach((button) => {
     button.disabled = button.dataset.copy === 'account' ? !accountNumber : !summary;
   });
-  if (summary) whatsapp.href = `https://wa.me/${account.whatsapp}?text=${encodeURIComponent(summary)}`;
-  else whatsapp.removeAttribute('href');
-  document.querySelectorAll('[data-action="self-pay-preset"]').forEach((button) => {
+  if (summary && whatsapp) whatsapp.href = `https://wa.me/${account.whatsapp}?text=${encodeURIComponent(summary)}`;
+  else whatsapp?.removeAttribute('href');
+  /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('[data-action="self-pay-preset"]')).forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.preset === preset));
   });
 };
@@ -131,7 +132,7 @@ export const openSelfPay = (id, monthIndex, year) => {
   const period = Number.isInteger(monthIndex) && monthIndex >= 0 && monthIndex < 12 && Number.isInteger(year) ? { monthIndex, year } : null;
   selection = { groupId, id, period };
   const picker = document.getElementById('self-pay-member');
-  picker.replaceChildren();
+  picker?.replaceChildren();
   selectSelfPayPreset(period ? 'selected' : 'due');
   openModal('modal-bayar-anggota');
 };
@@ -149,10 +150,10 @@ export const copySelfPay = async (kind) => {
     field.value = text;
     field.readOnly = true;
     const dialog = document.getElementById('modal-bayar-anggota');
-    dialog.querySelector('.self-pay-copy-field')?.remove();
+    dialog?.querySelector('.self-pay-copy-field')?.remove();
     field.className = 'self-pay-copy-field form-control';
     field.setAttribute('aria-label', 'Rincian pembayaran untuk disalin');
-    dialog.querySelector('.hybrid-self-pay-body').append(field);
+    dialog?.querySelector('.hybrid-self-pay-body')?.append(field);
     field.select();
     showToast('Rincian dipilih. Gunakan perintah Salin di perangkatmu.', 'info');
   }
@@ -161,12 +162,12 @@ export const copySelfPay = async (kind) => {
 export const initSelfPay = () => {
   document.getElementById('self-pay-member')?.addEventListener('change', (event) => {
     if (!selection) return;
-    selection.id = event.target.value;
+    selection.id = /** @type {HTMLSelectElement} */ (event.currentTarget).value;
     selection.period = null;
     selectSelfPayPreset('due');
   });
   document.getElementById('self-pay-months')?.addEventListener('click', (event) => {
-    const choice = event.target.closest('button[data-payment-period]');
+    const choice = /** @type {HTMLButtonElement|null} */ (closestHtml(event.target, 'button[data-payment-period]'));
     if (!selection || !choice || choice.disabled) return;
     const key = choice.dataset.paymentPeriod;
     if (selectedPeriods.has(key)) selectedPeriods.delete(key);

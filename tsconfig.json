@@ -23,18 +23,12 @@
   },
   "include": [
     "src/types/**/*.d.ts",
-    "src/core/**/*.js",
-    "api/**/*.js",
-    "src/svelte/**/*.ts",
-    "src/svelte/**/*.svelte",
+    "src/**/*.js",
     "src/ui/svelte-dashboard.d.ts",
     "src/ui/svelte-onboarding.d.ts",
-    "src/render/**/*.js",
-    "src/onboarding.js",
-    "src/onboarding-stage.js",
-    "src/onboarding-motion.js",
-    "src/journey.js",
-    "src/privacy.js"
+    "api/**/*.js",
+    "src/svelte/**/*.ts",
+    "src/svelte/**/*.svelte"
   ],
   "exclude": ["src/ui/svelte-dashboard.js", "src/ui/svelte-onboarding.js"]
 }

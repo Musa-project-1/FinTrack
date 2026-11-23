@@ -19,7 +19,7 @@ import {
 } from "../core/state.js";
 import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "../core/api.js";
 import { GOOGLE_CLIENT_ID } from "../core/config.js";
-import { showToast } from "../core/utils.js";
+import { getInput, htmlElements, buttonIcon, showToast } from "../core/utils.js";
 import { closeModal } from "../ui/modal.js";
 import { syncBulkDues } from "../ui/bulk-dues.js";
 import { syncWorkspaceGliders } from "../ui/workspace.js";
@@ -74,16 +74,16 @@ export const handleUI = () => {
   document.body.classList.toggle("superadmin-mode", isSuperView);
   document.documentElement.dataset.role = isAdminView ? "admin" : "anggota";
 
-  document.querySelectorAll(".admin-session-only").forEach((el) => {
+  htmlElements(".admin-session-only").forEach((el) => {
     el.style.display = hasSession ? "" : "none";
   });
-  document.querySelectorAll(".admin-only").forEach((el) => {
+  htmlElements(".admin-only").forEach((el) => {
     el.style.display = isAdminView ? "" : "none";
   });
-  document.querySelectorAll(".superadmin-only").forEach((el) => {
+  htmlElements(".superadmin-only").forEach((el) => {
     el.style.display = isSuperView ? "" : "none";
   });
-  document.querySelectorAll(".non-admin-only").forEach((el) => {
+  htmlElements(".non-admin-only").forEach((el) => {
     el.style.display = isAdminView ? "none" : "";
   });
 
@@ -124,9 +124,9 @@ export const initRoleSwitcher = () => {
   const switcher = document.getElementById("role-switcher");
   if (!switcher) return;
 
-  const tabs = [...switcher.querySelectorAll('[role="tab"]')];
+  const tabs = [...htmlElements('[role="tab"]', switcher)];
   switcher.addEventListener("keydown", (event) => {
-    const current = tabs.indexOf(event.target);
+    const current = tabs.findIndex(tab => tab === event.target);
     if (current < 0) return;
     const last = tabs.length - 1;
     const next = {
@@ -151,7 +151,7 @@ export const renderAdminUI = () => {
   const btn = document.getElementById("btn-login-admin");
   if (btn) {
     btn.style.display = isAdmin ? "none" : "";
-    btn.innerHTML = '<i class="ph ph-lock-key"></i> Login Admin';
+    btn.replaceChildren(buttonIcon("ph ph-lock-key"), document.createTextNode(" Login Admin"));
   }
 
   const btnSheet = document.getElementById("btn-login-menu-sheet");
@@ -205,7 +205,7 @@ const showLoginError = (message, targetInput) => {
 };
 
 const resetPasswordVisibility = () => {
-  const pwdInput = document.getElementById("input-admin-pwd");
+  const pwdInput = getInput("input-admin-pwd");
   const toggleBtn = document.getElementById("btn-toggle-pwd");
   const icon = document.getElementById("icon-toggle-pwd");
   const capsHint = document.getElementById("auth-capslock-hint");
@@ -240,7 +240,7 @@ export const initLoginModal = () => {
 
   const btnTogglePwd = document.getElementById("btn-toggle-pwd");
   btnTogglePwd?.addEventListener("click", () => {
-    const pwdInput = document.getElementById("input-admin-pwd");
+    const pwdInput = getInput("input-admin-pwd");
     const icon = document.getElementById("icon-toggle-pwd");
     if (!pwdInput) return;
     const nextVisible = pwdInput.type === "password";
@@ -283,8 +283,8 @@ export const submitLoginAdmin = async (e) => {
   e?.preventDefault?.();
   clearLoginError();
 
-  const emailInput = document.getElementById("input-admin-email");
-  const pwdInput = document.getElementById("input-admin-pwd");
+  const emailInput = getInput("input-admin-email");
+  const pwdInput = getInput("input-admin-pwd");
   const email = (emailInput?.value || "").trim();
   const password = (pwdInput?.value || "").trim();
 
@@ -300,11 +300,15 @@ export const submitLoginAdmin = async (e) => {
     return;
   }
 
-  const btn = e?.target?.querySelector?.('button[type="submit"]')
-    || document.getElementById("btn-submit-login");
-  const originalHtml = btn ? btn.innerHTML : "";
+  const form = /** @type {HTMLFormElement | null} */ (e?.target);
+  const btn = /** @type {HTMLButtonElement | null} */ (
+    form?.querySelector?.('button[type="submit"]') || document.getElementById("btn-submit-login")
+  );
+  const savedChildren = btn ? Array.from(btn.childNodes) : [];
   if (btn) {
-    btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i><span>Mengecek...</span>';
+    const label = document.createElement("span");
+    label.textContent = "Mengecek...";
+    btn.replaceChildren(buttonIcon("ph ph-spinner-gap ph-spin"), label);
     btn.disabled = true;
     btn.setAttribute("aria-busy", "true");
   }
@@ -333,7 +337,7 @@ export const submitLoginAdmin = async (e) => {
     }
   } finally {
     if (btn) {
-      btn.innerHTML = originalHtml;
+      btn.replaceChildren(...savedChildren);
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
     }
@@ -374,7 +378,7 @@ const loadGoogleGsiScript = () => new Promise((resolve, reject) => {
  * exchanges the returned token for a Super Admin session on the server.
  */
 export const loginGoogleSuperAdminAction = async () => {
-  const stealthBtn = document.getElementById("btn-login-google-stealth");
+  const stealthBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("btn-login-google-stealth"));
   const originalText = stealthBtn ? stealthBtn.innerText : "";
   if (stealthBtn) {
     stealthBtn.innerText = "Menghubungkan Google...";
@@ -384,13 +388,14 @@ export const loginGoogleSuperAdminAction = async () => {
   try {
     await loadGoogleGsiScript();
 
-    if (!window.google?.accounts?.oauth2) {
+    const oauth2 = window.google?.accounts?.oauth2;
+    if (!oauth2) {
       showToast("Layanan Google Sign-In tidak dapat dimuat. Periksa koneksi internet Anda.", "error");
       return;
     }
 
     await new Promise((resolve, reject) => {
-      const client = window.google.accounts.oauth2.initTokenClient({
+      const client = oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
         scope: "email profile openid",
         callback: async (tokenResponse) => {
@@ -405,7 +410,7 @@ export const loginGoogleSuperAdminAction = async () => {
 
           const res = await loginGoogleSuperAdminApi(tokenResponse.access_token);
           if (!res?.status) {
-            showToast(res ? res.message : "Gagal login via Google.", "error");
+            showToast(res?.message || "Gagal login via Google.", "error");
             reject(new Error(res?.message || "Login Google ditolak."));
             return;
           }
@@ -438,6 +443,7 @@ export const loginGoogleSuperAdminAction = async () => {
 };
 
 let stealthBadgeClicks = 0;
+/** @type {ReturnType<typeof setTimeout> | null} */
 let stealthBadgeTimer = null;
 
 /**

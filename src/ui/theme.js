@@ -1,3 +1,4 @@
+import { htmlElements } from '../core/utils.js';
 import { runHybridThemeWipe } from './hybrid-motion.js';
 /**
  * @module theme
@@ -7,7 +8,7 @@ import { runHybridThemeWipe } from './hybrid-motion.js';
 import { THEME_KEY } from '../core/config.js';
 export { getLanguage, applyLanguagePreference, setLanguage } from './i18n.js';
 
-const safeGetItem = (key, fallback = null) => {
+const safeGetItem = (key, fallback = /** @type {string|null} */ (null)) => {
   try {
     const val = localStorage.getItem(key);
     return val !== null ? val : fallback;
@@ -53,7 +54,7 @@ export const applyTheme = () => {
   if (saved === 'auto') {
     isDark = systemTheme()?.matches;
   }
-  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  const metaTheme = /** @type {HTMLMetaElement|null} */ (document.querySelector('meta[name="theme-color"]'));
   const themeIcons = document.querySelectorAll('.theme-icon');
 
   if (isDark) {
@@ -82,7 +83,7 @@ export const setTheme = (themeKey, event, trigger) => {
 };
 
 const updatePicker = (name, value) => {
-  document.querySelectorAll(`[data-action="select-${name === 'theme' ? 'theme-mode' : name}"]`).forEach((card) => {
+  htmlElements(`[data-action="select-${name === 'theme' ? 'theme-mode' : name}"]`).forEach((card) => {
     const active = card.dataset[name] === value;
     card.classList.toggle('active', active);
     card.setAttribute('aria-pressed', String(active));
@@ -92,7 +93,7 @@ const updatePicker = (name, value) => {
 const palettes = ['terracotta', 'cobalt', 'charcoal', 'indigo'];
 
 export const applyAccentPreference = () => {
-  const saved = safeGetItem('finkas_palette');
+  const saved = safeGetItem('finkas_palette') || '';
   const palette = palettes.includes(saved) ? saved : 'cobalt';
   document.body.dataset.palette = palette;
   updatePicker('palette', palette);
@@ -121,7 +122,7 @@ const textures = ['aurora', 'topo', 'paper', 'clean'];
 const legacyTextures = new Map([['dots', 'aurora'], ['grid', 'paper'], ['solid', 'clean']]);
 
 export const applyBgTexturePreference = () => {
-  const saved = safeGetItem('finkas_bg_texture');
+  const saved = safeGetItem('finkas_bg_texture') || '';
   const texture = textures.includes(saved) ? saved : legacyTextures.get(saved) || 'aurora';
   document.body.dataset.canvas = texture;
   updatePicker('texture', texture);

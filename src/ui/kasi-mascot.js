@@ -1,3 +1,4 @@
+import { getInput } from '../core/utils.js';
 import { getActiveGroupId } from '../core/state.js';
 import { openModal } from './modal.js';
 import { createKasiVectorSvg, launchKasiTreatToPoint, spawnKasiParticles } from './kasi-effects.js';
@@ -22,7 +23,11 @@ const ACTIONS = {
 let dock, button, halo, bubble, treat, rig;
 let enabled = true, suppressClick = false, petCount = 0, trickIdx = 0;
 let roamTimer, bubbleTimer, idleTimer, poseTimer, scrollRejoinTimer, syncRafId = 0, syncFromResize = false;
-let cancelTreatFlight, hover = { x: null, y: null, segs: [], lastFire: 0, suppressUntil: 0 }, drag = null;
+let cancelTreatFlight;
+/** @type {{x:number|null, y:number|null, segs:{t:number, d:number, dx:number, dy:number}[], lastFire:number, suppressUntil:number}} */
+const hover = { x: null, y: null, segs: [], lastFire: 0, suppressUntil: 0 };
+/** @type {{id: number, startX: number, startY: number, x: number, y: number, moved: boolean} | null} */
+let drag = null;
 const resetHoverRub = (suppressMs = 0) => {
   hover.x = null; hover.y = null; hover.segs = [];
   if (suppressMs > 0) hover.suppressUntil = Math.max(hover.suppressUntil, Date.now() + suppressMs);
@@ -30,8 +35,12 @@ const resetHoverRub = (suppressMs = 0) => {
 const roam = {
   x: 0, y: 0, vy: 0, dir: 1, swing: 0, targetSwing: 0,
   pupilX: 0, pupilY: 0, targetPupilX: 0, targetPupilY: 0,
-  mode: 'idle', perchedEl: null, perchOffsetX: 0,
-  walkTargetX: 0, walkSpeed: 92, jumpStart: null, chase: null,
+  mode: 'idle', perchedEl: /** @type {Element|null} */ (null), perchOffsetX: 0,
+  walkTargetX: 0, walkSpeed: 92,
+  /** @type {{sx:number, sy:number, tx:number, ty:number, startAt:number, dur:number, arcH:number, targetEl:Element|null, onArrive:(()=>void)|null} | null} */
+  jumpStart: null,
+  /** @type {{tx:number, ty:number, speed:number, perchEl:Element|null, onArrive:()=>void} | null} */
+  chase: null,
   hovering: false, sleeping: false, lastFrameAt: 0, rafId: 0
 };
 
@@ -43,7 +52,7 @@ const sz = () => button?.offsetWidth || (innerWidth <= 768 ? 54 : 64);
 const topBottom = () => document.querySelector('.hybrid-topbar')?.getBoundingClientRect().bottom || 58;
 const floorY = () => {
   const nav = document.querySelector('.bottom-nav');
-  const hasNav = Boolean(nav?.getClientRects().length);
+  const hasNav = nav?.getClientRects().length;
   const navTop = hasNav ? nav.getBoundingClientRect().top : innerHeight;
   const bottomLimit = hasNav
     ? Math.min(innerHeight - 80, navTop - 12)
@@ -65,7 +74,7 @@ const ledgeRect = (el) => {
 const perchCandidates = () => {
   const top = topBottom() + 10;
   const floor = floorY() - 12;
-  return cards().map(ledgeRect).filter((l) => l && l.y >= top && l.y <= floor && l.maxX - l.minX >= 16);
+  return cards().map(ledgeRect).filter(l => l !== null).filter((l) => l.y >= top && l.y <= floor && l.maxX - l.minX >= 16);
 };
 
 const clearTreat = () => {
@@ -215,18 +224,21 @@ const startJump = (tx, ty, targetEl, opts = {}) => {
   ensureLoop();
 };
 
-const findDropTarget = (x, curY, tolerance = 0) => {
-  const matches = perchCandidates().filter((c) => x >= c.minX - 10 && x <= c.maxX + 10);
-  if (tolerance > 0) {
-    let best = null, bestDist = Infinity;
-    for (const c of matches) {
-      const d = Math.abs(curY - c.y);
-      if (d <= tolerance && d < bestDist) { bestDist = d; best = c; }
-    }
-    return best;
+const perchesAt = x => perchCandidates().filter(c => x >= c.minX - 10 && x <= c.maxX + 10);
+
+const nearestPerch = (x, curY, tolerance) => {
+  /** @type {ReturnType<typeof ledgeRect>} */
+  let best = null;
+  let bestDist = Infinity;
+  for (const perch of perchesAt(x)) {
+    const distance = Math.abs(curY - perch.y);
+    if (distance <= tolerance && distance < bestDist) { bestDist = distance; best = perch; }
   }
-  return matches.filter((c) => c.y >= curY - 6).sort((a, b) => a.y - b.y)[0] || { el: null, y: floorY() };
+  return best;
 };
+
+const findDropTarget = (x, curY) =>
+  perchesAt(x).filter(c => c.y >= curY - 6).sort((a, b) => a.y - b.y)[0] || { el: null, y: floorY() };
 
 const paused = () => reduced() || document.hidden || Boolean(document.querySelector('dialog[open]')) ||
   !halo?.hidden || roam.hovering || roam.sleeping;
@@ -329,7 +341,7 @@ function tickRoam(now) {
       j.onArrive?.();
     }
   } else if (roam.mode === 'fall') {
-    const drop = findDropTarget(roam.x, roam.y, 0);
+    const drop = findDropTarget(roam.x, roam.y);
     roam.vy += 1500 * dt;
     roam.y += roam.vy * dt;
     if (roam.y >= drop.y) {
@@ -522,11 +534,12 @@ export const initKasi = () => {
   dock = document.getElementById('kasi-dock');
   if (!dock) return;
   button = document.getElementById('kasi-fab');
+  if (!button) return;
   halo = document.getElementById('kasi-halo');
   bubble = document.getElementById('kasi-mini-bubble');
   treat = document.getElementById('kasi-treat');
   rig = button.querySelector('.kasi-svg');
-  const toggle = document.getElementById('kasi-enabled');
+  const toggle = getInput('kasi-enabled');
   try { enabled = localStorage.getItem(preferenceKey) !== 'off'; } catch {}
   if (toggle) {
     toggle.checked = enabled;
@@ -612,7 +625,7 @@ export const initKasi = () => {
     suppressClick = true;
     setTimeout(() => { suppressClick = false; }, 0);
     roam.targetSwing = 0;
-    const snap = findDropTarget(roam.x, roam.y, 26);
+    const snap = nearestPerch(roam.x, roam.y, 26);
     if (snap) {
       roam.perchedEl = snap.el; roam.y = snap.y;
       roam.perchOffsetX = roam.x - snap.left;
@@ -621,7 +634,7 @@ export const initKasi = () => {
       triggerPose('idle', 'is-booped', 460, ['star', 'star', 'heart']);
       scheduleNextRoam();
     } else if (reduced()) {
-      const drop = findDropTarget(roam.x, roam.y, 0);
+      const drop = findDropTarget(roam.x, roam.y);
       roam.perchedEl = drop.el; roam.y = drop.y;
       roam.mode = 'idle';
       applyTransform();

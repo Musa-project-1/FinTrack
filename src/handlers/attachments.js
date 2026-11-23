@@ -8,7 +8,7 @@
  *
  * Files are limited to JPEG, PNG, WebP, and PDF up to 512 KiB.
  */
-import { isOnline, showToast } from '../core/utils.js';
+import { buttonIcon, isOnline, showToast } from '../core/utils.js';
 import { getActiveGroupId, getState } from '../core/state.js';
 import { dataRequest } from '../core/api-client.js';
 
@@ -392,8 +392,8 @@ export function initAttachmentControls(options = {}) {
       }
 
       uploadBtn.disabled = true;
-      const oldHtml = uploadBtn.innerHTML;
-      uploadBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Mengunggah...';
+      const savedChildren = Array.from(uploadBtn.childNodes);
+      uploadBtn.replaceChildren(buttonIcon("ph ph-spinner-gap ph-spin"), document.createTextNode(" Mengunggah..."));
 
       try {
         const res = await uploadAttachmentApi({ idTransaksi, file });
@@ -404,7 +404,7 @@ export function initAttachmentControls(options = {}) {
         }
       } finally {
         uploadBtn.disabled = false;
-        uploadBtn.innerHTML = oldHtml;
+        uploadBtn.replaceChildren(...savedChildren);
       }
     });
   }

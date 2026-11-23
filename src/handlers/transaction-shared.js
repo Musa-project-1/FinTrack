@@ -22,7 +22,7 @@ export const tempTransactionId = () => generateTempId('TRX');
 /**
  * Add confirmed server transaction row to state and persist cache, or trigger
  * full refresh if row already exists or was not returned.
- * @param {object|null} serverRow
+ * @param {import('../types/finkas.d.ts').Transaksi|null} serverRow
  */
 export const integrateServerTransaction = (serverRow) => {
   if (!serverRow) {

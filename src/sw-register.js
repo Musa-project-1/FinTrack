@@ -1,6 +1,6 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js?v=306', { updateViaCache: 'none' })
+    navigator.serviceWorker.register('sw.js?v=307', { updateViaCache: 'none' })
       .then((reg) => {
         reg.update();
       })

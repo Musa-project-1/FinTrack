@@ -2,8 +2,10 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { encodeFields, decodeFields } from '../api/_sa.js';
+import { mockServiceAccount } from './helpers/mock-service-account.mjs';
 
 process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-1234567890';
+mockServiceAccount();
 
 // Mock MemoryFirestore for isolated testing
 class MemoryFirestore {

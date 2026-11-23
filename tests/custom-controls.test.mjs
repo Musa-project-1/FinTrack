@@ -12,7 +12,7 @@ const chrome = process.env.CHROME_BIN || '/usr/bin/google-chrome';
 test('custom controls preserve labels, validation, dynamic state and keyboard selection', {
   skip: !existsSync(chrome) && 'Set CHROME_BIN to run browser regression tests',
 }, async () => {
-  const root = resolve('.');
+  const root = resolve(import.meta.dirname, '..');
   const server = createServer(async (req, res) => {
     try {
       const path = resolve(root, '.' + new URL(req.url, 'http://localhost').pathname);

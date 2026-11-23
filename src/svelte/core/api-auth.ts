@@ -8,7 +8,7 @@
  */
 
 import { API } from './config';
-import { apiPost, logAuditEvent } from './api-client';
+import { apiPost, logAuditEvent, type ApiResponse } from './api-client';
 import {
   clearAdminSession,
   getAdminSession,
@@ -19,7 +19,7 @@ import {
 } from './state';
 
 type LoginData = {sessionToken: string, role?: string, email?: string, groupId?: string};
-type LoginResponse = import('./api-client').ApiResponse<LoginData>;
+type LoginResponse = ApiResponse<LoginData>;
 
 /** Store the session returned by a successful login. */
 const applySession = (data: LoginData, fallbackGroupId: string = '') => {
@@ -75,7 +75,7 @@ export const loginGoogleSuperAdminApi = async (idToken: string): Promise<{status
 
 /** List the Super Admin emails. */
 export const fetchSuperAdminsApi = async (): Promise<{status: boolean, httpStatus?: number, data?: Array<{email: string, isPrimary: boolean}>|null, message?: string}> => {
-  const res: import('./api-client').ApiResponse<{email: string, isPrimary: boolean}[]>|null = await apiPost(API.LOGIN_GOOGLE, { action: 'list', sessionToken: getAdminSession() });
+  const res: ApiResponse<{email: string, isPrimary: boolean}[]>|null = await apiPost(API.LOGIN_GOOGLE, { action: 'list', sessionToken: getAdminSession() });
   if (!res) return { status: false, message: 'Tidak dapat terhubung ke server.' };
   return res;
 };

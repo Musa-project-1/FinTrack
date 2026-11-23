@@ -15,6 +15,7 @@ const modalOrder = [
   ['group-pin.html', 'GroupPinModal.svelte'],
   ['group-admin.html', 'GroupAdminModals.svelte'],
   ['navigation.html', 'NavigationModals.svelte'],
+  ['quickpay.html', 'QuickPayModal.svelte'],
   ['master.html', 'MasterModals.svelte'],
   ['reports.html', 'ReportsModals.svelte'],
   ['transactions.html', 'TransactionsModals.svelte'],

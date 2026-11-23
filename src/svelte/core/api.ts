@@ -10,7 +10,7 @@ import type { AppState, GroupSettings, MutationData } from '../../types/finkas';
  */
 
 import { getActiveGroupId } from './state';
-import { dataRequest, logAuditEvent, resolveGroupId } from './api-client';
+import { dataRequest, logAuditEvent, resolveGroupId, type ApiResponse } from './api-client';
 
 export { logAuditEvent, resolveGroupId };
 
@@ -24,7 +24,7 @@ export {
 } from './api-auth';
 
 type GroupData = Pick<AppState, 'anggota'|'kategori'|'transaksi'> & {settings: GroupSettings, updatedAt?: string|null, readMarker?: string};
-type ResponseFor<T> = import('./api-client').ApiResponse<T>|null;
+type ResponseFor<T> = ApiResponse<T>|null;
 
 const EMPTY_DATA = { anggota: [], kategori: [], transaksi: [], settings: { skippedMonths: [], kasStart: '' } };
 

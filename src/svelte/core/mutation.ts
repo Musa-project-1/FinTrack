@@ -1,4 +1,5 @@
 import type { MutationData } from '../../types/finkas';
+import type { ApiResponse } from './api-client';
 /**
  * @module mutation
  * Unified mutation pipeline and optimistic ID handling for Finkas.
@@ -73,7 +74,7 @@ export const stampMutation = (payload: MutationPayload) => {
   return stamped;
 };
 
-type MutationResponse = import('./api-client').ApiResponse<MutationData>;
+type MutationResponse = ApiResponse<MutationData>;
 export const deliverMutation = async (payload: MutationPayload): Promise<{delivered: true, result: MutationResponse} | {delivered: false, result: MutationResponse|null}> => {
   if (!payload || typeof payload !== 'object') {
     return { delivered: false, result: null };

@@ -1,4 +1,4 @@
-name: Finkas CI
+name: CI
 
 on:
   push:
@@ -7,44 +7,15 @@ on:
     branches: [main]
 
 jobs:
-  test-and-build:
+  check:
+    name: Build, Verify & Test
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci || npm install
-
-      - name: Run Unit Tests
-        run: npm test
-
-      - name: Run HTML & Tailwind Build
-        run: npm run build
-
-      - name: Verify Strict Modularity (< 750 Lines per file)
-        run: |
-          OVERLIMIT=0
-          for f in js/*.js js/handlers/*.js js/render/*.js sw.js; do
-            if [ -f "$f" ]; then
-              LINES=$(wc -l < "$f")
-              if [ "$LINES" -ge 750 ]; then
-                echo "FAIL: $f has $LINES lines (limit: 749)"
-                OVERLIMIT=1
-              else
-                echo "PASS: $f ($LINES lines)"
-              fi
-            fi
-          done
-          if [ "$OVERLIMIT" -eq 1 ]; then
-            echo "Error: One or more source files exceed 749 lines limit."
-            exit 1
-          fi
-          echo "All source files verified under 750 lines."
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - run: npm run check

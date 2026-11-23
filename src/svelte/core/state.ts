@@ -325,15 +325,3 @@ export let currentHistoryFilter = 'semua';
 
 export const setCurrentRekapYear = (y: string | number) => { currentRekapYear = y.toString(); };
 export const setCurrentHistoryFilter = (f: string) => { currentHistoryFilter = f; };
-
-/* ── Chart instances ───────────────────────────────────────────── */
-
-export let cashFlowChart: unknown = null;
-export let expenseChart: unknown = null;
-export let arrearsRankChart: unknown = null;
-export const setCashFlowChart = (c: unknown) => { cashFlowChart = c; };
-export const setExpenseChart = (c: unknown) => { expenseChart = c; };
-export const setArrearsRankChart = (c: unknown) => { arrearsRankChart = c; };
-export const getCashFlowChart = () => cashFlowChart;
-export const getExpenseChart = () => expenseChart;
-export const getArrearsRankChart = () => arrearsRankChart;

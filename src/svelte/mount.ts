@@ -325,3 +325,8 @@ export * from './handlers/self-pay';
 export * from './handlers/transaction-shared';
 export { bukaModalTransaksi, submitIuran, submitOperasional, bukaModalEdit, submitEditTransaksi,
   konfirmasiHapus, eksekusiHapus } from './handlers/transactions';
+export { initSkyJourney, skyLayerStatesAt } from './pages/journey';
+export { initAmbientMotion, initEditorialFooter, initFeatureDossier, initHorizonSpline, initSectionReveal, initThemeToggle } from './pages/onboarding-motion';
+export { INITIAL_DEMO_SALDO, initOnboardingStage, formatRp as formatOnboardingRp } from './pages/onboarding-stage';
+export { bootOnboardingPage, submitPin } from './pages/onboarding';
+export { bootPrivacyPage } from './pages/privacy';

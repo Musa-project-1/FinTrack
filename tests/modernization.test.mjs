@@ -209,7 +209,8 @@ test('split modules are imported, precached, and authored batch sources stay und
   for (const file of ['css/modules/groups-modal.css', 'css/modules/groups-superadmin.css',
     'css/modules/pin-input.css', 'src/ui/pin-input.js', 'src/ui/gestures.js', 'src/handlers/groups.js',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
-    'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
+    'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',
+    'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'onboarding.html', 'css/onboarding.css', 'css/onboarding-motion.css']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
 });
@@ -250,10 +251,10 @@ for (const screen of ['groups', 'onboarding']) {
       },
       showToast() {}, esc: (text) => text
     });
-    let source = (screen === 'groups' ? stripTypeScriptTypes(read('src/svelte/handlers/groups.ts')) : read('src/pages/onboarding.js'))
+    let source = stripTypeScriptTypes(read(screen === 'groups' ? 'src/svelte/handlers/groups.ts' : 'src/svelte/pages/onboarding.ts'))
       .replace(/^import[\s\S]*?from ["'][^"']+["'];\s*/gm, '')
       .replace(/^export \{[^}]*\} from ["'][^"']+["'];/gm, '')
-      .replaceAll('export const ', 'const ');
+      .replace(/^export (?=(?:async )?function |const )/gm, '');
     source += screen === 'groups'
       ? '\npendingGroupId = "GRP-TEST"; globalThis.submit = submitGroupPin;'
       : '\nactive = { id: "GRP-TEST" }; globalThis.submit = submitPin;';

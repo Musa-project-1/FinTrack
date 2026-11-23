@@ -18,7 +18,3 @@ export const groupPickerStore = $state<GroupPickerInput>({ mode: 'empty', rows: 
 export function updateGroupPickerStore(input: GroupPickerInput) {
   Object.assign(groupPickerStore, input);
 }
-
-export function resetGroupPickerState() {
-  updateGroupPickerStore({ mode: 'empty', rows: [] });
-}

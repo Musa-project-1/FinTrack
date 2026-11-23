@@ -41,18 +41,11 @@ export const byNewestTimestamp = (a: {Timestamp?: string}, b: {Timestamp?: strin
 export const GROUP_START_YEAR = 2025;
 export const GROUP_START_MONTH = 11;
 
-/** Chart color palette for expense breakdown (Ocean Ledger harmonic ramp) */
-export const CHART_COLORS = [
-  '#0d9488', '#0284c7', '#4338ca', '#e11d48', '#b45309',
-  '#64748b', '#0f766e', '#0369a1', '#3730a3', '#be123c'
-];
-
 /* ── Storage keys ────────────────────────────────────────────────── */
 
 /** localStorage: per-group data cache. */
 export const CACHE_KEY = 'finkas_cache';
 export const THEME_KEY = 'theme';
-export const HEADER_STATS_KEY = 'finkas_header_stats';
 export const ACTIVE_GROUP_KEY = 'finkas_active_group';
 export const ACTIVE_GROUP_NAME_KEY = 'finkas_active_group_name';
 export const ONBOARDING_SEEN_KEY = 'finkas_onboarding_seen';

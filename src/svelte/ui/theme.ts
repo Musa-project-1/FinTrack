@@ -111,10 +111,7 @@ export const setPalette = (palette: string | undefined, event?: MouseEvent, trig
  * Number font preference ('mono' | 'sans').
  */
 export const applyNumberFontPreference = () => {
-  try {
-    const isMono = localStorage.getItem('finkas_number_font') !== 'sans';
-    document.body.classList.toggle('font-mono-numbers', isMono);
-  } catch (_) {}
+  document.body.classList.toggle('font-mono-numbers', safeGetItem('finkas_number_font') !== 'sans');
 };
 
 const textures = ['aurora', 'topo', 'paper', 'clean'];

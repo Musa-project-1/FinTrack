@@ -136,14 +136,14 @@ const setup = (input: HTMLInputElement) => {
   prev.type = 'button';
   prev.className = 'mpick-nav';
   prev.setAttribute('aria-label', 'Tahun sebelumnya');
-  prev.innerHTML = '<i class="ph-bold ph-caret-left" style="font-size: 14px;"></i>';
+  prev.innerHTML = '<i class="ph-bold ph-caret-left" aria-hidden="true"></i>';
   const yearEl = document.createElement('strong');
   yearEl.className = 'mpick-year';
   const next = document.createElement('button');
   next.type = 'button';
   next.className = 'mpick-nav';
   next.setAttribute('aria-label', 'Tahun berikutnya');
-  next.innerHTML = '<i class="ph-bold ph-caret-right" style="font-size: 14px;"></i>';
+  next.innerHTML = '<i class="ph-bold ph-caret-right" aria-hidden="true"></i>';
   head.appendChild(prev);
   head.appendChild(yearEl);
   head.appendChild(next);

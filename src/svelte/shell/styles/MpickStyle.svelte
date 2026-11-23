@@ -136,6 +136,10 @@
       transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
     }
 
+    .mpick-nav i {
+      font-size: 14px;
+    }
+
     .mpick-nav:hover {
       border-color: var(--border-strong);
       background: var(--surface-3);

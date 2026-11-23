@@ -57,11 +57,18 @@ const FRAGMENT_FILES = [
 const STANDALONE_PAGES = fs.readdirSync(ROOT)
   .filter((f) => f.endsWith('.html') && f !== 'index.html' && !f.startsWith('prototype-'));
 
-/** Every markup file a literal `getElementById` may legitimately resolve in. */
+/** Every static markup file and Svelte component a literal lookup may resolve in. */
+const SVELTE_FILES = walk('src/svelte').filter((f) => f.endsWith('.svelte'));
 const HTML_FILES = [...FRAGMENT_FILES, ...STANDALONE_PAGES];
+const MARKUP_FILES = [...HTML_FILES, ...SVELTE_FILES];
 
-/** Every client module. */
-const JS_FILES = walk('src').filter((f) => f.endsWith('.js'));
+/** Every authored client module (.js / .ts, excluding type declarations and compiled bundles). */
+const JS_FILES = walk('src').filter(
+  (f) =>
+    (f.endsWith('.js') || (f.endsWith('.ts') && !f.endsWith('.d.ts'))) &&
+    !f.endsWith('svelte-dashboard.js') &&
+    !f.endsWith('svelte-onboarding.js')
+);
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
@@ -71,7 +78,7 @@ const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
  * @param {string[]} [files]
  * @returns {Set<string>}
  */
-function attrValues(attribute, files = [...HTML_FILES, ...JS_FILES]) {
+function attrValues(attribute, files = [...MARKUP_FILES, ...JS_FILES]) {
   const found = new Set();
   const pattern = new RegExp(`\\s${attribute}="([^"]+)"`, 'g');
   for (const file of files) {
@@ -80,11 +87,11 @@ function attrValues(attribute, files = [...HTML_FILES, ...JS_FILES]) {
   return found;
 }
 
-/** Every `id="..."` defined in the markup, keyed to the file that defines it. */
+/** Every `id="..."` defined in static markup or Svelte templates (ignoring dynamic `{...}` ids). */
 function elementIds() {
   const ids = new Map();
-  for (const file of HTML_FILES) {
-    for (const match of read(file).matchAll(/\sid="([^"]+)"/g)) {
+  for (const file of MARKUP_FILES) {
+    for (const match of read(file).matchAll(/\sid="([^"{]+)"/g)) {
       if (!ids.has(match[1])) ids.set(match[1], file);
     }
   }
@@ -175,10 +182,22 @@ test('no element id is defined twice', () => {
   assert.deepEqual(duplicates, [], `duplicate ids break getElementById: ${duplicates.join(', ')}`);
 });
 
+test('no static element id is defined twice across Svelte components', () => {
+  const seen = new Map();
+  const duplicates = [];
+  for (const file of SVELTE_FILES) {
+    for (const match of read(file).matchAll(/\sid="([^"{]+)"/g)) {
+      if (seen.has(match[1])) duplicates.push(`#${match[1]} (${seen.get(match[1])} and ${file})`);
+      else seen.set(match[1], file);
+    }
+  }
+  assert.deepEqual(duplicates, [], `duplicate Svelte ids break getElementById: ${duplicates.join(', ')}`);
+});
+
 test('every tab button targets a real tab panel', () => {
   const ids = elementIds();
   // switchTab() matches a panel by `content.id === tabName` or `content.id === 'tab-' + tabName`.
-  const unresolved = [...attrValues('data-tab', HTML_FILES)]
+  const unresolved = [...attrValues('data-tab', MARKUP_FILES)]
     .filter((tab) => !ids.has(tab) && !ids.has(`tab-${tab}`));
   assert.deepEqual(unresolved, [], `data-tab values with no matching panel: ${unresolved.join(', ')}`);
 });
@@ -186,7 +205,7 @@ test('every tab button targets a real tab panel', () => {
 test('every aria-labelledby points at an element that exists', () => {
   const ids = elementIds();
   const dangling = [];
-  for (const file of HTML_FILES) {
+  for (const file of MARKUP_FILES) {
     for (const match of read(file).matchAll(/aria-labelledby="([^"]+)"/g)) {
       for (const ref of match[1].trim().split(/\s+/)) {
         if (!ids.has(ref)) dangling.push(`${ref} (${file})`);
@@ -199,8 +218,8 @@ test('every aria-labelledby points at an element that exists', () => {
 test('every label for= points at an input that exists', () => {
   const ids = elementIds();
   const dangling = [];
-  for (const file of HTML_FILES) {
-    for (const match of read(file).matchAll(/<label[^>]*\sfor="([^"]+)"/g)) {
+  for (const file of MARKUP_FILES) {
+    for (const match of read(file).matchAll(/<label[^>]*\sfor="([^"{]+)"/g)) {
       if (!ids.has(match[1])) dangling.push(`${match[1]} (${file})`);
     }
   }

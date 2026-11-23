@@ -1,0 +1,9 @@
+# Generated build artifacts
+index.html linguist-generated=true
+style.css linguist-generated=true
+src/ui/svelte-dashboard.js linguist-generated=true
+src/ui/svelte-onboarding.js linguist-generated=true
+*.map linguist-generated=true
+
+# Vendored third-party assets
+fonts/** linguist-vendored=true

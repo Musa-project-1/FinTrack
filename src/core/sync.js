@@ -76,7 +76,7 @@ let onUpdateChange = null;
 
 /* ── BroadcastChannel (same-browser, cross-tab) ──────────────────── */
 
-const channel = typeof BroadcastChannel !== 'undefined'
+const channel = typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined'
   ? new BroadcastChannel(CHANNEL_NAME)
   : null;
 
@@ -97,6 +97,8 @@ if (channel) {
 
     markHasUpdate(eventGroupId);
   };
+  // Node also exposes BroadcastChannel when a DOM fixture supplies a window.
+  if ('unref' in channel && typeof channel.unref === 'function') channel.unref();
 }
 
 /* ── Own mutation handling (this tab wrote) ──────────────────────── */
@@ -136,7 +138,7 @@ function handleMutationSuccess(e) {
   dispatchSyncStatus();
 }
 
-if (typeof window !== 'undefined') {
+if (typeof globalThis.window?.addEventListener === 'function') {
   window.addEventListener('finkas:mutation-success', handleMutationSuccess);
   window.addEventListener('finkas:group-changed', (e) => {
     const newGroup = e.detail?.groupId || getActiveGroupId();

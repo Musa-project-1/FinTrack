@@ -5,10 +5,10 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "finkas/hybrid-motion": ["./src/ui/hybrid-motion.js"],
-      "finkas/dues-status": ["./src/ui/dues-status.js"],
-      "finkas/pagination": ["./src/ui/pagination.js"],
-      "finkas/bulk-dues": ["./src/svelte/types/bulk-dues.d.ts", "./src/ui/bulk-dues.js"],
+      "finkas/hybrid-motion": ["./src/svelte/ui/hybrid-motion.ts"],
+      "finkas/dues-status": ["./src/svelte/ui/dues-status.ts"],
+      "finkas/pagination": ["./src/svelte/ui/pagination.ts"],
+      "finkas/bulk-dues": ["./src/svelte/ui/bulk-dues.ts"],
       "finkas/receipt": ["./src/svelte/types/receipt.d.ts", "./src/render/receipt.js"],
       "finkas/self-pay": ["./src/svelte/types/self-pay.d.ts", "./src/handlers/self-pay.js"]
     },

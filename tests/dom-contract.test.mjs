@@ -292,7 +292,7 @@ test('sw.js enforces cache scoping, /api/ bypass, and opaque CDN caching', () =>
 });
 
 test('modal-menu avoids auto-focusing search input on mobile viewports', () => {
-  const modalJs = read('src/ui/modal.js');
+  const modalJs = read('src/svelte/ui/modal.ts');
   assert.match(modalJs, /isMobile && id === 'modal-menu'/);
   assert.match(modalJs, /pointer:\s*coarse/);
 });

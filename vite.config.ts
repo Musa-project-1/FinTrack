@@ -1,12 +1,9 @@
+import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { authoredSourcemaps } from './scripts/authored-sourcemaps.mjs';
 
 const paths: Record<string, string> = {
-  'finkas/hybrid-motion': './hybrid-motion.js',
-  'finkas/dues-status': './dues-status.js',
-  'finkas/pagination': './pagination.js',
-  'finkas/bulk-dues': './bulk-dues.js',
   'finkas/receipt': '../render/receipt.js',
   'finkas/self-pay': '../handlers/self-pay.js'
 };
@@ -14,6 +11,14 @@ const paths: Record<string, string> = {
 export default defineConfig(({ mode }) => {
   const isOnboarding = mode === 'onboarding';
   return {
+    resolve: {
+      alias: {
+        'finkas/dues-status': resolve(import.meta.dirname, 'src/svelte/ui/dues-status.ts'),
+        'finkas/pagination': resolve(import.meta.dirname, 'src/svelte/ui/pagination.ts'),
+        'finkas/hybrid-motion': resolve(import.meta.dirname, 'src/svelte/ui/hybrid-motion.ts'),
+        'finkas/bulk-dues': resolve(import.meta.dirname, 'src/svelte/ui/bulk-dues.ts')
+      }
+    },
     plugins: [svelte(), authoredSourcemaps()],
     build: {
       sourcemap: true,

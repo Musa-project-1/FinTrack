@@ -2,7 +2,7 @@
 
 Aplikasi manajemen kas anggota dan kas operasional komunitas berbasis web (**Offline-First Progressive Web App / PWA**), dibangun dengan **Svelte 5 + TypeScript + Tailwind CSS v4 + Vite 8** di frontend dan **Vercel Serverless Functions + Google Cloud Firestore** di backend.
 
-> Lihat [`PRD.md`](./PRD.md) untuk spesifikasi produk lengkap dan [`DESIGN.md`](./DESIGN.md) untuk token desain *Hybrid Kinetic*.
+> Lihat [`PRD.md`](./.github/PRD.md) untuk spesifikasi produk lengkap dan [`DESIGN.md`](./.github/DESIGN.md) untuk token desain *Hybrid Kinetic*.
 
 ---
 
@@ -21,7 +21,7 @@ Aplikasi manajemen kas anggota dan kas operasional komunitas berbasis web (**Off
 
 ## 🔐 Model Keamanan
 
-Browser **tidak pernah** mengakses Firestore secara langsung; seluruh akses ditolak oleh `firestore.rules`:
+Browser **tidak pernah** mengakses Firestore secara langsung; seluruh akses ditolak oleh `.github/firestore.rules`:
 
 ```
 match /{document=**} { allow read, write: if false; }
@@ -45,16 +45,17 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 | Layer | Teknologi |
 |---|---|
 | **UI & Type Safety** | Svelte 5 (`^5.59.1`, `55` komponen `.svelte`), TypeScript 7 ketat (`noImplicitAny: true`, `strictNullChecks: true`), Vite 8 (`^8.3.8`) |
-| **Styling & Shells** | Tailwind CSS v4 (`^4.0.0`, `@theme inline` di `css/input.css`), `<style>` Svelte terekstrak (`css/svelte-scoped.css` & `css/onboarding-scoped.css`), Svelte HTML shells (`scripts/render-shells.mjs`), Phosphor Icons |
+| **Styling & Shells** | Tailwind CSS v4 (`^4.0.0`, `@theme inline` di `src/input.css`), `<style>` Svelte terekstrak (`css/*-scoped.css`), Svelte HTML shells (`scripts/render-shells.mjs`), Phosphor Icons |
 | **PWA & Offline** | Service Worker (`sw.js`), Web App Manifest (`manifest.json`), IndexedDB (`finkas-offline-db`), View Transitions API |
 | **Backend & Database** | Vercel Serverless Functions TypeScript (Node.js native TS ESM di `api/`), Google Cloud Firestore REST via Service Account |
-| **Testing & Verifikasi** | `node --test` (`411` uji kontrak DOM, akuntansi WIB, idempotensi, keamanan, & JSDOM Svelte) + Playwright smoke + `scripts/verify.mjs` |
+| **Testing & Verifikasi** | `node --test` (`412` uji kontrak DOM, akuntansi WIB, idempotensi, keamanan, & JSDOM Svelte) + Playwright smoke + `scripts/verify.mjs` |
 
 ---
 
 ## 📁 Struktur Direktori
 
 ```
+├── .github/                      # CI workflow, PRD.md, DESIGN.md, & firestore.rules
 ├── api/                          # Vercel serverless functions TypeScript (gateway Firestore)
 │   ├── data.ts                   # Gateway data terautentikasi (baca/tulis per grup)
 │   ├── login.ts, login-google.ts # Autentikasi pengurus, master admin & Google Super Admin
@@ -75,15 +76,12 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 │   │   ├── ui/                   # 21 modul UI TypeScript (cdrop, dpick, mpick, keel, gestures, i18n, modal, theme, kasi*, workspace)
 │   │   └── app.ts                # Router aksi DOM & bootstrap workspace TypeScript
 │   ├── ui/                       # Hasil bundle (svelte-dashboard.js, svelte-onboarding.js) & deklarasi .d.ts
-│   ├── pages/                    # Entrypoint tipis onboarding.js, onboarding-boot-theme.js, & privacy.js
+│   ├── pages/                    # Entrypoint tipis onboarding/privacy JS & template 404.html / offline.html
 │   ├── types/                    # Tipe domain global (finkas.d.ts)
+│   ├── input.css                 # Entry Tailwind v4 (@theme inline & @import CSS terekstrak)
 │   └── app.js                    # Entrypoint modul utama aplikasi
-├── css/                          # Entry Tailwind v4 (@theme inline di input.css) + CSS terekstrak (*-scoped.css) -> style.css
 ├── scripts/                      # render-shells.mjs, authored-sourcemaps.mjs, bump.mjs, verify.mjs
-├── tests/                        # Suite node:test (411 uji) + Playwright smoke + fixtures + helpers
-├── PRD.md                        # Product Requirements Document resmi Finkas
-├── DESIGN.md                     # Spesifikasi sistem desain & palet Hybrid Kinetic
-├── firestore.rules               # Menolak seluruh akses langsung klien ke Firestore
+├── tests/                        # Suite node:test (412 uji) + Playwright smoke + fixtures + helpers
 └── sw.js                         # Service Worker (precache & lifecycle offline)
 ```
 
@@ -107,11 +105,11 @@ Hosting menggunakan **Vercel** dengan build command `npm run build` di [vercel.j
 ## 🧑‍💻 Perintah Pengembangan
 
 ```bash
-npm run check                  # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 411 uji
+npm run check                  # 1 perintah lengkap: build semua aset + verify (sintaks, precache SW, TypeScript) + 412 uji
 npm run release                # Naikkan versi cache/aset & sw.js (bump.mjs), lalu jalankan `npm run check`
-npm run build                  # Rakit bundle Svelte + HTML shells + *-scoped.css + style.css
+npm run build                  # Rakit bundle Svelte + HTML shells + css/*-scoped.css + style.css
 npm test                       # Jalankan suite pengujian `node --test`
 python3 tests/browser/smoke.py # Jalankan smoke test Playwright (Desktop & Mobile, tanpa koneksi eksternal)
 ```
 
-> Catatan: `index.html`, `onboarding.html`, `privacy.html`, `style.css`, `css/svelte-scoped.css`, `css/onboarding-scoped.css`, [src/ui/svelte-dashboard.js](./src/ui/svelte-dashboard.js), dan [src/ui/svelte-onboarding.js](./src/ui/svelte-onboarding.js) merupakan artefak hasil build. Jalankan `npm run check` setiap selesai mengubah `src/`, `api/`, atau `css/`.
+> Catatan: `index.html`, `onboarding.html`, `privacy.html`, `404.html`, `offline.html`, `style.css`, dan `css/*-scoped.css` adalah output hasil build yang di-gitignore agar root repo tetap rapi (selalu dihasilkan ulang saat `npm run build` / deploy Vercel). Jalankan `npm run check` setiap selesai mengubah `src/` atau `api/`.

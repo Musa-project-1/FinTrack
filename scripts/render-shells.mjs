@@ -197,6 +197,7 @@ const writeIfChanged = (filePath, content) => {
 };
 
 const scopedHeader = '/* Generated from Svelte <style> blocks by scripts/render-shells.mjs. */\n';
+fs.mkdirSync(path.join(ROOT, 'css'), { recursive: true });
 writeIfChanged(
   path.join(ROOT, 'css', 'svelte-scoped.css'),
   scopedHeader + (svelteStyleChunks.length ? `${svelteStyleChunks.join('\n\n')}\n` : '')
@@ -209,4 +210,6 @@ writeIfChanged(
 fs.writeFileSync(path.join(ROOT, 'index.html'), indexHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
+fs.copyFileSync(path.join(ROOT, 'src/pages/404.html'), path.join(ROOT, '404.html'));
+fs.copyFileSync(path.join(ROOT, 'src/pages/offline.html'), path.join(ROOT, 'offline.html'));
 console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length}) + css/onboarding-scoped.css (${onboardingStyleChunks.length}) at v${v}.`);

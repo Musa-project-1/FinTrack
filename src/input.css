@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source not "./ui";
 
 @theme inline {
   --color-canvas: var(--bg-color);
@@ -27,4 +28,4 @@
 }
 
 /* === FINKAS TAILWIND V4 + COMPILED SVELTE COMPONENT STYLES === */
-@import "./svelte-scoped.css";
+@import "../css/svelte-scoped.css";

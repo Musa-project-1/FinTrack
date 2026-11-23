@@ -7,6 +7,13 @@ node_modules/
 
 # Build artifacts
 *.zip
+/index.html
+/onboarding.html
+/privacy.html
+/404.html
+/offline.html
+/style.css
+/css/
 
 # Local documentation (not for public repo)
 docs/

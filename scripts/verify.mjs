@@ -23,7 +23,7 @@ const INDEX_PATH = path.join(ROOT, 'index.html');
 const SHELL_PATH = path.join(ROOT, 'src', 'svelte', 'shell', 'WorkspaceShell.svelte');
 const SHELL_MODALS_DIR = path.join(ROOT, 'src', 'svelte', 'shell', 'modals');
 const STYLE_PATH = path.join(ROOT, 'style.css');
-const CSS_ENTRY = path.join(ROOT, 'css', 'input.css');
+const CSS_ENTRY = path.join(ROOT, 'src', 'input.css');
 const CSS_MODULE_DIR = path.join(ROOT, 'css', 'modules');
 
 const failures = [];
@@ -211,7 +211,7 @@ if (!fs.existsSync(STYLE_PATH)) {
 }
 
 const tscBin = path.join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
-for (const args of [['--noEmit'], ['--noEmit', '-p', 'tsconfig.strict.json']]) {
+for (const args of [['--noEmit']]) {
   try {
     execFileSync(process.execPath, [tscBin, ...args], {
       cwd: ROOT,

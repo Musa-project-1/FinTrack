@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
   "scripts": {
-    "build": "vite build && vite build --mode onboarding && node scripts/render-shells.mjs && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./css/input.css -o ./style.css --minify",
+    "build": "vite build && vite build --mode onboarding && node scripts/render-shells.mjs && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify",
     "test": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
     "check": "npm run build && node scripts/verify.mjs && npm test",
     "release": "node scripts/bump.mjs && npm run check"

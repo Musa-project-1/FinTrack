@@ -72,13 +72,15 @@
       background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning);
       display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
     }
-    .queue-header-copy { min-width: 0; }
+    .queue-header-copy { min-width: 0; flex: 1; }
     #modal-offline-queue .queue-header-copy h2 {
       font-family: var(--font-display); font-size: 1.0625rem; font-weight: 800;
       letter-spacing: -0.02em; line-height: 1.25; color: var(--text-main); margin: 0;
+      overflow-wrap: anywhere;
     }
     #modal-offline-queue .queue-subtitle {
       margin: 2px 0 0; font-size: 0.78125rem; font-weight: 500; color: var(--text-muted); line-height: 1.4;
+      overflow-wrap: anywhere;
     }
     .queue-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     #modal-offline-queue .queue-sheet-header .queue-refresh-btn {
@@ -130,23 +132,26 @@
     }
     .queue-empty-ico { background: var(--accent-tint); border: 1px solid var(--accent-border); color: var(--accent-strong); }
     .queue-error-ico { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .queue-empty > div,
+    .queue-error > div { min-width: 0; flex: 1; }
     .queue-empty strong,
     .queue-error strong { display: block; font-size: 13.5px; color: var(--text-main); margin-bottom: 2px; }
     .queue-empty p,
-    .queue-error p { font-size: 12px; color: var(--text-muted); margin: 0; }
+    .queue-error p { font-size: 12px; color: var(--text-muted); margin: 0; overflow-wrap: anywhere; word-break: break-word; }
 
     #modal-offline-queue .pending-item {
       border: 1px solid var(--border); border-radius: 13px; padding: 11px 13px;
-      background: var(--surface); margin: 0;
+      background: var(--surface); margin: 0; min-width: 0; max-width: 100%; box-sizing: border-box;
     }
     #modal-offline-queue .pending-item + .pending-item { margin-top: 0; }
-    #modal-offline-queue .pending-card-row { display: flex; align-items: center; gap: 10px; }
+    #modal-offline-queue .pending-card-row { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%; }
     #modal-offline-queue .pending-card-row > .flex-1 { min-width: 0; flex: 1; }
-    .pending-card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #modal-offline-queue .pending-card-row > .flex-align-gap { flex-shrink: 0; }
+    .pending-card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 
     .queue-action-pill {
       display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: var(--r-pill);
-      font-size: 11px; font-weight: 700; line-height: 1.3; white-space: nowrap;
+      font-size: 11px; font-weight: 700; line-height: 1.3; white-space: nowrap; max-width: 100%; min-width: 0;
       border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted);
     }
     .queue-action-pill i { font-size: 12px; }
@@ -157,19 +162,22 @@
     .pending-card-amount {
       font-family: var(--font-mono); font-size: 12px; font-weight: 700;
       font-variant-numeric: tabular-nums; color: var(--text-main);
+      white-space: nowrap; flex-shrink: 0;
     }
     #modal-offline-queue .pending-card-time {
       margin-top: 5px; font-size: 11px; color: var(--text-faint);
       display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+      min-width: 0; overflow-wrap: anywhere; word-break: break-word;
     }
     .queue-gid-tag {
-      font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: -0.02em; font-weight: 600;
       padding: 1px 6px; border-radius: var(--r-xs); background: var(--surface-2);
       border: 1px solid var(--border); color: var(--text-muted);
+      max-width: 100%; overflow-wrap: anywhere; word-break: break-word;
     }
     #modal-offline-queue .pending-card-payload {
       margin-top: 4px; font-family: var(--font-sans); font-size: 12px; color: var(--text-main);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+      white-space: normal; overflow-wrap: anywhere; word-break: break-word; min-width: 0; max-width: 100%;
     }
     #modal-offline-queue .queue-del-btn {
       min-width: 0; min-height: 32px; height: 32px; padding: 0 10px;
@@ -177,7 +185,9 @@
       color: var(--danger); border-color: var(--danger-border); background: transparent;
       display: inline-flex; align-items: center; gap: 4px;
     }
-    #modal-offline-queue .queue-del-btn:hover { background: var(--danger-bg); border-color: var(--danger); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-offline-queue .queue-del-btn:hover { background: var(--danger-bg); border-color: var(--danger); }
+    }
 
     #modal-offline-queue .queue-sheet-footer {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -211,9 +221,9 @@
       #modal-offline-queue .queue-sheet-header .close-modal-btn { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
       #modal-offline-queue .queue-sheet-body { padding: 10px 14px 12px; gap: 9px; overflow-y: auto; overscroll-behavior: contain; }
       #modal-offline-queue .offline-queue-container { max-height: none; overflow: visible; scrollbar-gutter: auto; }
-      #modal-offline-queue .queue-del-btn { min-height: 36px; height: 36px; padding: 0 10px; }
+      #modal-offline-queue .queue-del-btn { min-height: 44px; height: 44px; min-width: 44px; padding: 0 10px; }
       #modal-offline-queue .queue-sheet-footer { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); border-radius: 0; }
-      #modal-offline-queue .queue-sheet-footer .btn { flex: 1 1 0; min-height: 44px; height: 44px; }
+      #modal-offline-queue .queue-sheet-footer .btn { flex: 1 1 0; min-width: 0; min-height: 44px; height: 44px; white-space: normal; text-align: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -3,10 +3,15 @@
     .ledger-list {
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .ledger-row {
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       text-align: left;
       padding: 14px 20px;
       display: grid;
@@ -58,9 +63,12 @@
       font-weight: 700;
       font-size: 14px;
       color: var(--text-main);
+      min-width: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .ledger-meta {
@@ -68,8 +76,12 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 8px;
+      min-width: 0;
+      max-width: 100%;
       font-size: 12px;
       color: var(--text-muted);
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .cat-tag {
@@ -79,6 +91,10 @@
       color: var(--text-main);
       font-weight: 600;
       font-size: 11px;
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .ledger-amt-col {
@@ -86,6 +102,7 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 2px;
+      min-width: 0;
       flex-shrink: 0;
     }
 
@@ -93,7 +110,10 @@
       font-family: var(--font-mono);
       font-weight: 700;
       font-size: .90625rem;
+      font-variant-numeric: tabular-nums;
       letter-spacing: normal;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .ledger-amt.inflow {
@@ -109,6 +129,7 @@
       font-size: 11px;
       color: var(--text-muted);
       font-weight: 600;
+      white-space: nowrap;
     }
 
     #workspace-iuran #section-rekap {
@@ -218,7 +239,7 @@
 
     #section-rekap .table-matriks .matrix-dues-button {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 54px; min-height: 36px; height: 36px; padding: 0; margin: 0 auto;
+      min-width: 56px; width: auto; min-height: 36px; height: 36px; padding: 0; margin: 0 auto;
       border-radius: 8px; font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: normal;
       transition: transform 150ms var(--hybrid-ease-spring), background-color 160ms ease, border-color 160ms ease;
     }
@@ -229,13 +250,13 @@
     }
     #section-rekap .table-matriks .dues-seal,
     #section-rekap .table-matriks .dues-month-status {
-      width: 54px; height: 36px; padding: 0; border-radius: 8px;
+      min-width: 56px; width: auto; height: 36px; padding: 0 4px; border-radius: 8px;
       display: inline-flex; align-items: center; justify-content: center;
-      font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: .03em; line-height: 1;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: -0.02em; line-height: 1;
     }
     #section-rekap .table-matriks .dues-seal {
       background: var(--income-bg); color: var(--income-strong); border: 1px solid var(--income-border);
-      font-weight: 800; letter-spacing: .02em; gap: 3.5px;
+      font-weight: 800; letter-spacing: -0.02em; gap: 2.5px;
     }
     #section-rekap .table-matriks .dues-month-status {
       border: 1px solid var(--dues-border, var(--border));
@@ -249,13 +270,13 @@
       background: var(--dues-tint); border-color: var(--dues-border);
     }
     #section-rekap .table-matriks .dues-month-status[data-status="Sebagian"] {
-      flex-direction: column; gap: 1px; padding: 0 2px; font-size: 8.5px;
+      flex-direction: column; gap: 1px; padding: 2px 3px; font-size: 11px; letter-spacing: -0.03em;
     }
     #section-rekap .table-matriks .matrix-dues-button:hover .dues-month-status[data-status="Sebagian"] {
       border-color: var(--hybrid-spot);
     }
     #section-rekap .table-matriks .dues-month-status[data-status="Sebagian"] small {
-      font-size: 8.5px; color: inherit; line-height: 1;
+      font-size: 11px; letter-spacing: -0.03em; color: inherit; line-height: 1;
     }
     #section-rekap .table-matriks .dues-month-status[data-status="Nanti"] {
       border: 1px dashed var(--border-strong); background: transparent; color: var(--text-faint);
@@ -290,10 +311,9 @@
     .hybrid-ledger-empty { padding: 20px; }
     .ledger-row { cursor: pointer; min-height: 44px; }
     .ledger-row:focus-visible { outline-offset: -3px; }
-    .ledger-main, .ledger-amt-col { overflow: hidden; }
-    .ledger-amt-col { text-align: end; }
-    .ledger-amt { overflow-wrap: anywhere; }
-    .ledger-id, .cat-tag { overflow-wrap: anywhere; }
+    .ledger-main { min-width: 0; overflow: hidden; }
+    .ledger-amt-col { min-width: 0; flex-shrink: 0; text-align: end; }
+    .ledger-id, .cat-tag { overflow-wrap: anywhere; word-break: break-word; }
 
     #workspace-stats { min-width: 0; align-items: stretch; }
     #workspace-stats[hidden] { display: none; }
@@ -347,7 +367,10 @@
       #section-rekap .matrix-legend { gap: 4px 8px; }
       #section-rekap .dues-status-help { width: 100%; height: 46px; min-width: 44px; min-height: 46px; padding-inline: 8px; }
       #section-rekap .dues-status-help i { font-size: 12px; }
-      #workspace-history .ledger-amt-col { max-width: 38vw; }
+      .ledger-row { padding: 12px 14px; gap: 10px; }
+      .ledger-type-icon { width: 34px; height: 34px; font-size: 16px; }
+      .ledger-title { white-space: normal; }
+      .ledger-amt { font-size: 13px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .chart-bar-in,.chart-bar-out,.chart-curve-path.draw-anim,.breakdown-fill { animation: none; }
@@ -371,6 +394,8 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: var(--surface-2);
+      max-width: 100%;
+      overflow-x: auto;
     }
     .hybrid-year-glider button {
       min-height: 28px;
@@ -406,31 +431,36 @@
       .year-glider-indicator { transition: none; }
     }
 
-    .iuran-member-card { padding: 0; border-radius: 20px; overflow: hidden; }
-    .iuran-card-header { padding: 10px 12px 8px; min-height: 60px; margin: 0; gap: 6px; }
-    .iuran-card-details { margin-inline: 12px; }
+    .iuran-member-card { padding: 0; border-radius: 20px; overflow: hidden; min-width: 0; max-width: 100%; box-sizing: border-box; }
+    .iuran-card-header { padding: 10px 12px 8px; min-height: 60px; margin: 0; gap: 6px; min-width: 0; }
+    .iuran-card-details { margin-inline: 12px; min-width: 0; }
     .iuran-member-card.expanded .iuran-card-details { padding-bottom: 10px; }
     .dues-mini-strip { margin: 0; padding: 0 12px 10px; }
     .dues-mini-strip span { height: 4px; border-radius: var(--r-pill); }
     .iuran-member-card.is-pinned { border-color: var(--hybrid-outline); background: color-mix(in oklab,var(--hybrid-glow) 35%,var(--surface)); }
-    .matrix-mobile-chip { flex: none; padding: 3px 8px; border-radius: var(--r-pill); font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .matrix-mobile-chip { flex: none; padding: 3px 8px; border-radius: var(--r-pill); font-size: 11px; font-weight: 700; white-space: nowrap; }
     .matrix-mobile-chip.paid { background: var(--income-bg); color: var(--income-strong); }
     .matrix-mobile-chip.amber { background: var(--member-amber-soft, var(--warning-bg)); color: var(--member-amber-ink, var(--warning)); }
-    #section-rekap .iuran-cards-container { padding: 14px; }
+    #section-rekap .iuran-cards-container { padding: 14px; min-width: 0; max-width: 100%; }
     #section-rekap .iuran-member-card { margin: 0 0 12px; }
     #section-rekap .iuran-card-main-info { min-width: 0; flex: 1; }
     #section-rekap .iuran-card-name {
-      min-height: 0; padding: 0; display: inline-flex; align-items: center; gap: 6px;
-      max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+      min-height: 0; padding: 0; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
+      max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word; text-align: start;
       font-family: var(--font-sans); font-size: 14.5px; font-weight: 700; line-height: 1.26; letter-spacing: -0.015em;
     }
-    #section-rekap .iuran-card-name:hover { color: var(--text-main); text-decoration: none; }
+    @media (hover: hover) and (pointer: fine) {
+      #section-rekap .iuran-card-name:hover { color: var(--text-main); text-decoration: none; }
+    }
     #section-rekap .iuran-card-name .self-pin-badge { margin-inline-start: 0; }
     #section-rekap .iuran-progress-subtext {
       font-family: var(--font-sans); font-size: 12px; font-weight: 500; line-height: 1.32; letter-spacing: normal;
+      min-width: 0; overflow-wrap: anywhere;
     }
     #section-rekap .iuran-card-toggle { border-color: transparent; background: transparent; border-radius: 8px; }
-    #section-rekap .iuran-card-toggle:hover { background: var(--surface-2); }
+    @media (hover: hover) and (pointer: fine) {
+      #section-rekap .iuran-card-toggle:hover { background: var(--surface-2); }
+    }
     #section-rekap .iuran-month-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding-top: 2px; }
     #section-rekap .iuran-month-item {
       flex-direction: row; align-items: center; justify-content: center; gap: 4px;
@@ -454,13 +484,15 @@
     #section-rekap .dues-mini-strip { gap: 3px; }
     #section-rekap .dues-mini-strip [data-status="Nanti"] { border: 1px dashed var(--border-strong); background: transparent; }
     #section-rekap .dues-mini-strip [data-status="Libur"] { opacity: .45; }
-    #section-rekap .iuran-action-buttons { display: flex; gap: 8px; margin-top: 10px; }
+    #section-rekap .iuran-action-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     #section-rekap :is(.iuran-btn-detail, .iuran-btn-pay) {
-      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer;
     }
     #section-rekap .iuran-btn-detail { border: 1px solid var(--border); background: var(--surface); color: var(--text-main); }
-    #section-rekap .iuran-btn-detail:hover { background: var(--surface-2); border-color: var(--border-strong); }
+    @media (hover: hover) and (pointer: fine) {
+      #section-rekap .iuran-btn-detail:hover { background: var(--surface-2); border-color: var(--border-strong); }
+    }
     #section-rekap .iuran-btn-pay { border: 1px solid transparent; background: var(--hybrid-brand); color: var(--accent-ink); }
     .iuran-card-toggle i { transition: transform 240ms var(--hybrid-ease-spring); }
 
@@ -474,6 +506,12 @@
       .year-glider-indicator { top: 2px; bottom: 2px; }
       #section-rekap .dues-mobile-actions { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
       #section-rekap .dues-mobile-actions .year-pill:has(.hybrid-year-glider:not([hidden])) label { display: none; }
+    }
+    @media (max-width: 400px) {
+      #section-rekap .dues-mobile-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #section-rekap .dues-mobile-actions > .year-pill { grid-column: 1 / -1; }
+      #section-rekap .iuran-cards-container { padding: 10px; }
+      #section-rekap .iuran-card-header { gap: 4px; padding: 10px; }
     }
 
     /* Shared compact Hybrid Kinetic pagination beneath the desktop matrix, ledger, and mobile cards. */

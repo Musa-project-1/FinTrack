@@ -26,6 +26,8 @@
     .riwayat-modal-content {
       max-width: 1040px;
       width: calc(100vw - 32px);
+      min-width: 0;
+      box-sizing: border-box;
       padding: 24px 28px;
       border-radius: var(--radius-lg);
     }
@@ -52,6 +54,8 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      min-width: 0;
+      max-width: 100%;
       padding: 16px;
       border: 1px solid var(--border);
       border-radius: var(--r-md);
@@ -73,9 +77,9 @@
 
     .riwayat-rail-section-label {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-faint);
       padding: 4px 0 2px;
@@ -259,6 +263,7 @@
       border-radius: var(--r-md);
       border: 1px solid var(--border);
       text-align: center;
+      min-width: 0;
       transition: border-color var(--t-fast);
     }
     .h-card:hover {
@@ -267,7 +272,7 @@
     .h-card span {
       display: block;
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
       text-transform: uppercase;
       font-weight: 500;
       color: var(--text-faint);
@@ -280,6 +285,7 @@
       font-weight: 600;
       letter-spacing: var(--tracking-tight);
       font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
     }
 
     /* The member name is a quiet link — one accent on hover, never a second hue. */
@@ -290,6 +296,8 @@
       transition: color var(--t-fast);
       display: inline;
       text-decoration: none;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .clickable-name:hover {
@@ -312,7 +320,7 @@
       background: var(--surface-2) !important;
       color: var(--text-faint) !important;
       font-family: var(--font-mono);
-      font-size: 10.5px !important;
+      font-size: 11px !important;
       text-transform: uppercase;
       letter-spacing: var(--tracking-eyebrow) !important;
       padding: 10px 18px !important;
@@ -424,6 +432,37 @@
     .filter-chips .chip-btn {
       padding: 8px 16px;
       font-size: 13px;
+    }
+
+    .ledger-row {
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .ledger-main {
+      min-width: 0;
+    }
+    .ledger-title,
+    .ledger-meta,
+    .ledger-id,
+    .cat-tag {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .ledger-amt-col {
+      min-width: 0;
+      flex-shrink: 0;
+    }
+    .ledger-amt {
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 640px) {
+      .ledger-row { padding: 12px 14px; gap: 10px; }
+      .ledger-title { white-space: normal; }
+      .ledger-amt { font-size: 13px; }
     }
 
     /* Rows carry no colour tint: the explicit +/− sign and the type badge carry

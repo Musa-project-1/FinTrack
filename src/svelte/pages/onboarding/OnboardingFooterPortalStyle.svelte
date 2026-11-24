@@ -123,8 +123,8 @@
       transition: opacity var(--lp-t-state), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .btn-cta-inverted:hover {
-      opacity: 0.88;
+    @media (hover: hover) and (pointer: fine) {
+      .btn-cta-inverted:hover { opacity: 0.88; }
     }
 
     /* ── Architectural Colophon Footer ─────────────────────────────────────── */
@@ -250,12 +250,14 @@
       transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .footer-nav-links a:hover {
-      opacity: 1;
-    }
+    @media (hover: hover) and (pointer: fine) {
+      .footer-nav-links a:hover {
+        opacity: 1;
+      }
 
-    .footer-nav-links a:hover::after {
-      transform: scaleX(1);
+      .footer-nav-links a:hover::after {
+        transform: scaleX(1);
+      }
     }
 
     .btn-footer-top {
@@ -280,17 +282,19 @@
       transition: background-color var(--lp-t-state), border-color var(--lp-t-state), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .btn-footer-top:hover {
-      background: var(--lp-surface-2);
-    }
-
     .btn-footer-top-arrow {
       display: inline-block;
       transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .btn-footer-top:hover .btn-footer-top-arrow {
-      transform: translateY(-2px);
+    @media (hover: hover) and (pointer: fine) {
+      .btn-footer-top:hover {
+        background: var(--lp-surface-2);
+      }
+
+      .btn-footer-top:hover .btn-footer-top-arrow {
+        transform: translateY(-2px);
+      }
     }
 
     .footer-wordmark-wrap {
@@ -508,6 +512,10 @@
       border-color: var(--lp-ink);
     }
 
+    @media (pointer: coarse) {
+      .portal-search-input { font-size: 16px; }
+    }
+
     .group-list-container {
       display: flex;
       flex-direction: column;
@@ -533,9 +541,11 @@
       transition: background-color var(--lp-t-state), border-color var(--lp-t-state);
     }
 
-    .group-item:hover {
-      background: var(--lp-surface-2);
-      border-color: var(--lp-line);
+    @media (hover: hover) and (pointer: fine) {
+      .group-item:hover {
+        background: var(--lp-surface-2);
+        border-color: var(--lp-line);
+      }
     }
 
     .group-avatar {
@@ -687,10 +697,6 @@
       border: 1px solid var(--lp-btn-bg);
     }
 
-    .portal-btn-primary:hover:not(:disabled) {
-      opacity: 0.88;
-    }
-
     .portal-btn-primary:disabled {
       opacity: 0.65;
       cursor: not-allowed;
@@ -702,8 +708,9 @@
       border: 1px solid var(--lp-line);
     }
 
-    .portal-btn-outline:hover {
-      background: var(--lp-surface-2);
+    @media (hover: hover) and (pointer: fine) {
+      .portal-btn-primary:hover:not(:disabled) { opacity: 0.88; }
+      .portal-btn-outline:hover { background: var(--lp-surface-2); }
     }
 
     .portal-note {

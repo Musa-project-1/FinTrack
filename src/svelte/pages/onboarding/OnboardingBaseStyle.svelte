@@ -209,6 +209,18 @@
     html {
       scroll-behavior: smooth;
       background-color: var(--lp-canvas);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button,
+    [role="button"],
+    .btn-primary,
+    .btn-ghost,
+    .portal-trigger,
+    .btn-hero-ghost {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     * {
@@ -500,9 +512,14 @@
       padding: 4px 0;
     }
 
-    .nav-links a:hover,
     .nav-links a.is-active {
       color: var(--lp-ink);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .nav-links a:hover {
+        color: var(--lp-ink);
+      }
     }
 
     .nav-links a.is-active::after {
@@ -536,8 +553,10 @@
       transition: background-color var(--lp-t-state), border-color var(--lp-t-state);
     }
 
-    .btn-theme-toggle:hover {
-      background: var(--lp-surface);
+    @media (hover: hover) and (pointer: fine) {
+      .btn-theme-toggle:hover {
+        background: var(--lp-surface);
+      }
     }
 
     .btn-nav-cta {
@@ -561,8 +580,10 @@
       transition: opacity var(--lp-t-state), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .btn-nav-cta:hover {
-      opacity: 0.88;
+    @media (hover: hover) and (pointer: fine) {
+      .btn-nav-cta:hover {
+        opacity: 0.88;
+      }
     }
 
     .nav-hamburger {
@@ -580,8 +601,10 @@
       transition: background-color var(--lp-t-state), border-color var(--lp-t-state);
     }
 
-    .nav-hamburger:hover {
-      background: var(--lp-surface);
+    @media (hover: hover) and (pointer: fine) {
+      .nav-hamburger:hover {
+        background: var(--lp-surface);
+      }
     }
 
     .nav-drawer {
@@ -646,9 +669,14 @@
       border-bottom: none;
     }
 
-    .drawer-link:hover,
     .drawer-link.is-active {
       color: var(--lp-ink);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .drawer-link:hover {
+        color: var(--lp-ink);
+      }
     }
 
     .drawer-cta {

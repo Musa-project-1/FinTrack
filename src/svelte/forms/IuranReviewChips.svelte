@@ -74,7 +74,9 @@
       font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-muted);
       transition: background-color 150ms ease, color 150ms ease;
     }
-    #modal-transaksi .trx-step-btn:hover { background: var(--surface-2); color: var(--text-main); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-transaksi .trx-step-btn:hover { background: var(--surface-2); color: var(--text-main); }
+    }
     #modal-transaksi .trx-step-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     #modal-transaksi .trx-step-badge {
@@ -114,7 +116,9 @@
     #modal-transaksi .trx-tab-track .tab-btn.active {
       background: transparent; border-color: transparent; box-shadow: none; color: var(--text-main);
     }
-    #modal-transaksi .trx-tab-track .tab-btn:hover:not(.active) { background: transparent; color: var(--text-main); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-transaksi .trx-tab-track .tab-btn:hover:not(.active) { background: transparent; color: var(--text-main); }
+    }
 
     #modal-transaksi .tab-content.active,
     #modal-transaksi .trx-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
@@ -143,6 +147,11 @@
     #modal-transaksi .form-control:user-invalid { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-bg); }
     #modal-transaksi .input-with-prefix span { left: 12px; padding-right: 8px; font-size: 12.5px; }
     #modal-transaksi .input-with-prefix .form-control { padding-left: 48px; font-size: 14.5px; font-weight: 700; }
+    @media (pointer: coarse) {
+      #modal-transaksi .form-control,
+      #modal-transaksi .input-with-prefix .form-control,
+      #modal-transaksi .trx-member-search input { font-size: 16px; }
+    }
     #modal-transaksi .cdrop-items { max-height: 220px; }
 
     /* Step Headings & Step 2 Member List */
@@ -177,7 +186,9 @@
       border-radius: 11px; border: 1px solid var(--border); background: var(--surface);
       cursor: pointer; overflow: hidden; transition: border-color 140ms ease, background-color 140ms ease;
     }
-    #modal-transaksi .checkbox-item:hover:not(.item-disabled-lunas) { border-color: var(--border-strong); background: var(--surface-2); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-transaksi .checkbox-item:hover:not(.item-disabled-lunas) { border-color: var(--border-strong); background: var(--surface-2); }
+    }
     #modal-transaksi .checkbox-item:has(.chk-iuran:not(:disabled):checked) { border-color: var(--accent-border); background: var(--accent-tint); }
     #modal-transaksi .checkbox-item .chk-avatar {
       width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
@@ -226,7 +237,9 @@
       cursor: pointer; user-select: none;
       transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
     }
-    #modal-transaksi .ops-flow-card:hover { border-color: var(--border-strong); background: var(--surface-2); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-transaksi .ops-flow-card:hover { border-color: var(--border-strong); background: var(--surface-2); }
+    }
     #modal-transaksi .ops-flow-card:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
     #modal-transaksi .ops-flow-icon {
       width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
@@ -266,7 +279,9 @@
       font-size: 10.5px; font-weight: 700; cursor: pointer;
       transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
     }
-    #modal-transaksi .ops-preset-chip:hover { border-color: var(--accent-border); background: var(--accent-tint); color: var(--accent-strong); }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-transaksi .ops-preset-chip:hover { border-color: var(--accent-border); background: var(--accent-tint); color: var(--accent-strong); }
+    }
 
     /* Step 3: Review Table, Chips & Callout Box */
     #modal-transaksi .trx-rev-list { display: flex; flex-direction: column; }
@@ -457,15 +472,23 @@
       font-size: 11px; font-weight: 700; cursor: pointer;
       transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
     }
-    #modal-quickpay .qp-preset-chip:hover,
     #modal-quickpay .qp-preset-chip.is-active {
       border-color: var(--accent-border); background: var(--accent-tint); color: var(--accent-strong);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-quickpay .qp-preset-chip:hover {
+        border-color: var(--accent-border); background: var(--accent-tint); color: var(--accent-strong);
+      }
     }
 
     #modal-quickpay .form-control,
     #modal-quickpay .dpick-field { min-height: 40px; height: 40px; padding: 7px 12px; font-size: 13px; border-radius: 10px; }
     #modal-quickpay .input-with-prefix span { left: 12px; padding-right: 8px; font-size: 12.5px; }
     #modal-quickpay .input-with-prefix .form-control { padding-left: 48px; font-size: 15px; font-weight: 700; }
+    @media (pointer: coarse) {
+      #modal-quickpay .form-control,
+      #modal-quickpay .input-with-prefix .form-control { font-size: 16px; }
+    }
     #modal-quickpay .qp-row-meta { grid-template-columns: 0.95fr 1.05fr; gap: 11px; }
 
     #modal-quickpay .qp-impact-callout {

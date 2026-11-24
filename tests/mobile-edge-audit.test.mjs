@@ -172,6 +172,13 @@ test('CdropStyle and IuranReviewChips preserve coarse-pointer 16px overrides aft
   const chips13Idx = chipsCss.search(/#modal-transaksi\s+\.trx-member-search\s+input\s*\{[^}]*font-size\s*:\s*13px/s);
   const chipsCoarseIdx = chipsCss.search(/@media\s*\(pointer:\s*coarse\)\s*\{[^}]*#modal-transaksi\s+\.trx-member-search\s+input\s*\{\s*font-size\s*:\s*16px\s*;\s*\}/s);
   assert.ok(chips13Idx >= 0 && chipsCoarseIdx > chips13Idx, 'IuranReviewChips @media (pointer: coarse) #modal-transaksi .trx-member-search input 16px must follow 13px rule');
+
+  const selfPayCss = read('src/svelte/modals/SelfPayMonths.svelte');
+  const selfPayCoarse = collectMediaBlocks(selfPayCss, 'pointer: coarse').join('\n');
+  assert.match(selfPayCoarse, /#self-pay-member\s*\{[^}]*font-size\s*:\s*16px\s*;/s);
+  const selfPayBaseIdx = selfPayCss.search(/#self-pay-member\s*\{[^}]*font-size\s*:/s);
+  const selfPayCoarseIdx = selfPayCss.search(/@media\s*\(pointer:\s*coarse\)\s*\{[^}]*#self-pay-member/s);
+  assert.ok(selfPayBaseIdx >= 0 && selfPayCoarseIdx > selfPayBaseIdx, 'SelfPayMonths @media (pointer: coarse) #self-pay-member 16px must follow base rule');
 });
 
 test('mobile cards, ledger, profile history, and offline queue enforce min-width:0, overflow-wrap:anywhere, and tabular-nums currency', () => {

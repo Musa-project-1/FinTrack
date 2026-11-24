@@ -505,7 +505,7 @@
     @media (pointer: coarse) {
       input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
       select,
-      textarea,
+      textarea:not([readonly]),
       .search-member-input,
       body :is(.workspace-matrix-tools, .workspace-history-tools) .workspace-search .search-member-input,
       body .member-search-wrapper .search-member-input,

@@ -440,6 +440,9 @@
         padding: 0 12px;
       }
     }
+    @media (pointer: coarse) {
+      #self-pay-member { font-size: 16px; }
+    }
     .self-pay-presets, .self-pay-month-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));

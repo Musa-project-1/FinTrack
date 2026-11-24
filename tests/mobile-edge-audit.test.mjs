@@ -157,6 +157,23 @@ test('ResponsiveMobileStyle enforces @media (pointer: coarse) 16px input guard a
   }
 });
 
+test('CdropStyle and IuranReviewChips preserve coarse-pointer 16px overrides after base 13px rules', () => {
+  const cdropCss = read('src/svelte/shell/styles/CdropStyle.svelte');
+  const cdropCoarse = collectMediaBlocks(cdropCss, 'pointer: coarse').join('\n');
+  assert.match(
+    cdropCoarse,
+    /:is\(#spotlight-picker,\s*#spotlight-swap-select,\s*#self-pay-member\)\s*\{[^}]*font-size\s*:\s*16px\s*;/s
+  );
+  const cdropBaseIdx = cdropCss.search(/:is\(#spotlight-picker,\s*#spotlight-swap-select,\s*#self-pay-member\)\s*\{[^}]*font-size\s*:\s*13px/s);
+  const cdropCoarseIdx = cdropCss.search(/@media\s*\(pointer:\s*coarse\)\s*\{[^}]*:is\(#spotlight-picker,\s*#spotlight-swap-select,\s*#self-pay-member\)/s);
+  assert.ok(cdropBaseIdx >= 0 && cdropCoarseIdx > cdropBaseIdx, 'CdropStyle @media (pointer: coarse) 16px rule must follow base 13px rule');
+
+  const chipsCss = read('src/svelte/forms/IuranReviewChips.svelte');
+  const chips13Idx = chipsCss.search(/#modal-transaksi\s+\.trx-member-search\s+input\s*\{[^}]*font-size\s*:\s*13px/s);
+  const chipsCoarseIdx = chipsCss.search(/@media\s*\(pointer:\s*coarse\)\s*\{[^}]*#modal-transaksi\s+\.trx-member-search\s+input\s*\{\s*font-size\s*:\s*16px\s*;\s*\}/s);
+  assert.ok(chips13Idx >= 0 && chipsCoarseIdx > chips13Idx, 'IuranReviewChips @media (pointer: coarse) #modal-transaksi .trx-member-search input 16px must follow 13px rule');
+});
+
 test('mobile cards, ledger, profile history, and offline queue enforce min-width:0, overflow-wrap:anywhere, and tabular-nums currency', () => {
   const hybridCss = read('src/svelte/shell/styles/HybridWorkspaceStyle.svelte');
   const duesCards = read('src/svelte/dashboard/DuesMobileCards.svelte');

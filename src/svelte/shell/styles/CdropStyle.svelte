@@ -371,6 +371,12 @@
         transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
       }
 
+      @media (pointer: coarse) {
+        :is(#spotlight-picker, #spotlight-swap-select, #self-pay-member) {
+          font-size: 16px;
+        }
+      }
+
       :is(#spotlight-picker, #spotlight-swap-select, #self-pay-member):hover {
         border-color: var(--border-strong);
       }

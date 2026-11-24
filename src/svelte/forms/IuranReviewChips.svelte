@@ -197,12 +197,6 @@
     :is(#modal-transaksi, #modal-edit-transaksi) .input-with-prefix span { left: 12px; padding-right: 8px; font-size: 12.5px; }
     :is(#modal-transaksi, #modal-edit-transaksi) .input-with-prefix .form-control { padding-left: 48px; font-size: 14.5px; font-weight: 700; }
     #modal-edit-transaksi #edit-nominal { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; }
-    @media (pointer: coarse) {
-      :is(#modal-transaksi, #modal-edit-transaksi) .form-control,
-      #modal-transaksi .input-with-prefix .form-control,
-      #modal-edit-transaksi .input-with-prefix .form-control,
-      #modal-transaksi .trx-member-search input { font-size: 16px; }
-    }
     :is(#modal-transaksi, #modal-edit-transaksi) .cdrop-items { max-height: 220px; }
 
     /* Step Headings & Step 2 Member List */
@@ -227,6 +221,12 @@
     #modal-transaksi .trx-member-search { width: 100%; max-width: none; min-width: 0; margin-bottom: 0; }
     #modal-transaksi .trx-member-search i { left: 12px; font-size: 15px; }
     #modal-transaksi .trx-member-search input { height: 36px; min-height: 36px; padding: 6px 12px 6px 36px; font-size: 13px; border-radius: 10px; }
+    @media (pointer: coarse) {
+      :is(#modal-transaksi, #modal-edit-transaksi) .form-control,
+      #modal-transaksi .input-with-prefix .form-control,
+      #modal-edit-transaksi .input-with-prefix .form-control,
+      #modal-transaksi .trx-member-search input { font-size: 16px; }
+    }
 
     #modal-transaksi .trx-member-well { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 7px; }
     #modal-transaksi .checkbox-grid {

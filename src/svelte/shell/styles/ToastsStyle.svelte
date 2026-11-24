@@ -146,9 +146,9 @@
 
     .toast-badge-tag {
       font-family: var(--font-mono);
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 800;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       padding: 2px 8px;
       border-radius: var(--r-pill);

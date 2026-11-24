@@ -438,6 +438,7 @@
     body[data-canvas="aurora"] .bg-aurora,
     body[data-canvas="topo"] .bg-topo,
     body[data-canvas="paper"] .bg-paper { transition-delay: 0s; }
+    body:not([data-workspace-state="ready"]) :is(.aurora-orb, .topo-svg, .topo-wave),
     body:not([data-canvas="aurora"]) .aurora-orb,
     body:not([data-canvas="topo"]) :is(.topo-svg, .topo-wave) { animation-play-state: paused; }
 
@@ -445,6 +446,7 @@
       .cascade-enter, .panel-switch-enter, .dues-seal.is-newly-paid svg,
       .dues-seal.is-newly-paid .dues-seal-label, td.is-newly-paid-cell,
       .aurora-orb, .topo-svg, .topo-wave { animation: none !important; }
+      .aurora-orb, .topo-svg { will-change: auto; }
       .dues-seal .stamp-ring { display: none; }
       .bg-stage, .bg-layer, .orb-2-ocean, .orb-2-gold { transition: none; }
     }
@@ -668,6 +670,7 @@
     body[data-workspace-state="unavailable"] .workspace-startup-loading { display: none; }
     body[data-workspace-state="unavailable"] .workspace-startup-error { display: grid; justify-items: center; gap: 12px; }
     @keyframes workspace-loading-pulse { from { opacity: .35; } to { opacity: 1; } }
+    body:not([data-workspace-state="loading"]) .workspace-loading-dot { animation-play-state: paused; }
     @media (prefers-reduced-motion: reduce) { .workspace-loading-dot { animation: none; } }
   }
 </style>

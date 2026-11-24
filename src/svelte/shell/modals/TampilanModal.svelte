@@ -238,6 +238,12 @@
       background: color-mix(in oklab, var(--surface-3) 65%, transparent);
     }
 
+    .tampilan-top-tabs .tab-btn:focus-visible,
+    .tampilan-card-tile:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
     .tampilan-top-tabs .tab-btn.active {
       background: var(--surface);
       color: var(--text-main);
@@ -271,9 +277,9 @@
     .tampilan-section-label span {
       display: block;
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-faint);
     }
@@ -345,6 +351,7 @@
     }
     .style-option-card:last-child { border-bottom: none; }
     .style-option-card:hover { background: var(--surface-2); }
+    .style-option-card:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
     .style-option-card.active { background: var(--accent-tint); box-shadow: inset 1px 0 0 0 var(--accent); }
 
     .style-option-left {
@@ -396,7 +403,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 11px;
       opacity: 0;
       transform: scale(0.92);
       transition: opacity 0.16s ease-out, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
@@ -450,7 +457,7 @@
 
       .tampilan-top-tabs .tab-btn span {
         display: inline !important;
-        font-size: 10.5px;
+        font-size: 11px;
       }
 
       .tampilan-tab-body {
@@ -467,8 +474,8 @@
       }
 
       .tampilan-section-label span {
-        font-size: 9.5px;
-        letter-spacing: 0.1em;
+        font-size: 11px;
+        letter-spacing: 0.08em;
       }
 
       .tampilan-section-label small {

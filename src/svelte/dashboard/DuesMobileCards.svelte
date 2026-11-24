@@ -72,6 +72,8 @@
 
     .iuran-cards-container {
       display: none;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .iuran-member-card {
@@ -80,14 +82,19 @@
       border-radius: var(--r-md);
       padding: 10px 12px;
       margin-bottom: var(--sp-2);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
       transition: border-color var(--t-fast), background var(--t-fast);
       box-shadow: none;
       outline: none;
     }
 
-    .iuran-member-card:hover {
-      border-color: var(--border-strong);
-      background: var(--surface-2);
+    @media (hover: hover) and (pointer: fine) {
+      .iuran-member-card:hover {
+        border-color: var(--border-strong);
+        background: var(--surface-2);
+      }
     }
 
     .iuran-member-card:focus-visible {
@@ -100,6 +107,7 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 6px;
+      min-width: 0;
     }
 
     .iuran-card-main-info {
@@ -109,6 +117,7 @@
 
     .iuran-card-name {
       display: block;
+      min-width: 0;
       max-width: 100%;
       min-height: 44px;
       text-align: start;
@@ -116,24 +125,28 @@
       color: var(--text-main);
       font-size: .90625rem;
       letter-spacing: -.015em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
       line-height: 1.26;
       cursor: pointer;
       transition: color var(--t-fast);
     }
 
-    .iuran-card-name:hover {
-      color: var(--accent-strong);
-      text-decoration: underline;
-      text-underline-offset: 3px;
+    @media (hover: hover) and (pointer: fine) {
+      .iuran-card-name:hover {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
     }
 
     .iuran-progress-subtext {
       font-size: 12px;
       color: var(--text-muted);
       font-weight: 500;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .iuran-card-toggle {
@@ -198,14 +211,18 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
+      min-width: 0;
+      max-width: 100%;
       min-height: 44px;
       justify-content: center;
     }
 
     .iuran-month-item:not(button) { cursor: default; }
 
-    button.iuran-month-item:hover {
-      border-color: var(--border-strong);
+    @media (hover: hover) and (pointer: fine) {
+      button.iuran-month-item:hover {
+        border-color: var(--border-strong);
+      }
     }
 
     .iuran-month-name { font: 700 11px var(--font-mono); }
@@ -236,14 +253,16 @@
       border-radius: 5px;
       background: var(--dues-tint);
       color: var(--dues-ink);
-      font: 700 9px/1.2 var(--font-mono);
+      font: 700 11px/1.2 var(--font-mono);
+      letter-spacing: -0.02em;
       text-transform: uppercase;
     }
 
     .dues-month-status[data-status="Nanti"] { border: 1px dashed var(--border-strong); }
     .dues-month-status small {
       color: var(--text-main);
-      font-size: 9px;
+      font-size: 11px;
+      letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
       overflow-wrap: anywhere;
       text-transform: none;
@@ -310,7 +329,7 @@
       color: var(--income-strong);
       vertical-align: middle;
     }
-    .dues-seal-label { font: 800 9.5px/1 var(--font-mono); letter-spacing: .02em; text-transform: uppercase; }
+    .dues-seal-label { font: 800 11px/1 var(--font-mono); letter-spacing: -0.02em; text-transform: uppercase; }
 
     .mini-stamp-ico { width: 13px; height: 13px; display: block; flex-shrink: 0; }
     .mini-seal-bg { fill: var(--income); }
@@ -376,9 +395,11 @@
       font-weight: 700;
       color: var(--text-main);
     }
-    #tab-faq-glossary > .btn:hover {
-      background: var(--surface-3);
-      border-color: var(--border-strong);
+    @media (hover: hover) and (pointer: fine) {
+      #tab-faq-glossary > .btn:hover {
+        background: var(--surface-3);
+        border-color: var(--border-strong);
+      }
     }
 
     #section-rekap .dues-mobile-controls { flex-direction: column; align-items: stretch; }
@@ -402,7 +423,7 @@
       padding: 4px;
       gap: 4px;
       justify-content: center;
-      font-size: clamp(10px, 3.2vw, 12px);
+      font-size: clamp(11px, 3.2vw, 12px);
       white-space: nowrap;
     }
 

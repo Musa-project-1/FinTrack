@@ -134,9 +134,10 @@
     }
     .master-tab-track .tab-btn.active { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-main); }
     .master-tab-track .tab-btn:hover:not(.active) { background: transparent; color: var(--text-main); }
+    .master-tab-track .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .master-tab-count {
-      font-family: var(--font-mono); font-size: 10px; font-weight: 700; line-height: 1;
-      padding: 2px 6px; border-radius: var(--r-pill);
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums; padding: 2px 6px; border-radius: var(--r-pill);
       background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
     }
     .master-tab-track .tab-btn.active .master-tab-count {
@@ -174,7 +175,7 @@
       min-height: 36px; height: 36px; padding: 5px 10px 5px 34px; font-size: 12.5px;
     }
     .master-stats-pill {
-      font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-muted);
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-muted);
       background: var(--surface-2); border: 1px solid var(--border); padding: 4px 10px;
       border-radius: var(--r-pill); white-space: nowrap; flex-shrink: 0;
     }
@@ -187,7 +188,7 @@
     .table-master { width: 100%; border-collapse: collapse; }
     .table-master thead th {
       background: var(--surface-2); color: var(--text-muted); font-family: var(--font-mono);
-      font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
       padding: 9px 13px; border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 2; text-align: left;
     }
@@ -218,15 +219,17 @@
     .master-name-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
     .master-name-text { font-weight: 600; font-size: 13px; color: var(--text-main); line-height: 1.25; }
     .master-id-pill {
-      display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+      display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
       color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border);
       padding: 1px 6px; border-radius: var(--r-xs); white-space: nowrap; letter-spacing: 0.02em;
     }
     .master-wa-link {
       display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted);
-      text-decoration: none; font-size: 12.5px; font-weight: 500; transition: color 140ms ease;
+      text-decoration: none; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; transition: color 140ms ease;
     }
     .master-wa-link:hover { color: var(--accent-strong); }
+    .master-wa-link:focus-visible,
+    .btn-master-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
     .master-wa-link i { color: var(--income-strong); font-size: 14px; }
 
     .master-actions-wrap { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
@@ -248,11 +251,11 @@
 
     .master-skipped-card-panel { padding: 12px 14px; max-height: 170px !important; }
     .master-section-label {
-      font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
     }
     .skipped-months-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
-    .skip-month-label { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-main); }
+    .skip-month-label { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--text-main); }
     .skip-month-label i { font-size: 15px; color: var(--warning); }
     .skip-month-card .btn-master-action { height: 28px; padding: 0 9px; font-size: 11px; }
 
@@ -420,7 +423,7 @@
     }
     .audit-super-badge {
       display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-pill);
-      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; line-height: 1.3; flex-shrink: 0;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.3; flex-shrink: 0;
       background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning);
     }
     #modal-audit-log .audit-subtitle {
@@ -469,6 +472,8 @@
       transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
     }
     .audit-chip:hover { color: var(--text-main); border-color: var(--border-strong); }
+    .audit-chip:focus-visible,
+    #modal-audit-log .audit-refresh-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .audit-chip.active { background: var(--accent-tint); border-color: var(--accent-border); color: var(--accent-strong); font-weight: 700; }
 
     #modal-audit-log .audit-ledger-wrapper {
@@ -479,7 +484,7 @@
     .audit-ledger-table { width: 100%; border-collapse: separate; border-spacing: 0; font-family: var(--font-sans); font-size: 12.5px; }
     .audit-ledger-table thead th {
       background: var(--table-header-bg); border-bottom: 1px solid var(--border); padding: 9px 13px;
-      font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--text-faint); white-space: nowrap; position: sticky; top: 0; z-index: 2; text-align: left;
     }
     .audit-th-waktu { width: 144px; }
@@ -554,7 +559,7 @@
       #modal-audit-log .audit-ledger-table tbody tr:hover td { background: transparent; }
       #modal-audit-log .audit-ledger-table tbody td { padding: 0; border: 0; }
       #modal-audit-log .audit-ledger-table tbody td.td-audit-aksi { grid-column: 1; grid-row: 1; line-height: 1; }
-      #modal-audit-log .audit-ledger-table tbody td.td-audit-time { grid-column: 2; grid-row: 1; justify-self: end; font-size: 10.5px; line-height: 1; }
+      #modal-audit-log .audit-ledger-table tbody td.td-audit-time { grid-column: 2; grid-row: 1; justify-self: end; font-size: 11px; line-height: 1; }
       #modal-audit-log .audit-ledger-table tbody td.td-audit-detail { grid-column: 1 / -1; grid-row: 2; font-size: 12.5px; line-height: 1.4; color: var(--text-main); }
       #modal-audit-log .audit-ledger-table tbody td.td-muted-center { grid-column: 1 / -1; text-align: center; padding: 18px 8px; }
       #modal-audit-log .audit-footer-hint { display: none; }

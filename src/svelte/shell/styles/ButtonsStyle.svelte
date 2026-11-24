@@ -49,13 +49,18 @@
       animation: keel-spin 560ms linear infinite;
     }
 
-    .btn:disabled:hover,
-    .btn[aria-disabled="true"]:hover,
-    .btn[aria-busy="true"]:hover,
     .btn:disabled:active,
     .btn[aria-disabled="true"]:active,
     .btn[aria-busy="true"]:active {
       transform: none !important;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .btn:disabled:hover,
+      .btn[aria-disabled="true"]:hover,
+      .btn[aria-busy="true"]:hover {
+        transform: none !important;
+      }
     }
 
     /* --- Primary: the single accent, solid --- */

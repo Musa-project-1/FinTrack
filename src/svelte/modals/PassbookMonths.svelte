@@ -59,7 +59,14 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        flex: 1 1 180px;
         min-width: 0;
+        max-width: 100%;
+      }
+
+      .profil-hero-left > div {
+        min-width: 0;
+        flex: 1;
       }
 
       .profil-total-box {
@@ -67,6 +74,9 @@
         flex-direction: column;
         align-items: flex-end;
         gap: 2px;
+        min-width: 0;
+        max-width: 100%;
+        flex-shrink: 0;
       }
 
       .profil-total-lbl {
@@ -120,6 +130,8 @@
         justify-content: space-between;
         gap: 5px;
         padding: 8px 8px 7px;
+        min-width: 0;
+        max-width: 100%;
         min-height: 92px;
         transform: none;
         border-radius: 12px;
@@ -144,7 +156,8 @@
 
       .passbook-slot-num {
         font-family: var(--font-mono);
-        font-size: 9.5px;
+        font-size: 11px;
+        letter-spacing: -0.02em;
         font-weight: 700;
         opacity: 0.62;
       }
@@ -258,10 +271,10 @@
 
       .passbook-slot-tag {
         font-family: var(--font-mono);
-        font-size: 9.5px;
+        font-size: 11px;
         font-weight: 800;
-        letter-spacing: 0.05em;
-        padding: 2px 6px;
+        letter-spacing: 0.01em;
+        padding: 2px 5px;
         border-radius: 8px;
         line-height: 1.15;
       }
@@ -340,14 +353,16 @@
 
       .passbook-stamp-sub {
         font-family: var(--font-mono);
-        font-size: 9.5px;
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: -0.01em;
       }
 
       .profil-history-list {
         display: flex;
         flex-direction: column;
+        min-width: 0;
+        max-width: 100%;
         border: 1px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
@@ -359,6 +374,9 @@
         justify-content: space-between;
         gap: 10px;
         padding: 10px 12px;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
         background: var(--surface);
         border-bottom: 1px solid var(--border);
         text-align: left;
@@ -369,24 +387,30 @@
         border-bottom: 0;
       }
 
-      .profil-history-row:hover {
-        background: var(--surface-2);
+      @media (hover: hover) and (pointer: fine) {
+        .profil-history-row:hover {
+          background: var(--surface-2);
+        }
       }
       .dlg-header { padding: 18px 20px 14px; align-items: flex-start; gap: 12px; flex-shrink: 0; }
+      .dlg-header > div { min-width: 0; flex: 1; }
+      .dlg-header > div > * { overflow-wrap: anywhere; }
       .dlg-close-btn { min-width: 34px; min-height: 34px; width: 34px; height: 34px; }
       .dlg-body { padding: 18px 20px; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
       .field-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
       .field-label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
-      .profil-name-heading, .profil-meta-line, .profil-total-val { overflow-wrap: anywhere; }
-      .profil-total-val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+      .profil-name-heading, .profil-meta-line { overflow-wrap: anywhere; word-break: break-word; }
+      .profil-total-val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
       .meta-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--r-pill); font-weight: 600; font-size: 11.5px; }
       .meta-chip.paid { background: var(--pay-paid-soft); color: var(--pay-paid-ink); }
       .meta-chip.amber { background: var(--pay-amber-soft); color: var(--pay-amber-ink); }
       .meta-chip[hidden] { display: none; }
       .passbook-stamp-btn:not(:disabled), .profil-history-row { cursor: pointer; }
       .passbook-slot-tag { max-width: 100%; overflow-wrap: anywhere; }
-      .profil-history-row .ledger-main { min-width: 0; }
-      .profil-history-row .ledger-amt { color: var(--pay-paid-ink); text-align: end; overflow-wrap: anywhere; }
+      .profil-history-row .ledger-main { flex: 1 1 0%; min-width: 0; }
+      .profil-history-row .ledger-title,
+      .profil-history-row .ledger-meta { min-width: 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+      .profil-history-row .ledger-amt { color: var(--pay-paid-ink); text-align: end; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
       .profile-history-empty { padding: 10px 12px; color: var(--text-muted); font-size: 12px; }
       .dlg-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; background: var(--surface); }
       .dlg-footer > .dlg-close-footer-desktop { margin-inline-start: auto; }
@@ -406,6 +430,7 @@
       #modal-profil-anggota .dlg-close-btn { min-width: 44px; }
       #modal-profil-anggota .dlg-footer { display: block; padding: 12px 16px; }
       #modal-profil-anggota .passbook-member-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #modal-profil-anggota .passbook-member-actions .btn { min-width: 0; white-space: normal; text-align: center; }
       #passbook-pay { grid-column: 1 / -1; }
       #modal-profil-anggota .dlg-close-footer-desktop { display: none; }
       body.admin-mode #modal-profil-anggota .dlg-footer { display: none; }

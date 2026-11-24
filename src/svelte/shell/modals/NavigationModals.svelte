@@ -272,13 +272,19 @@
       color: var(--text-main);
     }
 
+    #modal-menu .command-clear-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
     #modal-menu .command-clear-btn[hidden] {
       display: none;
     }
 
     #modal-menu .command-kbd-pill {
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
       font-weight: 700;
       color: var(--text-muted);
       background: var(--surface);
@@ -345,12 +351,19 @@
     }
 
     #modal-menu .nav-item:hover,
-    #modal-menu .nav-item.is-selected,
-    #modal-menu .nav-item:focus-visible {
+    #modal-menu .nav-item.is-selected {
       background: var(--surface);
       border-color: var(--accent-border);
       box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--accent) 16%, transparent);
       outline: none;
+    }
+
+    #modal-menu .nav-item:focus-visible {
+      background: var(--surface);
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--accent) 16%, transparent);
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     #modal-menu .nav-item:active {
@@ -370,11 +383,17 @@
     }
 
     #modal-menu .nav-item.nav-danger:hover,
-    #modal-menu .nav-item.nav-danger.is-selected,
-    #modal-menu .nav-item.nav-danger:focus-visible {
+    #modal-menu .nav-item.nav-danger.is-selected {
       background: var(--danger-bg);
       border-color: var(--danger-border);
       box-shadow: none;
+    }
+
+    #modal-menu .nav-item.nav-danger:focus-visible {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+      box-shadow: none;
+      outline-color: var(--danger);
     }
 
     /* Palette-aware Hybrid Kinetic icon tiles (zero hardcoded hex, zero green) */
@@ -392,9 +411,14 @@
       transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms var(--hybrid-ease-spring, ease);
     }
 
-    #modal-menu .nav-item:hover .nav-ico,
     #modal-menu .nav-item.is-selected .nav-ico {
       transform: scale(1.03);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      #modal-menu .nav-item:hover .nav-ico {
+        transform: scale(1.03);
+      }
     }
 
     #modal-menu .nav-ico.is-brand {
@@ -490,7 +514,7 @@
 
     #modal-menu .nav-badge-tag {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 999px;
@@ -517,7 +541,16 @@
     #modal-menu .nav-item:hover .nav-chev,
     #modal-menu .nav-item.is-selected .nav-chev {
       color: var(--accent-strong);
+    }
+
+    #modal-menu .nav-item.is-selected .nav-chev {
       transform: translateX(2px);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      #modal-menu .nav-item:hover .nav-chev {
+        transform: translateX(2px);
+      }
     }
 
     #modal-menu .nav-item.nav-danger:hover .nav-chev,
@@ -588,6 +621,7 @@
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 600;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -605,7 +639,7 @@
 
     #modal-menu .command-hint-key {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -628,7 +662,7 @@
       }
 
       #modal-menu .command-hub-header {
-        padding-inline: 14px;
+        padding: 4px 14px 12px;
       }
 
       #modal-menu .command-search-wrap {

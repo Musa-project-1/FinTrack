@@ -136,7 +136,7 @@
       /* Matrix table (shown only if scrolled horizontally) */
       .table-matriks { font-size: 12px; }
       .table-matriks th, .table-matriks td { padding: 8px; border: 1px solid var(--border); }
-      .table-matriks th { background: var(--surface-2); font-size: 10px; padding: 6px 4px; }
+      .table-matriks th { background: var(--surface-2); font-size: 11px; letter-spacing: -0.02em; padding: 6px 4px; }
       .table-matriks td:first-child, .table-matriks th:first-child { min-width: 120px; position: sticky; left: 0; z-index: 10; padding: 8px 12px; }
       .table-matriks td.text-center { text-align: center; padding: 6px; min-width: 40px; }
 

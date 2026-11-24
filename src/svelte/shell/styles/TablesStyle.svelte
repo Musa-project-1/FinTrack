@@ -268,7 +268,7 @@
       padding: 3px 8px;
       border-radius: var(--r-sm);
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 500;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -563,6 +563,14 @@
     @keyframes sync-icon-spin {
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
+    }
+    body:not([data-workspace-state="ready"]) .btn-sync-rekap.has-update .sync-rekap-dot {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn-sync-rekap.has-update .sync-rekap-dot { animation: none; }
+      .btn-sync-rekap.is-syncing .sync-rekap-icon { animation-duration: 1.4s; }
+      .year-pill, .btn-sync-rekap, .sync-rekap-icon, .sync-rekap-dot { transition: none; }
     }
   }
 </style>

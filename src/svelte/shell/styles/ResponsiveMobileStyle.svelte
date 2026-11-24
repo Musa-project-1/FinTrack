@@ -57,7 +57,7 @@
         height: 32px;
         font-size: 14px;
       }
-      .card-info h3 { font-size: 10px; }
+      .card-info h3 { font-size: 11px; }
       .nominal-val { font-size: 13px; }
 
       /* Table on very small screens - Card Layout */
@@ -257,7 +257,8 @@
       }
 
       .table-matriks th {
-        font-size: 9px;
+        font-size: 11px;
+        letter-spacing: -0.02em;
       }
 
       .table-matriks td:first-child,
@@ -291,7 +292,8 @@
 
 
       .iuran-progress-subtext {
-        font-size: 10px;
+        font-size: 11px;
+        overflow-wrap: anywhere;
       }
 
       .iuran-month-item {
@@ -312,7 +314,7 @@
     .checkbox-grid { grid-template-columns: 1fr; }
       .badge {
         padding: 4px 10px;
-        font-size: 10px;
+        font-size: 11px;
       }
 
       .badge i {
@@ -394,7 +396,7 @@
       }
 
       :is(#modal-statistik, #workspace-stats) .stat-card-note {
-        font-size: 10.5px !important;
+        font-size: 11px !important;
         line-height: 1.3 !important;
         color: var(--text-muted) !important;
       }
@@ -420,7 +422,7 @@
 
       :is(#modal-statistik, #workspace-stats) .stat-wa-badge {
         padding: 1px 5px !important;
-        font-size: 9px !important;
+        font-size: 11px !important;
         border-radius: var(--r-xs) !important;
         flex-shrink: 0 !important;
       }
@@ -487,7 +489,7 @@
 
       :is(#modal-statistik, #workspace-stats) .chart-update-text {
         font-family: var(--font-mono) !important;
-        font-size: 10px !important;
+        font-size: 11px !important;
         color: var(--text-faint) !important;
       }
 
@@ -497,6 +499,59 @@
       }
 
       /* Export mobile styles consolidated into css/modules/modals.css */
+    }
+
+    /* === MOBILE TOUCH & ZOOM GUARDS === */
+    @media (pointer: coarse) {
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+      select,
+      textarea,
+      .search-member-input,
+      body :is(.workspace-matrix-tools, .workspace-history-tools) .workspace-search .search-member-input,
+      body .member-search-wrapper .search-member-input,
+      body .table-header.mobile-only .search-member-input,
+      body .search-wrapper input,
+      body .riwayat-search input,
+      body .riwayat-select,
+      body .member-spotlight-wrap select.form-control,
+      body .dues-pagination [data-page-number],
+      body #modal-group-admin .group-mono-input,
+      body #modal-edit-transaksi #edit-nominal {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 768px), (pointer: coarse) {
+      button:not(.kasi-fab),
+      [role="button"]:not(.kasi-fab),
+      [data-action],
+      a,
+      summary,
+      .btn,
+      .chip-btn,
+      .checkbox-item,
+      .clickable-name,
+      .cdrop-btn,
+      .dpick-field,
+      .mpick-btn,
+      .dues-status-help,
+      .btn-sync-rekap,
+      .dues-pin-btn,
+      .iuran-card-toggle,
+      .iuran-card-name,
+      .iuran-month-item,
+      .iuran-btn-pay,
+      .iuran-btn-detail,
+      .ledger-row,
+      .passbook-stamp-btn,
+      .profil-history-row,
+      .queue-del-btn,
+      .dues-page-btn,
+      .dues-page-step,
+      .mobile-nav-btn,
+      .bottom-nav-item {
+        touch-action: manipulation;
+      }
     }
   }
 </style>

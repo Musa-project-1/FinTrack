@@ -138,7 +138,7 @@
       font-size: 18px;
       color: var(--hybrid-brand);
       opacity: 0;
-      transform: scale(0.7);
+      transform: scale(0.92);
       transition: opacity 180ms ease, transform 240ms var(--hybrid-ease-spring);
       flex-shrink: 0;
     }
@@ -204,8 +204,10 @@
     }
 
     #modal-tampilan .tampilan-preview-cell {
-      width: 58px;
+      min-width: 64px;
+      width: auto;
       height: 36px;
+      padding: 0 9px;
       border-radius: var(--r-sm);
       background: var(--income-bg);
       color: var(--income-strong);
@@ -216,14 +218,15 @@
     }
 
     #modal-tampilan .tampilan-preview-cell .dues-seal,
-    #modal-tampilan .tampilan-preview-cell .paid-stamp {
+    #modal-tampilan .tampilan-preview-cell .paid-stamp,
+    #modal-tampilan .tampilan-preview-cell .dues-seal-label {
       transform: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 3.5px;
       font-family: var(--font-mono);
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.02em;
       line-height: 1;
@@ -340,17 +343,22 @@
       min-height: 44px;
       font-size: 12px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
       justify-content: center;
       color: var(--text-muted);
     }
     #modal-tampilan .tampilan-glider .glider-btn[aria-pressed="true"] { color: var(--text-main); }
+    #modal-tampilan .tampilan-option-card:focus-visible,
+    #modal-tampilan .tampilan-glider .glider-btn:focus-visible,
+    #modal-tampilan .hybrid-settings-footer .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     @media (max-width: 768px) {
       .hybrid-settings-header, .hybrid-settings-body, .hybrid-settings-footer { padding-inline: 12px; }
+      #modal-tampilan .hybrid-settings-header { padding: 4px 12px 12px; }
       #modal-tampilan .tampilan-option-card { min-height: 52px; padding: 8px 6px; gap: 4px; }
       #modal-tampilan .tampilan-card-left { gap: 5px; }
       #modal-tampilan .tampilan-card-title { font-size: 11px; }
-      #modal-tampilan .tampilan-card-sub { font-size: 10px; }
+      #modal-tampilan .tampilan-card-sub { font-size: 11px; }
       #modal-tampilan .tampilan-check { font-size: 14px; }
     }
     @media (prefers-reduced-motion: reduce) {

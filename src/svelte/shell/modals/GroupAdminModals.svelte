@@ -217,7 +217,7 @@
     }
     .group-admin-super-badge {
       display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-pill);
-      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; line-height: 1.3; flex-shrink: 0;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.3; flex-shrink: 0;
       background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning);
     }
     #modal-group-admin .group-admin-header-copy p {
@@ -248,8 +248,9 @@
     }
     .group-admin-tab-track .tab-btn.active { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-main); }
     .group-admin-tab-track .tab-btn:hover:not(.active) { background: transparent; color: var(--text-main); }
+    .group-admin-tab-track .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .group-tab-count {
-      font-family: var(--font-mono); font-size: 10px; font-weight: 700; line-height: 1;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 1;
       padding: 2px 6px; border-radius: var(--r-pill); background: var(--surface);
       border: 1px solid var(--border); color: var(--text-muted); font-variant-numeric: tabular-nums;
     }
@@ -289,9 +290,9 @@
     #modal-group-admin .group-form-input:focus {
       border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-tint);
     }
-    #modal-group-admin .group-pin-input { font-family: var(--font-mono); letter-spacing: 0.08em; }
+    #modal-group-admin .group-pin-input { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: 0.08em; }
     #modal-group-admin .group-pin-input::placeholder { font-family: var(--font-sans); letter-spacing: normal; }
-    #modal-group-admin .group-mono-input { font-family: var(--font-mono); font-size: 12.5px; }
+    #modal-group-admin .group-mono-input { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12.5px; }
 
     .btn-create-submit {
       height: 40px; min-height: 40px; padding: 0 16px; border-radius: 10px; font-weight: 700; font-size: 13px;
@@ -356,11 +357,11 @@
     .group-badge-active {
       display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: var(--r-pill);
       background: var(--surface); color: var(--accent-strong); border: 1px solid var(--accent-border);
-      font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
     }
     .group-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
     .group-card-id-pill {
-      font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+      font-family: var(--font-mono); font-size: 11px; font-variant-numeric: tabular-nums; color: var(--text-muted);
       display: inline-flex; align-items: center; gap: 3px;
     }
 
@@ -406,6 +407,7 @@
       padding: 0; font-family: inherit; line-height: inherit;
     }
     .group-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .group-name:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
     .group-name:empty { display: none; }
 
     /* === MOBILE SHEET ADAPTATION (<= 768px) === */

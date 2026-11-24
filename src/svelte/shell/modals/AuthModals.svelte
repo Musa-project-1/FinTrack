@@ -237,6 +237,11 @@
       transform: scale(0.93);
     }
 
+    #modal-login #badge-admin-login.auth-header-emblem:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
     #modal-login .auth-header-copy {
       min-width: 0;
     }
@@ -314,7 +319,7 @@
     }
 
     #modal-login .auth-context-label {
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -334,7 +339,7 @@
 
     #modal-login .auth-role-pill {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;

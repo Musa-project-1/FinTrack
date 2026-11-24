@@ -59,6 +59,8 @@
       .riwayat-modal-content {
         padding: 12px 12px;
         width: calc(100vw - 16px);
+        min-width: 0;
+        box-sizing: border-box;
       }
 
       .riwayat-modal-content .modal-header-standard {
@@ -92,7 +94,7 @@
 
       .riwayat-search input {
         height: 34px !important;
-        font-size: 12px !important;
+        font-size: 12px;
         padding-left: 32px !important;
         border-radius: var(--r-sm) !important;
       }
@@ -128,7 +130,7 @@
       .riwayat-select {
         padding-left: 22px !important;
         padding-right: 6px !important;
-        font-size: 11.5px !important;
+        font-size: 11.5px;
         height: auto !important;
       }
 
@@ -166,9 +168,12 @@
       .riwayat-summary-bar {
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: wrap !important;
         justify-content: space-between !important;
         align-items: center !important;
         gap: 8px !important;
+        min-width: 0;
+        max-width: 100%;
         padding-top: 6px !important;
         margin-top: 2px !important;
         border-top: 1px dashed var(--border) !important;
@@ -177,6 +182,7 @@
       .riwayat-summary-item {
         display: flex !important;
         align-items: center !important;
+        min-width: 0;
       }
 
       .riwayat-summary-label {
@@ -191,14 +197,17 @@
 
       .riwayat-summary-metrics {
         display: flex !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
         gap: 6px !important;
         width: auto !important;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .metric-pill {
         padding: 2px 6px !important;
-        font-size: 10px !important;
+        font-size: 11px !important;
         font-family: var(--font-mono) !important;
         border-radius: var(--r-xs) !important;
       }
@@ -214,7 +223,7 @@
         background: transparent !important;
         border: none !important;
         font-family: var(--font-mono) !important;
-        font-size: 10.5px !important;
+        font-size: 11px !important;
         font-weight: 600 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.08em !important;
@@ -334,23 +343,26 @@
         display: block !important;
         font-size: 13px !important;
         font-weight: 700 !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        min-width: 0;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        word-break: break-word;
         color: var(--text-main) !important;
         margin: 0 !important;
       }
 
       #table-riwayat-data td:nth-child(2) .trx-meta-row {
         display: flex !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
         gap: 4px !important;
-        font-size: 10.5px !important;
+        min-width: 0;
+        font-size: 11px !important;
         color: var(--text-faint) !important;
         margin-top: 1.5px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        word-break: break-word;
         font-family: var(--font-mono) !important;
       }
 
@@ -384,6 +396,7 @@
         font-family: var(--font-mono) !important;
         font-variant-numeric: tabular-nums !important;
         white-space: nowrap !important;
+        flex-shrink: 0;
       }
 
       /* Col 4: Tipe Arus badge is hidden on mobile (accent bar + nominal color communicates flow) */
@@ -428,6 +441,39 @@
       #table-riwayat-data td:nth-child(5):empty {
         display: none !important;
       }
+    }
+
+    @media (max-width: 390px) {
+      #table-riwayat-data tr:not(.date-group-header) {
+        column-gap: 8px !important;
+        padding: 9px 10px !important;
+      }
+      #table-riwayat-data td:nth-child(3) {
+        font-size: 13px !important;
+      }
+    }
+
+    .profil-history-row {
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .profil-history-row .ledger-main {
+      flex: 1 1 0%;
+      min-width: 0;
+    }
+    .profil-history-row .ledger-title,
+    .profil-history-row .ledger-meta,
+    .profil-history-row .ledger-meta > span {
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .profil-history-row .ledger-amt {
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
     }
   }
 </style>

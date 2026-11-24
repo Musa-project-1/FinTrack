@@ -534,8 +534,8 @@
         animation: tideWaveSpin 10.5s linear infinite reverse;
       }
     }
-    #spotlight-card[hidden] .ring-tide-level::before,
-    #spotlight-card[hidden] .ring-tide-level::after {
+    :is(#member-spotlight[hidden], #spotlight-card[hidden], body.admin-mode #spotlight-card, body:not([data-workspace-state="ready"]) #spotlight-card) .ring-tide-level::before,
+    :is(#member-spotlight[hidden], #spotlight-card[hidden], body.admin-mode #spotlight-card, body:not([data-workspace-state="ready"]) #spotlight-card) .ring-tide-level::after {
       animation-play-state: paused;
     }
     @keyframes tideWaveSpin {

@@ -284,7 +284,7 @@
     #modal-edit-transaksi .edit-origin-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-muted); line-height: 1.25; }
     #modal-edit-transaksi .edit-origin-pill {
       padding: 2px 7px; border-radius: 6px; background: var(--accent-tint); border: 1px solid var(--accent-border);
-      color: var(--accent-strong); font-size: 11px; font-weight: 700; line-height: 1.3;
+      color: var(--accent-strong); font-size: 11px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums;
     }
     #modal-edit-transaksi .edit-origin-summary {
       font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
@@ -308,6 +308,7 @@
       font-size: 12px; font-weight: 500; color: var(--text-muted);
       background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 10px;
     }
+    #modal-edit-transaksi #trx-attachment-file:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     #modal-edit-transaksi #trx-attachment-file::file-selector-button {
       height: 28px; margin-right: 9px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--border);
       background: var(--surface-2); color: var(--text-main); font-family: var(--font-sans);
@@ -347,7 +348,7 @@
       padding: 4px 10px; border-radius: var(--r-pill); background: var(--surface-2);
       border: 1px solid var(--border); font-size: 11.5px; gap: 5px;
     }
-    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill strong { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill strong { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
     #modal-edit-transaksi .trx-footer-meta.edit-footer-pill.is-inflow {
       background: var(--income-bg); border-color: var(--income-border); color: var(--income-strong);
     }
@@ -392,6 +393,7 @@
       flex-shrink: 0;
     }
     .close-modal-btn:hover { background: var(--surface-3); color: var(--text-main); }
+    .close-modal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* 5. Password peek */
     .btn-pwd-peek {
@@ -409,6 +411,7 @@
       justify-content: center;
     }
     .btn-pwd-peek[aria-pressed="true"] { color: var(--accent-strong); }
+    .btn-pwd-peek:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
     .btn-pwd-peek i { transition: transform 150ms var(--hybrid-ease-spring), color 150ms ease; }
     @media (prefers-reduced-motion: no-preference) {
       .close-modal-btn:active { transform: scale(0.91); }
@@ -422,6 +425,7 @@
     .input-admin-code {
       text-align: center;
       font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
       font-size: 15px;
       letter-spacing: 0.14em;
       padding: 12px 42px 12px 14px;
@@ -559,7 +563,7 @@
       transition: border-color 180ms ease, box-shadow 220ms ease;
     }
     @keyframes copyCheckPop {
-      0% { transform: scale(0.84); opacity: 0.5; }
+      0% { transform: scale(0.92); opacity: 0.5; }
       60% { transform: scale(1.14); opacity: 1; }
       100% { transform: scale(1); opacity: 1; }
     }

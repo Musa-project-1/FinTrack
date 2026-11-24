@@ -39,6 +39,7 @@
       font-size: 13.5px;
       font-weight: 600;
       font-family: inherit;
+      font-variant-numeric: tabular-nums;
       text-align: left;
       cursor: pointer;
       transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 140ms ease;
@@ -239,6 +240,7 @@
       font-family: var(--font-display);
       font-size: 13.5px;
       font-weight: 800;
+      font-variant-numeric: tabular-nums;
       letter-spacing: -0.01em;
       cursor: pointer;
       transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
@@ -297,7 +299,7 @@
 
     .dpick-weekdays > span {
       text-align: center;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;

@@ -14,6 +14,7 @@
     }
 
     .faq-item-title::-webkit-details-marker { display: none; }
+    .faq-item-title:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 13px; }
 
     .faq-item-title > span {
       flex: 1;
@@ -176,6 +177,7 @@
     }
     .export-tab-track .tab-btn.active { color: var(--text-main); background: transparent; box-shadow: none; border-color: transparent; }
     .export-tab-track .tab-btn:hover:not(.active) { color: var(--text-main); background: transparent; }
+    .export-tab-track .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
     #modal-export .export-sheet-body {
       padding: 12px 20px 14px; display: flex; flex-direction: column; gap: 10px;
@@ -218,7 +220,7 @@
       border: 1px solid var(--border); min-width: 0;
     }
     .report-stat-card.is-closing { background: var(--accent-tint); border-color: var(--accent-border); }
-    .report-stat-title { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+    .report-stat-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
     .report-stat-val { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-main); overflow-wrap: anywhere; }
     .report-stat-val.is-income { color: var(--income-strong); }
     .report-stat-val.is-danger { color: var(--danger); }
@@ -233,14 +235,14 @@
       padding: 9px 13px; border-bottom: 1px solid var(--border); background: var(--surface);
     }
     .report-ledger-title { font-size: 13px; font-weight: 700; color: var(--text-main); display: inline-flex; align-items: center; gap: 6px; }
-    .report-ledger-badge { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+    .report-ledger-badge { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
     #modal-export .report-ledger-scroll {
       max-height: 225px; overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; overscroll-behavior: contain;
     }
     .report-ledger-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
     .report-ledger-table thead th {
       background: var(--table-header-bg); border-bottom: 1px solid var(--border); padding: 8px 9px;
-      font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--text-faint); position: sticky; top: 0; z-index: 2; text-align: left;
     }
     .report-ledger-table .col-no { width: 34px; text-align: center; }
@@ -250,7 +252,7 @@
     .report-ledger-table tbody td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: left; color: var(--text-main); }
     .report-ledger-table tbody tr:last-child td { border-bottom: none; }
     .report-ledger-table tbody tr:hover td { background: var(--surface-2); }
-    .report-ledger-table tbody td.report-row-num { text-align: center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11px; }
+    .report-ledger-table tbody td.report-row-num { text-align: center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11px; font-variant-numeric: tabular-nums; }
     .report-ledger-table tbody td.report-row-amt,
     .report-ledger-table tbody td.report-row-saldo { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .report-ledger-table tbody td.report-row-amt.is-income { color: var(--income-strong); font-weight: 700; }
@@ -258,9 +260,10 @@
     .report-ledger-table tbody td.report-row-amt.is-muted { color: var(--text-faint); }
     .report-ledger-table tbody td.report-row-saldo { font-weight: 700; }
     .report-ledger-table tbody td.td-muted-center { text-align: center; padding: 20px 10px; color: var(--text-muted); }
-    .report-row-date { font-weight: 600; white-space: nowrap; }
+    .report-row-date { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .report-row-clock,
     .report-row-meta { font-size: 11px; color: var(--text-faint); }
+    .report-row-clock { font-variant-numeric: tabular-nums; }
 
     /* Tab 2: Ekspor & Backup */
     .export-section-label { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
@@ -271,6 +274,8 @@
       transition: border-color 0.16s ease, background 0.16s ease;
     }
     .export-card-btn:hover { background: var(--surface-2); border-color: var(--accent-border); }
+    .export-card-btn:focus-visible,
+    #modal-export .export-restore-label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
     .export-icon-box {
       width: 40px; height: 40px; min-width: 40px; border-radius: 11px;
       display: grid; place-items: center; font-size: 20px; border: 1px solid var(--border);

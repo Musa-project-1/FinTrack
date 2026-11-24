@@ -23,7 +23,7 @@
 
     .riwayat-summary-label {
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: var(--tracking-eyebrow);
@@ -46,7 +46,7 @@
     /* metric pills: monospace, tabular, one accent for inflow, neutral for outflow */
     .metric-pill {
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 500;
       padding: 2px 8px;
       border-radius: var(--r-sm);
@@ -112,11 +112,11 @@
 
     .chk-badge-lunas {
       font-family: var(--font-mono);
-      font-size: 9.5px;
+      font-size: 11px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--accent-strong);
-      font-weight: 500;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -130,7 +130,7 @@
 
     .chk-badge-pending {
       font-family: var(--font-mono);
-      font-size: 9.5px;
+      font-size: 11px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--text-faint);
@@ -144,7 +144,8 @@
       font-family: var(--font-mono);
       font-weight: 500;
       color: var(--text-faint);
-      font-size: 10.5px;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
       text-transform: uppercase;
       letter-spacing: var(--tracking-eyebrow);
       border-bottom: 1px solid var(--border);
@@ -161,8 +162,9 @@
     .trx-period {
       display: inline-block;
       font-family: var(--font-mono);
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 500;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -191,6 +193,7 @@
       white-space: nowrap;
       font-family: var(--font-mono);
       font-size: 12px;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       vertical-align: middle;
     }
@@ -209,6 +212,7 @@
     .td-audit-time {
       font-family: var(--font-mono);
       font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       white-space: nowrap;
     }
@@ -217,7 +221,7 @@
 
     .audit-action-tag {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       font-weight: 500;
@@ -234,6 +238,7 @@
       font-family: var(--font-mono);
       font-size: 11.5px;
       font-weight: 500;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
     }
 
@@ -244,6 +249,7 @@
 
     .td-wa-col {
       font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       font-size: 12.5px;
     }
@@ -275,6 +281,7 @@
     .pending-card-time {
       font-family: var(--font-mono);
       font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
     }
 

@@ -162,6 +162,7 @@
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
       padding: 2px 9px;
       border-radius: 999px;
       background: var(--surface-2);
@@ -278,7 +279,7 @@
       align-items: center;
       gap: 5px;
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -306,7 +307,7 @@
 
     #modal-groups .group-pin-badge {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       padding: 3px 7px;
       border-radius: 8px;
@@ -520,6 +521,7 @@
       color: var(--warning);
       font-family: var(--font-mono);
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
     }
 
     .header .group-queue-pill {
@@ -555,6 +557,7 @@
       background: var(--warning-bg);
       color: var(--warning);
       font-size: 12px;
+      font-variant-numeric: tabular-nums;
       line-height: 1.4;
     }
 

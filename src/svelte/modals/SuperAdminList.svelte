@@ -161,7 +161,7 @@
       padding: 2px 8px;
       border-radius: var(--r-pill);
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -352,6 +352,7 @@
       font-family: var(--font-mono);
       font-size: 12.5px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-main);

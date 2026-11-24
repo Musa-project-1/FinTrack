@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Finkas · QA Break UI Stress Harness</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../../fonts/phosphor/phosphor.css">
+<link rel="stylesheet" href="../../style.css">
+<style>
+  /* Dev-only QA harness chrome — never shipped in production. */
+  html, body {
+    min-height: 100%;
+  }
+  body.qa-host {
+    padding: 16px 16px 84px;
+    margin: 0;
+  }
+  body.qa-embed {
+    padding: 12px;
+    margin: 0;
+    min-height: 0;
+    overflow-x: hidden;
+  }
+  .qa-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .qa-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 14px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .qa-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .qa-title-group strong {
+    font-size: 14px;
+    color: var(--text-main);
+  }
+  .qa-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .qa-env-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .qa-env-btn {
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-main);
+    font: 600 12px/1.2 system-ui, -apple-system, sans-serif;
+    cursor: pointer;
+  }
+  .qa-env-btn[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .qa-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .qa-pane[hidden] {
+    display: none;
+  }
+  .qa-pane-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .qa-stage-frame {
+    width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+  }
+  .qa-stage-frame.is-320 {
+    width: 320px;
+    max-width: 100%;
+    padding: 8px;
+    border: 2px dashed var(--accent-border);
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--surface) 45%, transparent);
+    overflow-x: auto;
+  }
+  .qa-dark-frame {
+    width: 100%;
+    min-height: 460px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #070d19;
+    display: block;
+  }
+  .qa-empty-note {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px dashed var(--border-strong);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  /* Plain fixed bottom-center dev segmented toggle (non-intrusive chrome). */
+  .qa-seg-dock {
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    max-width: calc(100vw - 20px);
+    padding: 4px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    overflow-x: auto;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .qa-seg-btn {
+    border: 0;
+    background: transparent;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font: 600 12px/1.2 system-ui, -apple-system, sans-serif;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .qa-seg-btn[aria-pressed="true"] {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  }
+</style>
+</head>
+<body data-palette="cobalt" data-canvas="aurora">
+<div class="qa-shell" id="qa-root">
+  <header class="qa-toolbar" id="qa-toolbar">
+    <div class="qa-title-group">
+      <strong>Break UI // MemberSpotlight &amp; WorkspaceStats</strong>
+      <span class="qa-status" id="qa-status" aria-live="polite">Memuat komponen...</span>
+    </div>
+    <div class="qa-env-controls" role="group" aria-label="Simulasi lingkungan">
+      <button type="button" class="qa-env-btn" id="btn-theme-mode" data-env="theme">Tema: Light + Dark</button>
+      <button type="button" class="qa-env-btn" id="btn-width-320" data-env="width" aria-pressed="false">320px</button>
+      <button type="button" class="qa-env-btn" id="btn-zoom-200" data-env="zoom" aria-pressed="false">200% Text</button>
+      <button type="button" class="qa-env-btn" id="btn-dir-rtl" data-env="rtl" aria-pressed="false">RTL</button>
+    </div>
+  </header>
+
+  <section class="qa-pane" id="qa-light-pane">
+    <span class="qa-pane-badge" id="qa-main-badge">Light Theme (Live DOM)</span>
+    <div class="qa-stage-frame" id="qa-stage-frame">
+      <p class="qa-empty-note" id="qa-spotlight-hidden-note" hidden>
+        MemberSpotlight disembunyikan (0 anggota aktif, sesuai perilaku produksi).
+      </p>
+      <section aria-label="Pantauan Iuran Pribadi" class="member-spotlight-wrap non-admin-only" id="member-spotlight"></section>
+      <section id="workspace-stats" class="workspace-panel analytics-grid"></section>
+    </div>
+  </section>
+
+  <section class="qa-pane" id="qa-dark-pane">
+    <span class="qa-pane-badge">Dark Theme (Live Synced Frame)</span>
+    <iframe class="qa-dark-frame" id="qa-dark-frame" title="Dark theme stress preview"></iframe>
+  </section>
+</div>
+
+<nav class="qa-seg-dock" id="qa-seg-dock" aria-label="Dataset QA Break UI">
+  <button type="button" class="qa-seg-btn" data-dataset="demo" aria-pressed="true">Demo</button>
+  <button type="button" class="qa-seg-btn" data-dataset="worst" aria-pressed="false">Worst case</button>
+  <button type="button" class="qa-seg-btn" data-dataset="empty" aria-pressed="false">Empty (0)</button>
+  <button type="button" class="qa-seg-btn" data-dataset="one" aria-pressed="false">One (1)</button>
+  <button type="button" class="qa-seg-btn" data-dataset="huge" aria-pressed="false">1,000 rows</button>
+</nav>
+
+<script type="module">
+import {
+  NAMA_BULAN,
+  billingPeriod,
+  createDuesLedger,
+  mountSvelteDashboard,
+  renderHybridChart,
+  renderSpotlight,
+  setActiveGroupId,
+  setAdminSession,
+  setAdminViewMode,
+  setCurrentRekapYear,
+  setMemberPin,
+  setState,
+  showSpotlightDetail
+} from '../../src/ui/svelte-dashboard.js';
+
+const params = new URLSearchParams(window.location.search);
+const isEmbed = params.get('embed') === '1';
+const VALID_DATASETS = new Set(['demo', 'worst', 'empty', 'one', 'huge']);
+
+let currentDataset = VALID_DATASETS.has(params.get('data')) ? params.get('data') : 'demo';
+let currentWidth320 = params.get('width') === '320';
+let currentZoom200 = params.get('zoom') === '200';
+let currentRtl = params.get('dir') === 'rtl';
+let themeMode = params.get('theme') === 'dark' ? 'dark' : params.get('theme') === 'light' ? 'light' : 'both';
+
+const period = billingPeriod();
+const YEAR = period.year;
+
+function makeTx(id, { anggota = '-', kategori = 'KAT-K1', tipe = 'Keluar', monthIndex = 0, nominal = 10000, ket = '' } = {}) {
+  const mm = String(monthIndex + 1).padStart(2, '0');
+  return {
+    ID_Transaksi: id,
+    Timestamp: `${YEAR}-${mm}-15T12:00:00+07:00`,
+    Tipe_Arus: tipe,
+    ID_Kategori: kategori,
+    ID_Anggota: anggota,
+    Bulan_Iuran: tipe === 'Masuk' && anggota !== '-' ? NAMA_BULAN[monthIndex] : '-',
+    Tahun_Iuran: tipe === 'Masuk' && anggota !== '-' ? String(YEAR) : '-',
+    Nominal: nominal,
+    Keterangan: ket
+  };
+}
+
+function buildDataset(key) {
+  if (key === 'empty') {
+    return {
+      label: 'Empty (0)',
+      pinnedId: '',
+      now: new Date(`${YEAR}-12-20T12:00:00+07:00`),
+      current: { year: YEAR, monthIndex: 11 },
+      state: { anggota: [], kategori: [], transaksi: [], skippedMonths: [], kasStart: `01-${YEAR}`, paymentAccount: null }
+    };
+  }
+
+  if (key === 'one') {
+    return {
+      label: 'One (1)',
+      pinnedId: 'ANG-1',
+      now: new Date(`${YEAR}-01-20T12:00:00+07:00`),
+      current: { year: YEAR, monthIndex: 0 },
+      state: {
+        anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Jo', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` }],
+        kategori: [{ ID_Kategori: 'KAT-K1', Nama_Kategori: 'Alat Tulis', Tipe: 'Keluar' }],
+        transaksi: [
+          makeTx('T-1', { anggota: 'ANG-1', kategori: 'KAT-M1', tipe: 'Masuk', monthIndex: 0, nominal: 10000 }),
+          makeTx('T-2', { kategori: 'KAT-K1', tipe: 'Keluar', monthIndex: 0, nominal: 5000 })
+        ],
+        skippedMonths: [],
+        kasStart: `01-${YEAR}`,
+        paymentAccount: null
+      }
+    };
+  }
+
+  if (key === 'worst') {
+    const anggota = [
+      { ID_Anggota: 'ANG-RT04-RW09-BENDAHARA-2026-MAX40CHAR01', Nama_Anggota: 'Prof. Dr. Ir. Raden Mas Suryaningrat Kusumawardhana-Wijaya, S.T., M.Kom.', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-85-TITLED', Nama_Anggota: 'Prof. Dr. Ir. K.R.M.T. Suryaningrat Kusumawardhana-Wijaya Ningrat, S.T., M.Kom., Ph.D', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-EMAIL-LONG', Nama_Anggota: 'bendahara.rt04.rw09.kelurahan-sukamaju-selatan@komunitas-warga-harmoni.example.id', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-JO', Nama_Anggota: 'Jo', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-EMOJI-VN', Nama_Anggota: '🏴‍☠️ Nguyễn Văn Phúc', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-RTL', Nama_Anggota: 'نور الهدى عبد الرحمن', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-XSS', Nama_Anggota: '<img src=x onerror=alert(1)> & **Budi**', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` },
+      { ID_Anggota: 'ANG-EMPTY-NAME', Nama_Anggota: '   ', Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` }
+    ];
+    const kategori = [
+      { ID_Kategori: 'KAT-INFRA', Nama_Kategori: 'Pemeliharaan Infrastruktur Saluran Air & Penerangan Jalan Lingkungan RT 04/RW 09', Tipe: 'Keluar' },
+      { ID_Kategori: 'KAT-UNBREAK', Nama_Kategori: 'Pengadaan-Perlengkapan-Keamanan-Lingkungan-Tanpa-Spasi-RT04-RW09-Sukamaju', Tipe: 'Keluar' },
+      { ID_Kategori: 'KAT-XSS', Nama_Kategori: '<script>alert("xss")<\/script> & Operasional', Tipe: 'Keluar' }
+    ];
+    const transaksi = [
+      ...Array.from({ length: 12 }, (_, m) =>
+        makeTx(`W-PARTIAL-${m}`, { anggota: 'ANG-RT04-RW09-BENDAHARA-2026-MAX40CHAR01', tipe: 'Masuk', monthIndex: m, nominal: 5000 })
+      ),
+      makeTx('W-IN-HUGE-1', { tipe: 'Masuk', monthIndex: 2, nominal: 999999999999, ket: 'Dana Hibah Infrastruktur' }),
+      makeTx('W-OUT-HUGE-1', { kategori: 'KAT-INFRA', tipe: 'Keluar', monthIndex: 4, nominal: 999999999999 }),
+      makeTx('W-OUT-HUGE-2', { kategori: 'KAT-UNBREAK', tipe: 'Keluar', monthIndex: 5, nominal: 999999999999 }),
+      makeTx('W-OUT-XSS', { kategori: 'KAT-XSS', tipe: 'Keluar', monthIndex: 6, nominal: 12500000 }),
+      makeTx('W-IN-HUGE-2', { tipe: 'Masuk', monthIndex: 10, nominal: 999999999999, ket: 'Pelunasan Tahunan' })
+    ];
+    return {
+      label: 'Worst case',
+      pinnedId: 'ANG-RT04-RW09-BENDAHARA-2026-MAX40CHAR01',
+      now: new Date(`${YEAR}-12-20T12:00:00+07:00`),
+      current: { year: YEAR, monthIndex: 11 },
+      state: { anggota, kategori, transaksi, skippedMonths: [], kasStart: `01-${YEAR}`, paymentAccount: null }
+    };
+  }
+
+  if (key === 'huge') {
+    const sampleNames = [
+      'Budi Santoso', 'Siti Aminah', 'Prof. Dr. Ir. Raden Mas Suryaningrat Kusumawardhana-Wijaya, S.T., M.Kom.',
+      'bendahara.rt04.rw09.kelurahan-sukamaju-selatan@komunitas-warga-harmoni.example.id',
+      'Jo', '🏴‍☠️ Nguyễn Văn Phúc', 'Dewi Sartika', 'Ahmad Fauzi'
+    ];
+    const anggota = Array.from({ length: 1000 }, (_, i) => ({
+      ID_Anggota: `ANG-${String(i + 1).padStart(4, '0')}`,
+      Nama_Anggota: `${sampleNames[i % sampleNames.length]} #${i + 1}`,
+      Status_Aktif: 'Aktif',
+      Tanggal_Gabung: `${YEAR}-01-01`
+    }));
+    const kategori = Array.from({ length: 16 }, (_, i) => ({
+      ID_Kategori: `KAT-H${i + 1}`,
+      Nama_Kategori: `Pos Pengeluaran Operasional Lingkungan Sektor ${i + 1} RT 04/RW 09`,
+      Tipe: 'Keluar'
+    }));
+    const transaksi = [];
+    for (let i = 0; i < 1000; i++) {
+      const m = i % 12;
+      transaksi.push(makeTx(`H-IN-${i}`, {
+        anggota: anggota[i].ID_Anggota,
+        tipe: 'Masuk',
+        monthIndex: m,
+        nominal: i % 3 === 0 ? 10000 : 5000
+      }));
+      if (i % 10 === 0) {
+        transaksi.push(makeTx(`H-OUT-${i}`, {
+          kategori: kategori[i % kategori.length].ID_Kategori,
+          tipe: 'Keluar',
+          monthIndex: m,
+          nominal: 75000 + i * 100
+        }));
+      }
+    }
+    return {
+      label: '1,000 rows',
+      pinnedId: 'ANG-0001',
+      now: new Date(`${YEAR}-12-20T12:00:00+07:00`),
+      current: { year: YEAR, monthIndex: 11 },
+      state: { anggota, kategori, transaksi, skippedMonths: [], kasStart: `01-${YEAR}`, paymentAccount: null }
+    };
+  }
+
+  // Default: demo
+  const anggota = ['Ana Lestari', 'Budi Santoso', 'Cici Amelia', 'Dewi Sartika', 'Eko Prasetyo', 'Fajar Nugroho']
+    .map((name, i) => ({ ID_Anggota: `ANG-0${i + 1}`, Nama_Anggota: name, Status_Aktif: 'Aktif', Tanggal_Gabung: `${YEAR}-01-01` }));
+  const kategori = [
+    { ID_Kategori: 'KAT-KEB', Nama_Kategori: 'Kebersihan Lingkungan', Tipe: 'Keluar' },
+    { ID_Kategori: 'KAT-KAM', Nama_Kategori: 'Keamanan Ronda', Tipe: 'Keluar' },
+    { ID_Kategori: 'KAT-OPS', Nama_Kategori: 'Operasional RT', Tipe: 'Keluar' }
+  ];
+  const transaksi = [
+    ...anggota.slice(0, 4).flatMap((m, idx) =>
+      Array.from({ length: 6 }, (_, mo) =>
+        makeTx(`D-${m.ID_Anggota}-${mo}`, { anggota: m.ID_Anggota, tipe: 'Masuk', monthIndex: mo, nominal: idx === 1 && mo === 5 ? 5000 : 10000 })
+      )
+    ),
+    makeTx('D-OUT-1', { kategori: 'KAT-KEB', tipe: 'Keluar', monthIndex: 2, nominal: 120000 }),
+    makeTx('D-OUT-2', { kategori: 'KAT-KAM', tipe: 'Keluar', monthIndex: 4, nominal: 85000 }),
+    makeTx('D-OUT-3', { kategori: 'KAT-OPS', tipe: 'Keluar', monthIndex: 5, nominal: 45000 })
+  ];
+  return {
+    label: 'Demo',
+    pinnedId: 'ANG-02',
+    now: new Date(`${YEAR}-07-20T12:00:00+07:00`),
+    current: { year: YEAR, monthIndex: 6 },
+    state: { anggota, kategori, transaksi, skippedMonths: ['02-' + YEAR], kasStart: `01-${YEAR}`, paymentAccount: null }
+  };
+}
+
+const statusEl = document.getElementById('qa-status');
+const stageFrame = document.getElementById('qa-stage-frame');
+const lightPane = document.getElementById('qa-light-pane');
+const darkPane = document.getElementById('qa-dark-pane');
+const darkFrame = document.getElementById('qa-dark-frame');
+const mainBadge = document.getElementById('qa-main-badge');
+const hiddenNote = document.getElementById('qa-spotlight-hidden-note');
+
+let activeLedger = null;
+let activeCurrent = null;
+
+function applyEnvChrome() {
+  document.documentElement.style.fontSize = currentZoom200 ? '200%' : '';
+  stageFrame.classList.toggle('is-320', currentWidth320);
+  stageFrame.setAttribute('dir', currentRtl ? 'rtl' : 'ltr');
+
+  if (isEmbed) {
+    document.body.classList.add('qa-embed');
+    document.body.classList.toggle('dark-mode', params.get('theme') === 'dark');
+    document.getElementById('qa-toolbar')?.remove();
+    document.getElementById('qa-dark-pane')?.remove();
+    document.getElementById('qa-seg-dock')?.remove();
+    mainBadge?.remove();
+    return;
+  }
+
+  document.body.classList.add('qa-host');
+  document.body.classList.toggle('dark-mode', themeMode === 'dark');
+  if (mainBadge) mainBadge.textContent = themeMode === 'dark' ? 'Dark Theme (Live DOM)' : 'Light Theme (Live DOM)';
+  if (darkPane) darkPane.hidden = themeMode !== 'both';
+  if (lightPane) lightPane.hidden = false;
+
+  const themeBtn = document.getElementById('btn-theme-mode');
+  if (themeBtn) {
+    const labels = { both: 'Tema: Light + Dark', light: 'Tema: Light', dark: 'Tema: Dark' };
+    themeBtn.textContent = labels[themeMode];
+  }
+  document.getElementById('btn-width-320')?.setAttribute('aria-pressed', String(currentWidth320));
+  document.getElementById('btn-zoom-200')?.setAttribute('aria-pressed', String(currentZoom200));
+  document.getElementById('btn-dir-rtl')?.setAttribute('aria-pressed', String(currentRtl));
+
+  document.querySelectorAll('.qa-seg-btn').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.dataset === currentDataset));
+  });
+}
+
+function renderDataset(key) {
+  const t0 = performance.now();
+  const ds = buildDataset(key);
+  const groupId = `qa-break-${key}`;
+  setAdminSession('');
+  setAdminViewMode('anggota');
+  setActiveGroupId(groupId);
+  if (ds.pinnedId) localStorage.setItem(`finkas_spotlight:${groupId}`, ds.pinnedId);
+  else localStorage.removeItem(`finkas_spotlight:${groupId}`);
+
+  setCurrentRekapYear(String(YEAR));
+  setState(ds.state);
+  mountSvelteDashboard();
+  activeLedger = createDuesLedger(ds.state, { year: YEAR, now: ds.now });
+  activeCurrent = ds.current;
+  renderSpotlight(activeLedger, activeCurrent);
+  renderHybridChart(ds.state);
+
+  const ms = (performance.now() - t0).toFixed(1);
+  if (hiddenNote) hiddenNote.hidden = !document.getElementById('member-spotlight')?.hidden;
+  if (statusEl) {
+    statusEl.textContent = `Dataset: ${ds.label} · ${ds.state.anggota.length} anggota · ${ds.state.transaksi.length} transaksi · ${ms} ms`;
+  }
+}
+
+function syncUrlAndFrame() {
+  if (isEmbed) return;
+  const next = new URLSearchParams(window.location.search);
+  next.set('data', currentDataset);
+  if (currentWidth320) next.set('width', '320'); else next.delete('width');
+  if (currentZoom200) next.set('zoom', '200'); else next.delete('zoom');
+  if (currentRtl) next.set('dir', 'rtl'); else next.delete('dir');
+  if (themeMode !== 'both') next.set('theme', themeMode); else next.delete('theme');
+  history.replaceState(null, '', `${window.location.pathname}?${next.toString()}`);
+
+  if (darkFrame && themeMode === 'both') {
+    const msg = { type: 'qa-sync', data: currentDataset, width: currentWidth320, zoom: currentZoom200, rtl: currentRtl };
+    if (darkFrame.dataset.loaded !== '1') {
+      darkFrame.dataset.loaded = '1';
+      const embedParams = new URLSearchParams({ embed: '1', theme: 'dark', data: currentDataset });
+      if (currentWidth320) embedParams.set('width', '320');
+      if (currentZoom200) embedParams.set('zoom', '200');
+      if (currentRtl) embedParams.set('dir', 'rtl');
+      darkFrame.src = `${window.location.pathname}?${embedParams.toString()}`;
+    } else {
+      darkFrame.contentWindow?.postMessage(msg, '*');
+    }
+  }
+}
+
+document.getElementById('member-spotlight')?.addEventListener('click', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  const monthBtn = target.closest('[data-action="spotlight-month"]');
+  if (monthBtn && activeLedger && activeCurrent) {
+    showSpotlightDetail(Number(monthBtn.dataset.index), activeLedger, activeCurrent, false);
+    return;
+  }
+  if (target.closest('[data-action="spotlight-unpin"]')) {
+    setMemberPin('', true);
+    return;
+  }
+  if (target.closest('.spotlight-detail-cta, [data-action="spotlight-pay"], [data-action="profil"]')) {
+    event.stopPropagation();
+    if (statusEl) statusEl.textContent = `Aksi QA: ${target.textContent?.trim() || 'Profil / Bayar'} (modal dinonaktifkan di harness).`;
+  }
+}, true);
+
+document.getElementById('workspace-stats')?.addEventListener('click', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest('[data-action="export-csv"]')) {
+    event.stopPropagation();
+    if (statusEl) statusEl.textContent = 'Aksi QA: Unduh CSV diklik.';
+  }
+}, true);
+
+if (!isEmbed) {
+  document.getElementById('qa-seg-dock')?.addEventListener('click', (event) => {
+    const btn = event.target instanceof Element ? event.target.closest('[data-dataset]') : null;
+    if (!btn) return;
+    currentDataset = btn.dataset.dataset;
+    applyEnvChrome();
+    renderDataset(currentDataset);
+    syncUrlAndFrame();
+  });
+
+  document.getElementById('btn-theme-mode')?.addEventListener('click', () => {
+    const order = ['both', 'light', 'dark'];
+    themeMode = order[(order.indexOf(themeMode) + 1) % order.length];
+    applyEnvChrome();
+    syncUrlAndFrame();
+  });
+  document.getElementById('btn-width-320')?.addEventListener('click', () => {
+    currentWidth320 = !currentWidth320;
+    applyEnvChrome();
+    syncUrlAndFrame();
+  });
+  document.getElementById('btn-zoom-200')?.addEventListener('click', () => {
+    currentZoom200 = !currentZoom200;
+    applyEnvChrome();
+    syncUrlAndFrame();
+  });
+  document.getElementById('btn-dir-rtl')?.addEventListener('click', () => {
+    currentRtl = !currentRtl;
+    applyEnvChrome();
+    syncUrlAndFrame();
+  });
+
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'qa-height' && darkFrame && Number.isFinite(event.data.height)) {
+      darkFrame.style.height = `${Math.max(420, Math.ceil(event.data.height) + 8)}px`;
+    }
+  });
+} else {
+  window.addEventListener('message', (event) => {
+    if (event.data?.type !== 'qa-sync') return;
+    currentDataset = VALID_DATASETS.has(event.data.data) ? event.data.data : 'demo';
+    currentWidth320 = Boolean(event.data.width);
+    currentZoom200 = Boolean(event.data.zoom);
+    currentRtl = Boolean(event.data.rtl);
+    applyEnvChrome();
+    renderDataset(currentDataset);
+  });
+
+  const postHeight = () => {
+    window.parent?.postMessage({ type: 'qa-height', height: document.documentElement.scrollHeight }, '*');
+  };
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(postHeight).observe(document.body);
+  }
+  window.addEventListener('load', postHeight);
+}
+
+applyEnvChrome();
+renderDataset(currentDataset);
+syncUrlAndFrame();
+</script>
+</body>
+</html>

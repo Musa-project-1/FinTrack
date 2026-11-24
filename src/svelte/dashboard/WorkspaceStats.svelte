@@ -4,6 +4,11 @@
   const hitTargets: SVGRectElement[] = [];
   let curvePathEl = $state<SVGPathElement>();
   let month = $derived(vm.months[vm.selectedMonth]);
+  let maxTickChars = $derived(
+    vm.gridLines.reduce((max, gl) => Math.max(max, String(gl.tickLabel ?? '').length), 0)
+  );
+  let axisPad = $derived(vm.ready ? Math.max(0, Math.ceil(maxTickChars * 7.8 + 10) - 36) : 0);
+  let chartViewBox = $derived(axisPad > 0 ? `-${axisPad} 0 ${720 + axisPad} 250` : '0 0 720 250');
 
   // Each chart revision creates a fresh path. Selecting a month keeps the path and its animation.
   $effect(() => {
@@ -39,11 +44,11 @@
   </div>
   <figure class="chart-figure">
     <div class="chart-stage">
-      <svg class="chart-svg" id="hybrid-cashflow" viewBox="0 0 720 250" role="img" aria-label="Arus kas 12 bulan dan tren saldo">
+      <svg class="chart-svg" id="hybrid-cashflow" viewBox={chartViewBox} role="img" aria-label="Arus kas 12 bulan dan tren saldo">
         {#if vm.ready}
           {#each vm.gridLines as gl}
             <line x1="44" y1={gl.y} x2="704" y2={gl.y} stroke="var(--border)" stroke-dasharray={gl.dashed ? '3 4' : undefined} stroke-width="1" />
-            <text x="36" y={gl.y + 4} text-anchor="end" fill="var(--text-muted)" font-size="10" font-family="var(--font-mono)">{gl.tickLabel}</text>
+            <text x="36" y={gl.y + 4} text-anchor="end" fill="var(--text-muted)" font-size="11" font-family="var(--font-mono)">{gl.tickLabel}</text>
           {/each}
           {#each vm.months as m (m.index)}
             <rect class="chart-bar-in" style:--bar-i={m.index} x={m.barInX} y={m.barInY} width="11" height={m.barInH} rx="4" fill="var(--hybrid-paid)" />
@@ -82,7 +87,7 @@
   <div class="breakdown-list" id="hybrid-analytics-breakdown">
     {#each vm.breakdownRows as row}
       <div class="breakdown-row">
-        <div class="breakdown-meta"><span>{row.label}</span><span class="mono tnum {row.paid ? 'bd-pct-paid' : 'sensitive-amt'}">{row.metricText}</span></div>
+        <div class="breakdown-meta"><span title={row.label} dir="auto">{row.label?.trim() ? row.label : 'Operasional'}</span><span class="mono tnum {row.paid ? 'bd-pct-paid' : 'sensitive-amt'}">{row.metricText}</span></div>
         <div class="breakdown-track"><div class="breakdown-fill" class:paid={row.paid} style:width={row.width + '%'}></div></div>
       </div>
     {/each}
@@ -332,7 +337,7 @@
 
     .chart-update-text {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-faint);
     }
 
@@ -396,7 +401,7 @@
     }
     .profile-metric-label {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: var(--tracking-eyebrow);
       color: var(--text-faint);
@@ -420,7 +425,7 @@
       margin-bottom: var(--sp-2);
       font-family: var(--font-mono);
       font-weight: 500;
-      font-size: 10.5px;
+      font-size: 11px;
       color: var(--text-faint);
       display: flex;
       align-items: center;
@@ -628,5 +633,47 @@
 
     .mb-0 { margin-bottom: 0 !important; }
     .text-warning { color: var(--warning); }
+
+    /* Adversarial layout & overflow hardening for #workspace-stats */
+    #workspace-stats.analytics-grid .chart-card { min-width: 0; max-width: 100%; }
+    #workspace-stats .chart-card > .chart-head > div:first-child { min-width: 0; flex: 1 1 180px; }
+    #workspace-stats .chart-card .chart-title,
+    #workspace-stats .chart-card .page-subtitle { min-width: 0; overflow-wrap: anywhere; }
+    #workspace-stats .chart-figure,
+    #workspace-stats .chart-stage { min-width: 0; max-width: 100%; }
+    #workspace-stats #hybrid-cashflow.chart-svg { width: 100%; max-width: 100%; height: auto; display: block; overflow: hidden; }
+    #workspace-stats #hybrid-chart-readout.chart-tooltip-box { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+    #workspace-stats #hybrid-chart-readout.chart-tooltip-box > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+    #workspace-stats #hybrid-analytics-breakdown { min-width: 0; }
+    #workspace-stats #hybrid-analytics-breakdown .breakdown-row { min-width: 0; }
+    #workspace-stats #hybrid-analytics-breakdown .breakdown-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 10px;
+      min-width: 0;
+    }
+    #workspace-stats #hybrid-analytics-breakdown .breakdown-meta > span:first-child {
+      flex: 1 1 120px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+    #workspace-stats #hybrid-analytics-breakdown .breakdown-meta > .mono.tnum {
+      flex-shrink: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-align: end;
+      margin-inline-start: auto;
+    }
+    @media (max-width: 768px) {
+      #workspace-stats.analytics-grid .chart-card { padding: 16px; }
+    }
+    @media (max-width: 480px) {
+      #workspace-stats .chart-card > .chart-head { display: flex; flex-wrap: wrap; align-items: flex-start; }
+      #workspace-stats .chart-card > .chart-head .btn-secondary { height: auto; min-height: 44px; white-space: normal; }
+      #workspace-stats #hybrid-chart-readout.chart-tooltip-box { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    }
   }
 </style>

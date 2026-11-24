@@ -358,11 +358,24 @@
     /* === PRIVACY MASK (SENSOR SALDO) === */
     body.privacy-mode .sensitive-amt {
       filter: blur(7px);
+      opacity: 0.84;
       user-select: none;
     }
 
+    body.privacy-mode :is(.bento-amount, .bento-money, .ledger-amt, #self-pay-total, .profil-total-val).sensitive-amt {
+      transform: scale(0.985);
+      transform-origin: left center;
+    }
+    body.privacy-mode :is(.ledger-amt, .profil-total-val).sensitive-amt {
+      transform-origin: right center;
+    }
+
     .sensitive-amt {
-      transition: filter 220ms var(--hybrid-ease-out);
+      transition: filter 220ms var(--hybrid-ease-out), opacity 220ms var(--hybrid-ease-out), transform 220ms var(--hybrid-ease-out);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sensitive-amt { transition: none; transform: none !important; }
     }
 
     /* === DENSITY COMPACT (TAMPILAN RINGKAS) === */

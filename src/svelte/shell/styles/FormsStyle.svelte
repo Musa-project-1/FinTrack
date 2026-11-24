@@ -39,6 +39,40 @@
     .pin-row.is-error .pin-box {
       border-color: var(--danger);
     }
+    .pin-row.is-unlocked .pin-box {
+      border-color: var(--accent);
+      background: var(--accent-tint);
+      color: var(--accent-strong);
+      box-shadow: 0 0 0 3px var(--accent-tint);
+    }
+    #group-pin-badge.is-unlocked {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: transparent;
+      box-shadow: 0 0 0 6px var(--accent-tint);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .pin-row.is-unlocked span.pin-box {
+        animation: pinUnlockWave 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .pin-row.is-unlocked span.pin-box:nth-of-type(1) { animation-delay: 0ms; }
+      .pin-row.is-unlocked span.pin-box:nth-of-type(2) { animation-delay: 55ms; }
+      .pin-row.is-unlocked span.pin-box:nth-of-type(3) { animation-delay: 110ms; }
+      .pin-row.is-unlocked span.pin-box:nth-of-type(4) { animation-delay: 165ms; }
+      #group-pin-badge.is-unlocked {
+        animation: pinBadgeUnlock 360ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+      }
+    }
+    @keyframes pinUnlockWave {
+      0% { transform: translateY(0) scale(0.95); }
+      52% { transform: translateY(-5px) scale(1.05); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes pinBadgeUnlock {
+      0% { transform: scale(0.88) rotate(-8deg); }
+      58% { transform: scale(1.08) rotate(3deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
     @keyframes pinShake {
       0%, 100% { transform: translateX(0); }
       20% { transform: translateX(-5px); }

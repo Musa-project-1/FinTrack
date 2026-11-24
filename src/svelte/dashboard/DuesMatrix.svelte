@@ -76,7 +76,7 @@
       </div>
     </th>
     {#each row.cells as cell (cell.idx)}
-      <td class="text-center" class:td-skipped={!cell.owed} data-col-month={cell.idx} title={cell.title}>
+      <td class="text-center" class:td-skipped={!cell.owed} class:is-newly-paid-cell={cell.isNewlyPaid} data-col-month={cell.idx} title={cell.title}>
         {#if cell.isPaid || cell.payable}
           {#key cell.isPaid ? 'receipt' : vm.isAdmin ? 'quickpay' : 'self-pay'}
             <button type="button" class="matrix-dues-button" {...monthAction(cell, row.id, vm.year, vm.isAdmin, false)}

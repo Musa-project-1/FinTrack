@@ -59,6 +59,35 @@ const renderQuickPayPresets = () => {
   syncQuickPayPresets({ chips });
 };
 
+const resetQuickPaySettledState = () => {
+  const modal = document.getElementById("modal-quickpay");
+  modal?.removeAttribute?.("data-pay-state");
+  modal?.removeAttribute?.("data-pay-tone");
+  document.getElementById("qp-status-badge")?.classList?.remove?.("is-settled");
+};
+
+const startQuickPaySavingStage = (angName: string, bulan: string, tahun: string, nominal: number) => {
+  const modal = document.getElementById("modal-quickpay");
+  modal?.setAttribute?.("data-pay-state", "saving");
+  modal?.setAttribute?.("data-pay-tone", "inflow");
+  setText("qp-verified-title", "Mencatat Pembayaran…");
+  setText("qp-verified-amount", `+ ${formatRp(nominal)}`);
+  setText("qp-verified-sub", `${angName} · ${bulan} ${tahun}`);
+};
+
+const markQuickPaySettled = (nominal: number) => {
+  const full = !qpContext || nominal >= qpContext.remaining;
+  document.getElementById("modal-quickpay")?.setAttribute?.("data-pay-state", "settled");
+  setText("qp-verified-title", full ? "Iuran Lunas Tercatat" : "Cicilan Iuran Tercatat");
+  const badge = document.getElementById("qp-status-badge");
+  if (badge) {
+    badge.textContent = full ? "LUNAS" : "CICILAN TERCATAT";
+    badge.classList?.toggle?.("is-settled", full);
+    if (full) badge.classList?.remove?.("is-partial");
+  }
+  setText("qp-impact-status", full ? "Lunas Tercatat" : "Cicilan Tercatat");
+};
+
 const renderQuickPayMeta = () => {
   if (!qpContext) return;
   const { nama, paid, remaining, isPartial } = qpContext;
@@ -196,6 +225,7 @@ export const openQuickPaySheet = (idAnggota: string, bulan: string, year = curre
     isPartial: monthInfo.status === "partial",
     baseBalance: computeCurrentBalance(state.transaksi)
   };
+  resetQuickPaySettledState();
   ensureQuickPayBound();
   renderQuickPayMeta();
   updateQuickPayPreview();
@@ -230,6 +260,7 @@ export const submitQuickPay = async (e: Event) => {
     title: "Catat Iuran Kas?",
     message: `Simpan iuran ${bulan} ${tahun} untuk ${angName} sebesar ${formatRp(nominal)} ke database?`,
     icon: "ph-fill ph-hand-coins",
+    badgeClass: "is-payment",
     confirmText: "Ya, Simpan Iuran",
     onConfirm: () => {
       if (getActiveGroupId() !== targetGroupId) {
@@ -260,10 +291,14 @@ export const submitQuickPay = async (e: Event) => {
         if (!delivered) {
           return {
             outcome: "success",
+            onSettled: () => {
+              if (getActiveGroupId() === targetGroupId) markQuickPaySettled(nominal);
+            },
             done: () => {
               if (getActiveGroupId() !== targetGroupId) return;
               showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran ${bulan} ${tahun} untuk ${angName} disimpan lokal.`);
               closeModal("modal-quickpay");
+              resetQuickPaySettledState();
               addTransaction({
                 ID_Transaksi: tempTransactionId(),
                 Timestamp: tanggalIso || new Date().toISOString(),
@@ -290,6 +325,7 @@ export const submitQuickPay = async (e: Event) => {
             done: async () => {
               showToast(result?.message || `Iuran ${bulan} ${tahun} sudah tercatat.`, "warning");
               closeModal("modal-quickpay");
+              resetQuickPaySettledState();
               await refreshAppData();
             }
           };
@@ -302,15 +338,22 @@ export const submitQuickPay = async (e: Event) => {
         const serverRow = result.data?.transaction || (result.data?.ID_Transaksi ? result.data : null);
         return {
           outcome: "success",
+          onSettled: () => {
+            if (getActiveGroupId() === targetGroupId) markQuickPaySettled(nominal);
+          },
           done: () => {
             if (getActiveGroupId() !== targetGroupId) return;
             showDatabaseToast("Iuran Kas Disimpan", `Iuran ${bulan} ${tahun} untuk ${angName} (${formatRp(nominal)}) berhasil dicatat.`);
             closeModal("modal-quickpay");
+            resetQuickPaySettledState();
             integrateServerTransaction(serverRow);
             markNewlyPaidCells(idAnggota, bulan, tahun);
             rerenderAfterLedgerChange();
           }
         };
+      }, {
+        onSaving: () => startQuickPaySavingStage(angName, bulan, tahun, nominal),
+        onCleanup: resetQuickPaySettledState
       });
     }
   });

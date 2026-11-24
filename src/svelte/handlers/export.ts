@@ -5,6 +5,8 @@ import { getState, currentRekapYear } from "finkas/core/state";
 import { formatRp, showToast, escapeHtml } from "finkas/core/utils";
 import { createDuesLedger, billingPeriod } from "finkas/core/dues";
 import { closeModal } from "../ui/modal";
+import { flashCopyFeedback } from "../ui/keel";
+import { flashDownloadRing, isReducedMotion } from "../ui/ui-moments";
 import { trackEvent } from "finkas/core/analytics";
 
 export const cetakStruk = (idTrx: string) => {
@@ -98,7 +100,7 @@ export const cetakLaporanTahunan = () => {
    MONTHLY RECAP FOR WHATSAPP
    ══════════════════════════════════════════════════════════════════ */
 
-export const copyMonthlyRecap = async () => {
+export const copyMonthlyRecap = async (btn?: HTMLElement | null) => {
   const state = getState();
   const now = new Date();
   const bulan = NAMA_BULAN[now.getMonth()];
@@ -139,7 +141,15 @@ export const copyMonthlyRecap = async () => {
   try {
     await navigator.clipboard.writeText(lines.join('\n'));
     trackEvent('copy_wa_rekap', { bulan, tahun });
+    flashCopyFeedback(btn, null, 'Rekap Tersalin (WA)');
     showToast('Rekap bulanan disalin! Tempel di grup WA.', 'success');
+    if (
+      btn &&
+      globalThis.window?.matchMedia?.('(prefers-reduced-motion: no-preference)')?.matches &&
+      typeof globalThis.setTimeout === 'function'
+    ) {
+      await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, 460); });
+    }
     closeModal('modal-export');
   } catch (err) {
     showToast('Gagal menyalin. Izinkan akses clipboard.', 'error');
@@ -150,10 +160,9 @@ export const copyMonthlyRecap = async () => {
     CSV EXPORT
    ══════════════════════════════════════════════════════════════════ */
 
-export const exportToCSV = () => {
+export const exportToCSV = (btn?: HTMLElement | null) => {
   const state = getState();
   if (state.transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
-  closeModal('modal-export');
 
   const q = (s: unknown, isNumeric = false) => {
     let str = String(s ?? '');
@@ -195,8 +204,15 @@ export const exportToCSV = () => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+  flashDownloadRing(btn, 'Terunduh');
   trackEvent('export_csv', { count: state.transaksi.length });
   showToast('File Excel (CSV) diunduh!');
+  if (btn?.closest?.('#modal-export') && !isReducedMotion()) {
+    const t = setTimeout(() => closeModal('modal-export'), 520);
+    (t as unknown as { unref?: () => void })?.unref?.();
+  } else {
+    closeModal('modal-export');
+  }
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -204,17 +220,17 @@ export const exportToCSV = () => {
    ══════════════════════════════════════════════════════════════════ */
 
 let isCreatingReminder = false;
-export const createGroupReminderMessage = async () => {
+export const createGroupReminderMessage = async (btn?: HTMLElement | null) => {
   if (isCreatingReminder) return;
   isCreatingReminder = true;
   try {
-    await doCreateGroupReminderMessage();
+    await doCreateGroupReminderMessage(btn);
   } finally {
     setTimeout(() => { isCreatingReminder = false; }, 800);
   }
 };
 
-const doCreateGroupReminderMessage = async () => {
+const doCreateGroupReminderMessage = async (btn?: HTMLElement | null) => {
   const now = new Date();
   const ledger = createDuesLedger(getState(), { now });
   const results = ledger.members
@@ -249,6 +265,7 @@ const doCreateGroupReminderMessage = async () => {
   try {
     await navigator.clipboard.writeText(parts.join('\n'));
     trackEvent('copy_wa_reminder', { count: results.length });
+    flashCopyFeedback(btn, null, 'Tagihan Tersalin');
     showToast('Pesan pengingat disalin! Siap ditempel ke grup WA.', 'success');
   } catch (err) {
     console.error('copy failed', err);

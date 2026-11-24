@@ -36,7 +36,11 @@
       font-size: 13px;
       color: var(--text-faint);
       flex-shrink: 0;
-      transition: transform var(--t-fast);
+      transition: transform 220ms var(--hybrid-ease-out), color 150ms ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .faq-chevron { transition: none; }
     }
 
     details.faq-item[open] .faq-chevron {
@@ -79,7 +83,7 @@
         margin: -12px auto 6px;
       }
 
-      .hybrid-alert-dialog[open] > .modal-center-dialog {
+      .hybrid-alert-dialog > .modal-center-dialog {
         padding: 6px 20px 0;
         border-radius: 22px 22px 0 0;
       }
@@ -306,7 +310,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-export[open] > .export-sheet {
+      #modal-export > .export-sheet {
         width: 100%; max-width: 100%; max-height: 92dvh; border-radius: 20px 20px 0 0; overflow: hidden;
       }
       #modal-export .hybrid-sheet-handle { flex-shrink: 0; }

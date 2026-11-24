@@ -348,13 +348,32 @@
     }
 
     .dues-seal.is-newly-paid svg {
-      animation: rubber-stamp 460ms var(--hybrid-ease-spring) forwards;
+      animation: rubber-stamp 360ms var(--hybrid-ease-spring) 140ms both;
+    }
+
+    .dues-seal.is-newly-paid .dues-seal-label {
+      animation: stamp-label-in 220ms var(--hybrid-ease-out) 160ms both;
     }
 
     @keyframes rubber-stamp {
-      0% { opacity: 0.4; transform: scale(1.34); }
-      60% { opacity: 1; transform: scale(0.94); }
-      100% { opacity: 1; transform: scale(1); }
+      0% { opacity: 0; transform: scale(1.26) rotate(-6deg); }
+      62% { opacity: 1; transform: scale(0.94) rotate(0deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes stamp-label-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    td.is-newly-paid-cell {
+      animation: cell-settled-wash 900ms var(--hybrid-ease-out) 140ms both;
+    }
+
+    @keyframes cell-settled-wash {
+      0% { background-color: transparent; }
+      22% { background-color: var(--accent-tint); }
+      100% { background-color: transparent; }
     }
 
     .dues-seal .stamp-ring {
@@ -363,7 +382,7 @@
       border-radius: 12px;
       border: 2px solid var(--hybrid-paid);
       pointer-events: none;
-      animation: shockwave-ring 560ms var(--hybrid-ease-out) forwards;
+      animation: shockwave-ring 440ms var(--hybrid-ease-out) 240ms both;
     }
 
     .dues-seal .stamp-ring::after {
@@ -372,12 +391,12 @@
       inset: 2px;
       border-radius: inherit;
       border: 1.5px solid color-mix(in oklab, var(--hybrid-paid) 70%, transparent);
-      animation: shockwave-ring 620ms var(--hybrid-ease-out) 85ms backwards;
+      animation: shockwave-ring 480ms var(--hybrid-ease-out) 300ms both;
     }
 
     @keyframes shockwave-ring {
-      0% { opacity: 0.88; transform: scale(0.52); }
-      100% { opacity: 0; transform: scale(1.58); }
+      0% { opacity: 0.85; transform: scale(0.68); }
+      100% { opacity: 0; transform: scale(1.52); }
     }
 
 
@@ -395,6 +414,12 @@
     @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
       .bento-flow.hybrid-card { transition: transform 180ms var(--hybrid-ease-spring), border-color 180ms ease; }
       .bento-flow.hybrid-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .bento-flow.hybrid-card:active {
+        transform: scale(0.985);
+        transition: transform 110ms ease-out, border-color 150ms ease;
+      }
     }
 
     :root[data-theme-wipe]::view-transition-old(root),
@@ -418,6 +443,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .cascade-enter, .panel-switch-enter, .dues-seal.is-newly-paid svg,
+      .dues-seal.is-newly-paid .dues-seal-label, td.is-newly-paid-cell,
       .aurora-orb, .topo-svg, .topo-wave { animation: none !important; }
       .dues-seal .stamp-ring { display: none; }
       .bg-stage, .bg-layer, .orb-2-ocean, .orb-2-gold { transition: none; }

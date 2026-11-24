@@ -4,7 +4,7 @@
 
 {#if vm.rows.length}
   {#each vm.rows as row, idx (row.id + ':' + idx)}
-    <button type="button" class="ledger-row" data-action="open-receipt" data-id={row.id}>
+    <button type="button" class="ledger-row" class:is-just-updated={vm.updatedId === row.id} data-action="open-receipt" data-id={row.id}>
       <span class="ledger-type-icon {row.flow}" aria-hidden="true"><i class="ph {row.inflow ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
       <span class="ledger-main">
         <span class="ledger-title" title={row.title}>{row.title}</span>
@@ -428,5 +428,37 @@
 
     /* Rows carry no colour tint: the explicit +/− sign and the type badge carry
        the direction. Tinting the whole row would break the single-accent rule. */
+    @media (prefers-reduced-motion: no-preference) {
+      .ledger-row.is-just-updated {
+        animation: ledger-row-updated 820ms var(--hybrid-ease-out) 140ms both;
+      }
+
+      .ledger-row.is-deleting {
+        opacity: 0;
+        translate: -18px 0;
+        scale: 0.985;
+        background: var(--danger-bg);
+        max-height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom-width: 0 !important;
+        overflow: hidden;
+        pointer-events: none;
+        transition:
+          opacity 240ms ease-out,
+          translate 280ms var(--hybrid-ease-out),
+          scale 280ms var(--hybrid-ease-out),
+          background-color 180ms ease,
+          max-height 320ms var(--hybrid-ease-out) 60ms,
+          padding 320ms var(--hybrid-ease-out) 60ms,
+          border-bottom-width 320ms linear 60ms;
+      }
+    }
+
+    @keyframes ledger-row-updated {
+      0% { background-color: transparent; box-shadow: inset 0 0 0 1px transparent; }
+      22% { background-color: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border); }
+      100% { background-color: transparent; box-shadow: inset 0 0 0 1px transparent; }
+    }
   }
 </style>

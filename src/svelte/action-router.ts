@@ -12,6 +12,7 @@ import {
   openModal, closeModal, switchTab, closeHeaderDropdown,
   closeConfirmDialog, executeConfirmAction
 } from "./ui/modal";
+import { flashDownloadRing } from "./ui/ui-moments";
 import { renderChart, bukaProfilAnggota, toggleIuranCard } from "./render/index";
 import {
   setAdminViewModeAction, logoutAdminAction,
@@ -91,7 +92,7 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       case 'rename-group':      renameGroupAction(id); break;
       case 'reset-group-pin':   resetGroupPinAction(id); break;
       case 'manage-group-creds': manageGroupCredsAction(id); break;
-      case 'copy-cred-wa':      copyGroupWhatsAppAction(); break;
+      case 'copy-cred-wa':      copyGroupWhatsAppAction(target); break;
       case 'remove-superadmin-email': removeSuperAdminAction(target.getAttribute('data-email')); break;
       case 'remove-group':      removeGroupAction(id); break;
 
@@ -232,17 +233,17 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       /* ── Member profile ───────────────────────────── */
       case 'open-self-pay': openSelfPay(id, month === null ? undefined : Number(month), Number(target.dataset.year)); break;
       case 'self-pay-preset': selectSelfPayPreset(target.dataset.preset); break;
-      case 'self-pay-copy': copySelfPay(target.dataset.copy); break;
-      case 'passbook-copy': copyPassbook(); break;
+      case 'self-pay-copy': copySelfPay(target.dataset.copy, target); break;
+      case 'passbook-copy': copyPassbook(target); break;
       case 'open-month-receipt': openMonthReceipt(id, Number(month), Number(target.dataset.year)); break;
       case 'open-receipt': openReceipt(id); break;
-      case 'copy-receipt': copyReceipt(); break;
+      case 'copy-receipt': copyReceipt(target); break;
       case 'receipt-attachment': if (target instanceof HTMLButtonElement) downloadReceiptAttachment(target); break;
       case 'profil':            e.stopPropagation(); bukaProfilAnggota(id); break;
 
       /* ── Transaction actions ──────────────────────── */
       case 'cetak':             e.stopPropagation(); cetakStruk(id); break;
-      case 'edit':              e.stopPropagation(); bukaModalEdit(id); break;
+      case 'edit':              e.stopPropagation(); closeModal('modal-struk', true); bukaModalEdit(id); break;
       case 'hapus':             e.stopPropagation(); konfirmasiHapus(id); break;
       case 'cetak-dari-edit': {
         const idTrx = getInput('edit-id')?.value;
@@ -252,7 +253,7 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       case 'hapus-dari-edit': {
         const idTrx = getInput('edit-id')?.value;
         if (idTrx) {
-          closeModal('modal-edit-transaksi');
+          closeModal('modal-edit-transaksi', true);
           konfirmasiHapus(idTrx);
         }
         break;
@@ -281,14 +282,18 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       case 'set-history-filter': setHistoryFilter(target.dataset.filter); break;
 
       /* ── Export / Print ───────────────────────────── */
-      case 'copy-monthly-recap': copyMonthlyRecap(); break;
-      case 'export-csv':        exportToCSV(); break;
-      case 'export-json-backup': exportJSONBackup(); break;
+      case 'copy-monthly-recap': copyMonthlyRecap(target); break;
+      case 'export-csv':        exportToCSV(target); break;
+      case 'export-json-backup': exportJSONBackup(target); break;
       case 'print-annual':      cetakLaporanTahunan(); break;
       case 'print-reminder':
-      case 'action-salin-tagihan-wa': createGroupReminderMessage(); break;
+      case 'action-salin-tagihan-wa': createGroupReminderMessage(target); break;
       case 'print-monthly-report': printMonthlyCashReport(); break;
-      case 'export-monthly-csv': exportMonthlyCashCSV(); break;
+      case 'export-monthly-csv': {
+        const res = exportMonthlyCashCSV();
+        if (res?.exported) flashDownloadRing(target, 'Terunduh');
+        break;
+      }
 
       /* ── Login/Logout ─────────────────────────────── */
       case 'logout':            closeHeaderDropdown(); closeModal('modal-menu'); openModal('modal-logout'); break;

@@ -9,6 +9,8 @@ import { escapeHtml, formatRp, showToast } from 'finkas/core/utils';
 import { isUnsyncedTempId } from 'finkas/core/offline';
 import { downloadAttachmentBlob, triggerBlobDownload } from '../handlers/attachments';
 import { renderPassbookEmblem } from '../ui/dues-status';
+import { flashCopyFeedback } from '../ui/keel';
+import { flashDownloadRing } from '../ui/ui-moments';
 import { openModal, closeModal } from '../ui/modal';
 
 export const getReceiptData = (id?: string): ReceiptData | null => {
@@ -34,7 +36,8 @@ export const getReceiptData = (id?: string): ReceiptData | null => {
       ['Kategori', state.kategori.find((category) => category.ID_Kategori === transaction.ID_Kategori)?.Nama_Kategori || '—'],
       ...(transaction.ID_Anggota && transaction.ID_Anggota !== '-' ? [['Anggota', state.anggota.find((member) => member.ID_Anggota === transaction.ID_Anggota)?.Nama_Anggota || '—'] as [string, string]] : []),
       ...(transaction.Bulan_Iuran && transaction.Bulan_Iuran !== '-' ? [['Periode', `${transaction.Bulan_Iuran} ${transaction.Tahun_Iuran}`] as [string, string]] : []),
-      ['Dicatat Oleh', pending ? 'Antrean perangkat' : 'Pengurus kas']
+      ['Dicatat Oleh', pending ? 'Antrean perangkat' : 'Pengurus kas'],
+      ['No. Referensi', transaction.ID_Transaksi]
     ]
   };
 };
@@ -80,7 +83,7 @@ const fillReceipt = (receipt: ReceiptData) => {
   attachment.hidden = !receipt.transaction.Bukti || receipt.pending;
 };
 
-export const copyReceipt = async () => {
+export const copyReceipt = async (btn?: HTMLElement | null) => {
   const id = document.getElementById('receipt-print')?.dataset?.id;
   if (!id) return;
   const receipt = getReceiptData(id);
@@ -88,6 +91,7 @@ export const copyReceipt = async () => {
   const text = [receipt.group, receipt.transaction.ID_Transaksi, receipt.dateLabel, receipt.transaction.Tipe_Arus, receipt.amount, ...receipt.rows.map(([label, value]) => `${label}: ${value}`), receipt.footer].join('\n');
   try {
     await navigator.clipboard.writeText(text);
+    flashCopyFeedback(btn, document.getElementById('receipt-body'));
     showToast('Struk disalin.');
   } catch {
     const field = (document.getElementById('receipt-copy-text') as HTMLTextAreaElement | null);
@@ -103,6 +107,12 @@ export const openReceipt = (id: string) => {
   const receipt = getReceiptData(id);
   if (!receipt) return;
   fillReceipt(receipt);
+  const bodyEl = document.getElementById('receipt-body');
+  if (bodyEl?.classList) {
+    bodyEl.classList.remove('is-stamping');
+    void bodyEl.offsetWidth;
+    bodyEl.classList.add('is-stamping');
+  }
   openModal('modal-struk');
 };
 
@@ -120,7 +130,10 @@ export const downloadReceiptAttachment = async (button: HTMLButtonElement) => {
   button.disabled = true;
   try {
     const file = await downloadAttachmentBlob({ idTransaksi: receipt.transaction.ID_Transaksi, groupId: receipt.groupId });
-    if (getActiveGroupId() === receipt.groupId) triggerBlobDownload(file.blob, file.name);
+    if (getActiveGroupId() === receipt.groupId) {
+      triggerBlobDownload(file.blob, file.name);
+      flashDownloadRing(button, 'Terunduh');
+    }
   } catch (error) {
     showToast(error.message, 'error');
   } finally {
@@ -131,6 +144,9 @@ export const downloadReceiptAttachment = async (button: HTMLButtonElement) => {
 export const initReceipt = () => {
   const dialog = (document.getElementById('modal-struk') as HTMLDialogElement | null);
   if (!dialog) return;
+  dialog.addEventListener('close', () => {
+    document.getElementById('receipt-body')?.classList?.remove('is-stamping');
+  });
   document.addEventListener('finkas:state-changed', () => {
     if (!dialog.open) return;
     const receipt = getReceiptData(document.getElementById('receipt-print')?.dataset.id);

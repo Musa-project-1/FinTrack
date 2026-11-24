@@ -7,6 +7,7 @@ import { byNewestTimestamp, NAMA_BULAN } from 'finkas/core/config';
 import { currentRekapYear, getIsAdminView, getState } from 'finkas/core/state';
 import { formatRp, calculateMemberContribution, showToast } from 'finkas/core/utils';
 import { animateHybridAmount } from '../ui/hybrid-motion';
+import { flashCopyFeedback } from '../ui/keel';
 import { openModal } from '../ui/modal';
 
 const stampKind = ({
@@ -18,7 +19,7 @@ const setText = (id: string, text: string) => {
   if (element) element.textContent = text;
 };
 
-export const copyPassbook = async () => {
+export const copyPassbook = async (btn?: HTMLElement | null) => {
   const text = ['p-nama-anggota', 'passbook-meta', 'p-total-kontribusi', 'passbook-paid-chip', 'passbook-unpaid-chip']
     .map((id) => document.getElementById(id)).filter(element => element !== null).filter(element => !element.hidden)
     .map((element) => element.id === 'p-total-kontribusi' ? `Total kontribusi: ${element.dataset.fullValue}` : element.textContent)
@@ -26,6 +27,7 @@ export const copyPassbook = async () => {
   const dialog = document.getElementById('modal-profil-anggota');
   try {
     await navigator.clipboard.writeText(text);
+    flashCopyFeedback(btn, dialog?.querySelector<HTMLElement>('.profil-hero') ?? null);
     showToast('Ringkasan Buku Iuran disalin.');
   } catch {
     const existing = dialog?.querySelector<HTMLTextAreaElement>('.passbook-copy-field');

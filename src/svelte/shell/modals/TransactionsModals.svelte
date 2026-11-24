@@ -1,5 +1,5 @@
 <!-- 13. Modal Catat Transaksi Baru (Wizard 3-Langkah: Iuran & Operasional) -->
-  <dialog class="modal-overlay hybrid-dialog" id="modal-transaksi" aria-labelledby="modal-transaksi-title">
+  <dialog class="modal-overlay hybrid-dialog dues-dialog" id="modal-transaksi" aria-labelledby="modal-transaksi-title">
     <div class="modal-content modal-xl modal-data-dialog trx-record-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="hybrid-settings-header trx-sheet-header">
@@ -296,131 +296,278 @@
           </div>
         </form>
       </div>
+      <div class="pay-verified-stage" id="trx-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="trx-verified-title">Mencatat Transaksi…</strong>
+          <span class="pay-verified-amount font-mono tabular-nums" id="trx-verified-amount">Rp 0</span>
+          <span class="pay-verified-sub" id="trx-verified-sub">-</span>
+        </div>
+      </div>
     </div>
   </dialog>
 
-  <!-- 14. Modal Edit Transaksi -->
-  <dialog class="modal-overlay hybrid-dialog" id="modal-edit-transaksi" aria-labelledby="modal-edit-transaksi-title">
-    <div class="modal-content modal-md modal-data-dialog">
+  <!-- 14. Modal Koreksi Transaksi (Wizard 3-Langkah: Alur Bayar / Koreksi Kas) -->
+  <dialog class="modal-overlay hybrid-dialog dues-dialog" id="modal-edit-transaksi" aria-labelledby="modal-edit-transaksi-title">
+    <div class="modal-content modal-xl modal-data-dialog trx-record-sheet edit-record-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
-      <div class="modal-header-standard">
-        <div class="modal-header-left">
-          <div class="modal-badge-icon warning">
-            <i class="ph-fill ph-pencil-simple"></i>
+      <div class="hybrid-settings-header trx-sheet-header">
+        <div class="trx-header-main">
+          <div class="trx-header-emblem" aria-hidden="true">
+            <i class="ph-fill ph-pencil-simple-line"></i>
           </div>
-          <div class="modal-title-wrap">
+          <div class="trx-header-copy">
             <h2 id="modal-edit-transaksi-title">Koreksi Transaksi</h2>
-            <p>Koreksi nominal, kategori, atau catatan pembukuan</p>
+            <p>Sesuaikan arus kas, nominal, atau catatan dengan tinjauan dampak saldo</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
-      <form id="form-edit-transaksi">
+      <nav class="trx-stepper" id="edit-stepper" aria-label="Langkah koreksi">
+        <ol class="trx-stepper-list">
+          <li class="trx-step-item is-active" data-edit-step-item="1">
+            <button type="button" class="trx-step-btn" data-edit-step="1" aria-current="step">
+              <span class="trx-step-badge" aria-hidden="true">
+                <span class="trx-step-num">1</span>
+                <i class="ph-bold ph-check trx-step-check"></i>
+              </span>
+              <span class="trx-step-label" id="edit-step-label-1">Nominal</span>
+            </button>
+          </li>
+          <li class="trx-step-sep" data-edit-step-sep="1" aria-hidden="true"></li>
+          <li class="trx-step-item is-upcoming" data-edit-step-item="2">
+            <button type="button" class="trx-step-btn" data-edit-step="2">
+              <span class="trx-step-badge" aria-hidden="true">
+                <span class="trx-step-num">2</span>
+                <i class="ph-bold ph-check trx-step-check"></i>
+              </span>
+              <span class="trx-step-label" id="edit-step-label-2">Rincian</span>
+            </button>
+          </li>
+          <li class="trx-step-sep" data-edit-step-sep="2" aria-hidden="true"></li>
+          <li class="trx-step-item is-upcoming" data-edit-step-item="3">
+            <button type="button" class="trx-step-btn" data-edit-step="3">
+              <span class="trx-step-badge" aria-hidden="true">
+                <span class="trx-step-num">3</span>
+                <i class="ph-bold ph-check trx-step-check"></i>
+              </span>
+              <span class="trx-step-label" id="edit-step-label-3">Tinjau</span>
+            </button>
+          </li>
+        </ol>
+      </nav>
+
+      <form id="form-edit-transaksi" class="trx-form" novalidate>
         <input type="hidden" id="edit-id">
-        <div class="split-body split-edit-body">
-          <div class="edit-form-fields">
-          <div class="form-row">
-          <div class="form-group">
-            <label for="edit-tipe">Tipe Transaksi</label>
-            <select id="edit-tipe" name="edit-tipe" class="form-control cdrop" required aria-label="Tipe Transaksi">
-              <option value="Masuk">Pemasukan (+)</option>
-              <option value="Keluar">Pengeluaran (-)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="edit-kategori">Kategori</label>
-            <select id="edit-kategori" name="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="edit-nominal">Nominal (Rp)</label>
-          <input type="number" id="edit-nominal" name="edit-nominal" class="form-control" required min="1">
-        </div>
-        <div class="form-group">
-          <label for="edit-anggota">Terkait Anggota</label>
-          <select id="edit-anggota" name="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
-        </div>
-        <div class="form-row">
-           <div class="form-group">
-            <label for="edit-bulan">Bulan</label>
-            <select id="edit-bulan" name="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
-              <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
-              <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
-              <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
-              <option value="September">September</option> <option value="Oktober">Oktober</option> <option value="November">November</option> <option value="Desember">Desember</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="edit-tahun">Tahun</label>
-            <input type="number" id="edit-tahun" name="edit-tahun" class="form-control">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="edit-tanggal">Tanggal Transaksi</label>
-          <input type="date" id="edit-tanggal" name="edit-tanggal" class="form-control dpick" data-placeholder="Pilih tanggal..." aria-label="Tanggal Transaksi">
-          <small class="form-hint">Tanggal pembayaran sebenarnya (tampil di riwayat).</small>
-        </div>
-        <div class="form-group">
-          <label for="edit-keterangan">Keterangan</label>
-          <input type="text" id="edit-keterangan" name="edit-keterangan" class="form-control">
-        </div>
-        <div class="form-group attachment-control-group" id="transaction-attachment-container">
-          <label for="trx-attachment-file">Bukti Transaksi (maks 512 KiB)</label>
-          <div class="attachment-input-row">
-            <input type="file" id="trx-attachment-file" class="form-control" accept="image/jpeg,image/png,image/webp,application/pdf" aria-label="Pilih berkas bukti transaksi">
-            <div class="attachment-btn-group">
-              <button type="button" class="btn btn-secondary btn-sm" id="btn-upload-attachment" data-action="upload-attachment" title="Unggah bukti">
-                <i class="ph ph-upload-simple"></i> Unggah
-              </button>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-download-attachment" data-action="download-attachment" title="Unduh bukti" style="display:none;">
-                <i class="ph ph-download-simple"></i> Unduh
-              </button>
-              <button type="button" class="btn btn-danger-outline btn-sm" id="btn-delete-attachment" data-action="delete-attachment" title="Hapus bukti" style="display:none;">
-                <i class="ph ph-trash"></i> Hapus
-              </button>
+        <div class="trx-sheet-body">
+          <section class="trx-step-panel" id="edit-step-1" data-step="1">
+            <div class="edit-origin-banner">
+              <div class="edit-origin-meta">
+                <div class="edit-origin-top">
+                  <span class="edit-origin-eyebrow">Data Asal</span>
+                  <span class="edit-origin-pill mono" id="edit-origin-id">-</span>
+                </div>
+                <span class="edit-origin-summary" id="edit-origin-summary">-</span>
+              </div>
+              <div class="edit-origin-actions">
+                <button type="button" class="btn btn-outline btn-secondary edit-quick-btn" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi">
+                  <i class="ph-bold ph-printer" aria-hidden="true"></i> <span>Struk</span>
+                </button>
+                <button type="button" class="btn btn-danger-outline edit-quick-btn" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi">
+                  <i class="ph-bold ph-trash" aria-hidden="true"></i> <span>Hapus</span>
+                </button>
+              </div>
             </div>
+
+            <div class="form-group">
+              <label for="edit-tipe">Arus Transaksi</label>
+              <select id="edit-tipe" name="edit-tipe" class="visually-hidden" required tabindex="-1" aria-hidden="true" aria-label="Tipe Transaksi">
+                <option value="Masuk">Pemasukan (+)</option>
+                <option value="Keluar">Pengeluaran (-)</option>
+              </select>
+              <fieldset class="ops-flow-cards">
+                <legend class="sr-only">Arus Transaksi</legend>
+                <label class="ops-flow-card is-keluar">
+                  <input type="radio" class="visually-hidden" name="edit-tipe-radio" value="Keluar">
+                  <span class="ops-flow-icon" aria-hidden="true"><i class="ph-bold ph-arrow-up-right"></i></span>
+                  <span class="ops-flow-copy">
+                    <strong>Pengeluaran (−)</strong>
+                    <small>Uang keluar dari kas</small>
+                  </span>
+                  <span class="ops-flow-radio" aria-hidden="true"></span>
+                </label>
+                <label class="ops-flow-card is-masuk">
+                  <input type="radio" class="visually-hidden" name="edit-tipe-radio" value="Masuk">
+                  <span class="ops-flow-icon" aria-hidden="true"><i class="ph-bold ph-arrow-down-left"></i></span>
+                  <span class="ops-flow-copy">
+                    <strong>Pemasukan (+)</strong>
+                    <small>Uang masuk ke kas</small>
+                  </span>
+                  <span class="ops-flow-radio" aria-hidden="true"></span>
+                </label>
+              </fieldset>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-kategori">Kategori</label>
+              <select id="edit-kategori" name="edit-kategori" class="form-control cdrop" required aria-label="Kategori Transaksi"></select>
+            </div>
+            <div class="form-group">
+              <div class="trx-label-row">
+                <label for="edit-nominal">Nominal (Rp)</label>
+                <div class="ops-preset-chips" role="group" aria-label="Nominal cepat">
+                  <button type="button" class="ops-preset-chip" data-edit-preset="10000">10rb</button>
+                  <button type="button" class="ops-preset-chip" data-edit-preset="25000">25rb</button>
+                  <button type="button" class="ops-preset-chip" data-edit-preset="50000">50rb</button>
+                  <button type="button" class="ops-preset-chip" data-edit-preset="100000">100rb</button>
+                </div>
+              </div>
+              <div class="input-with-prefix">
+                <span>Rp</span>
+                <input type="text" id="edit-nominal" name="edit-nominal" class="form-control" required inputmode="numeric" enterkeyhint="next" placeholder="0">
+              </div>
+            </div>
+          </section>
+
+          <section class="trx-step-panel" id="edit-step-2" data-step="2" hidden>
+            <div class="trx-step-head">
+              <div class="trx-step-head-copy">
+                <h3 class="trx-step-title" tabindex="-1">Perbarui detail &amp; lampiran</h3>
+                <p class="trx-step-sub" id="edit-step2-sub">-</p>
+              </div>
+            </div>
+
+            <div class="form-row trx-row-ops-mid">
+              <div class="form-group">
+                <label for="edit-anggota">Terkait Anggota</label>
+                <select id="edit-anggota" name="edit-anggota" class="form-control cdrop" data-search="true" aria-label="Terkait Anggota"></select>
+              </div>
+              <div class="form-group">
+                <label for="edit-tanggal">Tanggal Transaksi</label>
+                <input type="date" id="edit-tanggal" name="edit-tanggal" class="form-control dpick" data-placeholder="dd/mm/yyyy" aria-label="Tanggal Transaksi">
+              </div>
+            </div>
+
+            <div class="form-row edit-row-period">
+              <div class="form-group">
+                <label for="edit-bulan">Bulan</label>
+                <select id="edit-bulan" name="edit-bulan" class="form-control cdrop" aria-label="Bulan Iuran">
+                  <option value="-">-</option> <option value="Januari">Januari</option> <option value="Februari">Februari</option>
+                  <option value="Maret">Maret</option> <option value="April">April</option> <option value="Mei">Mei</option>
+                  <option value="Juni">Juni</option> <option value="Juli">Juli</option> <option value="Agustus">Agustus</option>
+                  <option value="September">September</option> <option value="Oktober">Oktober</option> <option value="November">November</option> <option value="Desember">Desember</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="edit-tahun">Tahun</label>
+                <input type="number" id="edit-tahun" name="edit-tahun" class="form-control" inputmode="numeric" enterkeyhint="next">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-keterangan">Keterangan</label>
+              <input type="text" id="edit-keterangan" name="edit-keterangan" class="form-control" placeholder="Catatan pembukuan..." enterkeyhint="next">
+            </div>
+
+            <div class="edit-proof-card attachment-control-group" id="transaction-attachment-container">
+              <div class="edit-proof-head">
+                <label for="trx-attachment-file">Bukti Transaksi (maks 512 KiB)</label>
+                <div class="attachment-status-text" id="trx-attachment-status" data-attachment-status>Belum ada bukti terlampir.</div>
+              </div>
+              <div class="attachment-input-row">
+                <input type="file" id="trx-attachment-file" class="form-control" accept="image/jpeg,image/png,image/webp,application/pdf" aria-label="Pilih berkas bukti transaksi">
+                <div class="attachment-btn-group">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-upload-attachment" data-action="upload-attachment" title="Unggah bukti">
+                    <i class="ph ph-upload-simple"></i> Unggah
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-download-attachment" data-action="download-attachment" title="Unduh bukti" style="display:none;">
+                    <i class="ph ph-download-simple"></i> Unduh
+                  </button>
+                  <button type="button" class="btn btn-danger-outline btn-sm" id="btn-delete-attachment" data-action="delete-attachment" title="Hapus bukti" style="display:none;">
+                    <i class="ph ph-trash"></i> Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="trx-step-panel" id="edit-step-3" data-step="3" hidden>
+            <h3 class="sr-only" tabindex="-1">Tinjau Koreksi Transaksi</h3>
+            <div class="edit-rev-card">
+              <div class="trx-rev-list">
+                <div class="trx-rev-row"><span>ID Referensi</span><strong class="mono" id="rev-edit-id">-</strong></div>
+                <div class="trx-rev-row"><span>Kategori</span><strong id="rev-edit-kategori">-</strong></div>
+                <div class="trx-rev-row"><span>Terkait anggota</span><strong id="rev-edit-anggota">-</strong></div>
+                <div class="trx-rev-row"><span>Periode &amp; tanggal</span><strong id="rev-edit-periode">-</strong></div>
+                <div class="trx-rev-row"><span>Keterangan</span><strong id="rev-edit-keterangan">-</strong></div>
+              </div>
+            </div>
+
+            <div class="trx-rev-callout edit-summary-card" id="edit-rev-callout" aria-live="polite" aria-atomic="true">
+              <div class="edit-impact-panel" aria-label="Dampak koreksi transaksi">
+                <div class="edit-delta-rows">
+                  <div class="edit-delta-row"><span class="edit-delta-label">Arus Kas</span><span class="edit-delta-val" id="edit-delta-tipe">-</span></div>
+                  <div class="edit-delta-row"><span class="edit-delta-label">Nominal Lama</span><span class="edit-delta-val" id="edit-delta-before">-</span></div>
+                  <div class="edit-delta-row"><span class="edit-delta-label">Nominal Baru</span><span class="edit-delta-val" id="edit-delta-after">-</span></div>
+                  <div class="edit-delta-row is-total visually-hidden"><span class="edit-delta-label">Selisih Saldo</span><span class="edit-delta-val" id="edit-delta-diff">-</span></div>
+                </div>
+              </div>
+              <div class="edit-verdict-row">
+                <div class="trx-rev-callout-meta">
+                  <strong id="edit-callout-title">Nominal tetap · Tidak mengubah saldo</strong>
+                  <span id="edit-callout-sub">Tercatat di log audit</span>
+                </div>
+                <div class="trx-rev-callout-val">
+                  <span>Selisih saldo</span>
+                  <strong id="edit-callout-diff">Rp 0</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="hybrid-settings-footer trx-sheet-footer">
+          <div class="trx-footer-left">
+            <button type="button" class="btn btn-secondary" data-action="close-modal" data-edit-show-steps="1">Batal</button>
+            <button type="button" class="btn btn-secondary" data-edit-prev hidden data-edit-show-steps="2 3">Kembali</button>
+            <span class="trx-footer-meta edit-footer-pill" id="edit-footer-pill" data-edit-show-steps="1 2">
+              <span>Selisih:</span><strong id="edit-footer-delta">Rp 0 (Tetap)</strong>
+            </span>
           </div>
-          <div class="attachment-status-text" id="trx-attachment-status" data-attachment-status>Belum ada bukti terlampir.</div>
-        </div>
-        </div>
-        <aside class="edit-impact-panel" aria-label="Dampak koreksi transaksi" aria-live="polite" aria-atomic="true">
-          <div class="edit-impact-icon"><i class="ph ph-arrows-left-right"></i></div>
-          <h3>Dampak Koreksi</h3>
-          <div class="edit-delta-rows">
-            <div class="edit-delta-row">
-              <span class="edit-delta-label">Tipe</span>
-              <span class="edit-delta-val" id="edit-delta-tipe">-</span>
-            </div>
-            <div class="edit-delta-row">
-              <span class="edit-delta-label">Nominal Lama</span>
-              <span class="edit-delta-val" id="edit-delta-before">-</span>
-            </div>
-            <div class="edit-delta-row">
-              <span class="edit-delta-label">Nominal Baru</span>
-              <span class="edit-delta-val" id="edit-delta-after">-</span>
-            </div>
-            <hr class="edit-delta-divider">
-            <div class="edit-delta-row is-total">
-              <span class="edit-delta-label">Selisih Saldo</span>
-              <span class="edit-delta-val" id="edit-delta-diff">-</span>
-            </div>
-          </div>
-          <div class="edit-impact-note"><i class="ph ph-shield-check"></i><span>Perubahan tersimpan dengan jejak audit.</span></div>
-        </aside>
-        </div>
-        <div class="modal-footer-actions edit-footer-actions">
-          <div class="edit-footer-secondary">
-            <button type="button" class="btn btn-outline btn-secondary" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi">
-              <i class="ph-bold ph-printer"></i> <span>Cetak Struk</span>
+          <div class="trx-footer-actions">
+            <button type="button" class="btn btn-primary trx-btn-next" data-edit-next data-edit-show-steps="1 2">
+              <span>Lanjut</span>
+              <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
             </button>
-            <button type="button" class="btn btn-danger-outline" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi">
-              <i class="ph-bold ph-trash"></i> <span>Hapus</span>
+            <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-edit" hidden data-edit-show-steps="3">
+              <span class="keel-fill" aria-hidden="true"></span>
+              <span class="keel-label">Simpan Perubahan</span>
+              <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span>
             </button>
           </div>
-          <button type="submit" class="btn btn-primary" id="btn-submit-edit">Simpan Perubahan</button>
         </div>
       </form>
+      <div class="pay-verified-stage" id="edit-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="edit-verified-title">Menyimpan Koreksi…</strong>
+          <span class="pay-verified-amount font-mono tabular-nums" id="edit-verified-amount">Rp 0</span>
+          <span class="pay-verified-sub" id="edit-verified-sub">-</span>
+        </div>
+      </div>
     </div>
   </dialog>
 
@@ -436,13 +583,27 @@
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
         <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-delete">Batal</button>
-        <button type="button" class="btn btn-primary btn-danger-solid" data-action="confirm-delete" id="btn-hapus">Ya, Hapus</button>
+        <button type="button" class="btn btn-primary btn-danger-solid btn-liquid" data-action="confirm-delete" id="btn-hapus"><span class="keel-label">Ya, Hapus</span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
+      </div>
+      <div class="pay-verified-stage" id="hapus-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="hapus-verified-title">Menghapus Transaksi…</strong>
+          <span class="pay-verified-amount font-mono tabular-nums" id="hapus-verified-amount">Rp 0</span>
+          <span class="pay-verified-sub" id="hapus-verified-sub">-</span>
+        </div>
       </div>
     </div>
   </dialog>
 
   <!-- 15b. Modal Konfirmasi Mutasi Database -->
-  <dialog class="modal-overlay hybrid-dialog hybrid-alert-dialog" id="modal-confirm-action" aria-labelledby="confirm-title">
+  <dialog class="modal-overlay hybrid-dialog dues-dialog hybrid-alert-dialog" id="modal-confirm-action" aria-labelledby="confirm-title">
     <div class="modal-content modal-center-dialog">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="modal-badge-icon" id="confirm-badge-icon">

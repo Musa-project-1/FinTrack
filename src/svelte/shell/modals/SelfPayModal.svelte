@@ -59,7 +59,7 @@
 
     <div class="self-pay-actions">
       <button type="button" class="btn btn-secondary" data-action="close-modal">Tutup</button>
-      <a class="btn btn-primary" id="self-pay-whatsapp" target="_blank" rel="noopener noreferrer"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> Buka WhatsApp untuk Konfirmasi</a>
+      <a class="btn btn-primary" id="self-pay-whatsapp" target="_blank" rel="noopener noreferrer"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i> <span class="wa-plane-label">Buka WhatsApp untuk Konfirmasi</span></a>
     </div>
   </div>
 </dialog>

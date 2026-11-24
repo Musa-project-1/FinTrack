@@ -410,7 +410,7 @@
 
     /* === MOBILE SHEET ADAPTATION (<= 768px) === */
     @media (max-width: 768px) {
-      #modal-group-admin.hybrid-dialog[open] .group-admin-sheet {
+      #modal-group-admin.hybrid-dialog .group-admin-sheet {
         width: 100%; max-width: 100%; max-height: 90dvh; border-radius: 20px 20px 0 0;
       }
       #modal-group-admin .group-admin-sheet-header { padding: 4px 16px 12px; border-radius: 0; }

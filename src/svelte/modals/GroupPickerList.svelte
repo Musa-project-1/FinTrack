@@ -463,7 +463,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-groups.hybrid-dialog[open] .groups-picker-sheet {
+      #modal-groups.hybrid-dialog .groups-picker-sheet {
         width: 100%;
         max-width: 100%;
         max-height: 90dvh;

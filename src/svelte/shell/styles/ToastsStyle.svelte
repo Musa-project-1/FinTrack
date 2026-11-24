@@ -48,9 +48,12 @@
       transform: translateY(14px) scale(0.96);
       opacity: 0;
       transition:
-        transform 0.3s var(--hybrid-ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1)),
-        opacity 0.2s ease,
-        border-color 0.18s ease;
+        transform 260ms var(--hybrid-ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+        opacity 180ms ease-out,
+        border-color 180ms ease,
+        max-height 220ms var(--hybrid-ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+        margin 220ms var(--hybrid-ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+        padding 220ms var(--hybrid-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
       font-size: 13px;
       pointer-events: auto;
       user-select: none;
@@ -64,8 +67,26 @@
       opacity: 1;
     }
 
-    .toast:hover {
-      border-color: var(--toast-tint-border);
+    .toast.is-leaving {
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+      max-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: -10px !important;
+      border-width: 0 !important;
+      pointer-events: none;
+    }
+
+    .toast:first-child.is-leaving {
+      margin-top: 0 !important;
+      margin-bottom: -10px !important;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .toast:hover {
+        border-color: var(--toast-tint-border);
+      }
     }
 
     .toast.error {
@@ -190,10 +211,12 @@
       transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast);
     }
 
-    .toast-close-btn:hover {
-      background: var(--surface-2);
-      border-color: var(--border);
-      color: var(--text-main);
+    @media (hover: hover) and (pointer: fine) {
+      .toast-close-btn:hover {
+        background: var(--surface-2);
+        border-color: var(--border);
+        color: var(--text-main);
+      }
     }
 
     .toast-progress {
@@ -234,6 +257,24 @@
         padding: 12px 12px 14px;
         transform: translateY(-14px) scale(0.97);
       }
+
+      .toast.is-leaving {
+        transform: translateY(-8px) scale(0.97);
+        margin-top: -8px !important;
+      }
+
+      .toast:first-child.is-leaving {
+        margin-bottom: -8px !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast,
+      .toast.is-leaving {
+        transform: none !important;
+        transition: opacity 120ms ease, max-height 140ms ease, margin 140ms ease, padding 140ms ease;
+      }
+      .toast-close-btn { transition: none; }
     }
   }
 </style>

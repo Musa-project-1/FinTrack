@@ -4,8 +4,8 @@
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="modal-header-standard">
         <div class="modal-header-left">
-          <div class="modal-badge-icon">
-            <i class="ph-fill ph-lock-key"></i>
+          <div class="modal-badge-icon" id="group-pin-badge">
+            <i class="ph-fill ph-lock-key" id="group-pin-lock-icon"></i>
           </div>
           <div class="modal-title-wrap">
             <h2 id="group-pin-name">Grup</h2>

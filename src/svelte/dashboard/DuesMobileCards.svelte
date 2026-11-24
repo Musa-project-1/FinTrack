@@ -21,7 +21,7 @@
 {/snippet}
 
 {#each rekapStore.mobileRows as row (row.id)}
-  <article class="iuran-member-card" class:is-pinned={row.isPinned} class:expanded={row.expanded}>
+  <article class="iuran-member-card" class:is-pinned={row.isPinned} class:expanded={row.expanded} class:is-settled={row.settledAny}>
     <div class="iuran-card-header">
       <div class="iuran-card-main-info">
         <button type="button" class="iuran-card-name" data-action="profil" data-id={row.id} title={row.name}>{row.name}{#if row.isPinned}<span class="self-pin-badge">Saya</span>{/if}</button>
@@ -39,17 +39,17 @@
         <i class="ph-bold ph-caret-down" aria-hidden="true"></i>
       </button>
     </div>
-    <div class="dues-mini-strip" aria-hidden="true">{#each row.stripStatuses as status}<span data-status={status}></span>{/each}</div>
+    <div class="dues-mini-strip" aria-hidden="true">{#each row.cells as cell (cell.idx)}<span data-status={cell.status} class:is-newly-paid={cell.isNewlyPaid}></span>{/each}</div>
     <div class="iuran-card-details" id={row.detailsId} inert={!row.expanded}>
       <div class="iuran-month-grid">
         {#each row.cells as cell (cell.idx)}
           {#if cell.isPaid || cell.payable}
             {#key cell.isPaid ? 'receipt' : vm.isAdmin ? 'quickpay' : 'self-pay'}
-              <button type="button" class="iuran-month-item" data-status={cell.status}
+              <button type="button" class="iuran-month-item" class:is-newly-paid={cell.isNewlyPaid} data-status={cell.status}
                 {...monthAction(cell, row.id, vm.year, vm.isAdmin, true)} aria-label={cell.title}>{@render content(cell)}</button>
             {/key}
           {:else}
-            <div class="iuran-month-item" data-status={cell.status}>{@render content(cell)}</div>
+            <div class="iuran-month-item" class:is-newly-paid={cell.isNewlyPaid} data-status={cell.status}>{@render content(cell)}</div>
           {/if}
         {/each}
       </div>
@@ -263,6 +263,36 @@
     }
 
     .dues-mini-strip [data-status="Nanti"] { border: 1px dashed var(--border-strong); }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .iuran-member-card.is-settled {
+        animation: mobile-card-settled 720ms cubic-bezier(0.23, 1, 0.32, 1) 140ms both;
+      }
+      .iuran-member-card.is-settled .matrix-mobile-chip {
+        animation: mobile-chip-settled 260ms cubic-bezier(0.23, 1, 0.32, 1) 170ms both;
+      }
+      .dues-mini-strip span.is-newly-paid {
+        transform-origin: center;
+        animation: mini-strip-settled 320ms cubic-bezier(0.23, 1, 0.32, 1) 180ms both;
+      }
+      .iuran-month-item.is-newly-paid .mini-stamp-ico {
+        animation: rubber-stamp 360ms var(--hybrid-ease-spring) 150ms both;
+      }
+    }
+    @keyframes mobile-card-settled {
+      0% { border-color: var(--border); background-color: var(--surface); }
+      28% { border-color: var(--accent); background-color: color-mix(in oklab, var(--income-bg) 52%, var(--surface)); }
+      100% { border-color: var(--border); background-color: var(--surface); }
+    }
+    @keyframes mobile-chip-settled {
+      0% { transform: scale(0.94); }
+      60% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    @keyframes mini-strip-settled {
+      0% { opacity: 0.35; transform: scaleY(1.8); }
+      100% { opacity: 1; transform: scaleY(1); }
+    }
 
     .iuran-member-card.is-pinned,
     .table-matriks td.dues-name.is-pinned {

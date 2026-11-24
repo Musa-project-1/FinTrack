@@ -33,6 +33,7 @@ import { apiPost } from "finkas/core/api-client";
 import { syncGroupAdminList, syncSuperAdminList } from "../mount";
 import { getInput, showToast } from "finkas/core/utils";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion";
+import { flashCopyFeedback } from "../ui/keel";
 import { openModal, closeModal, switchTab } from "../ui/modal";
 import { handleUI, renderAdminUI } from "./auth";
 
@@ -97,6 +98,13 @@ export const verifyGroupPin = async (id: string, pin: string) => {
   return res;
 };
 
+const resetGroupPinCelebration = () => {
+  getInput("group-pin")?.closest?.<HTMLElement>(".pin-row")?.classList?.remove("is-unlocked", "is-error");
+  document.getElementById("group-pin-badge")?.classList?.remove("is-unlocked");
+  const lockIcon = document.getElementById("group-pin-lock-icon");
+  if (lockIcon) lockIcon.className = "ph-fill ph-lock-key";
+};
+
 /** Buka layar PIN untuk grup yang dipilih. Super Admin bypasses PIN. */
 export const requestGroupPin = (id: string) => {
   const found = getGroups().find((g) => g.id === id);
@@ -121,9 +129,10 @@ export const requestGroupPin = (id: string) => {
   const nameEl = document.getElementById("group-pin-name");
   if (nameEl) nameEl.replaceChildren(document.createTextNode(found.nama));
   resetPinInput(getInput("group-pin"));
+  resetGroupPinCelebration();
   const msg = document.getElementById("group-pin-msg");
   if (msg) msg.replaceChildren();
-  closeModal("modal-groups");
+  closeModal("modal-groups", true);
   openModal("modal-group-pin");
   setTimeout(() => { getInput("group-pin")?.focus(); }, 120);
 };
@@ -153,7 +162,18 @@ export const submitGroupPin = async () => {
     firstPin?.focus();
     return;
   }
-  enterGroup(pendingGroupId);
+  const unlockedGroupId = pendingGroupId;
+  const pinRow = getInput("group-pin")?.closest<HTMLElement>(".pin-row");
+  pinRow?.classList?.remove("is-error");
+  pinRow?.classList?.add("is-unlocked");
+  document.getElementById("group-pin-badge")?.classList?.add("is-unlocked");
+  const lockIcon = document.getElementById("group-pin-lock-icon");
+  if (lockIcon) lockIcon.className = "ph-fill ph-lock-key-open";
+  if (globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches && typeof globalThis.setTimeout === "function") {
+    await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, 420); });
+  }
+  enterGroup(unlockedGroupId);
+  resetGroupPinCelebration();
 };
 
 /* ── Enter / exit ────────────────────────────────────────────────── */
@@ -253,7 +273,7 @@ export const showCredentialsModal = (info: typeof latestCreds) => {
 };
 
 /** Salin format WhatsApp. */
-export const copyGroupWhatsAppAction = async () => {
+export const copyGroupWhatsAppAction = async (btn?: HTMLElement | null) => {
   const { nama, pin, email, pwd } = latestCreds;
   const origin = window.location.origin;
 
@@ -280,6 +300,7 @@ export const copyGroupWhatsAppAction = async () => {
 
   try {
     await navigator.clipboard.writeText(text);
+    flashCopyFeedback(btn, document.querySelector<HTMLElement>("#modal-group-credentials .cred-card-box"));
     showToast("Format WhatsApp berhasil disalin ke clipboard!", "success");
   } catch (err) {
     showToast("Gagal menyalin, silakan salin teks secara manual.", "warning");

@@ -21,11 +21,12 @@ import { showToast, isOnline } from 'finkas/core/utils';
 import { getOfflineItems } from 'finkas/core/offline-store';
 import { renderAll } from '../render/index';
 import { closeModal } from '../ui/modal';
+import { flashDownloadRing, isReducedMotion } from '../ui/ui-moments';
 
 /**
  * Export full JSON snapshot of Finkas database for disaster recovery directly from server.
  */
-export const exportJSONBackup = async () => {
+export const exportJSONBackup = async (btn?: HTMLElement | null) => {
   if (!getIsAdminSession()) {
     return showToast('Hanya admin yang dapat mengunduh backup.', 'error');
   }
@@ -74,11 +75,17 @@ export const exportJSONBackup = async () => {
     URL.revokeObjectURL(link.href);
   }
 
+  flashDownloadRing(btn, 'Backup Siap');
   const trxCount = backupData.stats?.totalTransaksi ?? backupData.data?.transaksi?.length ?? 0;
   const attCount = backupData.stats?.totalAttachments ?? backupData.data?.attachments?.length ?? 0;
   logAuditEvent('BACKUP_DATABASE', `Backup snapshot diunduh (${trxCount} transaksi, ${attCount} bukti)`);
   showToast('File backup JSON berhasil diunduh dari server!', 'success');
-  closeModal('modal-export');
+  if (btn?.closest?.('#modal-export') && !isReducedMotion()) {
+    const t = setTimeout(() => closeModal('modal-export'), 520);
+    (t as unknown as { unref?: () => void })?.unref?.();
+  } else {
+    closeModal('modal-export');
+  }
   return backupData;
 };
 

@@ -358,19 +358,11 @@
     }
 
     .hybrid-sheet-handle { display: none; }
-    .hybrid-dialog[open] > .modal-content { max-height: min(88dvh, 760px); border-radius: 20px; }
-    @media (prefers-reduced-motion: no-preference) {
-      .hybrid-dialog:not(.dues-dialog)[open] > .modal-content { animation: hybrid-dialog-in 280ms var(--hybrid-ease-spring); }
-    }
-    @keyframes hybrid-dialog-in {
-      from { opacity: 0; translate: 0 14px; scale: .95; }
-      to { opacity: 1; translate: 0 0; scale: 1; }
-    }
-    @keyframes hybrid-sheet-in { from { translate: 0 36px; } to { translate: 0 0; } }
+    .hybrid-dialog > .modal-content { max-height: min(88dvh, 760px); border-radius: 20px; }
 
     @media (max-width: 768px) {
-      .hybrid-dialog[open] { align-items: flex-end; padding: 0; }
-      .hybrid-dialog[open] > .modal-content,
+      .hybrid-dialog { align-items: flex-end; padding: 0; }
+      .hybrid-dialog > .modal-content,
       #modal-tampilan.hybrid-dialog .hybrid-settings,
       #modal-bayar-anggota.hybrid-dialog .self-pay-sheet,
       #modal-profil-anggota.hybrid-dialog .hybrid-passbook {
@@ -379,14 +371,11 @@
       .hybrid-sheet-handle { display: grid; place-items: center; height: 28px; touch-action: pan-y; cursor: grab; }
       .hybrid-sheet-handle span { width: 38px; height: 4px; background: var(--border-strong); border-radius: var(--r-pill); }
     }
-    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
-      .hybrid-dialog:not(.dues-dialog)[open] > .modal-content { animation: hybrid-sheet-in 280ms var(--hybrid-ease-spring); }
-    }
 
-    /* The prototype's panel and backdrop move independently of native dialog state. */
-    dialog.dues-dialog.modal-overlay {
-      --dues-dialog-duration: 280ms;
-      --dues-backdrop-duration: 240ms;
+    /* Unified top-layer dialog entry & exit transitions for all Hybrid & Dues modals. */
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay {
+      --dues-dialog-duration: 260ms;
+      --dues-backdrop-duration: 220ms;
       --dues-panel-enter-y: 14px;
       --dues-panel-exit-y: 10px;
       --dues-panel-closed-scale: .95;
@@ -394,30 +383,30 @@
       opacity: 0;
       transition: opacity 200ms var(--hybrid-ease-out);
     }
-    dialog.dues-dialog.modal-overlay[open] { opacity: 1; }
-    dialog.dues-dialog.modal-overlay[data-dues-closing] { opacity: 0 !important; pointer-events: none; }
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay[open] { opacity: 1; }
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay[data-dues-closing] { opacity: 0 !important; pointer-events: none; }
 
-    dialog.dues-dialog.modal-overlay::backdrop {
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay::backdrop {
       opacity: 0;
       transition: opacity var(--dues-backdrop-duration) ease-out;
     }
-    dialog.dues-dialog.modal-overlay[open]:not([data-dues-closing])::backdrop { opacity: var(--dues-drag-opacity, 1); }
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay[open]:not([data-dues-closing])::backdrop { opacity: var(--dues-drag-opacity, 1); }
 
-    dialog.dues-dialog.modal-overlay > .modal-content {
+    dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay > .modal-content {
       max-height: min(88dvh, 760px);
       opacity: 1;
       transform: none !important;
     }
     @media (prefers-reduced-motion: no-preference) {
-      dialog.dues-dialog > .modal-content {
+      dialog:is(.hybrid-dialog, .dues-dialog) > .modal-content {
         translate: 0 var(--dues-panel-exit-y);
         scale: var(--dues-panel-closed-scale);
         transition: translate var(--dues-dialog-duration) var(--hybrid-ease-spring),
                     scale var(--dues-dialog-duration) var(--hybrid-ease-spring);
       }
-      dialog.dues-dialog[open]:not([data-dues-closing]) > .modal-content { translate: 0 0; scale: 1; }
+      dialog:is(.hybrid-dialog, .dues-dialog)[open]:not([data-dues-closing]) > .modal-content { translate: 0 0; scale: 1; }
       @starting-style {
-        dialog.dues-dialog[open]:not([data-dues-closing]) > .modal-content {
+        dialog:is(.hybrid-dialog, .dues-dialog)[open]:not([data-dues-closing]) > .modal-content {
           translate: 0 var(--dues-panel-enter-y);
           scale: var(--dues-panel-closed-scale);
         }
@@ -425,38 +414,74 @@
     }
 
     @starting-style {
-      dialog.dues-dialog.modal-overlay[open]:not([data-dues-closing]),
-      dialog.dues-dialog.modal-overlay[open]:not([data-dues-closing])::backdrop { opacity: 0 !important; }
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay[open]:not([data-dues-closing]),
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay[open]:not([data-dues-closing])::backdrop { opacity: 0 !important; }
     }
 
     @supports (overlay: auto) and (transition-behavior: allow-discrete) {
-      dialog.dues-dialog.modal-overlay {
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay {
         transition-property: opacity, display, overlay;
         transition-behavior: allow-discrete;
       }
-      dialog.dues-dialog.modal-overlay::backdrop {
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay::backdrop {
         transition-property: opacity, display, overlay;
         transition-behavior: allow-discrete;
       }
     }
 
     @media (max-width: 768px) {
-      dialog.dues-dialog.modal-overlay {
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay {
         --dues-panel-enter-y: 36px;
         --dues-panel-exit-y: 36px;
         --dues-panel-closed-scale: 1;
         align-items: flex-end;
         padding: 0;
       }
-      dialog.dues-dialog.modal-overlay > .modal-content { max-height: 90dvh; }
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay > .modal-content { max-height: 90dvh; }
+    }
+
+    :is(#modal-confirm-action, dialog.hybrid-alert-dialog).modal-overlay {
+      --dues-dialog-duration: 200ms;
+      --dues-backdrop-duration: 180ms;
+      --dues-panel-enter-y: 8px;
+      --dues-panel-exit-y: 6px;
+      --dues-panel-closed-scale: 0.96;
+    }
+    @media (max-width: 768px) {
+      :is(#modal-confirm-action, dialog.hybrid-alert-dialog).modal-overlay {
+        --dues-panel-enter-y: 24px;
+        --dues-panel-exit-y: 24px;
+        --dues-panel-closed-scale: 1;
+      }
+    }
+    :is(#modal-hapus, #modal-edit-transaksi, #modal-login).modal-overlay {
+      --dues-dialog-duration: 280ms;
+      --dues-backdrop-duration: 260ms;
+    }
+    #confirm-badge-icon.is-payment {
+      background: var(--income-bg);
+      color: var(--income-strong);
+      border-color: var(--income-border);
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      #modal-confirm-action[open] #confirm-badge-icon.is-payment {
+        animation: confirm-badge-pop 240ms var(--hybrid-ease-spring);
+      }
+    }
+    @keyframes confirm-badge-pop {
+      from { transform: scale(0.92); opacity: 0.72; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      dialog.dues-dialog.modal-overlay {
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay,
+      :is(#modal-confirm-action, dialog.hybrid-alert-dialog, #modal-hapus, #modal-edit-transaksi, #modal-login).modal-overlay {
         --dues-dialog-duration: 100ms;
         --dues-backdrop-duration: 100ms;
       }
-      dialog.dues-dialog.modal-overlay > .modal-content { transition: none; }
+      dialog:is(.hybrid-dialog, .dues-dialog).modal-overlay > .modal-content { transition: none; }
+      #modal-confirm-action[open] #confirm-badge-icon.is-payment { animation: none; }
     }
 
     @media (min-width: 769px) {

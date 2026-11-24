@@ -15,12 +15,13 @@ import { billingPeriod } from "finkas/core/dues";
 import { getInput, getSelect, requiredField, formatRp, showToast, showDatabaseToast, getRawNominal, dateInputToIso, isoToDateInput } from "finkas/core/utils";
 import { isUnsyncedTempId, classifySyncResponse } from "finkas/core/offline";
 import { deliverMutation, generateOperationId } from "finkas/core/mutation";
-import { withBusyButton, withLiquidSave } from "../ui/keel";
+import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
-import { renderCheckboxIuran, filterKategori, updateEditDelta, updateCounterIuran, updateCounterOps, resetTrxWizard } from "../ui/transaction-form";
+import { renderCheckboxIuran, filterKategori, updateCounterIuran, updateCounterOps, resetTrxWizard } from "../ui/transaction-form";
+import { openEditWizard } from "../ui/edit-wizard";
 import { syncCdrop } from "../ui/cdrop";
 import { syncDpick } from "../ui/dpick";
-import { markNewlyPaidCells } from "../render/index";
+import { markNewlyPaidCells, markUpdatedLedgerRow } from "../render/index";
 import {
   refreshAppData,
   tempTransactionId,
@@ -48,6 +49,36 @@ interface EditedTransaction {
 }
 
 const DEFAULT_FEE_DISPLAY = new Intl.NumberFormat("id-ID").format(DEFAULT_MONTHLY_FEE);
+
+const setTrxText = (id: string, text: string) => {
+  const node = document.getElementById(id);
+  if (node) node.textContent = text;
+};
+
+const createModalStage = (modalId: string, titleId: string, amountId: string, subId: string) => ({
+  reset: () => {
+    const modal = document.getElementById(modalId);
+    modal?.removeAttribute?.("data-pay-state");
+    modal?.removeAttribute?.("data-pay-tone");
+  },
+  start: (tone: "inflow" | "outflow" | "danger", title: string, amountText: string, sub: string) => {
+    const modal = document.getElementById(modalId);
+    modal?.setAttribute?.("data-pay-state", "saving");
+    modal?.setAttribute?.("data-pay-tone", tone);
+    setTrxText(titleId, title);
+    setTrxText(amountId, amountText);
+    setTrxText(subId, sub);
+  },
+  settle: (title: string, sub?: string) => {
+    document.getElementById(modalId)?.setAttribute?.("data-pay-state", "settled");
+    setTrxText(titleId, title);
+    if (sub !== undefined) setTrxText(subId, sub);
+  }
+});
+
+const trxStage = createModalStage("modal-transaksi", "trx-verified-title", "trx-verified-amount", "trx-verified-sub");
+const editStage = createModalStage("modal-edit-transaksi", "edit-verified-title", "edit-verified-amount", "edit-verified-sub");
+const hapusStage = createModalStage("modal-hapus", "hapus-verified-title", "hapus-verified-amount", "hapus-verified-sub");
 
 /* ══════════════════════════════════════════════════════════════════
    MAIN TRANSACTION MODAL (bulk iuran + operasional)
@@ -94,6 +125,7 @@ export const bukaModalTransaksi = (selection?: { month: number; year: number; am
     (document.querySelectorAll(".chk-iuran:not(:disabled):checked") as NodeListOf<HTMLInputElement>).length > 0 &&
     getSelect("iuran-kategori")?.value
   );
+  trxStage.reset();
   resetTrxWizard("iuran", hasPreselected ? 3 : 1);
   openModal("modal-transaksi");
 };
@@ -125,6 +157,7 @@ export const submitIuran = async (e: Event) => {
     title: "Simpan Iuran Kas?",
     message: `Catat iuran ${formBulan} ${formTahun} untuk ${arrIdAnggota.length} anggota terpilih (Total: ${formatRp(totalNominal)}) ke database?`,
     icon: "ph-fill ph-hand-coins",
+    badgeClass: "is-payment",
     confirmText: "Ya, Simpan Iuran",
     onConfirm: () => {
       if (getActiveGroupId() !== targetGroupId) {
@@ -155,10 +188,14 @@ export const submitIuran = async (e: Event) => {
         if (!delivered) {
           return {
             outcome: "success",
+            onSettled: () => {
+              if (getActiveGroupId() === targetGroupId) trxStage.settle("Iuran Kas Tercatat");
+            },
             done: () => {
               if (getActiveGroupId() !== targetGroupId) return;
               showDatabaseToast("Iuran Kas Disimpan (Offline)", `Iuran untuk ${arrIdAnggota.length} anggota disimpan lokal.`);
               closeModal("modal-transaksi");
+              trxStage.reset();
               applyIuranOptimistically(arrIdAnggota, formKategori, formBulan, formTahun, formNominal, formTanggalIso, targetGroupId, payload.operationId);
             }
           };
@@ -172,6 +209,7 @@ export const submitIuran = async (e: Event) => {
             done: async () => {
               showToast(result.message || "Transaksi iuran sudah tercatat.", "warning");
               closeModal("modal-transaksi");
+              trxStage.reset();
               await refreshAppData();
             }
           };
@@ -186,6 +224,7 @@ export const submitIuran = async (e: Event) => {
             done: async () => {
               showToast(result.message || "Semua anggota yang dipilih sudah lunas.", "warning");
               closeModal("modal-transaksi");
+              trxStage.reset();
               await refreshAppData();
             }
           };
@@ -194,10 +233,14 @@ export const submitIuran = async (e: Event) => {
         const serverRows = result.data?.transactions || result.data?.rows;
         return {
           outcome: "success",
+          onSettled: () => {
+            if (getActiveGroupId() === targetGroupId) trxStage.settle(`${inserted} Iuran Lunas Tercatat`);
+          },
           done: () => {
             if (getActiveGroupId() !== targetGroupId) return;
             showDatabaseToast("Iuran Kas Disimpan", `${inserted} data iuran (${formBulan} ${formTahun}) berhasil dicatat.`);
             closeModal("modal-transaksi");
+            trxStage.reset();
             if (Array.isArray(serverRows) && serverRows.length > 0) {
               const existingIds = new Set((getState().transaksi || []).map((t) => t.ID_Transaksi));
               let added = 0;
@@ -223,6 +266,14 @@ export const submitIuran = async (e: Event) => {
             }
           }
         };
+      }, {
+        onSaving: () => trxStage.start(
+          "inflow",
+          "Mencatat Iuran…",
+          `+ ${formatRp(totalNominal)}`,
+          `${arrIdAnggota.length} anggota · ${formBulan} ${formTahun}`
+        ),
+        onCleanup: trxStage.reset
       });
     }
   });
@@ -317,7 +368,7 @@ export const submitOperasional = async (e: Event) => {
     title: `Catat ${formTipe === "Masuk" ? "Pemasukan" : "Pengeluaran"}?`,
     message: `Simpan transaksi ${formTipe} sebesar ${formatRp(formNominal)} ke database kas?`,
     icon: formTipe === "Masuk" ? "ph-fill ph-trend-up" : "ph-fill ph-trend-down",
-    badgeClass: formTipe === "Masuk" ? "" : "warning",
+    badgeClass: formTipe === "Masuk" ? "is-payment" : "warning",
     confirmText: "Ya, Simpan Transaksi",
     onConfirm: () => {
       if (getActiveGroupId() !== targetGroupId) {
@@ -362,6 +413,11 @@ export const submitOperasional = async (e: Event) => {
 
         return {
           outcome: "success",
+          onSettled: () => {
+            if (getActiveGroupId() === targetGroupId) {
+              trxStage.settle(formTipe === "Masuk" ? "Pemasukan Tercatat" : "Pengeluaran Tercatat");
+            }
+          },
           done: () => {
             if (getActiveGroupId() !== targetGroupId) return;
             if (!delivered) {
@@ -388,6 +444,7 @@ export const submitOperasional = async (e: Event) => {
             }
 
             closeModal("modal-transaksi");
+            trxStage.reset();
             rerenderAfterLedgerChange();
 
             document.getElementById("tab-operasional")?.querySelector("form")?.reset?.();
@@ -402,6 +459,14 @@ export const submitOperasional = async (e: Event) => {
             updateCounterOps();
           }
         };
+      }, {
+        onSaving: () => trxStage.start(
+          formTipe === "Masuk" ? "inflow" : "outflow",
+          "Mencatat Transaksi…",
+          `${formTipe === "Masuk" ? "+" : "−"} ${formatRp(formNominal)}`,
+          formKeterangan || `Kas ${formTipe}`
+        ),
+        onCleanup: trxStage.reset
       });
     }
   });
@@ -410,16 +475,6 @@ export const submitOperasional = async (e: Event) => {
 /* ══════════════════════════════════════════════════════════════════
    EDIT / DELETE
    ══════════════════════════════════════════════════════════════════ */
-
-const editPreviewListeners: WeakMap<HTMLElement, EventListener> = new WeakMap();
-
-const bindEditPreview = (field: HTMLElement | null, event: string, listener: EventListener) => {
-  if (!field) return;
-  const previous = editPreviewListeners.get(field);
-  if (previous) field.removeEventListener(event, previous);
-  field.addEventListener(event, listener);
-  editPreviewListeners.set(field, listener);
-};
 
 /**
  * Open the edit modal prefilled from a transaction.
@@ -448,19 +503,8 @@ export const bukaModalEdit = (idTrx: string) => {
   if (editTanggal) editTanggal.value = isoToDateInput(trx.Timestamp);
   syncDpick("edit-tanggal");
 
-  // Populate delta preview with original values and bind live update
-  const _originalNominal = trx.Nominal || 0;
-  const _originalTipe = trx.Tipe_Arus;
-  updateEditDelta(_originalTipe, _originalNominal, _originalTipe, _originalNominal);
-
-  const refreshPreview = () => {
-    const newTipe = getSelect("edit-tipe")?.value || _originalTipe;
-    const newNominal = getRawNominal("edit-nominal");
-    updateEditDelta(_originalTipe, _originalNominal, newTipe, newNominal);
-  };
-  bindEditPreview(getInput("edit-nominal"), "input", refreshPreview);
-  bindEditPreview(getSelect("edit-tipe"), "change", refreshPreview);
-
+  openEditWizard(trx);
+  editStage.reset();
   openModal("modal-edit-transaksi");
 };
 
@@ -498,10 +542,12 @@ export const submitEditTransaksi = async (e: Event) => {
         showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
         return;
       }
-      return withBusyButton(
+      const flowTone = tipeArus === "Masuk" ? "inflow" : "outflow";
+      const signedAmt = `${tipeArus === "Masuk" ? "+" : "−"} ${formatRp(nominal)}`;
+      const ket = (getInput("edit-keterangan")?.value || "").trim();
+      const editSub = ket ? `${idTransaksi} · ${ket}` : idTransaksi;
+      return withLiquidSave(
         "btn-submit-edit",
-        '<i class="ph ph-spinner-gap ph-spin"></i> Updating...',
-        "UPDATE DATA",
         async () => {
           const dataForm: EditedTransaction & { idTransaksi: string } = {
             idTransaksi,
@@ -511,38 +557,67 @@ export const submitEditTransaksi = async (e: Event) => {
             bulanIuran: getSelect("edit-bulan")?.value || "-",
             tahunIuran: getInput("edit-tahun")?.value || "-",
             nominal,
-            keterangan: (getInput("edit-keterangan")?.value || "").trim(),
+            keterangan: ket,
             timestamp: dateInputToIso(getInput("edit-tanggal")?.value) || undefined
           };
 
           const { delivered, result } = await deliverMutation({ action: "editTransaksi", idTransaksi, dataForm });
 
-          if (getActiveGroupId() !== targetGroupId) return;
-
-          if (!delivered) {
-            applyEditOptimistically(idTransaksi, dataForm);
-            rerenderAfterLedgerChange();
-            closeModal("modal-edit-transaksi");
-            showDatabaseToast("Perubahan Disimpan (Offline)", `Transaksi ${idTransaksi} akan disinkronkan saat online.`);
-            return;
+          if (getActiveGroupId() !== targetGroupId) return { outcome: "neutral" as const };
+          if (delivered && !result.status) {
+            return { outcome: "error" as const, done: () => showToast(result.message, "error") };
           }
 
-          if (!result.status) return showToast(result.message, "error");
-
-          const finalId = result.data?.idTransaksi || idTransaksi;
-          if (finalId !== idTransaksi) {
-            removeTransactionOptimistically(idTransaksi);
-          }
-          applyEditOptimistically(finalId, dataForm);
-          rerenderAfterLedgerChange();
-
-          showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
-          closeModal("modal-edit-transaksi");
-          await refreshAppData();
+          const finalId = delivered ? (result.data?.idTransaksi || idTransaksi) : idTransaksi;
+          return {
+            outcome: "success" as const,
+            onSettled: () => editStage.settle(
+              delivered ? "Koreksi Tercatat" : "Koreksi Dijadwalkan",
+              delivered ? `${finalId} · Buku kas telah diperbarui` : `${idTransaksi} · Akan disinkronkan saat online`
+            ),
+            done: async () => {
+              closeModal("modal-edit-transaksi");
+              if (delivered && finalId !== idTransaksi) removeTransactionOptimistically(idTransaksi);
+              applyEditOptimistically(finalId, dataForm);
+              markUpdatedLedgerRow(finalId);
+              rerenderAfterLedgerChange();
+              if (!delivered) {
+                showDatabaseToast("Perubahan Disimpan (Offline)", `Transaksi ${idTransaksi} akan disinkronkan saat online.`);
+                return;
+              }
+              showDatabaseToast("Transaksi Diperbarui", `Data transaksi ${finalId} berhasil diperbarui.`);
+              await refreshAppData();
+            }
+          };
+        },
+        {
+          savingText: "Menyimpan…",
+          doneText: "Tersimpan",
+          minSavingMs: 380,
+          settleMs: 650,
+          onSaving: () => editStage.start(flowTone, "Menyimpan Koreksi…", signedAmt, editSub),
+          onCleanup: editStage.reset
         }
       );
     }
   });
+};
+
+const slideOutDeletedLedgerRow = async (idTarget: string) => {
+  if (!globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches) return;
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  const row = Array.from(document.querySelectorAll?.<HTMLElement>(".ledger-row") ?? [])
+    .find((el) => el.dataset?.id === idTarget);
+  if (!row) {
+    await new Promise((resolve) => setTimeout(resolve, 140));
+    return;
+  }
+  if (row.offsetHeight > 0) {
+    row.style.maxHeight = `${row.offsetHeight}px`;
+    void row.offsetHeight;
+  }
+  row.classList.add("is-deleting");
+  await new Promise((resolve) => setTimeout(resolve, 340));
 };
 
 /**
@@ -551,6 +626,7 @@ export const submitEditTransaksi = async (e: Event) => {
 export const konfirmasiHapus = (idTrx: string) => {
   if (!getIsAdminSession()) return showToast("Hanya admin grup yang berwenang menghapus transaksi.", "error");
   requiredField("hapus-id-target").value = idTrx;
+  hapusStage.reset();
   (document.getElementById("modal-hapus") as HTMLDialogElement).style.zIndex = "110";
   openModal("modal-hapus");
 };
@@ -569,30 +645,56 @@ export const eksekusiHapus = async () => {
   }
 
   const targetGroupId = getActiveGroupId();
+  const targetTrx = getState().transaksi.find((t) => t.ID_Transaksi === idTarget);
+  const amountText = targetTrx ? `− ${formatRp(targetTrx.Nominal)}` : idTarget;
+  const subText = targetTrx?.Keterangan ? `${idTarget} · ${targetTrx.Keterangan}` : idTarget;
 
-  await withBusyButton("btn-hapus", "...", "Ya, Hapus", async () => {
-    if (getActiveGroupId() !== targetGroupId) {
-      showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning");
-      return;
+  await withLiquidSave(
+    "btn-hapus",
+    async () => {
+      if (getActiveGroupId() !== targetGroupId) {
+        return {
+          outcome: "neutral" as const,
+          done: () => showToast("Grup kas telah berganti. Operasi dibatalkan.", "warning")
+        };
+      }
+      const { delivered, result } = await deliverMutation({ action: "hapusTransaksi", idTransaksi: idTarget });
+
+      if (getActiveGroupId() !== targetGroupId) return { outcome: "neutral" as const };
+      if (delivered && !result.status) {
+        return { outcome: "error" as const, done: () => showToast(result.message, "error") };
+      }
+
+      return {
+        outcome: "success" as const,
+        onSettled: () => hapusStage.settle(
+          delivered ? "Transaksi Terhapus" : "Penghapusan Dijadwalkan",
+          delivered ? `${idTarget} · Saldo kas telah disesuaikan` : `${idTarget} · Akan dihapus saat online`
+        ),
+        done: async () => {
+          closeModal("modal-struk", true);
+          closeModal("modal-hapus");
+          await slideOutDeletedLedgerRow(idTarget);
+          removeTransactionOptimistically(idTarget);
+          rerenderAfterLedgerChange();
+
+          if (!delivered) {
+            showDatabaseToast("Penghapusan Disimpan (Offline)", `Transaksi ${idTarget} akan dihapus saat online.`);
+            return;
+          }
+
+          showDatabaseToast("Transaksi Dihapus", `Data transaksi ${idTarget} telah dihapus dari database.`);
+          await refreshAppData();
+        }
+      };
+    },
+    {
+      savingText: "Menghapus…",
+      doneText: "Terhapus",
+      minSavingMs: 380,
+      settleMs: 650,
+      onSaving: () => hapusStage.start("danger", "Menghapus Transaksi…", amountText, subText),
+      onCleanup: hapusStage.reset
     }
-    const { delivered, result } = await deliverMutation({ action: "hapusTransaksi", idTransaksi: idTarget });
-
-    if (getActiveGroupId() !== targetGroupId) return;
-
-    if (!delivered) {
-      removeTransactionOptimistically(idTarget);
-      rerenderAfterLedgerChange();
-      closeModal("modal-hapus");
-      showDatabaseToast("Penghapusan Disimpan (Offline)", `Transaksi ${idTarget} akan dihapus saat online.`);
-      return;
-    }
-
-    if (!result.status) return showToast(result.message, "error");
-
-    removeTransactionOptimistically(idTarget);
-    rerenderAfterLedgerChange();
-    showDatabaseToast("Transaksi Dihapus", `Data transaksi ${idTarget} telah dihapus dari database.`);
-    closeModal("modal-hapus");
-    await refreshAppData();
-  });
+  );
 };

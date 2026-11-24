@@ -1,9 +1,9 @@
 import { getActiveGroupId, getIsAdminView } from 'finkas/core/state';
 import { formatDisplayRp } from 'finkas/core/utils';
+import { isReducedMotion, renderOdometerValue } from './ui-moments';
 
-const reducedMotion = () => typeof window === 'undefined' ||
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const counters: WeakMap<HTMLElement, { value: number, frame?: number }> = new WeakMap();
+const reducedMotion = () => isReducedMotion();
+const counters: WeakMap<HTMLElement, { value: number, text?: string, frame?: number }> = new WeakMap();
 let lastOverview: string | undefined;
 let activeWipe: ViewTransition | undefined;
 let activeGroupTransition: ViewTransition | undefined;
@@ -49,29 +49,65 @@ export const enterHybridOverview = () => {
   });
 };
 
-export const animateHybridAmount = (node: HTMLElement | null, amount: number, { format = formatDisplayRp, from }: { format?: (value: number) => string, from?: number } = {}) => {
+export const animateHybridAmount = (
+  node: HTMLElement | null,
+  amount: number,
+  { format = formatDisplayRp, from, forceSpin = false }: { format?: (value: number) => string, from?: number, forceSpin?: boolean } = {}
+) => {
   if (!node) return;
   const prefix = node.dataset?.amountPrefix || '';
   const previous = counters.get(node);
   if (previous?.frame) globalThis.cancelAnimationFrame?.(previous.frame);
   const start = from ?? previous?.value ?? 0;
-  if (isGroupTransitionActive() || reducedMotion() || typeof requestAnimationFrame !== 'function' || typeof cancelAnimationFrame !== 'function' || start === amount) {
-    node.textContent = prefix + format(amount);
-    counters.set(node, { value: amount });
+  const nextText = prefix + format(amount);
+  const useOdo = node.id === 'ui-saldo' || node.id === 'ui-masuk' || node.id === 'ui-keluar' || node.id === 'self-pay-total';
+  if (reducedMotion() || (!useOdo && (isGroupTransitionActive() || start === amount))) {
+    node.textContent = nextText;
+    counters.set(node, { value: amount, text: nextText });
+    return;
+  }
+
+  if (useOdo) {
+    if (!forceSpin && start === amount) {
+      if (node.textContent !== nextText) node.textContent = nextText;
+      counters.set(node, { value: amount, text: nextText });
+      return;
+    }
+    const prevText = previous?.text ?? (from !== undefined ? prefix + format(from) : '');
+    renderOdometerValue(node, nextText, prevText, amount >= start ? 'up' : 'down', { forceSpin });
+    counters.set(node, { value: amount, text: nextText });
+    return;
+  }
+
+  if (typeof requestAnimationFrame !== 'function' || typeof cancelAnimationFrame !== 'function') {
+    node.textContent = nextText;
+    counters.set(node, { value: amount, text: nextText });
     return;
   }
 
   node.textContent = prefix + format(start);
-  const animation: { value: number, frame?: number } = { value: start };
+  const animation: { value: number, text?: string, frame?: number } = { value: start };
   counters.set(node, animation);
   const began = performance.now();
   const step = (now: number) => {
     const progress = Math.min(1, (now - began) / 560);
     animation.value = progress === 1 ? amount : Math.round(start + (amount - start) * (1 - (1 - progress) ** 3));
-    node.textContent = prefix + format(animation.value);
+    animation.text = prefix + format(animation.value);
+    node.textContent = animation.text;
     animation.frame = progress < 1 ? requestAnimationFrame(step) : undefined;
   };
   animation.frame = requestAnimationFrame(step);
+};
+
+export const spinDashboardOdometers = () => {
+  if (reducedMotion() || typeof document === 'undefined') return;
+  for (const id of ['ui-saldo', 'ui-masuk', 'ui-keluar']) {
+    const el = document.getElementById?.(id) ?? null;
+    const prev = el ? counters.get(el) : undefined;
+    if (el && prev && prev.value !== 0 && !el.querySelector?.('.odo-col.is-up, .odo-col.is-down')) {
+      animateHybridAmount(el, prev.value, { forceSpin: true });
+    }
+  }
 };
 
 export const runHybridThemeWipe = (apply: () => void, event?: MouseEvent, trigger?: HTMLElement | null) => {

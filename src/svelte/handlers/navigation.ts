@@ -89,14 +89,24 @@ export const setupRekapSearchListener = () => {
    PENGATURAN TAMPILAN MODAL
    ══════════════════════════════════════════════════════════════════ */
 
-export const applyPrivacyMode = () => {
+let privacyPopTimer: ReturnType<typeof setTimeout> | undefined;
+
+export const applyPrivacyMode = (animate = false) => {
   try {
     const isPrivate = localStorage.getItem('finkas_privacy_mode') === 'on';
     document.body.classList.toggle('privacy-mode', isPrivate);
-    const toggle = document.querySelector('[data-action="toggle-privacy"]');
+    const toggle = document.querySelector<HTMLElement>('[data-action="toggle-privacy"]');
     toggle?.setAttribute('aria-pressed', String(isPrivate));
     const icon = toggle?.querySelector('i');
     if (icon) icon.className = `ph ${isPrivate ? 'ph-eye-slash' : 'ph-eye'} fs-18`;
+    if (animate && toggle?.classList) {
+      toggle.classList.remove('is-toggling');
+      void toggle.offsetWidth;
+      toggle.classList.add('is-toggling');
+      clearTimeout(privacyPopTimer);
+      privacyPopTimer = setTimeout(() => toggle.classList?.remove('is-toggling'), 220);
+      (privacyPopTimer as { unref?: () => void })?.unref?.();
+    }
   } catch (_) {}
 };
 
@@ -156,7 +166,7 @@ export const setPrivacyMode = (mode: string) => {
   } catch (e) {
     console.warn('[finkas] Cannot persist privacy mode:', e?.message);
   }
-  applyPrivacyMode();
+  applyPrivacyMode(true);
 };
 
 export const setCurrencyFormat = (formatKey: string | null) => {
@@ -378,7 +388,7 @@ export const initAppFormAndInputListeners = ({
   if (opsTipe) opsTipe.addEventListener('change', function () { filterKategori('ops-tipe', 'ops-kategori'); syncCdrop('ops-kategori'); updateCounterOps(); });
 
   const editTipe = document.getElementById('edit-tipe');
-  if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); });
+  if (editTipe) editTipe.addEventListener('change', function () { filterKategori('edit-tipe', 'edit-kategori'); syncCdrop('edit-kategori'); });
 
   const historySearches = ['workspace-search-history'].map((id) => getInput(id)).filter(el => el != null);
   for (const input of historySearches) input.addEventListener('input', () => {

@@ -9,6 +9,7 @@ let active = false;
 let period: { month: number; year: number; amount: number; group: ReturnType<typeof getActiveGroupId> } | undefined;
 let drag: { pointerId: number; cell: HTMLElement; x: number; y: number; moved: boolean; last?: HTMLElement } | undefined;
 let suppressClick = false;
+let lastCount = 0;
 
 export const syncBulkDues = () => {
   if (!active) return;
@@ -28,9 +29,17 @@ const updateBulkUI = () => {
     button.setAttribute('aria-pressed', String(selecting));
   });
   const status = document.getElementById('bulk-status');
-  if (status) status.textContent = period
-    ? `${selected.size} anggota · ${NAMA_BULAN[period.month]} ${period.year} · ${formatRp(period.amount)} per anggota`
-    : 'Pilih sel yang belum lunas. Satu bulan dan nominal sisa yang sama per pembayaran.';
+  if (status) {
+    status.textContent = period
+      ? `${selected.size} anggota · ${NAMA_BULAN[period.month]} ${period.year} · ${formatRp(period.amount)} per anggota`
+      : 'Pilih sel yang belum lunas. Satu bulan dan nominal sisa yang sama per pembayaran.';
+    if (selecting && selected.size !== lastCount && status.classList) {
+      status.classList.remove('is-updating');
+      void status.offsetWidth;
+      status.classList.add('is-updating');
+    }
+  }
+  lastCount = selecting ? selected.size : 0;
   const review = dock.querySelector<HTMLButtonElement>('[data-action="bulk-review"]');
   if (review) review.disabled = selected.size === 0;
   htmlElements(cellSelector, matrix).forEach((cell) => {

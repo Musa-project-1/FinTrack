@@ -107,6 +107,7 @@
 
     /* 3. Centered Hybrid Kinetic alert & confirmation dialogs */
     .modal-center-dialog {
+      position: relative;
       --alert-wash: var(--accent-tint);
       --alert-halo: color-mix(in oklab, var(--accent-tint) 65%, transparent);
       text-align: center;
@@ -271,6 +272,108 @@
     .edit-delta-val { font-family: var(--font-mono); font-weight: 700; font-size: 13.5px; color: var(--text-main); font-variant-numeric: tabular-nums; }
     .edit-delta-val.is-masuk { color: var(--income-strong); }
     .edit-delta-val.is-keluar { color: var(--danger); }
+    .edit-delta-val.is-muted { color: var(--text-muted); font-weight: 600; }
+
+    /* #modal-edit-transaksi precision polish */
+    #modal-edit-transaksi .edit-origin-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 13px; border-radius: 13px; border: 1px solid var(--border); background: var(--surface-2);
+    }
+    #modal-edit-transaksi .edit-origin-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    #modal-edit-transaksi .edit-origin-top { display: inline-flex; align-items: center; gap: 6px; }
+    #modal-edit-transaksi .edit-origin-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-muted); line-height: 1.25; }
+    #modal-edit-transaksi .edit-origin-pill {
+      padding: 2px 7px; border-radius: 6px; background: var(--accent-tint); border: 1px solid var(--accent-border);
+      color: var(--accent-strong); font-size: 11px; font-weight: 700; line-height: 1.3;
+    }
+    #modal-edit-transaksi .edit-origin-summary {
+      font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+      font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.3;
+    }
+    #modal-edit-transaksi .edit-origin-actions { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; flex-shrink: 0; }
+    #modal-edit-transaksi .edit-quick-btn { min-height: 34px; height: 34px; padding: 0 11px; font-size: 12px; font-weight: 700; border-radius: 9px; gap: 5px; }
+
+    #modal-edit-transaksi .edit-proof-card {
+      padding: 11px 13px; border-radius: 13px; border: 1px solid var(--border); background: var(--surface-2);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #modal-edit-transaksi .edit-proof-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    #modal-edit-transaksi .edit-proof-head > label { font-size: 12px; font-weight: 600; color: var(--text-main); margin: 0; }
+    #modal-edit-transaksi .edit-proof-card .attachment-status-text { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    #modal-edit-transaksi .edit-proof-card .attachment-input-row {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center;
+    }
+    #modal-edit-transaksi #trx-attachment-file {
+      min-width: 0; width: 100%; height: 38px; min-height: 38px; padding: 4px 10px 4px 5px;
+      font-size: 12px; font-weight: 500; color: var(--text-muted);
+      background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 10px;
+    }
+    #modal-edit-transaksi #trx-attachment-file::file-selector-button {
+      height: 28px; margin-right: 9px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text-main); font-family: var(--font-sans);
+      font-size: 11.5px; font-weight: 700; cursor: pointer;
+      transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      #modal-edit-transaksi #trx-attachment-file::file-selector-button:hover {
+        border-color: var(--accent-border); background: var(--accent-tint); color: var(--accent-strong);
+      }
+    }
+    #modal-edit-transaksi .edit-proof-card .attachment-btn-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    #modal-edit-transaksi .edit-proof-card .attachment-btn-group .btn {
+      min-height: 38px; height: 38px; padding: 0 12px; font-size: 12px; font-weight: 700; border-radius: 10px; gap: 5px;
+    }
+
+    #modal-edit-transaksi .edit-rev-card {
+      padding: 4px 14px; border-radius: 13px; border: 1px solid var(--border); background: var(--surface);
+    }
+    #modal-edit-transaksi .trx-rev-callout.edit-summary-card {
+      flex-direction: column; align-items: stretch; gap: 11px; padding: 13px 15px;
+    }
+    #modal-edit-transaksi .edit-summary-card .edit-impact-panel {
+      padding: 0 0 11px; border: 0; border-bottom: 1px dashed var(--border); border-radius: 0; background: transparent;
+    }
+    #modal-edit-transaksi .edit-summary-card .edit-delta-rows {
+      grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+    }
+    #modal-edit-transaksi .edit-summary-card .edit-delta-val { color: var(--text-main); }
+    #modal-edit-transaksi .edit-summary-card .edit-delta-val.is-muted { color: var(--text-muted); font-weight: 600; }
+    #modal-edit-transaksi .edit-verdict-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    #modal-edit-transaksi .edit-summary-card .trx-rev-callout-val > strong {
+      font-family: var(--font-mono); font-size: 19px; font-weight: 800;
+      font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+    }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill {
+      padding: 4px 10px; border-radius: var(--r-pill); background: var(--surface-2);
+      border: 1px solid var(--border); font-size: 11.5px; gap: 5px;
+    }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill strong { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill.is-inflow {
+      background: var(--income-bg); border-color: var(--income-border); color: var(--income-strong);
+    }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill.is-inflow strong { color: var(--income-strong); }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill.is-outflow {
+      background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger);
+    }
+    #modal-edit-transaksi .trx-footer-meta.edit-footer-pill.is-outflow strong { color: var(--danger); }
+
+    @media (max-width: 520px) {
+      #modal-edit-transaksi .edit-origin-banner { flex-direction: column; align-items: stretch; gap: 9px; }
+      #modal-edit-transaksi .edit-origin-actions {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+        width: 100%; margin: 0; padding-top: 8px; border-top: 1px dashed var(--border);
+      }
+      #modal-edit-transaksi .edit-quick-btn { justify-content: center; width: 100%; min-height: 40px; height: 40px; }
+      #modal-edit-transaksi .edit-proof-card .attachment-input-row:has(#btn-download-attachment:not([style*="none"])) {
+        grid-template-columns: 1fr;
+      }
+      #modal-edit-transaksi .edit-summary-card .edit-delta-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #modal-edit-transaksi .edit-summary-card .edit-delta-row:first-child { grid-column: 1 / -1; }
+      #modal-edit-transaksi .edit-verdict-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #modal-edit-transaksi #trx-attachment-file::file-selector-button { transition: none; }
+    }
 
     /* 4. Close button (Hybrid Kinetic 34x34 borderless pill tile) */
     .close-modal-btn {
@@ -285,7 +388,7 @@
       font-size: 16px;
       cursor: pointer;
       color: var(--text-muted);
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 120ms var(--hybrid-ease-spring);
       flex-shrink: 0;
     }
     .close-modal-btn:hover { background: var(--surface-3); color: var(--text-main); }
@@ -304,6 +407,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .btn-pwd-peek[aria-pressed="true"] { color: var(--accent-strong); }
+    .btn-pwd-peek i { transition: transform 150ms var(--hybrid-ease-spring), color 150ms ease; }
+    @media (prefers-reduced-motion: no-preference) {
+      .close-modal-btn:active { transform: scale(0.91); }
+      .btn-pwd-peek:active i { transform: scale(0.84); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .close-modal-btn,
+      .btn-pwd-peek i { transition: none; }
     }
 
     .input-admin-code {
@@ -380,13 +493,75 @@
       box-shadow: var(--hybrid-card-shadow);
     }
 
-    details.faq-item:hover {
-      border-color: var(--border-strong);
-      background: var(--surface);
+    @media (hover: hover) and (pointer: fine) {
+      details.faq-item:hover {
+        border-color: var(--border-strong);
+        background: var(--surface);
+      }
+
+      details.faq-item[open]:hover {
+        border-color: var(--accent-border);
+      }
     }
 
-    details.faq-item[open]:hover {
-      border-color: var(--accent-border);
+    details.faq-item::details-content {
+      interpolate-size: allow-keywords;
+      overflow: clip;
+      contain: layout;
+    }
+
+    details.faq-item:not([open])::details-content {
+      block-size: 0;
+      opacity: 0;
+    }
+
+    details.faq-item[open]::details-content {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      details.faq-item::details-content {
+        transition:
+          block-size 220ms var(--hybrid-ease-out),
+          opacity 180ms ease-out,
+          content-visibility 220ms allow-discrete;
+      }
+      :is(.btn, .export-card-btn).is-copied i {
+        animation: copyCheckPop 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+    }
+
+    #modal-edit-transaksi > .modal-content { position: relative; }
+
+    .btn.is-copied {
+      min-width: var(--btn-lock-w, 0);
+      border-color: var(--accent-border) !important;
+      background: var(--accent-tint) !important;
+      color: var(--accent-strong) !important;
+    }
+    .btn-primary.is-copied {
+      background: var(--accent-strong) !important;
+      color: var(--accent-ink) !important;
+      border-color: transparent !important;
+      box-shadow: 0 0 0 4px var(--accent-tint);
+    }
+    .export-card-btn.is-copied {
+      border-color: var(--accent) !important;
+      background: var(--accent-tint) !important;
+    }
+    .export-card-btn.is-copied .export-icon-box {
+      background: var(--accent) !important;
+      color: var(--accent-ink) !important;
+    }
+    .is-copied-surface {
+      border-color: var(--accent-border) !important;
+      box-shadow: 0 0 0 3px var(--accent-tint);
+      transition: border-color 180ms ease, box-shadow 220ms ease;
+    }
+    @keyframes copyCheckPop {
+      0% { transform: scale(0.84); opacity: 0.5; }
+      60% { transform: scale(1.14); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
     }
   }
 </style>

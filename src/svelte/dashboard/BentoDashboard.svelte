@@ -243,7 +243,12 @@
     }
 
     .bento-flow { cursor: pointer; }
-    .bento-flow:hover { border-color: var(--border-strong); }
+    .bento-drill-label { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+    .bento-drill-label i { transition: transform 160ms var(--hybrid-ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+      .bento-flow:hover { border-color: var(--border-strong); }
+      .bento-flow:hover .bento-drill-label i { transform: translateX(3px); }
+    }
     .bento-flow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .bento-in { color: var(--income-strong); }
     .bento-money {
@@ -272,6 +277,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .bento-compliance-fill,
+      .bento-drill-label i,
       #bento-spark-guide,
       #bento-spark-marker {
         transition: none;

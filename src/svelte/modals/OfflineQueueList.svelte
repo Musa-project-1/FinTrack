@@ -196,7 +196,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-offline-queue[open] > .queue-sheet {
+      #modal-offline-queue > .queue-sheet {
         width: 100%; max-width: 100%; max-height: 92dvh; border-radius: 20px 20px 0 0; overflow: hidden;
       }
       #modal-offline-queue .hybrid-sheet-handle { flex-shrink: 0; }

@@ -5,10 +5,12 @@ import { fetchAuditLogApi } from "finkas/core/api";
 import { isUnsyncedTempId } from "finkas/core/offline";
 import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "finkas/core/utils";
 import { deliverMutation, generateTempId, requestAppRefresh } from "finkas/core/mutation";
+import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
 import { syncCdrop } from "../ui/cdrop";
 import { renderSkippedMonthsList } from "../render/index";
 import { syncMasterAnggotaRows, syncMasterAnggotaFilter, syncMasterKategoriRows, syncAuditLogRows } from "../mount";
+import { flashMasterAnggotaSaved, flashMasterKategoriSaved } from "../stores/master.svelte";
 
 const refreshAppData = async () => { requestAppRefresh(); };
 
@@ -377,37 +379,51 @@ export const submitEditMasterAnggota = async (e: Event) => {
     return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengeditnya.', 'warning');
   }
 
-  const btn = (document.getElementById('btn-submit-edit-anggota') as HTMLButtonElement | null);
-  if (btn) btn.disabled = true;
+  await withLiquidSave(
+    'btn-submit-edit-anggota',
+    async () => {
+      const { delivered, result } = await deliverMutation({
+        action: 'updateStatusAnggota',
+        idAnggota,
+        statusAktif,
+        nama,
+        noWa
+      });
 
-  const { delivered, result } = await deliverMutation({
-    action: 'updateStatusAnggota',
-    idAnggota,
-    statusAktif,
-    nama,
-    noWa
-  });
+      if (!delivered) {
+        // Offline — queued. Reflect locally so the table matches until sync.
+        const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
+        if (ang) { ang.Nama_Anggota = nama; ang.Status_Aktif = statusAktif; ang.Nomor_WA = noWa; }
+        return {
+          outcome: 'success',
+          onSettled: () => { renderMasterAnggotaTable(); flashMasterAnggotaSaved(idAnggota); },
+          done: () => {
+            closeModal('modal-edit-master-anggota');
+            showDatabaseToast('Perubahan Disimpan (Offline)', `Data ${nama} akan disinkronkan saat online.`);
+          }
+        };
+      }
 
-  if (btn) btn.disabled = false;
+      if (!result.status) {
+        return {
+          outcome: 'error',
+          done: () => showToast(result.message || 'Gagal menyimpan perubahan anggota.', 'error')
+        };
+      }
 
-  if (!delivered) {
-    // Offline — queued. Reflect locally so the table matches until sync.
-    const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
-    if (ang) { ang.Nama_Anggota = nama; ang.Status_Aktif = statusAktif; ang.Nomor_WA = noWa; }
-    showDatabaseToast('Perubahan Disimpan (Offline)', `Data ${nama} akan disinkronkan saat online.`);
-    closeModal('modal-edit-master-anggota');
-    renderMasterAnggotaTable();
-    return;
-  }
-
-  if (result.status) {
-    showDatabaseToast('Data Anggota Diperbarui', `Perubahan untuk ${nama} berhasil disimpan.`);
-    closeModal('modal-edit-master-anggota');
-    await refreshAppData();
-    renderMasterAnggotaTable();
-  } else {
-    showToast(result.message || 'Gagal menyimpan perubahan anggota.', 'error');
-  }
+      return {
+        outcome: 'success',
+        done: async () => {
+          closeModal('modal-edit-master-anggota');
+          showDatabaseToast('Data Anggota Diperbarui', `Perubahan untuk ${nama} berhasil disimpan.`);
+          await refreshAppData();
+          renderMasterAnggotaTable();
+          flashMasterAnggotaSaved(idAnggota);
+        }
+      };
+    },
+    { settleMs: 320 }
+  );
 };
 
 export const bukaModalEditMasterKategori = (idKategori: string) => {
@@ -478,31 +494,44 @@ export const submitTambahAnggota = async (e: Event) => {
     icon: 'ph-fill ph-user-plus',
     confirmText: 'Ya, Daftarkan',
     onConfirm: async () => {
-      const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]');
-      if (btn) btn.disabled = true;
-      const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', nama, noWa });
-      if (btn) btn.disabled = false;
-
-      if (!delivered) {
-        // Offline — queued. Show an optimistic row with a temp id; the next
-        // online refetch replaces it with the server record.
-        getState().anggota.push({ ID_Anggota: tempMasterId('ANG'), Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' });
-        requiredField('input-nama-anggota').value = '';
-        requiredField('input-wa-anggota').value = '';
-        showDatabaseToast('Anggota Disimpan (Offline)', `${nama} akan disinkronkan saat online.`);
-        renderMasterAnggotaTable();
-        return;
-      }
-
-      if (result.status) {
-        showDatabaseToast('Anggota Baru Ditambahkan', `Anggota ${nama} berhasil didaftarkan ke database.`);
-        requiredField('input-nama-anggota').value = '';
-        requiredField('input-wa-anggota').value = '';
-        await refreshAppData();
-        renderMasterAnggotaTable();
-      } else {
-        showToast(result.message || 'Gagal menambah anggota.', 'error');
-      }
+      const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
+      await withLiquidSave(
+        btn,
+        async () => {
+          const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', nama, noWa });
+          if (!delivered) {
+            const tempId = tempMasterId('ANG');
+            // Offline — queued. Show an optimistic row with a temp id; the next online refetch replaces it.
+            getState().anggota.push({ ID_Anggota: tempId, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' });
+            requiredField('input-nama-anggota').value = '';
+            requiredField('input-wa-anggota').value = '';
+            return {
+              outcome: 'success',
+              onSettled: () => { renderMasterAnggotaTable(); flashMasterAnggotaSaved(tempId); },
+              done: () => showDatabaseToast('Anggota Disimpan (Offline)', `${nama} akan disinkronkan saat online.`)
+            };
+          }
+          if (!result.status) {
+            return { outcome: 'error', done: () => showToast(result.message || 'Gagal menambah anggota.', 'error') };
+          }
+          return {
+            outcome: 'success',
+            onSettled: () => {
+              requiredField('input-nama-anggota').value = '';
+              requiredField('input-wa-anggota').value = '';
+            },
+            done: async () => {
+              showDatabaseToast('Anggota Baru Ditambahkan', `Anggota ${nama} berhasil didaftarkan ke database.`);
+              await refreshAppData();
+              renderMasterAnggotaTable();
+              const addedId = (result.data as { idAnggota?: string } | undefined)?.idAnggota
+                || (getState().anggota || []).filter((a) => a.Nama_Anggota === nama).pop()?.ID_Anggota || '';
+              if (addedId) flashMasterAnggotaSaved(addedId);
+            }
+          };
+        },
+        { savingText: 'Menambah…', doneText: 'Ditambahkan', settleMs: 320 }
+      );
     }
   });
 };
@@ -531,12 +560,14 @@ export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: s
         if (target) target.Status_Aktif = nextStatus;
         showDatabaseToast('Status Disimpan (Offline)', `Status ${angName} akan disinkronkan saat online.`);
         renderMasterAnggotaTable();
+        flashMasterAnggotaSaved(idAnggota);
         return;
       }
       if (result.status) {
         showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
         await refreshAppData();
         renderMasterAnggotaTable();
+        flashMasterAnggotaSaved(idAnggota);
       } else {
         showToast(result.message || 'Gagal mengubah status anggota.', 'error');
       }
@@ -597,28 +628,41 @@ export const submitTambahKategori = async (e: Event) => {
     icon: 'ph-fill ph-tag',
     confirmText: 'Ya, Simpan Kategori',
     onConfirm: async () => {
-      const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]');
-      if (btn) btn.disabled = true;
-      const { delivered, result } = await deliverMutation({ action: 'tambahKategori', nama, tipe });
-      if (btn) btn.disabled = false;
-
-      if (!delivered) {
-        // Offline — queued. Optimistic row with a temp id; reconciled on refetch.
-        getState().kategori.push({ ID_Kategori: tempMasterId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K'), Nama_Kategori: nama, Tipe: tipe });
-        requiredField('input-nama-kategori').value = '';
-        showDatabaseToast('Kategori Disimpan (Offline)', `Kategori "${nama}" akan disinkronkan saat online.`);
-        renderMasterKategoriTable();
-        return;
-      }
-
-      if (result.status) {
-        showDatabaseToast('Kategori Kas Ditambahkan', `Kategori "${nama}" (${tipe}) berhasil disimpan.`);
-        requiredField('input-nama-kategori').value = '';
-        await refreshAppData();
-        renderMasterKategoriTable();
-      } else {
-        showToast(result.message || 'Gagal menambah kategori.', 'error');
-      }
+      const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
+      await withLiquidSave(
+        btn,
+        async () => {
+          const { delivered, result } = await deliverMutation({ action: 'tambahKategori', nama, tipe });
+          if (!delivered) {
+            const tempKatId = tempMasterId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K');
+            getState().kategori.push({ ID_Kategori: tempKatId, Nama_Kategori: nama, Tipe: tipe });
+            requiredField('input-nama-kategori').value = '';
+            return {
+              outcome: 'success',
+              onSettled: () => { renderMasterKategoriTable(); flashMasterKategoriSaved(tempKatId); },
+              done: () => showDatabaseToast('Kategori Disimpan (Offline)', `Kategori "${nama}" akan disinkronkan saat online.`)
+            };
+          }
+          if (!result.status) {
+            return { outcome: 'error', done: () => showToast(result.message || 'Gagal menambah kategori.', 'error') };
+          }
+          return {
+            outcome: 'success',
+            onSettled: () => {
+              requiredField('input-nama-kategori').value = '';
+            },
+            done: async () => {
+              showDatabaseToast('Kategori Kas Ditambahkan', `Kategori "${nama}" (${tipe}) berhasil disimpan.`);
+              await refreshAppData();
+              renderMasterKategoriTable();
+              const addedKatId = (result.data as { idKategori?: string } | undefined)?.idKategori
+                || (getState().kategori || []).filter((k) => k.Nama_Kategori === nama && k.Tipe === tipe).pop()?.ID_Kategori || '';
+              if (addedKatId) flashMasterKategoriSaved(addedKatId);
+            }
+          };
+        },
+        { savingText: 'Menambah…', doneText: 'Ditambahkan', settleMs: 320 }
+      );
     }
   });
 };

@@ -8,6 +8,8 @@ import { normalizePaymentAccount } from 'finkas/core/payment-account';
 import { getActiveGroupId, getGroupName, getIsAdminView, getState } from 'finkas/core/state';
 import { getSelect, requiredField, closestHtml, formatRp, showToast } from 'finkas/core/utils';
 import { animateHybridAmount } from '../ui/hybrid-motion';
+import { flashCopyFeedback } from '../ui/keel';
+import { flashPaperPlane } from '../ui/ui-moments';
 import { openModal, closeModal } from '../ui/modal';
 
 type Period = Pick<DuesMonth, 'year' | 'monthIndex'>;
@@ -98,7 +100,15 @@ export const selectSelfPayPreset = (preset = 'due') => {
   if (breakdown) breakdown.textContent = total
     ? `${periods.length} bulan${equalAmounts ? ` × ${formatRp(ledger.monthlyFee)}` : ' sesuai sisa iuran'} (${shortMonths.join(', ')})`
     : 'Pilih minimal 1 bulan di atas (BELUM, SEBAGIAN, atau NANTI).';
-  animateHybridAmount(document.getElementById('self-pay-total'), total, { format: formatRp });
+  const totalEl = document.getElementById('self-pay-total');
+  animateHybridAmount(totalEl, total, { format: formatRp });
+  if (total !== transferAmount && totalEl?.classList) {
+    totalEl.classList.remove('is-updating');
+    void (totalEl as HTMLElement).offsetWidth;
+    totalEl.classList.add('is-updating');
+    const timer = setTimeout(() => totalEl.classList?.remove('is-updating'), 220);
+    (timer as { unref?: () => void })?.unref?.();
+  }
   (document.getElementById('self-pay-total-announcement') as HTMLElement).textContent = formatRp(total);
   transferAmount = total;
   accountNumber = transfer ? account.number : '';
@@ -140,13 +150,17 @@ export const openSelfPay = (id?: string, monthIndex?: number, year?: number) => 
   openModal('modal-bayar-anggota');
 };
 
-export const copySelfPay = async (kind?: string) => {
+export const copySelfPay = async (kind?: string, btn?: HTMLElement | null) => {
   if (selection?.groupId !== getActiveGroupId()) return;
   const text = kind === 'account' ? accountNumber : kind === 'amount' && transferAmount ? String(transferAmount) : summary;
   if (!text) return;
   try {
     if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
     await navigator.clipboard.writeText(text);
+    const surface = btn?.closest?.<HTMLElement>('.self-pay-section')
+      || btn?.closest?.<HTMLElement>('.self-pay-preview-wrap')?.querySelector?.<HTMLElement>('.self-pay-preview')
+      || null;
+    flashCopyFeedback(btn, surface);
     showToast('Rincian pembayaran disalin.', 'success');
   } catch {
     const field = document.createElement('textarea');
@@ -177,6 +191,11 @@ export const initSelfPay = () => {
     if (selectedPeriods.has(key)) selectedPeriods.delete(key);
     else selectedPeriods.add(key);
     selectSelfPayPreset('manual');
+  });
+  document.getElementById('self-pay-whatsapp')?.addEventListener('click', (event) => {
+    const link = event.currentTarget as HTMLElement | null;
+    if (!link?.hasAttribute?.('href') || link.getAttribute('aria-disabled') === 'true') return;
+    flashPaperPlane(link);
   });
   window.addEventListener('finkas:group-changed', () => {
     selection = null;

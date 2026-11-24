@@ -218,10 +218,49 @@ const resetPasswordVisibility = () => {
   if (capsHint) capsHint.hidden = true;
 };
 
+const setLoginText = (id: string, text: string) => {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+};
+
+const resetLoginStage = () => {
+  const modal = document.getElementById("modal-login");
+  modal?.removeAttribute?.("data-pay-state");
+  modal?.removeAttribute?.("data-pay-tone");
+};
+
+const startLoginSavingStage = (groupName: string) => {
+  const modal = document.getElementById("modal-login");
+  modal?.setAttribute?.("data-pay-state", "saving");
+  modal?.setAttribute?.("data-pay-tone", "inflow");
+  setLoginText("login-verified-title", "Memverifikasi Akses…");
+  setLoginText("login-verified-role", "Akses Pengurus");
+  setLoginText("login-verified-sub", `${groupName} · Sesi terenkripsi`);
+};
+
+const settleLoginStage = (roleLabel: string, groupName: string) => {
+  document.getElementById("modal-login")?.setAttribute?.("data-pay-state", "settled");
+  setLoginText("login-verified-title", "Akses Terbuka");
+  setLoginText("login-verified-role", roleLabel);
+  setLoginText("login-verified-sub", `${groupName} · Sesi aktif 12 jam`);
+};
+
+const pulseRoleSwitcher = () => {
+  const switcher = document.getElementById("role-switcher");
+  if (!switcher?.classList) return;
+  switcher.classList.remove("is-just-unlocked");
+  void switcher.offsetWidth;
+  switcher.classList.add("is-just-unlocked");
+  if (typeof globalThis.setTimeout === "function") {
+    globalThis.setTimeout(() => switcher.classList.remove("is-just-unlocked"), 520);
+  }
+};
+
 const prepareLoginModal = () => {
   syncLoginGroupContext();
   clearLoginError();
   resetPasswordVisibility();
+  resetLoginStage();
 };
 
 /** Wire login modal UX helpers (group context, inline alerts, password toggle, Caps Lock). */
@@ -236,6 +275,7 @@ export const initLoginModal = () => {
   modal.addEventListener("close", () => {
     resetPasswordVisibility();
     clearLoginError();
+    resetLoginStage();
   });
 
   const btnTogglePwd = document.getElementById("btn-toggle-pwd");
@@ -303,6 +343,7 @@ export const submitLoginAdmin = async (e: Event) => {
     || (document.getElementById("btn-submit-login") as HTMLButtonElement | null);
   const savedChildren = btn ? Array.from(btn.childNodes) : [];
   if (btn) {
+    if (btn.offsetWidth && btn.offsetWidth > 0) btn.style?.setProperty?.("--btn-lock-w", `${btn.offsetWidth}px`);
     const label = document.createElement("span");
     label.textContent = "Mengecek...";
     btn.replaceChildren(buttonIcon("ph ph-spinner-gap ph-spin"), label);
@@ -310,23 +351,43 @@ export const submitLoginAdmin = async (e: Event) => {
     btn.setAttribute("aria-busy", "true");
   }
 
+  const groupName = document.getElementById("app-group-name")?.textContent?.trim() || "Finkas";
+  startLoginSavingStage(groupName);
+  const startedAt = Date.now();
+
   try {
     const res = await loginAdminApi(email, password, getActiveGroupId());
 
     if (res && res.status) {
+      const roleLabel = getIsSuperAdmin() ? "Super Admin" : "Admin Grup";
+      const motionOk = Boolean(
+        globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches &&
+        typeof globalThis.setTimeout === "function"
+      );
+      if (motionOk) {
+        const waitMs = 360 - (Date.now() - startedAt);
+        if (waitMs > 0) await new Promise<void>((r) => setTimeout(r, waitMs));
+      }
+      settleLoginStage(roleLabel, groupName);
+      if (motionOk) {
+        try { globalThis.navigator?.vibrate?.(18); } catch {}
+        await new Promise<void>((r) => setTimeout(r, 650));
+      }
       if (emailInput) emailInput.value = "";
       if (pwdInput) pwdInput.value = "";
       resetPasswordVisibility();
       closeModal("modal-login");
+      resetLoginStage();
       handleUI();
+      pulseRoleSwitcher();
       renderAll();
       renderChart();
 
-      const roleLabel = getIsSuperAdmin() ? "Super Admin" : "Admin Grup";
       showToast(`Berhasil Login sebagai ${roleLabel}!`, "success");
       return;
     }
 
+    resetLoginStage();
     showLoginError(res ? res.message : "Gagal terhubung ke server.", pwdInput);
     if (pwdInput) {
       pwdInput.value = "";
@@ -337,6 +398,7 @@ export const submitLoginAdmin = async (e: Event) => {
       btn.replaceChildren(...savedChildren);
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
+      btn.style?.removeProperty?.("--btn-lock-w");
     }
   }
 };
@@ -411,8 +473,20 @@ export const loginGoogleSuperAdminAction = async () => {
             return;
           }
 
+          const loginModal = (document.getElementById("modal-login") as HTMLDialogElement | null);
+          const groupName = document.getElementById("app-group-name")?.textContent?.trim() || "Finkas";
+          const motionOk = Boolean(
+            globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches &&
+            typeof globalThis.setTimeout === "function"
+          );
+          if (loginModal?.open && motionOk) {
+            settleLoginStage("Super Admin", groupName);
+            await new Promise<void>((r) => setTimeout(r, 520));
+          }
           closeModal("modal-login");
+          resetLoginStage();
           handleUI();
+          pulseRoleSwitcher();
           renderAll();
           renderChart();
           showToast("Selamat datang, Super Admin!", "success");

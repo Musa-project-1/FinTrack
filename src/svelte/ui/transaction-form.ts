@@ -223,8 +223,14 @@ const validateCurrentStep = (step: number) =>
 export const setTrxWizardStep = (step: number, { focus = true }: { focus?: boolean } = {}) => {
   const modal = document.getElementById('modal-transaksi');
   if (!modal) return;
+  const prevStep = wizardStep;
   const nextStep = Math.max(1, Math.min(3, Number(step) || 1));
   wizardStep = nextStep;
+  if (modal.dataset) {
+    modal.dataset.stepDir = focus
+      ? (nextStep > prevStep ? 'forward' : nextStep < prevStep ? 'backward' : 'none')
+      : 'none';
+  }
 
   const isEn = isEnLang();
   const labels = wizardTab === 'operasional'
@@ -543,16 +549,16 @@ export const updateEditDelta = (origTipe: string, origNom: number, newTipe: stri
   const diff = (sign(newTipe) * newNom) - (sign(origTipe) * origNom);
 
   const isMasuk = newTipe === 'Masuk';
-  elTipe.textContent = isMasuk ? 'PEMASUKAN' : 'PENGELUARAN';
+  elTipe.textContent = isMasuk ? 'Pemasukan (+)' : 'Pengeluaran (−)';
   elTipe.className = `edit-delta-val ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
 
   elBefore.textContent = formatRp(origNom);
-  elBefore.className = `edit-delta-val ${origTipe === 'Masuk' ? 'is-masuk' : 'is-keluar'}`;
+  elBefore.className = 'edit-delta-val is-muted';
 
   elAfter.textContent = formatRp(newNom);
   elAfter.className = `edit-delta-val ${isMasuk ? 'is-masuk' : 'is-keluar'}`;
 
   const absDiff = Math.abs(diff);
-  elDiff.textContent = `${diff >= 0 ? '+' : '-'}${formatRp(absDiff)}`;
-  elDiff.className = `edit-delta-val ${diff >= 0 ? 'is-masuk' : 'is-keluar'}`;
+  elDiff.textContent = diff === 0 ? 'Rp 0' : `${diff > 0 ? '+' : '−'}${formatRp(absDiff)}`;
+  elDiff.className = diff === 0 ? 'edit-delta-val' : `edit-delta-val ${diff > 0 ? 'is-masuk' : 'is-keluar'}`;
 };

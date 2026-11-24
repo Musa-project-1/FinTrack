@@ -6,7 +6,7 @@
   <tr><td colspan="3" class="td-muted-center">Belum ada kategori.</td></tr>
 {:else}
   {#each masterKategoriStore.rows as row (row.id)}
-    <tr class="master-row {row.isMasuk ? 'is-masuk' : 'is-keluar'}">
+    <tr class="master-row {row.isMasuk ? 'is-masuk' : 'is-keluar'}" class:is-just-saved={masterKategoriStore.savedId === row.id}>
       <td class="td-name-col">
         <div class="master-cell-identity">
           <span class="master-kat-icon {row.isMasuk ? 'is-masuk' : 'is-keluar'}" aria-hidden="true"><i class="ph-bold {row.isMasuk ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>

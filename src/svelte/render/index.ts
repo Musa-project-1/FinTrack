@@ -4,7 +4,7 @@
  */
 
 export { renderDashboard, renderDropdowns, renderChart } from './dashboard';
-export { renderTableTransaksi } from '../stores/history.svelte';
+export { renderTableTransaksi, markUpdatedLedgerRow } from '../stores/history.svelte';
 export { renderTableRekap, renderIuranMobileCards, toggleIuranCard, markNewlyPaidCells } from '../stores/rekap.svelte';
 export { populateTahunRekap, renderSkippedMonthsList } from './rekap';
 export { bukaProfilAnggota } from './profile';

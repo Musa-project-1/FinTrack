@@ -95,8 +95,38 @@
       border-radius: 16px;
       box-shadow: var(--shadow-pop);
       padding: 14px;
-      transform-origin: top center;
-      animation: dropdownFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-origin: top left;
+      opacity: 0;
+      transition: opacity 130ms ease-out, display 130ms allow-discrete;
+    }
+
+    .mpick.open .mpick-pop:not([hidden]) {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .mpick-pop {
+        translate: 0 -6px;
+        scale: 0.97;
+        transition:
+          opacity 140ms var(--hybrid-ease-out),
+          translate 180ms var(--hybrid-ease-out),
+          scale 180ms var(--hybrid-ease-out),
+          display 140ms allow-discrete;
+      }
+
+      .mpick.open .mpick-pop:not([hidden]) {
+        translate: 0 0;
+        scale: 1;
+      }
+
+      @starting-style {
+        .mpick.open .mpick-pop:not([hidden]) {
+          opacity: 0;
+          translate: 0 -6px;
+          scale: 0.97;
+        }
+      }
     }
 
     .mpick-head {

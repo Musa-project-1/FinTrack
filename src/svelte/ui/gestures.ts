@@ -8,7 +8,7 @@
 import { closeModal } from './modal';
 
 const holdButton = (target: EventTarget | null) =>
-  (target as Element | null)?.closest?.<HTMLButtonElement>('.btn-danger-solid');
+  (target as Element | null)?.closest?.<HTMLButtonElement>('[data-hold-confirm]');
 
 /**
  * Check if the user prefers reduced motion.
@@ -33,7 +33,7 @@ export const initBottomSheetGestures = () => {
     const overlay = sheet.closest<HTMLDialogElement>('.modal-overlay');
     if (!overlay) return;
     const modalId = overlay.id;
-    const hasDuesBackdrop = overlay.classList?.contains('dues-dialog');
+    const hasDuesBackdrop = Boolean(overlay.classList?.contains('dues-dialog') || overlay.classList?.contains('hybrid-dialog'));
     const fadeSheet = (opacity: string) => {
       overlay.style.setProperty('opacity', opacity, 'important');
       if (hasDuesBackdrop) overlay.style.setProperty('--dues-drag-opacity', opacity);
@@ -186,6 +186,7 @@ export const initHoldToConfirm = () => {
   let holdTimer: ReturnType<typeof setTimeout> | undefined;
   let activeBtn: HTMLButtonElement | null = null;
   let hasFired = false;
+  const hintTimers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
   const startHold = (btn: HTMLButtonElement, pointerId: number) => {
     if (btn.disabled || btn.getAttribute('aria-disabled') === 'true' || btn.getAttribute('aria-busy') === 'true') {
@@ -199,8 +200,8 @@ export const initHoldToConfirm = () => {
     hasFired = false;
     btn.classList.add('is-holding');
     const labelEl = btn.querySelector('.hold-label');
-    if (labelEl && !btn.dataset.origText) {
-      btn.dataset.origText = labelEl.innerHTML;
+    if (labelEl && !btn.dataset.baseHtml) {
+      btn.dataset.baseHtml = labelEl.innerHTML;
     }
 
     try { btn.setPointerCapture(pointerId); } catch (_) {}
@@ -218,9 +219,8 @@ export const initHoldToConfirm = () => {
       setTimeout(() => {
         btn.classList.remove('is-confirmed');
         delete btn.dataset.holdVerified;
-        if (btn.dataset.origText && labelEl) {
-          labelEl.innerHTML = btn.dataset.origText;
-          delete btn.dataset.origText;
+        if (btn.dataset.baseHtml && labelEl) {
+          labelEl.innerHTML = btn.dataset.baseHtml;
         }
       }, 500);
     }, 1100);
@@ -271,20 +271,19 @@ export const initHoldToConfirm = () => {
     armHoldButton(btn);
 
     const labelEl = btn.querySelector('.hold-label');
-    if (labelEl && !btn.dataset.origText) {
-      btn.dataset.origText = labelEl.innerHTML;
+    if (labelEl) {
+      if (!btn.dataset.baseHtml) btn.dataset.baseHtml = labelEl.innerHTML;
+      clearTimeout(hintTimers.get(btn));
       labelEl.textContent = 'Tahan 1 dtk untuk hapus';
-      setTimeout(() => {
-        if (btn.dataset.origText) {
-          labelEl.innerHTML = btn.dataset.origText;
-          delete btn.dataset.origText;
-        }
+      const timer = setTimeout(() => {
+        if (btn.dataset.baseHtml) labelEl.innerHTML = btn.dataset.baseHtml;
       }, 1500);
+      hintTimers.set(btn, timer);
     }
   }, true);
 
-  // Arm visible destructive buttons upfront
-  document.querySelectorAll<HTMLElement>('.btn-danger-solid').forEach(armHoldButton);
+  // Arm explicit hold-to-confirm buttons upfront
+  document.querySelectorAll<HTMLElement>('[data-hold-confirm]').forEach(armHoldButton);
 };
 
 /* ── 3. Lifecycle Registry ────────────────────────────────────────── */

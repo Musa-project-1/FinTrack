@@ -37,6 +37,7 @@
 <div class="hybrid-card spotlight-card" hidden={!vm.hasPinned} id="spotlight-card">
   <div class="spotlight-identity">
     <div aria-label="Kepatuhan iuran saya" aria-valuemax="100" aria-valuemin="0" aria-valuenow={vm.percent} class="ring-box" id="spotlight-progress" role="progressbar">
+      <div class="ring-tide" aria-hidden="true" style:--tide-pct={vm.percent}><span class="ring-tide-level"></span></div>
       <svg aria-hidden="true" class="ring-svg" viewBox="0 0 86 86">
         <circle class="ring-track" cx="43" cy="43" r="35"></circle>
         <circle class="ring-progress" cx="43" cy="43" id="spotlight-ring-arc" pathLength="100" r="35" stroke-dasharray="100" stroke-dashoffset={100 - vm.percent}></circle>
@@ -93,11 +94,15 @@
   </div>
   <p aria-live="polite" class="spotlight-detail" hidden={!vm.detail} id="spotlight-detail">
     {#if vm.detail}
-      {vm.detail.head}{#if vm.detail.paid} · Setoran <span class="nominal-val">{vm.detail.paid}</span>{/if}{#if vm.detail.remaining} · Sisa <span class="nominal-val">{vm.detail.remaining}</span>{/if}
-      {#if vm.detail.cta}
-        {@const cta = vm.detail.cta}
-        <button type="button" class="spotlight-detail-cta" onclick={() => triggerSpotlightDetailCta(cta)}>{cta.label}</button>
-      {/if}
+      {#key vm.selectedMonthIndex}
+        <span class="spotlight-detail-inner">
+          {vm.detail.head}{#if vm.detail.paid} · Setoran <span class="nominal-val">{vm.detail.paid}</span>{/if}{#if vm.detail.remaining} · Sisa <span class="nominal-val">{vm.detail.remaining}</span>{/if}
+          {#if vm.detail.cta}
+            {@const cta = vm.detail.cta}
+            <button type="button" class="spotlight-detail-cta" onclick={() => triggerSpotlightDetailCta(cta)}>{cta.label}</button>
+          {/if}
+        </span>
+      {/key}
     {/if}
   </p>
 </div>
@@ -236,14 +241,31 @@
     }
 
     .ring-box {
-      position: relative; width: clamp(74px, 4.625rem, 108px); height: clamp(74px, 4.625rem, 108px);
+      position: relative; isolation: isolate; width: clamp(74px, 4.625rem, 108px); height: clamp(74px, 4.625rem, 108px);
       flex-shrink: 0; display: grid; place-items: center; container-type: inline-size;
     }
-    .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring-tide {
+      position: absolute; inset: 9px; border-radius: 50%; overflow: hidden; pointer-events: none; z-index: 0;
+    }
+    .ring-tide-level {
+      position: absolute; inset: 0;
+      transform: translateY(calc((100 - var(--tide-pct, 0)) * 1%));
+      transition: transform 520ms var(--hybrid-ease-out);
+    }
+    .ring-tide-level::before,
+    .ring-tide-level::after {
+      content: ''; position: absolute; width: 200%; height: 200%; left: -50%; top: 0;
+      border-radius: 40% 44% 42% 38%;
+      background: color-mix(in srgb, var(--income) 15%, transparent);
+    }
+    .ring-tide-level::after {
+      top: 3px; border-radius: 44% 39% 43% 41%; opacity: 0.65;
+    }
+    .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); position: relative; z-index: 1; }
     .ring-track { fill: none; stroke: var(--surface-3); stroke-width: 7; }
     .ring-progress { fill: none; stroke: var(--hybrid-spot); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 820ms var(--hybrid-ease-out); }
     .ring-center {
-      position: absolute; inset: 0; padding: 6px; display: flex; flex-direction: column;
+      position: absolute; inset: 0; z-index: 1; padding: 6px; display: flex; flex-direction: column;
       align-items: center; justify-content: center; text-align: center; line-height: 1.05; min-width: 0; overflow: hidden;
     }
     .ring-pct { font-size: clamp(13px, 22cqw, 20px); font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; max-width: 100%; }
@@ -369,7 +391,8 @@
       display: inline-flex; align-items: center; justify-content: center; margin-inline-start: 8px; margin-block: 2px;
       padding: 4px 10px; max-width: 100%; border-radius: var(--r-pill); border: 1px solid var(--accent-border);
       background: var(--accent-tint); color: var(--accent-strong); font-size: 12px; font-weight: 700;
-      white-space: normal; text-align: center; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease;
+      white-space: normal; text-align: center; cursor: pointer;
+      transition: background-color 140ms ease, border-color 140ms ease, transform 120ms var(--hybrid-ease-spring);
     }
     @media (hover: hover) and (pointer: fine) {
       .spotlight-detail-cta:hover { background: color-mix(in oklab, var(--accent-tint) 75%, var(--surface)); }
@@ -481,17 +504,59 @@
       #spotlight-card .spotlight-months { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
+    #spotlight-card .spotlight-detail-inner { display: block; }
+
     @media (prefers-reduced-motion: no-preference) {
+      #spotlight-card:not([hidden]),
+      #quick-cek-bar:not([hidden]) {
+        transition: opacity 220ms var(--hybrid-ease-out), transform 220ms var(--hybrid-ease-out);
+      }
+      @starting-style {
+        #spotlight-card:not([hidden]),
+        #quick-cek-bar:not([hidden]) {
+          opacity: 0;
+          transform: translateY(6px) scale(0.988);
+        }
+      }
+      #spotlight-card .spotlight-detail-inner {
+        animation: spotlightDetailIn 160ms var(--hybrid-ease-out);
+      }
       #spotlight-card .mini-month-pill:active:not(:disabled) {
         transform: scale(0.96);
       }
+      .spotlight-detail-cta:active {
+        transform: scale(0.96);
+      }
+      #spotlight-card .ring-tide-level::before {
+        animation: tideWaveSpin 7.5s linear infinite;
+      }
+      #spotlight-card .ring-tide-level::after {
+        animation: tideWaveSpin 10.5s linear infinite reverse;
+      }
+    }
+    #spotlight-card[hidden] .ring-tide-level::before,
+    #spotlight-card[hidden] .ring-tide-level::after {
+      animation-play-state: paused;
+    }
+    @keyframes tideWaveSpin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spotlightDetailIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (prefers-reduced-motion: reduce) {
       #spotlight-card,
-      #spotlight-card .mini-month-pill {
+      #spotlight-card .mini-month-pill,
+      #spotlight-card .spotlight-detail-inner,
+      #spotlight-card .ring-tide-level::before,
+      #spotlight-card .ring-tide-level::after {
         animation: none;
       }
+      #spotlight-card:not([hidden]),
+      #quick-cek-bar:not([hidden]),
+      #spotlight-card .ring-tide-level,
       #spotlight-card .ring-progress,
       #spotlight-card .mini-month-pill,
       .dues-pin-btn,

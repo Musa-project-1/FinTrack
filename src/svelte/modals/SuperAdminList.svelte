@@ -436,7 +436,7 @@
         min-height: 44px;
       }
 
-      #modal-group-credentials.hybrid-dialog[open] .group-creds-sheet {
+      #modal-group-credentials.hybrid-dialog .group-creds-sheet {
         width: 100%;
         max-width: 100%;
         max-height: 90dvh;

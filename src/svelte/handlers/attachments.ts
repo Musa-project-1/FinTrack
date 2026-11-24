@@ -15,6 +15,7 @@ type AttachmentFile = { base64: string; type: string; name: string; size: number
 import { buttonIcon, isOnline, showToast } from 'finkas/core/utils';
 import { getActiveGroupId, getState } from 'finkas/core/state';
 import { dataRequest } from 'finkas/core/api-client';
+import { flashDownloadRing } from '../ui/ui-moments';
 
 const toast = (msg: string, type: Parameters<typeof showToast>[1]) => {
   if (typeof document !== 'undefined' && typeof showToast === 'function') {
@@ -388,6 +389,7 @@ export function initAttachmentControls(options: { container?: HTMLElement | stri
       try {
         const { blob, name } = await downloadAttachmentBlob({ idTransaksi });
         triggerBlobDownload(blob, name);
+        flashDownloadRing(downloadBtn, 'Terunduh');
       } catch (err) {
         toast(err?.message || 'Gagal mengunduh bukti.', 'error');
       } finally {

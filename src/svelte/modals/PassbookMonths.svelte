@@ -398,7 +398,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-profil-anggota[open] .hybrid-passbook { width: 100%; border-bottom: 0; }
+      #modal-profil-anggota .hybrid-passbook { width: 100%; border-bottom: 0; }
       #modal-profil-anggota .hybrid-sheet-handle { min-height: 44px; flex-shrink: 0; }
       #modal-profil-anggota .hybrid-sheet-handle span { width: 42px; height: 5px; }
       #modal-profil-anggota .dlg-header { padding-top: 4px; }

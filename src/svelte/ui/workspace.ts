@@ -1,6 +1,7 @@
 import { getInput, htmlElements } from 'finkas/core/utils';
 import { renderChart, renderTableTransaksi } from '../render/index';
 import { setBottomNavActive, setHistoryFilter } from '../handlers/navigation';
+import { isReducedMotion } from './ui-moments';
 
 let gliderSyncers: Array<{ sync(): void; schedule(): void }> = [];
 export const syncWorkspaceGliders = (immediate = false) => {
@@ -61,10 +62,26 @@ export const initWorkspace = () => {
   gliderSyncers = [];
 
   for (const track of htmlElements('.workspace-tabs, .workspace-status-filter, .role-switcher-track')) {
+    let prevLeft: number | undefined;
+    let wormTimer: ReturnType<typeof setTimeout> | undefined;
     const syncGlider = () => {
       const selected = (track.querySelector('[aria-selected="true"], [aria-pressed="true"]') as HTMLElement|null);
       if (!selected?.offsetWidth) return;
-      track.style.setProperty('--glider-left', `${selected.offsetLeft}px`);
+      const nextLeft = selected.offsetLeft;
+      if (prevLeft !== undefined && Math.abs(nextLeft - prevLeft) > 2 && !isReducedMotion()) {
+        const glider = track.querySelector<HTMLElement>('.workspace-glider');
+        if (glider?.classList) {
+          if (track instanceof HTMLElement) track.dataset.worm = nextLeft > prevLeft ? 'right' : 'left';
+          glider.classList.remove('is-worming');
+          void glider.offsetWidth;
+          glider.classList.add('is-worming');
+          clearTimeout(wormTimer);
+          wormTimer = setTimeout(() => glider.classList?.remove('is-worming'), 320);
+          (wormTimer as { unref?: () => void })?.unref?.();
+        }
+      }
+      prevLeft = nextLeft;
+      track.style.setProperty('--glider-left', `${nextLeft}px`);
       track.style.setProperty('--glider-width', `${selected.offsetWidth}px`);
     };
     let rafId = 0;

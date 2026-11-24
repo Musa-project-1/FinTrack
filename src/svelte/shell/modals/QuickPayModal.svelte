@@ -71,5 +71,19 @@
           </button>
         </div>
       </form>
+      <div class="pay-verified-stage" id="qp-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="qp-verified-title">Mencatat Pembayaran…</strong>
+          <span class="pay-verified-amount font-mono tabular-nums" id="qp-verified-amount">Rp 0</span>
+          <span class="pay-verified-sub" id="qp-verified-sub">-</span>
+        </div>
+      </div>
     </div>
   </dialog>

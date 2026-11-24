@@ -76,9 +76,9 @@
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
-          <!-- Hamburger Button opens Unified Menu Modal -->
-          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" title="Menu">
-            <i class="ph ph-list fs-22"></i>
+          <!-- Hamburger Button opens Unified Menu Modal (#17 Menu Morph) -->
+          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" aria-expanded="false" title="Menu">
+            <span class="menu-morph-bars" aria-hidden="true"><span></span><span></span><span></span></span>
           </button>
 
 
@@ -167,6 +167,7 @@
       <div class="hybrid-card spotlight-card" hidden="" id="spotlight-card">
         <div class="spotlight-identity">
           <div aria-label="Kepatuhan iuran saya" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="ring-box" id="spotlight-progress" role="progressbar">
+            <div class="ring-tide" aria-hidden="true"><span class="ring-tide-level"></span></div>
             <svg aria-hidden="true" class="ring-svg" viewBox="0 0 86 86">
               <circle class="ring-track" cx="43" cy="43" r="35"></circle>
               <circle class="ring-progress" cx="43" cy="43" id="spotlight-ring-arc" pathLength="100" r="35" stroke-dasharray="100" stroke-dashoffset="100"></circle>

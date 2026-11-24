@@ -6,12 +6,25 @@ import { computeHistoryViewModel, formatLedgerRows, type HistoryRowVM } from './
 export { computeHistoryViewModel };
 const historyPagination = createPagination('history-pagination', 'transaksi', () => renderTableTransaksi());
 export const initHistoryPagination = historyPagination.init;
-export const historyStore = $state<{ rows: HistoryRowVM[] }>({ rows: [] });
+export const historyStore = $state<{ rows: HistoryRowVM[]; updatedId: string }>({ rows: [], updatedId: '' });
 let mountHistory: () => void;
+let updatedRowTimer: ReturnType<typeof setTimeout> | undefined;
 export function registerHistoryMount(mountFn: () => void) { mountHistory = mountFn; }
 
+export function markUpdatedLedgerRow(id: string) {
+  clearTimeout(updatedRowTimer);
+  historyStore.updatedId = id;
+  if (!id) return;
+  updatedRowTimer = setTimeout(() => {
+    if (historyStore.updatedId === id) historyStore.updatedId = '';
+  }, 1100);
+  (updatedRowTimer as { unref?: () => void })?.unref?.();
+}
+
 export function resetHistoryGroupState() {
+  clearTimeout(updatedRowTimer);
   historyStore.rows = [];
+  historyStore.updatedId = '';
   const count = globalThis.document?.getElementById?.('hybrid-ledger-count');
   if (count) count.textContent = 'Menampilkan 0 transaksi';
 }

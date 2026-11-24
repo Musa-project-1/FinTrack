@@ -502,7 +502,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-about.hybrid-dialog[open] .about-sheet {
+      #modal-about.hybrid-dialog .about-sheet {
         width: 100%;
         max-width: 100%;
         max-height: 90dvh;

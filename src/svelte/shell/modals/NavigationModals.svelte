@@ -620,7 +620,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-menu.hybrid-dialog[open] .command-hub-modal {
+      #modal-menu.hybrid-dialog .command-hub-modal {
         width: 100%;
         max-width: 100%;
         max-height: 90dvh;

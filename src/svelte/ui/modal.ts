@@ -15,14 +15,38 @@ export {
 const activeModalStack: HTMLDialogElement[] = [];
 const boundDialogs = new WeakSet<HTMLDialogElement>();
 const duesExitAnimations = new WeakMap<HTMLDialogElement, Animation[]>();
+let cachedDisplayTransition: boolean | undefined;
+
+const canTransitionDisplay = () => {
+  if (cachedDisplayTransition !== undefined) return cachedDisplayTransition;
+  if (!globalThis.CSS?.supports?.('transition-behavior', 'allow-discrete') || !globalThis.document?.body?.appendChild) return false;
+  const probe = document.createElement('div');
+  if (!probe?.style || typeof globalThis.getComputedStyle !== 'function') return false;
+  // Intentional transition shorthand probe for discrete display transitions (Firefox bug 1882408).
+  probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+  document.body.appendChild(probe);
+  getComputedStyle(probe).display;
+  probe.style.display = 'none';
+  cachedDisplayTransition = getComputedStyle(probe).display === 'block';
+  probe.remove?.();
+  return cachedDisplayTransition;
+};
 
 export const getActiveModalId = () => activeModalStack.at(-1)?.id;
+
+const syncMenuButtonExpanded = (open: boolean) => {
+  const menuBtn = document.getElementById('btn-header-menu');
+  if (!menuBtn) return;
+  menuBtn.setAttribute?.('aria-expanded', String(open));
+  menuBtn.classList?.toggle?.('is-menu-open', open);
+};
 
 const finishClose = (el: HTMLDialogElement) => {
   const index = activeModalStack.indexOf(el);
   if (index === -1) return;
   activeModalStack.splice(index, 1);
   el.classList.remove('active');
+  if (el.id === 'modal-menu') syncMenuButtonExpanded(false);
   if (el.id === 'modal-confirm-action') pendingConfirmAction = null;
   if (!activeModalStack.length) {
     document.body.classList.remove('modal-open');
@@ -67,7 +91,7 @@ const bindDialog = (el: HTMLDialogElement) => {
 /** Open a native modal by its element ID. */
 export const openModal = (id: string) => {
   closeMobileMenu();
-  if (id !== 'modal-menu') closeModal('modal-menu');
+  if (id !== 'modal-menu') closeModal('modal-menu', true);
   const el = (document.getElementById(id) as HTMLDialogElement | null);
   if (!el) {
     console.error('openModal: Element not found with id:', id);
@@ -94,6 +118,7 @@ export const openModal = (id: string) => {
   promoteToastLayer();
   activeModalStack.push(el);
   el.classList.add('active');
+  if (id === 'modal-menu') syncMenuButtonExpanded(true);
   document.body.classList.add('modal-open');
   document.dispatchEvent(new CustomEvent('finkas:modal-opened', { detail: { id }, bubbles: true }));
 };
@@ -106,11 +131,11 @@ export const closeModal = (id: string, immediate = false) => {
     duesExitAnimations.delete(el);
     el.removeAttribute('data-dues-closing');
   }
-  if (!immediate && el.open && el.classList.contains('dues-dialog') &&
-      !(globalThis.CSS?.supports('overlay: auto') && globalThis.CSS.supports('transition-behavior: allow-discrete'))) {
+  if (!immediate && el.open && (el.classList.contains('dues-dialog') || el.classList.contains('hybrid-dialog')) &&
+      !(globalThis.CSS?.supports?.('overlay: auto') && canTransitionDisplay())) {
     if (el.hasAttribute('data-dues-closing')) return;
     el.setAttribute('data-dues-closing', '');
-    const transitions = el.getAnimations().filter((animation) => 'transitionProperty' in animation && animation.transitionProperty === 'opacity');
+    const transitions = el.getAnimations?.().filter((animation) => 'transitionProperty' in animation && animation.transitionProperty === 'opacity') ?? [];
     if (transitions.length) {
       duesExitAnimations.set(el, transitions);
       Promise.allSettled(transitions.map((animation) => animation.finished)).then(() => {

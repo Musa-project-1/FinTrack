@@ -193,6 +193,9 @@ export const showToast = (message: string|undefined, type: 'success'|'error'|'wa
   toast.append(iconWrap, body, closeBtn, progress);
 
   let timer: ReturnType<typeof setTimeout>|null = null;
+  let remaining = duration;
+  let startedAt = Date.now();
+  let hiding = false;
   let removed = false;
   const removeToast = () => {
     if (removed) return;
@@ -201,19 +204,36 @@ export const showToast = (message: string|undefined, type: 'success'|'error'|'wa
     syncToastPopoverState(container);
   };
   const hide = () => {
+    if (hiding || removed) return;
+    hiding = true;
+    if (toast.offsetHeight > 0) {
+      toast.style.maxHeight = `${toast.offsetHeight}px`;
+      void toast.offsetHeight;
+    }
     toast.classList.remove('show');
-    setTimeout(removeToast, 280);
+    toast.classList.add('is-leaving');
+    setTimeout(removeToast, 240);
   };
-  const startTimer = () => { timer = setTimeout(hide, duration); };
-  const stopTimer = () => { if (timer) clearTimeout(timer); };
+  const startTimer = () => {
+    if (hiding || removed) return;
+    if (timer) clearTimeout(timer);
+    startedAt = Date.now();
+    timer = setTimeout(hide, Math.max(0, remaining));
+  };
+  const pauseTimer = () => {
+    if (timer === null) return;
+    clearTimeout(timer);
+    timer = null;
+    remaining = Math.max(120, remaining - (Date.now() - startedAt));
+  };
 
   closeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    stopTimer();
+    if (timer) { clearTimeout(timer); timer = null; }
     hide();
   });
   toast.addEventListener('mouseenter', () => {
-    stopTimer();
+    pauseTimer();
     progress.style.animationPlayState = 'paused';
   });
   toast.addEventListener('mouseleave', () => {
@@ -245,7 +265,7 @@ export const showToast = (message: string|undefined, type: 'success'|'error'|'wa
     if (!isSwiping) {
       if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
         isSwiping = true;
-        stopTimer();
+        pauseTimer();
         progress.style.animationPlayState = 'paused';
         try { toast.setPointerCapture(e.pointerId); } catch (_) {}
       }
@@ -273,10 +293,11 @@ export const showToast = (message: string|undefined, type: 'success'|'error'|'wa
 
     if (Math.abs(deltaX) > threshold || isFlick) {
       const dir = deltaX > 0 ? 1 : -1;
+      hiding = true;
       toast.style.transition = 'transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.18s ease-out';
       toast.style.transform = `translateX(${dir * (toast.offsetWidth + 60)}px)`;
       toast.style.opacity = '0';
-      stopTimer();
+      if (timer) { clearTimeout(timer); timer = null; }
       setTimeout(removeToast, 190);
     } else {
       toast.style.transition = 'transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.2s ease-out';

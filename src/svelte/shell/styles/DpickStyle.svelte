@@ -95,8 +95,8 @@
       box-shadow: 0 0 0 3px var(--danger-bg);
     }
 
-    /* Match compact inputs inside #modal-transaksi */
-    #modal-transaksi .dpick-field {
+    /* Match compact inputs inside #modal-transaksi & #modal-edit-transaksi */
+    :is(#modal-transaksi, #modal-edit-transaksi) .dpick-field {
       height: 38px;
       min-height: 38px;
       padding: 7px 12px;
@@ -107,7 +107,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-transaksi .dpick-field {
+      :is(#modal-transaksi, #modal-edit-transaksi) .dpick-field {
         height: 44px;
         min-height: 44px;
         font-size: max(1rem, 1em);
@@ -127,6 +127,13 @@
       box-shadow: var(--shadow-pop);
       color: var(--text-main);
       overscroll-behavior: contain;
+      opacity: 0;
+      transform-origin: top left;
+      transition: opacity 140ms var(--hybrid-ease-out);
+    }
+
+    .dpick-pop:is(:popover-open, :not([popover]):not([hidden])) {
+      opacity: 1;
     }
 
     .dpick-pop:not([popover]) {
@@ -152,6 +159,10 @@
     }
 
     @media (max-width: 520px) {
+      .dpick-pop {
+        transform-origin: center;
+      }
+
       .dpick-pop[popover] {
         position-area: none;
         inset: 0;
@@ -171,14 +182,38 @@
     }
 
     @media (prefers-reduced-motion: no-preference) {
-      .dpick-pop:is(:popover-open, :not([hidden])) {
-        animation: dpick-in 170ms var(--hybrid-ease-out);
+      .dpick-pop {
+        translate: 0 -6px;
+        scale: 0.97;
+        transition:
+          opacity 140ms var(--hybrid-ease-out),
+          translate 180ms var(--hybrid-ease-out),
+          scale 180ms var(--hybrid-ease-out);
       }
-    }
 
-    @keyframes dpick-in {
-      from { opacity: 0; translate: 0 4px; scale: 0.97; }
-      to { opacity: 1; translate: 0 0; scale: 1; }
+      @supports (overlay: auto) and (transition-behavior: allow-discrete) {
+        .dpick-pop {
+          transition:
+            opacity 140ms var(--hybrid-ease-out),
+            translate 180ms var(--hybrid-ease-out),
+            scale 180ms var(--hybrid-ease-out),
+            display 140ms allow-discrete,
+            overlay 140ms allow-discrete;
+        }
+      }
+
+      .dpick-pop:is(:popover-open, :not([popover]):not([hidden])) {
+        translate: 0 0;
+        scale: 1;
+      }
+
+      @starting-style {
+        .dpick-pop:is(:popover-open, :not([popover]):not([hidden])) {
+          opacity: 0;
+          translate: 0 -6px;
+          scale: 0.97;
+        }
+      }
     }
 
     .dpick-head {

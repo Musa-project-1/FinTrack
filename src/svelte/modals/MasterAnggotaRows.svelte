@@ -8,7 +8,7 @@
   {@const q = masterAnggotaStore.query.trim().toLowerCase()}
   {#each masterAnggotaStore.rows as row (row.id)}
     {@const visible = !q || row.searchText.toLowerCase().includes(q)}
-    <tr class="master-row {row.isAktif ? 'is-aktif' : 'is-nonaktif'}" data-search={row.searchText} style:display={visible ? undefined : 'none'}>
+    <tr class="master-row {row.isAktif ? 'is-aktif' : 'is-nonaktif'}" class:is-just-saved={masterAnggotaStore.savedId === row.id} data-search={row.searchText} style:display={visible ? undefined : 'none'}>
       <td class="td-name-col">
         <div class="master-cell-identity">
           <span class="master-avatar {row.isAktif ? '' : 'is-inactive'}" aria-hidden="true">{row.initials}</span>
@@ -57,8 +57,8 @@
       background: var(--surface); box-shadow: var(--shadow-pop);
       display: flex; flex-direction: column; overflow: visible;
     }
-    #modal-kelola-master[open] > .master-sheet,
-    :is(#modal-edit-master-anggota, #modal-edit-master-kategori)[open] > .master-edit-sheet {
+    #modal-kelola-master > .master-sheet,
+    :is(#modal-edit-master-anggota, #modal-edit-master-kategori) > .master-edit-sheet {
       max-height: min(92dvh, 760px);
     }
 
@@ -527,7 +527,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-audit-log[open] > .audit-sheet {
+      #modal-audit-log > .audit-sheet {
         width: 100%; max-width: 100%; max-height: 92dvh; border-radius: 20px 20px 0 0; overflow: hidden;
       }
       #modal-audit-log .hybrid-sheet-handle { flex-shrink: 0; }
@@ -560,6 +560,26 @@
       #modal-audit-log .audit-footer-hint { display: none; }
       #modal-audit-log .audit-sheet-footer { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); border-radius: 0; }
       #modal-audit-log .audit-sheet-footer .btn { width: 100%; min-height: 44px; height: 44px; justify-content: center; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .master-row.is-just-saved {
+        animation: masterRowEnter 200ms var(--hybrid-ease-out);
+      }
+      .master-row.is-just-saved td {
+        animation: masterCellSaved 950ms var(--hybrid-ease-out);
+      }
+    }
+    @keyframes masterRowEnter {
+      from { opacity: 0.4; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes masterCellSaved {
+      0%, 25% { background-color: var(--accent-tint); }
+      100% { background-color: transparent; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .master-row.is-just-saved, .master-row.is-just-saved td { animation: none; }
     }
   }
 </style>

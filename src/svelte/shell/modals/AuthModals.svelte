@@ -77,6 +77,20 @@
         </div>
         <button type="button" class="auth-cancel-link" data-action="close-modal">Batal</button>
       </div>
+      <div class="pay-verified-stage" id="login-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="login-verified-title">Memverifikasi Akses…</strong>
+          <span class="pay-verified-amount" id="login-verified-role">Akses Pengurus</span>
+          <span class="pay-verified-sub" id="login-verified-sub">Memeriksa sesi terenkripsi</span>
+        </div>
+      </div>
     </div>
   </dialog>
 
@@ -167,6 +181,7 @@
     }
 
     #modal-login .auth-login-sheet {
+      position: relative;
       width: min(440px, calc(100vw - 28px));
       max-width: 100%;
       padding: 0;
@@ -542,6 +557,7 @@
 
     #modal-login .auth-submit-btn {
       width: 100%;
+      min-width: var(--btn-lock-w, 0);
       min-height: 48px;
       margin-top: 2px;
       padding: 0 18px;
@@ -635,7 +651,7 @@
     }
 
     @media (max-width: 768px) {
-      #modal-login.hybrid-dialog[open] .auth-login-sheet {
+      #modal-login.hybrid-dialog .auth-login-sheet {
         width: 100%;
         max-width: 100%;
         max-height: 92dvh;
@@ -678,6 +694,15 @@
         min-height: 44px;
         padding: 0 14px;
       }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #role-switcher.is-just-unlocked { animation: roleSwitcherUnlock 480ms cubic-bezier(0.22, 1, 0.36, 1); }
+    }
+    @keyframes roleSwitcherUnlock {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 var(--accent-tint); }
+      55% { transform: scale(1.02); box-shadow: 0 0 0 6px var(--accent-tint); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -108,7 +108,7 @@
             <form id="form-tambah-anggota" class="master-form-row">
               <input type="text" id="input-nama-anggota" name="input-nama-anggota" class="form-control flex-1 min-w-200" placeholder="Nama Anggota Baru..." required aria-label="Nama Anggota Baru" autocomplete="off">
               <input type="text" id="input-wa-anggota" name="input-wa-anggota" class="form-control w-180" placeholder="No. WA (Opsional)..." aria-label="No. WhatsApp Anggota" inputmode="tel" autocomplete="off">
-              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-user-plus" aria-hidden="true"></i><span>Tambah</span></button>
+              <button type="submit" class="btn btn-primary btn-liquid"><span class="keel-label"><i class="ph-bold ph-user-plus" aria-hidden="true"></i><span>Tambah</span></span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
             </form>
           </div>
           <div class="master-list-toolbar">
@@ -145,7 +145,7 @@
                 <option value="Keluar">Kas Keluar</option>
               </select>
               <input type="text" id="input-nama-kategori" name="input-nama-kategori" class="form-control flex-1 min-w-200" placeholder="Nama Kategori Baru..." required aria-label="Nama Kategori Baru" autocomplete="off">
-              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-plus" aria-hidden="true"></i><span>Tambah</span></button>
+              <button type="submit" class="btn btn-primary btn-liquid"><span class="keel-label"><i class="ph-bold ph-plus" aria-hidden="true"></i><span>Tambah</span></span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
             </form>
           </div>
           <div class="table-responsive master-table-wrapper">
@@ -216,7 +216,7 @@
             </div>
             <div class="master-pay-actions">
               <span class="master-pay-note">Simpan perubahan agar langsung muncul di panduan transfer anggota.</span>
-              <button type="submit" class="btn btn-primary"><i class="ph-bold ph-floppy-disk" aria-hidden="true"></i><span>Simpan Rekening</span></button>
+              <button type="submit" class="btn btn-primary btn-liquid"><span class="keel-label"><i class="ph-bold ph-floppy-disk" aria-hidden="true"></i><span>Simpan Rekening</span></span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
             </div>
           </form>
         </div>
@@ -288,7 +288,7 @@
           <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-anggota" data-action="hapus-anggota-from-modal">
             <i class="ph-bold ph-trash" aria-hidden="true"></i><span>Hapus</span>
           </button>
-          <button type="submit" class="btn btn-primary" id="btn-submit-edit-anggota">Simpan Perubahan</button>
+          <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-edit-anggota"><span class="keel-label">Simpan Perubahan</span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
         </div>
       </form>
     </div>

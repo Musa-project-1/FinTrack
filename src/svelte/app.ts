@@ -46,13 +46,14 @@ import { initSaveStatus } from "./ui/save-status";
 import { restoreJSONBackup } from "./handlers/backup";
 import { initCustomDropdowns } from "./ui/cdrop";
 import { initTransactionModalControls } from "./ui/transaction-form";
+import { initEditModalControls } from "./ui/edit-wizard";
 import { initMonthPickers } from "./ui/mpick";
 import { initDatePickers } from "./ui/dpick";
 import { initKasi } from "./ui/kasi-mascot";
 import { initGuidedTour } from "./ui/guided-tour";
 import { initHistoryPagination } from "./stores/history.svelte";
 import { initDuesPagination } from "./stores/rekap.svelte";
-import { getLastGroupDirection, initHybridMotion, runGroupSwitchTransition } from "./ui/hybrid-motion";
+import { getLastGroupDirection, initHybridMotion, runGroupSwitchTransition, spinDashboardOdometers } from "./ui/hybrid-motion";
 import { initBento } from "./ui/bento-dashboard";
 import { initSpotlight } from "./stores/spotlight.svelte";
 import { initBulkDues } from "./ui/bulk-dues";
@@ -121,6 +122,7 @@ const loadWorkspace = async (forceRemote = false, isUserInitiated = false): Prom
         }, { direction: getLastGroupDirection(), focusHeading: true });
       } else {
         renderAll();
+        if (isUserInitiated) spinDashboardOdometers();
       }
       setConnectionStatus(true);
       return true;
@@ -203,6 +205,7 @@ async function startWorkspace() {
   // Data loads only after a group is unlocked; nothing renders before that.
   initCustomDropdowns();
   initTransactionModalControls();
+  initEditModalControls();
   initMonthPickers();
   initDatePickers();
   initAttachmentControls();

@@ -28,7 +28,7 @@
       background: linear-gradient(115deg, var(--income-bg), transparent 55%), var(--surface);
     }
 
-    .spotlight[hidden], .spotlight [hidden], .bulk-dock[hidden] { display: none; }
+    .spotlight[hidden], .spotlight [hidden] { display: none; }
 
     .priority-heading, .priority-list li {
       display: flex;
@@ -68,6 +68,27 @@
       border-radius: 12px;
       background: var(--surface);
       box-shadow: var(--shadow-pop);
+      opacity: 1;
+      transform: translateY(0);
+      transition:
+        opacity 200ms var(--hybrid-ease-out),
+        transform 240ms cubic-bezier(0.32, 0.72, 0, 1),
+        display 200ms allow-discrete;
+    }
+    @starting-style {
+      .bulk-dock:not([hidden]) {
+        opacity: 0;
+        transform: translateY(calc(100% + 20px));
+      }
+    }
+    .bulk-dock[hidden] {
+      display: none;
+      opacity: 0;
+      transform: translateY(calc(100% + 20px));
+      transition:
+        opacity 150ms ease-out,
+        transform 180ms cubic-bezier(0.32, 0.72, 0, 1),
+        display 180ms allow-discrete;
     }
     .bulk-dock p { font-size: 12px; margin-bottom: 8px; }
     .bulk-dock > div { display: flex; justify-content: end; gap: 8px; }
@@ -78,6 +99,27 @@
       background: var(--accent-tint);
       outline: 2px solid var(--accent);
       outline-offset: -2px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .bulk-selecting .bulk-cell-selected {
+        animation: bulkCellPop 160ms var(--hybrid-ease-spring);
+      }
+      #bulk-status.is-updating {
+        animation: bulkStatusPulse 160ms var(--hybrid-ease-out);
+      }
+    }
+    @keyframes bulkCellPop {
+      0% { transform: scale(0.95); }
+      60% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    @keyframes bulkStatusPulse {
+      0% { opacity: 0.65; transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bulk-dock { transition: none; transform: none; }
+      .bulk-selecting .bulk-cell-selected, #bulk-status.is-updating { animation: none; }
     }
     @media (max-width: 768px) {
       .spotlight { margin-inline: 8px; }

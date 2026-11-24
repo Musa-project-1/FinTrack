@@ -35,9 +35,11 @@
       transition: border-color 150ms ease, transform 160ms var(--hybrid-ease-spring);
     }
 
-    .kasi-stage-pet-zone:hover {
-      border-color: var(--hybrid-spot);
-      transform: scale(1.02);
+    @media (hover: hover) and (pointer: fine) {
+      .kasi-stage-pet-zone:hover {
+        border-color: var(--hybrid-spot);
+        transform: scale(1.02);
+      }
     }
 
     .kasi-stage-pet-zone:active {
@@ -172,6 +174,9 @@
       .kasi-love-fill,
       .kasi-toy-btn {
         transition: none;
+      }
+      .kasi-treat-fly {
+        will-change: auto;
       }
     }
   }

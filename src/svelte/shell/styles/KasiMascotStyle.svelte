@@ -450,10 +450,15 @@
       transform: translateY(2.5px) rotate(8deg);
     }
 
-    .kasi-fab:hover .kasi-paw-right,
-    .kasi-stage-pet-zone:hover .kasi-paw-right,
     .kasi-svg.is-waving .kasi-paw-right {
       animation: kasi-maneki-wave 0.56s ease-in-out infinite;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .kasi-fab:hover .kasi-paw-right,
+      .kasi-stage-pet-zone:hover .kasi-paw-right {
+        animation: kasi-maneki-wave 0.56s ease-in-out infinite;
+      }
     }
 
     @keyframes kasi-maneki-wave {
@@ -635,8 +640,15 @@
         width: min(260px, calc(100vw - 20px));
       }
     }
+    :is(body:not([data-workspace-state="ready"]), body.kasi-hidden) :is(.kasi-svg.kasi-svg, .kasi-svg.kasi-svg *, .kasi-world-treat-svg),
+    :is(#kasi-dock[hidden], dialog:not([open])) :is(.kasi-svg.kasi-svg, .kasi-svg.kasi-svg *),
+    .kasi-treat[hidden] .kasi-world-treat-svg {
+      animation-play-state: paused;
+    }
+
     @media (prefers-reduced-motion:reduce) {
-      .kasi-svg * { animation:none !important; transition:none !important; }
+      .kasi-svg, .kasi-svg *, .kasi-svg-float, .kasi-world-treat-svg { animation:none !important; transition:none !important; }
+      .kasi-dock, .kasi-halo, .kasi-mini-bubble, .kasi-treat { will-change: auto; }
       .kasi-halo:not([hidden]),
       .kasi-mini-bubble:not([hidden]) { animation: none; }
       .kasi-setting input[type="checkbox"],

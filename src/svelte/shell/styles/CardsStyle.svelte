@@ -308,7 +308,7 @@
 
     .status-badge .queue-count {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       margin-left: 4px;
       color: var(--danger);
@@ -429,7 +429,7 @@
     }
 
     .stat-wa-badge {
-      font-size: 10px;
+      font-size: 11px;
       padding: 2px 6px;
       background: var(--accent-tint);
       color: var(--accent-strong);

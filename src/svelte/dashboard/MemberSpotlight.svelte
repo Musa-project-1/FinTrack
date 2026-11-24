@@ -29,7 +29,7 @@
     <select class="form-control select-ctrl" id="spotlight-picker" value={vm.pinnedId} onchange={(e) => setMemberPin(e.currentTarget.value, true)}>
       <option value="">Pilih nama Anda...</option>
       {#each vm.members as member (member.id)}
-        <option value={member.id}>{member.name}</option>
+        <option value={member.id}>{member.name?.trim() ? member.name : member.id}</option>
       {/each}
     </select>
   </div>
@@ -57,7 +57,7 @@
         <span class="meta-chip paid tnum" hidden={!vm.showPaidChip} id="spotlight-paid-chip">Iuran Jatuh Tempo Lunas</span>
       </div>
       <button aria-label="Buka buku iuran anggota" class="spotlight-name-btn" data-action="profil" data-id={vm.pinnedId} id="spotlight-book" type="button">
-        <span id="spotlight-name">{vm.memberName}</span>
+        <span id="spotlight-name" title={vm.memberName || vm.memberCode || undefined} dir="auto">{vm.memberName.trim() ? vm.memberName : vm.memberCode}</span>
         <i aria-hidden="true" class="ph ph-identification-card"></i>
       </button>
       <p class="spotlight-summary-line tnum" id="spotlight-summary">{vm.summaryText}</p>
@@ -67,7 +67,7 @@
     <label class="sr-only" for="spotlight-swap-select">Ganti Anggota Tersemat</label>
     <select class="form-control select-ctrl select-compact-34" id="spotlight-swap-select" value={vm.pinnedId} onchange={(e) => setMemberPin(e.currentTarget.value, true)}>
       {#each vm.members as member (member.id)}
-        <option value={member.id}>{member.name}</option>
+        <option value={member.id}>{member.name?.trim() ? member.name : member.id}</option>
       {/each}
     </select>
     <button class="btn btn-secondary btn-compact-34" data-action="spotlight-unpin" id="btn-unpin-member" type="button">
@@ -192,84 +192,26 @@
       --member-amber-border: rgba(251, 146, 60, 0.36);
     }
 
-    .quick-cek-bar {
-      padding: 14px 18px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .quick-cek-copy {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
+    .quick-cek-bar { padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .quick-cek-copy { display: flex; align-items: flex-start; gap: 12px; flex: 1 1 240px; min-width: 0; }
+    .quick-cek-copy > div:not(.quick-cek-icon) { flex: 1; min-width: 0; }
     .quick-cek-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: var(--member-spot-soft);
-      color: var(--member-spot-ink);
-      display: grid;
-      place-items: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 12px; background: var(--member-spot-soft); color: var(--member-spot-ink);
+      display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
     }
-
-    .quick-cek-title {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.015em;
-      line-height: 1.3;
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .quick-cek-desc {
-      font-size: 12.5px;
-      font-weight: 500;
-      line-height: 1.45;
-      color: var(--text-muted);
-      display: block;
-    }
-
-    .quick-cek-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    #spotlight-picker {
-      width: 220px;
-      min-width: min(220px, 100%);
-      height: 38px;
-    }
-
+    .quick-cek-title { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3; display: block; margin-bottom: 2px; overflow-wrap: anywhere; }
+    .quick-cek-desc { font-size: 12.5px; font-weight: 500; line-height: 1.45; color: var(--text-muted); display: block; overflow-wrap: anywhere; }
+    .quick-cek-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
+    #spotlight-picker { width: 220px; min-width: 0; max-width: 100%; min-height: 38px; height: auto; }
     .member-spotlight-wrap select.form-control {
-      height: 38px;
-      appearance: auto;
-      background-image: none;
-      padding: 0 32px 0 12px;
-      border-radius: 12px;
-      border: 1.5px solid var(--border);
-      background-color: var(--surface);
-      color: var(--text-main);
-      font-weight: 600;
-      font-size: 13px;
-      min-width: 0;
-      max-width: 100%;
+      min-height: 38px; height: auto; appearance: auto; background-image: none; padding: 6px 32px 6px 12px;
+      border-radius: 12px; border: 1.5px solid var(--border); background-color: var(--surface); color: var(--text-main);
+      font-weight: 600; font-size: 13px; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-
     @supports (appearance: base-select) {
-      .member-spotlight-wrap select.form-control {
-        appearance: base-select;
-        padding: 0 12px;
-      }
+      .member-spotlight-wrap select.form-control { appearance: base-select; padding: 6px 12px; }
+      .member-spotlight-wrap select.form-control::picker(select) { max-width: min(360px, calc(100vw - 24px)); }
+      .member-spotlight-wrap select.form-control option { white-space: normal; overflow-wrap: anywhere; }
     }
 
     #spotlight-card {
@@ -294,121 +236,40 @@
     }
 
     .ring-box {
-      position: relative;
-      width: 74px;
-      height: 74px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
+      position: relative; width: clamp(74px, 4.625rem, 108px); height: clamp(74px, 4.625rem, 108px);
+      flex-shrink: 0; display: grid; place-items: center; container-type: inline-size;
     }
-
-    .ring-svg {
-      width: 74px;
-      height: 74px;
-      transform: rotate(-90deg);
-    }
-
-    .ring-track {
-      fill: none;
-      stroke: var(--surface-3);
-      stroke-width: 7;
-    }
-
-    .ring-progress {
-      fill: none;
-      stroke: var(--hybrid-spot);
-      stroke-width: 7;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 820ms var(--hybrid-ease-out);
-    }
-
+    .ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: var(--surface-3); stroke-width: 7; }
+    .ring-progress { fill: none; stroke: var(--hybrid-spot); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 820ms var(--hybrid-ease-out); }
     .ring-center {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      line-height: 1.05;
+      position: absolute; inset: 0; padding: 6px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; line-height: 1.05; min-width: 0; overflow: hidden;
     }
-
-    .ring-pct {
-      font-size: 16.5px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-    }
-
-    .ring-frac {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-muted);
-    }
-
-    .spotlight-identity {
-      grid-area: id;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      min-width: 0;
-    }
-
-    .spotlight-id-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .spotlight-eyebrow-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-    }
-
+    .ring-pct { font-size: clamp(13px, 22cqw, 20px); font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; max-width: 100%; }
+    .ring-frac { font-size: clamp(11px, 15cqw, 14px); font-weight: 700; color: var(--text-muted); white-space: nowrap; max-width: 100%; }
+    .spotlight-identity { grid-area: id; display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
+    .spotlight-id-copy { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+    .spotlight-eyebrow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
     .spotlight-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--member-spot-ink);
+      display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase; color: var(--member-spot-ink); min-width: 0; max-width: 100%;
     }
-
+    .spotlight-eyebrow i, .spotlight-name-btn i { flex-shrink: 0; }
     .spotlight-name-btn {
-      margin: 0;
-      font-size: clamp(1.125rem, 2vw, 1.3125rem);
-      font-weight: 800;
-      letter-spacing: -0.024em;
-      line-height: 1.2;
-      color: var(--text-main);
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      width: fit-content;
-      max-width: 100%;
-      overflow-wrap: anywhere;
-      padding: 2px 6px 2px 0;
-      border-radius: 8px;
-      text-align: left;
-      transition: color 150ms ease;
+      margin: 0; font-size: clamp(1.125rem, 2vw, 1.3125rem); font-weight: 800; letter-spacing: -0.024em; line-height: 1.3;
+      color: var(--text-main); display: inline-flex; align-items: center; gap: 7px; width: fit-content; min-width: 44px;
+      max-width: 100%; min-height: 36px; overflow-wrap: anywhere; padding-block: 3px; padding-inline: 0 6px;
+      border-radius: 8px; text-align: start; transition: color 150ms ease;
     }
-
-    .spotlight-name-btn:hover {
-      color: var(--member-spot-ink);
+    #spotlight-name {
+      min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; overflow-wrap: anywhere; padding-block: 1px;
     }
-
-    .spotlight-summary-line {
-      margin: 0;
-      font-size: 12.5px;
-      font-weight: 500;
-      line-height: 1.45;
-      color: var(--text-muted);
+    @media (hover: hover) and (pointer: fine) {
+      .spotlight-name-btn:hover { color: var(--member-spot-ink); }
     }
+    .spotlight-summary-line { margin: 0; font-size: 12.5px; font-weight: 500; line-height: 1.45; color: var(--text-muted); min-width: 0; overflow-wrap: anywhere; }
 
     .spotlight-divider {
       grid-area: div;
@@ -422,6 +283,7 @@
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 6px;
+      min-width: 0;
     }
 
     #spotlight-card .mini-month-pill {
@@ -430,6 +292,7 @@
       justify-content: center;
       gap: 4px;
       width: 100%;
+      min-width: 0;
       min-height: 36px;
       padding: 6px 4px;
       border-radius: 8px;
@@ -438,10 +301,22 @@
       font-weight: 700;
       border: 1px solid var(--border);
       background: var(--surface);
+      overflow: hidden;
       cursor: pointer;
       transition: transform 140ms ease, border-color 160ms ease;
       animation: mini-pill-in 360ms var(--hybrid-ease-spring) backwards;
       animation-delay: calc(var(--i, 0) * 26ms);
+    }
+
+    #spotlight-card .mini-month-pill > i {
+      flex-shrink: 0;
+    }
+
+    #spotlight-card .mini-month-pill > span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     @keyframes mini-pill-in {
@@ -480,64 +355,24 @@
       border-color: color-mix(in oklab, var(--border-strong) 82%, transparent);
     }
 
-    #spotlight-card .spotlight-actions {
-      grid-area: act;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: auto;
-      flex-shrink: 0;
-    }
-
-    #spotlight-swap-select {
-      width: 176px;
-      min-width: 176px;
-      height: 38px;
-    }
-
-    #btn-unpin-member {
-      height: 38px;
-      padding: 0 12px;
-      width: auto;
-      white-space: nowrap;
-    }
-
-    #spotlight-pay-btn {
-      height: 38px;
-      padding: 0 16px;
-      width: auto;
-      white-space: nowrap;
-    }
-
+    #spotlight-card .spotlight-actions { grid-area: act; display: flex; align-items: center; gap: 8px; width: auto; min-width: 0; max-width: 100%; flex-shrink: 0; }
+    #spotlight-swap-select { width: 176px; min-width: 0; max-width: 100%; min-height: 38px; height: auto; }
+    #btn-unpin-member { min-height: 38px; height: auto; padding: 6px 12px; width: auto; white-space: nowrap; flex-shrink: 0; }
+    #spotlight-pay-btn { min-height: 38px; height: auto; padding: 6px 16px; width: auto; white-space: nowrap; flex-shrink: 0; }
+    #spotlight-card .spotlight-actions .btn i { flex-shrink: 0; }
     #spotlight-card .meta-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: var(--r-pill);
-      background: var(--surface-2);
-      color: var(--text-main);
-      font-weight: 600;
-      font-size: 12px;
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--r-pill);
+      background: var(--surface-2); color: var(--text-main); font-weight: 600; font-size: 12px;
+      line-height: 1.35; min-width: 0; max-width: 100%; overflow-wrap: anywhere;
     }
-
     .spotlight-detail-cta {
-      display: inline-flex;
-      align-items: center;
-      margin-inline-start: 8px;
-      padding: 3px 10px;
-      border-radius: var(--r-pill);
-      border: 1px solid var(--accent-border);
-      background: var(--accent-tint);
-      color: var(--accent-strong);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 140ms ease, border-color 140ms ease;
+      display: inline-flex; align-items: center; justify-content: center; margin-inline-start: 8px; margin-block: 2px;
+      padding: 4px 10px; max-width: 100%; border-radius: var(--r-pill); border: 1px solid var(--accent-border);
+      background: var(--accent-tint); color: var(--accent-strong); font-size: 12px; font-weight: 700;
+      white-space: normal; text-align: center; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease;
     }
-
-    .spotlight-detail-cta:hover {
-      background: color-mix(in oklab, var(--accent-tint) 75%, var(--surface));
+    @media (hover: hover) and (pointer: fine) {
+      .spotlight-detail-cta:hover { background: color-mix(in oklab, var(--accent-tint) 75%, var(--surface)); }
     }
 
     .mini-stamp-ico {
@@ -560,7 +395,9 @@
       cursor: pointer;
       transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--hybrid-ease-spring);
     }
-    .dues-pin-btn:hover { background: var(--surface-2); color: var(--text-main); }
+    @media (hover: hover) and (pointer: fine) {
+      .dues-pin-btn:hover { background: var(--surface-2); color: var(--text-main); }
+    }
     .dues-pin-btn[aria-pressed="true"] {
       background: var(--member-spot-soft);
       color: var(--member-spot-ink);
@@ -569,11 +406,12 @@
     .self-pin-badge {
       display: inline-flex;
       align-items: center;
+      flex-shrink: 0;
       vertical-align: middle;
       margin-inline-start: 6px;
       padding: 1px 7px;
       border-radius: var(--r-pill);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       background: var(--member-spot-soft);
       color: var(--member-spot-ink);
@@ -592,10 +430,10 @@
     body.dark-mode .member-spotlight-wrap select.form-control { background-image: none; }
     #spotlight-card .spotlight-actions > :is(button, select), #spotlight-picker { min-height: 38px; }
     #spotlight-card .meta-chip.paid { background: var(--income-bg); color: var(--income-strong); }
-    #spotlight-card .meta-chip.amber { display: block; background: var(--member-amber-soft); color: var(--member-amber-ink); }
+    #spotlight-card .meta-chip.amber { display: block; width: fit-content; max-width: 100%; background: var(--member-amber-soft); color: var(--member-amber-ink); }
     #spotlight-card .meta-chip.mono { overflow-wrap: anywhere; }
     #spotlight-card .mini-month-pill:disabled { cursor: default; }
-    #spotlight-card .spotlight-detail { grid-column: 1 / -1; margin: 0; font-size: 12.5px; color: var(--text-muted); }
+    #spotlight-card .spotlight-detail { grid-column: 1 / -1; margin: 0; min-width: 0; overflow-wrap: anywhere; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); }
 
     @starting-style {
       #spotlight-card .ring-progress { stroke-dashoffset: 100; }
@@ -614,12 +452,14 @@
 
       #spotlight-card .spotlight-actions {
         width: 100%;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
       }
 
-      #spotlight-pay-btn { order: -1; grid-column: 1 / -1; width: 100%; }
-      #spotlight-swap-select { width: 100%; min-width: 0; }
+      #spotlight-pay-btn { order: -1; flex: 1 0 100%; width: 100%; white-space: normal; text-align: center; }
+      #spotlight-swap-select { flex: 1 1 160px; width: auto; min-width: 0; }
+      #btn-unpin-member { flex: 0 1 auto; white-space: normal; text-align: center; }
     }
 
     @media (max-width: 768px) {
@@ -630,9 +470,15 @@
       #spotlight-card .spotlight-months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       #spotlight-card .spotlight-actions > :is(button, select) { min-height: 44px; height: auto; }
       #spotlight-card :is(.spotlight-name-btn, .mini-month-pill) { min-height: 44px; }
-      #spotlight-card .ring-box, #spotlight-card .ring-svg { width: 62px; height: 62px; }
-      #spotlight-card .ring-pct { font-size: 14.5px; }
+      .spotlight-detail-cta { min-height: 44px; padding: 6px 12px; }
+      #spotlight-card .ring-box { width: clamp(64px, 4rem, 96px); height: clamp(64px, 4rem, 96px); }
+      #spotlight-card .ring-svg { width: 100%; height: 100%; }
+      #spotlight-card .ring-pct { font-size: clamp(13px, 22cqw, 18px); }
       .dues-pin-btn { width: 44px; height: 44px; }
+    }
+
+    @media (max-width: 360px) {
+      #spotlight-card .spotlight-months { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (prefers-reduced-motion: no-preference) {

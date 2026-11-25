@@ -4,9 +4,17 @@ node_modules/
 # Credentials & secrets
 .service-account.local.json
 .firebaserc
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*service-account*.json
 
 # Build artifacts
 *.zip
+/dist/
+/src/ui/*.map
 /index.html
 /onboarding.html
 /privacy.html

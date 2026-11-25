@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { installSvelteDom } from './helpers/svelte-dom.mjs';
 import { getState, setState, setActiveGroupId, setAdminRole, setAdminSession, setCurrentRekapYear, currentRekapYear } from '../src/ui/svelte-dashboard.js';
 import { filterMasterAnggota, renderAuditLogList, renderMasterAnggotaTable, renderMasterKategoriTable } from '../src/ui/svelte-dashboard.js';
@@ -320,45 +320,47 @@ test('the shipped ESM shares core and motion dependencies and is available offli
   const js = read(file);
   const imports = [...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].map(match => match[1]);
   assert.deepEqual(new Set(imports), new Set([]));
-  assert.match(js, /\/\/# sourceMappingURL=svelte-dashboard\.js\.map\s*$/);
-  const map = JSON.parse(read(file + '.map'));
-  for (const file of [
-    'dashboard/GroupOverview.svelte', 'dashboard/BentoDashboard.svelte', 'dashboard/MemberSpotlight.svelte',
-    'dashboard/AdminPriorities.svelte', 'dashboard/HistoryLedger.svelte', 'dashboard/WorkspaceStats.svelte',
-    'dashboard/DuesMatrix.svelte', 'dashboard/DuesMobileCards.svelte',
-    'modals/GroupPickerList.svelte', 'modals/GroupAdminList.svelte', 'modals/SuperAdminList.svelte',
-    'modals/OfflineQueueList.svelte', 'modals/PassbookMonths.svelte', 'modals/ProfileHistoryList.svelte',
-    'modals/ReceiptBody.svelte', 'modals/SelfPayMonths.svelte', 'modals/MasterAnggotaRows.svelte',
-    'modals/MasterKategoriRows.svelte', 'modals/AuditLogRows.svelte', 'modals/SkippedMonthsList.svelte',
-    'modals/CashReportAlert.svelte', 'modals/CashReportRows.svelte',
-    'forms/IuranMemberChecklist.svelte', 'forms/IuranReviewChips.svelte', 'forms/QuickPayPresets.svelte',
-    'forms/YearGlider.svelte', 'forms/StampStylePreview.svelte',
-    'stores/rekap-model.ts', 'stores/rekap.svelte.ts', 'stores/history-model.ts', 'stores/stats-model.ts',
-    'stores/history.svelte.ts', 'stores/stats.svelte.ts', 'stores/store.svelte.ts', 'stores/spotlight-model.ts',
-    'stores/spotlight.svelte.ts', 'stores/master.svelte.ts', 'stores/cash-report.svelte.ts',
-    'stores/transaction-form.svelte.ts', 'stores/year-glider.svelte.ts', 'stores/stamp-preview.svelte.ts',
-    'stores/profile.svelte.ts', 'stores/receipt.svelte.ts', 'stores/self-pay.svelte.ts',
-    'stores/group-picker.svelte.ts', 'stores/group-admin.svelte.ts', 'stores/offline-queue.svelte.ts',
+  assert.doesNotMatch(js, /sourceMappingURL/i);
+  if (existsSync(new URL('../' + file + '.map', import.meta.url))) {
+    const map = JSON.parse(read(file + '.map'));
+    for (const svelteFile of [
+      'dashboard/GroupOverview.svelte', 'dashboard/BentoDashboard.svelte', 'dashboard/MemberSpotlight.svelte',
+      'dashboard/AdminPriorities.svelte', 'dashboard/HistoryLedger.svelte', 'dashboard/WorkspaceStats.svelte',
+      'dashboard/DuesMatrix.svelte', 'dashboard/DuesMobileCards.svelte',
+      'modals/GroupPickerList.svelte', 'modals/GroupAdminList.svelte', 'modals/SuperAdminList.svelte',
+      'modals/OfflineQueueList.svelte', 'modals/PassbookMonths.svelte', 'modals/ProfileHistoryList.svelte',
+      'modals/ReceiptBody.svelte', 'modals/SelfPayMonths.svelte', 'modals/MasterAnggotaRows.svelte',
+      'modals/MasterKategoriRows.svelte', 'modals/AuditLogRows.svelte', 'modals/SkippedMonthsList.svelte',
+      'modals/CashReportAlert.svelte', 'modals/CashReportRows.svelte',
+      'forms/IuranMemberChecklist.svelte', 'forms/IuranReviewChips.svelte', 'forms/QuickPayPresets.svelte',
+      'forms/YearGlider.svelte', 'forms/StampStylePreview.svelte',
+      'stores/rekap-model.ts', 'stores/rekap.svelte.ts', 'stores/history-model.ts', 'stores/stats-model.ts',
+      'stores/history.svelte.ts', 'stores/stats.svelte.ts', 'stores/store.svelte.ts', 'stores/spotlight-model.ts',
+      'stores/spotlight.svelte.ts', 'stores/master.svelte.ts', 'stores/cash-report.svelte.ts',
+      'stores/transaction-form.svelte.ts', 'stores/year-glider.svelte.ts', 'stores/stamp-preview.svelte.ts',
+      'stores/profile.svelte.ts', 'stores/receipt.svelte.ts', 'stores/self-pay.svelte.ts',
+      'stores/group-picker.svelte.ts', 'stores/group-admin.svelte.ts', 'stores/offline-queue.svelte.ts',
 
-    'ui/dues-status.ts', 'ui/pagination.ts', 'ui/hybrid-motion.ts', 'ui/bulk-dues.ts',
-    'ui/transaction-form.ts', 'ui/modal.ts', 'ui/save-status.ts', 'ui/i18n.ts',
-    'ui/theme.ts', 'ui/keel.ts', 'ui/control-a11y.ts', 'ui/cdrop.ts',
-    'ui/dpick.ts', 'ui/mpick.ts', 'ui/kasi-effects.ts', 'ui/kasi-stage.ts',
-    'ui/kasi-mascot.ts', 'render/dashboard.ts', 'render/profile.ts', 'render/rekap.ts',
-    'render/index.ts', 'render/receipt.ts', 'ui/workspace.ts',
-    'pages/onboarding-motion.ts', 'pages/onboarding-stage.ts', 'pages/journey.ts', 'pages/onboarding.ts', 'pages/privacy.ts',
-    'action-router.ts', 'app.ts', 'handlers/groups.ts', 'ui/gestures.ts', 'ui/pin-input.ts', 'ui/bento-dashboard.ts',
-    'ui/guided-tour.ts', 'handlers/attachments.ts', 'handlers/auth.ts',
-    'handlers/backup.ts', 'handlers/cash-report.ts', 'handlers/export.ts',
-    'handlers/group-picker.ts', 'handlers/master.ts', 'handlers/navigation.ts',
-    'handlers/offlineQueue.ts', 'handlers/payment-account.ts', 'handlers/quickpay.ts',
-    'handlers/self-pay.ts', 'handlers/transaction-shared.ts', 'handlers/transactions.ts',
-    'core/config.ts', 'core/utils.ts', 'core/dues.ts', 'core/payment-account.ts',
-    'core/analytics.ts', 'core/state.ts', 'core/api-client.ts', 'core/api-auth.ts',
-    'core/api.ts', 'core/offline-store.ts', 'core/offline.ts', 'core/mutation.ts',
-    'core/sync.ts', 'core/cash-report.ts', 'components.ts', 'mount.ts'
-  ]) {
-    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + file)], read('src/svelte/' + file));
+      'ui/dues-status.ts', 'ui/pagination.ts', 'ui/hybrid-motion.ts', 'ui/bulk-dues.ts',
+      'ui/transaction-form.ts', 'ui/modal.ts', 'ui/save-status.ts', 'ui/i18n.ts',
+      'ui/theme.ts', 'ui/keel.ts', 'ui/control-a11y.ts', 'ui/cdrop.ts',
+      'ui/dpick.ts', 'ui/mpick.ts', 'ui/kasi-effects.ts', 'ui/kasi-stage.ts',
+      'ui/kasi-mascot.ts', 'render/dashboard.ts', 'render/profile.ts', 'render/rekap.ts',
+      'render/index.ts', 'render/receipt.ts', 'ui/workspace.ts',
+      'pages/onboarding-motion.ts', 'pages/onboarding-stage.ts', 'pages/journey.ts', 'pages/onboarding.ts', 'pages/privacy.ts',
+      'action-router.ts', 'app.ts', 'handlers/groups.ts', 'ui/gestures.ts', 'ui/pin-input.ts', 'ui/bento-dashboard.ts',
+      'ui/guided-tour.ts', 'handlers/attachments.ts', 'handlers/auth.ts',
+      'handlers/backup.ts', 'handlers/cash-report.ts', 'handlers/export.ts',
+      'handlers/group-picker.ts', 'handlers/master.ts', 'handlers/navigation.ts',
+      'handlers/offlineQueue.ts', 'handlers/payment-account.ts', 'handlers/quickpay.ts',
+      'handlers/self-pay.ts', 'handlers/transaction-shared.ts', 'handlers/transactions.ts',
+      'core/config.ts', 'core/utils.ts', 'core/dues.ts', 'core/payment-account.ts',
+      'core/analytics.ts', 'core/state.ts', 'core/api-client.ts', 'core/api-auth.ts',
+      'core/api.ts', 'core/offline-store.ts', 'core/offline.ts', 'core/mutation.ts',
+      'core/sync.ts', 'core/cash-report.ts', 'components.ts', 'mount.ts'
+    ]) {
+      assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/' + svelteFile)], read('src/svelte/' + svelteFile));
+    }
   }
   assert.ok(read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1].includes("'" + file + "'"));
 });
@@ -366,12 +368,14 @@ test('the shipped ESM shares core and motion dependencies and is available offli
 test('onboarding ships a self-contained precached bundle with current source contents', () => {
   const js = read('src/ui/svelte-onboarding.js');
   assert.equal([...js.matchAll(/\bfrom\s*["']([^"']+)["']/g)].length, 0);
-  assert.match(js, /\/\/# sourceMappingURL=svelte-onboarding\.js\.map\s*$/);
-  const map = JSON.parse(read('src/ui/svelte-onboarding.js.map'));
-  assert.equal(map.version, 3);
-  assert.ok(map.mappings.length);
-  for (const file of ['OnboardingGroupList.svelte', 'onboarding.svelte.ts', 'components.ts', 'mount.ts']) {
-    assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/onboarding/' + file)], read('src/svelte/onboarding/' + file), file);
+  assert.doesNotMatch(js, /sourceMappingURL/i);
+  if (existsSync(new URL('../src/ui/svelte-onboarding.js.map', import.meta.url))) {
+    const map = JSON.parse(read('src/ui/svelte-onboarding.js.map'));
+    assert.equal(map.version, 3);
+    assert.ok(map.mappings.length);
+    for (const file of ['OnboardingGroupList.svelte', 'onboarding.svelte.ts', 'components.ts', 'mount.ts']) {
+      assert.equal(map.sourcesContent[map.sources.indexOf('../svelte/onboarding/' + file)], read('src/svelte/onboarding/' + file), file);
+    }
   }
   const assets = read('sw.js').match(/const LOCAL_ASSETS = \[([\s\S]*?)\];/)[1];
   assert.ok(assets.includes("'src/ui/svelte-onboarding.js'"));

@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,9 +30,13 @@ if (!match) {
 
 const currentVersion = parseInt(match[1], 10);
 const targetArg = process.argv[2];
-const newVersion = targetArg ? parseInt(targetArg, 10) : currentVersion + 1;
+if (targetArg !== undefined && !/^\d+$/.test(targetArg)) {
+  console.error(`Error: Invalid target version "${targetArg}"`);
+  process.exit(1);
+}
+const newVersion = targetArg ? Number.parseInt(targetArg, 10) : currentVersion + 1;
 
-if (isNaN(newVersion) || newVersion <= 0) {
+if (!Number.isSafeInteger(newVersion) || newVersion <= 0) {
   console.error(`Error: Invalid target version "${targetArg}"`);
   process.exit(1);
 }
@@ -58,10 +62,10 @@ if (fs.existsSync(SW_REGISTER_PATH)) {
 
 // 4. Render HTML shells from Svelte shell components with the new ?v=
 console.log('Rendering index.html, onboarding.html, and privacy.html...');
-execSync('node scripts/render-shells.mjs', { cwd: ROOT, stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/render-shells.mjs'], { cwd: ROOT, stdio: 'inherit' });
 
 // 7. Verify parity
 console.log('Running verify checks...');
-execSync('node scripts/verify.mjs', { cwd: ROOT, stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/verify.mjs'], { cwd: ROOT, stdio: 'inherit' });
 
 console.log(`✓ Version successfully bumped to v${newVersion} across all files.`);

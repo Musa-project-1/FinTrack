@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [svelte(), authoredSourcemaps()],
     build: {
-      sourcemap: true,
+      sourcemap: 'hidden',
       lib: isOnboarding
         ? { entry: 'src/svelte/onboarding/mount.ts', formats: ['es'], fileName: () => 'svelte-onboarding.js' }
         : { entry: 'src/svelte/mount.ts', formats: ['es'], fileName: () => 'svelte-dashboard.js' },

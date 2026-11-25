@@ -1,5 +1,6 @@
 import { getGroupOfflineTransactions } from "finkas/core/offline";
-import { getActiveGroupId } from "finkas/core/state";
+import { getActiveGroupId, getIsAdminSession } from "finkas/core/state";
+import { showToast } from "finkas/core/utils";
 import { syncOfflineQueueList } from "../mount";
 import { openModal } from "../ui/modal";
 
@@ -15,6 +16,7 @@ const QUEUE_SPECS: Record<string, [label: string, tone: string, icon: string]> =
   hapusKategori: ['Hapus Kategori', 'danger', 'ph-tag-simple'],
   addSkippedMonth: ['Bulan Libur +', 'warning', 'ph-calendar-x'],
   removeSkippedMonth: ['Bulan Libur -', 'warning', 'ph-calendar-check'],
+  setKasStart: ['Mulai Kas', 'warning', 'ph-calendar'],
   catatAktivitas: ['Catat Aktivitas', 'neutral', 'ph-activity']
 };
 
@@ -38,6 +40,13 @@ let latestRender = 0;
 
 /** Render pending offline mutations inside #offline-queue-list. */
 export const renderOfflineQueueList = async () => {
+  const empty = { groupId: getActiveGroupId().trim(), items: [], otherGroupCount: 0, unscopedCount: 0 };
+  if (!getIsAdminSession()) {
+    syncQueueStatusUI(0);
+    syncOfflineQueueList({ ...empty, status: "ready" });
+    return;
+  }
+
   const container = document.getElementById('offline-queue-list');
   if (!container) return;
 
@@ -48,7 +57,6 @@ export const renderOfflineQueueList = async () => {
     refreshBtn.classList.add('is-loading');
   }
 
-  const empty = { groupId: getActiveGroupId().trim(), items: [], otherGroupCount: 0, unscopedCount: 0 };
   syncOfflineQueueList({ ...empty, status: "loading" });
   syncQueueStatusUI(0);
   try {
@@ -61,7 +69,9 @@ export const renderOfflineQueueList = async () => {
         day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
       });
       const action = item.payload?.action || 'unknown';
-      const [label, tone, icon] = QUEUE_SPECS[action] || [action, 'neutral', 'ph-clock'];
+      const [label, tone, icon] = Object.hasOwn(QUEUE_SPECS, action)
+        ? QUEUE_SPECS[action]
+        : [action, 'neutral', 'ph-clock'];
       const form = item.payload?.dataForm || {};
       const nominal = Number(form.nominal) || 0;
       const summary = form.keterangan
@@ -86,6 +96,10 @@ export const renderOfflineQueueList = async () => {
 
 /** Open the Offline Transaction Queue modal and load pending entries. */
 export const openOfflineQueueModal = async () => {
+  if (!getIsAdminSession()) {
+    showToast('Hanya admin yang dapat melihat antrean offline.', 'error');
+    return;
+  }
   const rendered = renderOfflineQueueList();
   openModal('modal-offline-queue');
   await rendered;

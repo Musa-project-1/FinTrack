@@ -7,7 +7,14 @@
  */
 
 import { API } from './config';
-import { getActiveGroupId, clearGroupSession, resolveSessionToken } from './state';
+import {
+  clearAdminSession,
+  clearGroupSession,
+  getActiveGroupId,
+  getAdminSession,
+  getIsSuperAdmin,
+  resolveSessionToken
+} from './state';
 
 export type ApiResponse<T> = { status: boolean, httpStatus: number, message?: string, data?: T|null, unauthorized?: boolean, updatedAt?: string };
 
@@ -32,6 +39,7 @@ export const apiPost = async <T>(endpoint: string, body: object): Promise<ApiRes
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body || {})
     });
@@ -64,6 +72,7 @@ export const dataRequest = async <T>({
     return { status: false, httpStatus: 400, unauthorized: true, message: 'ID grup wajib diisi.' };
   }
   const sessionToken = requiresAuth ? resolveSessionToken(groupId, needsWrite) : '';
+  const usedAdminSession = Boolean(sessionToken) && sessionToken === getAdminSession();
 
   if (requiresAuth && !sessionToken) {
     return { status: false, httpStatus: 401, unauthorized: true, message: 'Sesi tidak ditemukan. Silakan masuk kembali.' };
@@ -75,6 +84,15 @@ export const dataRequest = async <T>({
   if (requiresAuth && (result.httpStatus === 401 || result.httpStatus === 403)) {
     // The token is gone, expired, or forbidden/revoked — drop it so the user is asked for the PIN again.
     clearGroupSession(groupId);
+    const isSuperAdmin = getIsSuperAdmin();
+    if (usedAdminSession && (result.httpStatus === 401 || (result.httpStatus === 403 && isSuperAdmin))) {
+      clearAdminSession({ preserveGroupSessions: !isSuperAdmin });
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('finkas:session-expired', {
+          detail: { groupId, httpStatus: result.httpStatus }
+        }));
+      }
+    }
     return { ...result, unauthorized: true };
   }
   return result;

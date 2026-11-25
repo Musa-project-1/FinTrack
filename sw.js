@@ -56,12 +56,38 @@ const OPTIONAL_ASSETS = [
   'assets/mountain-near.webp'
 ];
 
-// Third-party CDN domains to cache for reliable offline usage
+// Third-party CDN domains allowed for HTTPS CORS-verified caching
 const CDN_HOSTS = [
-  'cdn.jsdelivr.net',
   'fonts.googleapis.com',
   'fonts.gstatic.com'
 ];
+
+const STATIC_ASSET_PATHS = new Set(
+  LOCAL_ASSETS.concat(OPTIONAL_ASSETS).map((p) => (p === '/' ? '/' : '/' + p.replace(/^\/+/, '')))
+);
+
+function normalizePathname(pathname) {
+  let decoded = pathname;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch (_) {}
+  return decoded.replace(/\/+/g, '/');
+}
+
+function isApiRequest(url) {
+  if (url.origin !== location.origin) return false;
+  const rawCollapsed = url.pathname.replace(/\/+/g, '/');
+  const decodedCollapsed = normalizePathname(url.pathname);
+  return /^\/+api(\/|$)/i.test(rawCollapsed) || /^\/+api(\/|$)/i.test(decodedCollapsed);
+}
+
+function getLocalCacheKey(url) {
+  const normPath = url.pathname.replace(/\/+/g, '/') || '/';
+  if (STATIC_ASSET_PATHS.has(normPath)) {
+    return `${url.origin}${normPath}`;
+  }
+  return `${url.origin}${normPath}${url.search}`;
+}
 
 // Core shell installation is atomic; decorative assets may fail independently.
 self.addEventListener('install', (event) => {
@@ -101,26 +127,28 @@ function cleanResponse(response) {
 }
 
 // Register the entire write lifetime synchronously, before any cache lookup settles.
-function cacheNetworkResponse(event, network, allowOpaque = false) {
+// Only cache non-redirected, OK same-origin or CORS responses (never opaque or error responses).
+function cacheNetworkResponse(event, cacheKey, network) {
   event.waitUntil(network.then((response) => {
-    if (response && (response.ok || (allowOpaque && response.type === 'opaque'))) {
+    if (response && response.ok && !response.redirected && response.type !== 'opaqueredirect') {
       const copy = response.clone();
-      return caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      return caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, copy));
     }
   }).catch(() => null));
 }
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  if (url.origin === location.origin && url.pathname.startsWith('/api/')) return;
+  if (isApiRequest(url)) return;
   if (event.request.method !== 'GET') return;
 
   if (url.origin === location.origin) {
     const isNavigate = event.request.mode === 'navigate';
-    const network = (isNavigate ? fetch(event.request.url) : fetch(event.request))
-      .then((res) => (isNavigate ? cleanResponse(res) : res))
+    const cacheKey = getLocalCacheKey(url);
+    const rawNetwork = (isNavigate ? fetch(event.request.url) : fetch(event.request))
       .catch(() => null);
-    cacheNetworkResponse(event, network);
+    cacheNetworkResponse(event, cacheKey, rawNetwork);
+    const network = rawNetwork.then((res) => (isNavigate ? cleanResponse(res) : res));
 
     if (isNavigate) {
       event.respondWith((async () => {
@@ -130,9 +158,9 @@ self.addEventListener('fetch', (event) => {
         });
         const response = await Promise.race([network, timeout]);
         clearTimeout(timer);
-        if (response && response.ok) return response;
+        if (response !== null) return response;
         const exact = cleanResponse(
-          await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true })
+          await caches.match(cacheKey, { cacheName: CACHE_NAME })
         );
         if (exact) return exact;
         const fallback = cleanResponse(
@@ -140,27 +168,27 @@ self.addEventListener('fetch', (event) => {
           (await caches.match('/', { cacheName: CACHE_NAME })) ||
           (await caches.match('offline.html', { cacheName: CACHE_NAME }))
         );
-        return fallback || response || offlineResponse();
+        return fallback || offlineResponse();
       })());
     } else {
       // Warm assets return immediately while the protected network task refreshes them.
       event.respondWith((async () => {
-        const cached = await caches.match(event.request, { cacheName: CACHE_NAME, ignoreSearch: true });
+        const cached = await caches.match(cacheKey, { cacheName: CACHE_NAME });
         return cached || await network || offlineResponse();
       })());
     }
     return;
   }
 
-  if (CDN_HOSTS.includes(url.hostname)) {
-    // A hit never starts a network request; misses retain opaque response support.
+  if (url.protocol === 'https:' && CDN_HOSTS.includes(url.hostname)) {
+    // A hit never starts a network request; cache strictly requires CORS response.ok (no opaque caching).
     const result = caches.match(event.request, { cacheName: CACHE_NAME }).then(async (cached) => {
       if (cached) return { response: cached, fresh: false };
       const response = await fetch(event.request).catch(() => null);
       return { response, fresh: true };
     });
     event.waitUntil(result.then(({ response, fresh }) => {
-      if (fresh && response && (response.ok || response.type === 'opaque')) {
+      if (fresh && response && response.ok && !response.redirected) {
         const copy = response.clone();
         return caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
       }
@@ -169,23 +197,11 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Sync handler — notify active window clients to sync the offline queue cleanly via offline.js
+// Sync handler — notify controlled window clients to sync the offline queue cleanly via offline.ts
 self.addEventListener('sync', (event) => {
   if (event.tag === 'finkas-sync-offline') {
     event.waitUntil(
-      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-        if (clientList && clientList.length > 0) {
-          clientList.forEach((client) => client.postMessage({ type: 'SYNC_OFFLINE_QUEUE' }));
-        }
-      })
-    );
-  }
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SYNC_OFFLINE') {
-    event.waitUntil(
-      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      self.clients.matchAll({ type: 'window' }).then((clientList) => {
         if (clientList && clientList.length > 0) {
           clientList.forEach((client) => client.postMessage({ type: 'SYNC_OFFLINE_QUEUE' }));
         }

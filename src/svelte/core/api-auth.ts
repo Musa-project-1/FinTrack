@@ -11,6 +11,7 @@ import { API } from './config';
 import { apiPost, logAuditEvent, type ApiResponse } from './api-client';
 import {
   clearAdminSession,
+  getActiveGroupId,
   getAdminSession,
   setAdminEmail,
   setAdminRole,
@@ -28,8 +29,9 @@ const applySession = (data: LoginData, fallbackGroupId: string = '') => {
   setAdminEmail(data.email || '');
 
   // A group-scoped admin token also unlocks reads for that group.
+  // Never store superadmin tokens in groupSessions (least-privilege boundary).
   const gid = data.groupId || fallbackGroupId;
-  if (gid && data.sessionToken) setGroupSession(gid, data.sessionToken);
+  if (gid && data.sessionToken && data.role !== 'superadmin') setGroupSession(gid, data.sessionToken);
 };
 
 /** Log in as the group admin (or the master admin when the password matches the
@@ -109,7 +111,16 @@ export const removeSuperAdminApi = async (emailToRemove: string): Promise<{statu
  * still carries the credential that authorizes it.
  */
 export const logoutAdminApi = async () => {
-  logAuditEvent('LOGOUT_ADMIN', 'Admin logout');
-  clearAdminSession();
+  const sessionToken = getAdminSession();
+  if (sessionToken && getActiveGroupId()) {
+    logAuditEvent('LOGOUT_ADMIN', 'Admin logout');
+  }
+  try {
+    if (sessionToken) {
+      await apiPost(API.LOGOUT, { sessionToken });
+    }
+  } finally {
+    clearAdminSession();
+  }
   return { status: true, message: 'Logout Sukses', data: null };
 };

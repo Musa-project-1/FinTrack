@@ -151,16 +151,16 @@ test('failed navigation uses the app shell; API requests bypass interception', a
   assert.equal(api.pending.length, 0);
 });
 
-test('offline navigation serves exact precached standalone pages before falling back to index.html', async () => {
+test('offline navigation serves exact precached standalone pages via normalized cache key before index.html', async () => {
   const shell = new Response('shell');
   const onboarding = new Response('onboarding');
   const w = worker({
     fetch: async () => { throw new Error('offline'); },
     caches: {
       match: async (key, options) => {
-        if (typeof key === 'object' && new URL(key.url).pathname === '/onboarding.html') {
+        if (key === 'https://finkas.test/onboarding.html') {
           assert.equal(options?.cacheName, cacheName);
-          assert.equal(options?.ignoreSearch, true);
+          assert.equal(options?.ignoreSearch, undefined);
           return onboarding;
         }
         return key === 'index.html' ? shell : undefined;
@@ -172,7 +172,7 @@ test('offline navigation serves exact precached standalone pages before falling 
   await event.done();
 });
 
-test('navigation unwraps redirected cached/network responses and never returns opaqueredirect', async () => {
+test('navigation unwraps redirected responses without caching them and never returns opaqueredirect', async () => {
   const redirectedCached = {
     ok: true,
     status: 200,
@@ -185,7 +185,7 @@ test('navigation unwraps redirected cached/network responses and never returns o
   const w1 = worker({
     fetch: async () => opaqueRedirect,
     caches: {
-      match: async (key) => (typeof key === 'object' ? redirectedCached : undefined)
+      match: async (key) => (key === 'https://finkas.test/onboarding.html' ? redirectedCached : undefined)
     }
   });
   const ev1 = w1.dispatch('fetch', request('onboarding.html', 'navigate'));
@@ -203,7 +203,8 @@ test('navigation unwraps redirected cached/network responses and never returns o
         statusText: 'OK',
         headers: new Headers({ 'content-type': 'text/html' }),
         redirected: true,
-        body: 'followed network'
+        body: 'followed network',
+        clone() { return this; }
       };
     }
   });
@@ -212,6 +213,7 @@ test('navigation unwraps redirected cached/network responses and never returns o
   assert.equal(res2.redirected, false);
   assert.equal(await res2.text(), 'followed network');
   await ev2.done();
+  assert.equal(w2.calls.puts.length, 0);
 
   const w3 = worker({ fetch: async () => opaqueRedirect });
   const ev3 = w3.dispatch('fetch', request('onboarding.html', 'navigate'));
@@ -221,17 +223,31 @@ test('navigation unwraps redirected cached/network responses and never returns o
   await ev3.done();
 });
 
-test('CDN misses cache opaque responses under waitUntil; hits avoid fetch', async () => {
-  const opaque = { ok: false, type: 'opaque', clone() { return this; } };
-  const w = worker({ fetch: async () => opaque });
-  const event = w.dispatch('fetch', { url: 'https://fonts.gstatic.com/font.woff2', method: 'GET' });
-  assert.equal(await event.response, opaque);
-  await event.done();
-  assert.equal(w.calls.puts.length, 1);
-  const hit = worker({ caches: { match: async () => opaque },
+test('CDN rejects opaque caching, caches only ok HTTPS CORS responses, and skips http/unlisted CDNs', async () => {
+  const opaque = { ok: false, status: 0, type: 'opaque', clone() { return this; } };
+  const wOpaque = worker({ fetch: async () => opaque });
+  const evOpaque = wOpaque.dispatch('fetch', { url: 'https://fonts.gstatic.com/font.woff2', method: 'GET' });
+  assert.equal(await evOpaque.response, opaque);
+  await evOpaque.done();
+  assert.equal(wOpaque.calls.puts.length, 0);
+
+  const corsOk = { ok: true, status: 200, type: 'cors', redirected: false, clone() { return this; } };
+  const wOk = worker({ fetch: async () => corsOk });
+  const evOk = wOk.dispatch('fetch', { url: 'https://fonts.gstatic.com/font.woff2', method: 'GET' });
+  assert.equal(await evOk.response, corsOk);
+  await evOk.done();
+  assert.equal(wOk.calls.puts.length, 1);
+
+  const hit = worker({ caches: { match: async () => corsOk },
     fetch: () => { assert.fail('cache hit must not fetch'); } });
   const cached = hit.dispatch('fetch', { url: 'https://fonts.gstatic.com/font.woff2', method: 'GET' });
-  assert.equal(await cached.response, opaque);
+  assert.equal(await cached.response, corsOk);
   await cached.done();
   assert.equal(hit.calls.puts.length, 0);
+
+  const httpCdn = wOk.dispatch('fetch', { url: 'http://fonts.gstatic.com/font.woff2', method: 'GET' });
+  assert.equal(httpCdn.response, undefined);
+
+  const removedCdn = wOk.dispatch('fetch', { url: 'https://cdn.jsdelivr.net/npm/pkg/index.js', method: 'GET' });
+  assert.equal(removedCdn.response, undefined);
 });

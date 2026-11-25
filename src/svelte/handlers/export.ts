@@ -4,6 +4,7 @@ import { NAMA_BULAN } from "finkas/core/config";
 import { getState, currentRekapYear } from "finkas/core/state";
 import { formatRp, showToast, escapeHtml } from "finkas/core/utils";
 import { createDuesLedger, billingPeriod } from "finkas/core/dues";
+import { escapeCsvFormula } from "finkas/core/cash-report";
 import { closeModal } from "../ui/modal";
 import { flashCopyFeedback } from "../ui/keel";
 import { flashDownloadRing, isReducedMotion } from "../ui/ui-moments";
@@ -32,6 +33,7 @@ export const cetakStruk = (idTrx: string) => {
   pw.document.open();
   pw.document.write(html);
   pw.document.close();
+  try { pw.opener = null; } catch (_) {}
   pw.focus();
   pw.addEventListener('afterprint', () => {
     try { pw.close(); } catch (_) {}
@@ -87,6 +89,7 @@ export const cetakLaporanTahunan = () => {
   pw.document.open();
   pw.document.write(html);
   pw.document.close();
+  try { pw.opener = null; } catch (_) {}
   pw.focus();
   pw.addEventListener('afterprint', () => {
     try { pw.close(); } catch (_) {}
@@ -164,15 +167,8 @@ export const exportToCSV = (btn?: HTMLElement | null) => {
   const state = getState();
   if (state.transaksi.length === 0) return showToast('Tidak ada data untuk diunduh', 'error');
 
-  const q = (s: unknown, isNumeric = false) => {
-    let str = String(s ?? '');
-    if (!isNumeric && /^\s*[=+\-@\t\r]/.test(str)) {
-      str = "'" + str;
-    }
-    return '"' + str.replace(/"/g, '""') + '"';
-  };
   const header = ['ID Transaksi', 'Waktu', 'Tipe Arus', 'Kategori', 'Anggota', 'Bulan Iuran', 'Tahun Iuran', 'Nominal', 'Keterangan'];
-  const lines = [header.map((h) => q(h, false)).join(';')];
+  const lines = [header.map((h) => escapeCsvFormula(h, false)).join(';')];
 
   [...state.transaksi]
     .sort((a, b) => Date.parse(a.Timestamp) - Date.parse(b.Timestamp))
@@ -181,15 +177,15 @@ export const exportToCSV = (btn?: HTMLElement | null) => {
       const kat = state.kategori.find((k) => k.ID_Kategori === row.ID_Kategori);
       const ang = row.ID_Anggota && row.ID_Anggota !== '-' ? state.anggota.find((a) => a.ID_Anggota === row.ID_Anggota) : null;
       lines.push([
-        q(row.ID_Transaksi),
-        q(waktu),
-        q(row.Tipe_Arus),
-        q(kat ? kat.Nama_Kategori : (row.ID_Kategori || '-')),
-        q(ang ? ang.Nama_Anggota : '-'),
-        q(row.Bulan_Iuran || '-'),
-        q(row.Tahun_Iuran || '-'),
-        q(row.Nominal, true),
-        q(row.Keterangan || '')
+        escapeCsvFormula(row.ID_Transaksi),
+        escapeCsvFormula(waktu),
+        escapeCsvFormula(row.Tipe_Arus),
+        escapeCsvFormula(kat ? kat.Nama_Kategori : (row.ID_Kategori || '-')),
+        escapeCsvFormula(ang ? ang.Nama_Anggota : '-'),
+        escapeCsvFormula(row.Bulan_Iuran || '-'),
+        escapeCsvFormula(row.Tahun_Iuran || '-'),
+        escapeCsvFormula(row.Nominal, true),
+        escapeCsvFormula(row.Keterangan || '')
       ].join(';'));
     });
 

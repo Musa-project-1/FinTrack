@@ -8,13 +8,13 @@
  */
 
 import {
-  setState, saveCache, loadCache, getActiveGroupId
+  setState, saveCache, loadCache, getActiveGroupId, clearCache, resetLedgerState, resolveSessionToken
 } from "finkas/core/state";
 import { fetchInitialData } from "finkas/core/api";
 import { showToast, setConnectionStatus, isOnline } from "finkas/core/utils";
 import { syncOfflineTransactions, countQueuedTransactions } from "finkas/core/offline";
 import { initAnalytics } from "finkas/core/analytics";
-import { GA_MEASUREMENT_ID, GA_ID_KEY, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "finkas/core/config";
+import { GA_MEASUREMENT_ID, GROUP_OPEN_KEY, ACTIVE_GROUP_NAME_KEY } from "finkas/core/config";
 import { initSyncEvents, initSync, destroySync, notifySynced, setSyncBadge } from "finkas/core/sync";
 import {
   applyTheme, watchSystemTheme, applyHeaderStatsPreference,
@@ -87,7 +87,8 @@ const loadWorkspace = async (forceRemote = false, isUserInitiated = false): Prom
   }
   boot.workspaceGroup = group;
   if (isLoading) return false;
-  const hasCache = loadCache(group);
+  const hasSession = Boolean(resolveSessionToken(group, false));
+  const hasCache = hasSession ? loadCache(group) : false;
   if (hasCache) {
     renderAll();
     boot.workspaceState = 'ready';
@@ -128,7 +129,10 @@ const loadWorkspace = async (forceRemote = false, isUserInitiated = false): Prom
       return true;
     } else {
       if (resJSON?.unauthorized) {
+        clearCache(group);
+        resetLedgerState({ clearActiveGroup: true });
         if (hasCache) renderAll();
+        boot.workspaceState = 'unavailable';
         showToast(resJSON.message || 'Sesi telah berakhir. Silakan masuk kembali.', 'warning');
         openGroupPicker();
         return false;
@@ -159,7 +163,8 @@ const loadWorkspace = async (forceRemote = false, isUserInitiated = false): Prom
     return false;
   } finally {
     isLoading = false;
-    if (getActiveGroupId() !== group) void initApp(true);
+    const nextGroup = getActiveGroupId();
+    if (nextGroup && nextGroup !== group) void initApp(true);
     else if (boot.workspaceState !== 'ready') {
       boot.workspaceState = 'unavailable';
       const errMsg = document.querySelector('.workspace-startup-error p');
@@ -221,6 +226,12 @@ async function startWorkspace() {
     if (document.getElementById('modal-offline-queue')?.classList.contains('active')) renderOfflineQueueList();
   });
 
+  window.addEventListener('finkas:session-expired', () => {
+    handleUI();
+    renderAll();
+    openGroupPicker();
+  });
+
   let hasBeenOffline = false;
 
   window.addEventListener('online', async () => {
@@ -240,6 +251,7 @@ async function startWorkspace() {
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.source !== navigator.serviceWorker.controller) return;
       if (event.data?.type === 'SYNC_OFFLINE_QUEUE') {
         syncOfflineTransactions(() => { initApp(); renderChart(); });
       }
@@ -277,8 +289,7 @@ async function startWorkspace() {
 
   if (isOnline()) syncOfflineTransactions(() => { initApp(); renderChart(); });
 
-  const activeGaId = localStorage.getItem(GA_ID_KEY) || GA_MEASUREMENT_ID;
-  if (activeGaId) initAnalytics(activeGaId);
+  if (GA_MEASUREMENT_ID) initAnalytics(GA_MEASUREMENT_ID);
 }
 
 let booted = false;

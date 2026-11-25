@@ -19,7 +19,7 @@
 
 import { checkGroupUpdate } from './api';
 import { isOnline, showToast } from './utils';
-import { getActiveGroupId, getState } from './state';
+import { getActiveGroupId, getState, isPlainRecord, isValidGroupId } from './state';
 
 /* ── Constants ───────────────────────────────────────────────────── */
 
@@ -72,12 +72,12 @@ function openMutationChannel() {
   channel = new BroadcastChannel(CHANNEL_NAME);
   channel.onmessage = (event) => {
     const data = event?.data;
-    if (!data || data.type !== 'mutation') return;
+    if (!isPlainRecord(data) || data.type !== 'mutation' || !isValidGroupId(data.groupId)) return;
 
     const activeGroup = getActiveGroupId();
-    const eventGroupId = data.groupId || activeGroup;
+    const eventGroupId = data.groupId;
 
-    if (eventGroupId && activeGroup && eventGroupId !== activeGroup) {
+    if (activeGroup && eventGroupId !== activeGroup) {
       // Record on that group's state so when user switches to it, status is known
       const targetState = getOrCreateGroupSyncState(eventGroupId);
       targetState.hasRemoteUpdate = true;

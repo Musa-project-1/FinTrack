@@ -157,7 +157,7 @@ beforeEach(() => {
 });
 
 const seedMixedQueue = async () => {
-  await addOfflineTransaction({ payload: { groupId: ' GRP-A ', action: 'tambahAnggota', nama: 'Anggota A' } });
+  await queueOfflinePayload({ groupId: ' GRP-A ', action: 'tambahAnggota', nama: 'Anggota A' });
   await queueOfflinePayload({ groupId: ' GRP-B ', action: 'tambahTransaksi', nama: 'Anggota B',
     dataForm: { keterangan: 'Catatan B', kategori: 'Kategori B', nominal: 987654 } });
   await addOfflineTransaction({ payload: { action: 'tambahAnggota', nama: 'Nama lama' } });

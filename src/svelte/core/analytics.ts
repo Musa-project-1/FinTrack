@@ -3,22 +3,26 @@
  * Lightweight, privacy-first event tracking & analytics abstraction.
  */
 
+const GA4_ID_PATTERN = /^G-[A-Z0-9]{6,16}$/;
+
 let isInitialized = false;
 
 /** Inisialisasi Google Analytics 4 secara dinamis jika measurement ID diberikan. */
 export const initAnalytics = (measurementId?: string) => {
   if (isInitialized || !measurementId || typeof window === 'undefined') return;
+  const trimmedId = String(measurementId).trim();
+  if (!GA4_ID_PATTERN.test(trimmedId)) return;
 
   const script = document.createElement('script');
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(trimmedId)}`;
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
   function gtag(..._args: unknown[]) { window.dataLayer.push(arguments); }
   window.gtag = gtag;
   gtag('js', new Date());
-  gtag('config', measurementId, { anonymize_ip: true });
+  gtag('config', trimmedId, { anonymize_ip: true });
 
   isInitialized = true;
 };

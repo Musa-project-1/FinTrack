@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finkas-v325';
+const CACHE_NAME = 'finkas-v326';
 
 // Local assets including ES modules, stylesheets, icons, and manifest
 const LOCAL_ASSETS = [
@@ -47,7 +47,8 @@ const LOCAL_ASSETS = [
   'src/sw-register.js',
   'src/pages/onboarding.js',
   'src/pages/onboarding-boot-theme.js',
-  'src/pages/privacy.js'
+  'src/pages/privacy.js',
+  'src/pages/offline.js'
 ];
 
 const OPTIONAL_ASSETS = [

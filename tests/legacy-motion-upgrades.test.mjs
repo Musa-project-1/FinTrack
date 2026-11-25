@@ -218,15 +218,16 @@ test('withBusyButton locks width and preserves .hold-fill/.hold-label; withLiqui
   holdFill.classList.add('hold-fill');
   const holdLabel = makeNode('span');
   holdLabel.classList.add('hold-label');
-  holdLabel.innerHTML = 'Ya, Hapus';
+  holdLabel.textContent = 'Ya, Hapus';
   delBtn.append(holdFill, holdLabel);
   elements.set('btn-hapus', delBtn);
 
   let busySnapshot;
-  await withBusyButton('btn-hapus', '<span class="btn-inline-spin"></span> Menghapus…', 'Ya, Hapus', async () => {
+  await withBusyButton('btn-hapus', 'Menghapus…', 'Ya, Hapus', async () => {
     busySnapshot = {
       lockW: delBtn.style.getPropertyValue('--btn-lock-w'),
       ariaBusy: delBtn.getAttribute('aria-busy'),
+      labelText: holdLabel.textContent,
       labelHtml: holdLabel.innerHTML,
       stillHasHoldFill: Boolean(delBtn.querySelector('.hold-fill'))
     };
@@ -235,10 +236,12 @@ test('withBusyButton locks width and preserves .hold-fill/.hold-label; withLiqui
   assert.deepEqual(busySnapshot, {
     lockW: '160px',
     ariaBusy: 'true',
-    labelHtml: '<span class="btn-inline-spin"></span> Menghapus…',
+    labelText: 'Menghapus…',
+    labelHtml: '',
     stillHasHoldFill: true
   });
-  assert.equal(holdLabel.innerHTML, 'Ya, Hapus');
+  assert.equal(holdLabel.textContent, 'Ya, Hapus');
+  assert.equal(holdLabel.innerHTML, '');
   assert.equal(delBtn.style.getPropertyValue('--btn-lock-w'), '');
   assert.equal(delBtn.getAttribute('aria-busy'), null);
 

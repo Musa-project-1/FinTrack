@@ -1,16 +1,15 @@
-type AuditEntry = { Aksi: string; Detail?: string; Timestamp: string };
-
-import { getState, getIsAdminSession, getIsSuperAdmin, getActiveGroupId, saveCache } from "finkas/core/state";
-import { fetchAuditLogApi } from "finkas/core/api";
+import { getState, getIsAdminSession, getActiveGroupId, saveCache } from "finkas/core/state";
 import { isUnsyncedTempId } from "finkas/core/offline";
-import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "finkas/core/utils";
+import { getInput, getSelect, requiredField, showToast, showDatabaseToast, getInitials } from "finkas/core/utils";
 import { deliverMutation, generateTempId, requestAppRefresh } from "finkas/core/mutation";
 import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
 import { syncCdrop } from "../ui/cdrop";
 import { renderSkippedMonthsList } from "../render/index";
-import { syncMasterAnggotaRows, syncMasterAnggotaFilter, syncMasterKategoriRows, syncAuditLogRows } from "../mount";
+import { syncMasterAnggotaRows, syncMasterAnggotaFilter, syncMasterKategoriRows } from "../mount";
 import { flashMasterAnggotaSaved, flashMasterKategoriSaved } from "../stores/master.svelte";
+
+export { AUDIT_ACTION_LABELS, renderAuditLogList, openAuditLogModal } from "./audit-log";
 
 const refreshAppData = async () => { requestAppRefresh(); };
 
@@ -20,147 +19,6 @@ const tempMasterId = (prefix: string) => generateTempId(prefix);
 export const openSkippedMonthsModal = () => {
   openKelolaMasterModal();
   switchTab('tab-master-skipped', 'modal-kelola-master');
-};
-
-/* ══════════════════════════════════════════════════════════════════
-   AUDIT LOG
-   ══════════════════════════════════════════════════════════════════ */
-
-const TONE_COLOR = { accent: 'var(--accent-strong)', warning: 'var(--warning)', danger: 'var(--danger)', neutral: 'var(--text-muted)' };
-const AUDIT_SPECS = [
-  ['LOGIN_ADMIN', 'Login Admin', 'accent', 'akses', 'ph-sign-in'], ['LOGIN_GAGAL', 'Login Gagal', 'danger', 'akses', 'ph-shield-warning'],
-  ['LOGIN_SUPERADMIN_GOOGLE', 'Login Google', 'accent', 'akses', 'ph-google-logo'], ['LOGOUT_ADMIN', 'Logout', 'neutral', 'akses', 'ph-sign-out'],
-  ['PIN_BENAR', 'PIN Benar', 'neutral', 'akses', 'ph-lock-open'], ['PIN_SALAH', 'PIN Salah', 'danger', 'akses', 'ph-warning-circle'],
-  ['PIN_TIDAK_DISETEL', 'Tanpa PIN', 'warning', 'akses', 'ph-key'], ['TAMBAH_TRANSAKSI', 'Tambah Transaksi', 'accent', 'transaksi', 'ph-plus-circle'],
-  ['TAMBAH_IURAN_MASSAL', 'Iuran Massal', 'accent', 'transaksi', 'ph-users-three'], ['EDIT_TRANSAKSI', 'Edit Transaksi', 'warning', 'transaksi', 'ph-pencil-simple'],
-  ['HAPUS_TRANSAKSI', 'Hapus Transaksi', 'danger', 'transaksi', 'ph-trash'], ['DUPLIKAT_DITOLAK', 'Duplikat Ditolak', 'danger', 'transaksi', 'ph-copy-simple'],
-  ['OFFLINE_SYNC', 'Sinkron Offline', 'neutral', 'transaksi', 'ph-cloud-check'], ['TAMBAH_ANGGOTA', 'Tambah Anggota', 'accent', 'master', 'ph-user-plus'],
-  ['HAPUS_ANGGOTA', 'Hapus Anggota', 'danger', 'master', 'ph-user-minus'], ['STATUS_ANGGOTA', 'Status Anggota', 'warning', 'master', 'ph-user-switch'],
-  ['TAMBAH_KATEGORI', 'Tambah Kategori', 'accent', 'master', 'ph-tag'], ['HAPUS_KATEGORI', 'Hapus Kategori', 'danger', 'master', 'ph-tag-simple'],
-  ['TAMBAH_BULAN_LIBUR', 'Bulan Libur +', 'warning', 'master', 'ph-calendar-x'], ['HAPUS_BULAN_LIBUR', 'Bulan Libur -', 'warning', 'master', 'ph-calendar-check'],
-  ['BACKUP_DATABASE', 'Backup', 'neutral', 'grup', 'ph-download-simple'], ['RESTORE_DATABASE', 'Restore', 'warning', 'grup', 'ph-upload-simple'],
-  ['BUAT_GRUP', 'Buat Grup', 'accent', 'grup', 'ph-buildings'], ['HAPUS_GRUP', 'Hapus Grup', 'danger', 'grup', 'ph-trash'],
-  ['UBAH_NAMA', 'Ubah Nama', 'warning', 'grup', 'ph-pencil'], ['UBAH_PIN', 'Ubah PIN', 'warning', 'akses', 'ph-password'],
-  ['UBAH_KREDENSIAL_ADMIN', 'Ubah Admin', 'warning', 'akses', 'ph-user-gear'], ['TAMBAH_SUPERADMIN', 'Super Admin +', 'accent', 'akses', 'ph-crown'],
-  ['HAPUS_SUPERADMIN', 'Super Admin -', 'danger', 'akses', 'ph-crown']
-] as const;
-
-/** Human-readable labels, semantic tones, and category groups for audit actions. */
-export const AUDIT_ACTION_LABELS: Record<string, { label: string; tone: keyof typeof TONE_COLOR; cat: string; icon: string; color: string }> = Object.assign(
-  Object.create(null),
-  Object.fromEntries(
-    AUDIT_SPECS.map(([key, label, tone, cat, icon]) => [key, { label, tone, cat, icon, color: TONE_COLOR[tone] }])
-  )
-);
-
-const getAuditActionMeta = (aksi: string) =>
-  Object.hasOwn(AUDIT_ACTION_LABELS, aksi) ? AUDIT_ACTION_LABELS[aksi] : undefined;
-
-let cachedAuditLog: AuditEntry[] = [];
-let auditFilterCat = 'all';
-let auditSearchQuery = '';
-let auditBound = false;
-let auditRequest = 0;
-
-const formatAuditDate = (ts: string) =>
-  new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-const updateAuditCount = (shown: number, total: number) => {
-  const el = document.getElementById('audit-log-count');
-  if (el) el.textContent = shown === total ? `${total} entri` : `${shown} / ${total} entri`;
-};
-
-const setAuditFilterChip = (cat: string | undefined) => {
-  auditFilterCat = cat || 'all';
-  htmlElements('#audit-filter-chips [data-audit-cat]').forEach((chip) => {
-    const active = chip.dataset.auditCat === auditFilterCat;
-    chip.classList.toggle('active', active);
-    chip.setAttribute('aria-selected', String(active));
-  });
-};
-
-const guardAuditSuperAdmin = (shouldClose = false) => {
-  if (getIsSuperAdmin()) return true;
-  if (shouldClose) closeModal('modal-audit-log');
-  showToast('Hanya Super Admin yang dapat mengakses Log Aktivitas.', 'error');
-  return false;
-};
-
-const paintAuditLogRows = () => {
-  const tbody = document.getElementById('audit-log-tbody');
-  if (!tbody) return;
-  const q = auditSearchQuery.trim().toLowerCase();
-  const rows = cachedAuditLog.filter((entry) => {
-    const meta = getAuditActionMeta(entry.Aksi) || { label: entry.Aksi, cat: 'grup' };
-    if (auditFilterCat !== 'all' && meta.cat !== auditFilterCat) return false;
-    if (!q) return true;
-    return `${meta.label} ${entry.Aksi || ''} ${entry.Detail || ''} ${formatAuditDate(entry.Timestamp)}`.toLowerCase().includes(q);
-  }).map((entry, index) => {
-    const meta = getAuditActionMeta(entry.Aksi) || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
-    return {
-      key: `${index}-${entry.Timestamp}`, timestampText: formatAuditDate(entry.Timestamp),
-      label: meta.label, tone: meta.tone, icon: meta.icon, detail: String(entry.Detail || '')
-    };
-  });
-  updateAuditCount(rows.length, cachedAuditLog.length);
-  syncAuditLogRows({ status: 'ready', totalCount: cachedAuditLog.length, rows });
-};
-
-const ensureAuditLogBound = () => {
-  if (auditBound) return;
-  auditBound = true;
-  window.addEventListener('finkas:group-changed', () => {
-    auditRequest++;
-    cachedAuditLog = [];
-    updateAuditCount(0, 0);
-    const refreshBtn = (document.getElementById('btn-refresh-audit-log') as HTMLButtonElement | null);
-    if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
-  });
-  document.getElementById('search-audit-log')?.addEventListener('input', (e: Event) => {
-    auditSearchQuery = (e.currentTarget as HTMLInputElement).value || '';
-    paintAuditLogRows();
-  });
-  document.getElementById('audit-filter-chips')?.addEventListener('click', (e: Event) => {
-    const btn = closestHtml(e.target, '[data-audit-cat]');
-    if (!btn) return;
-    setAuditFilterChip(btn.dataset.auditCat);
-    paintAuditLogRows();
-  });
-};
-
-export const renderAuditLogList = async () => {
-  if (!document.getElementById('audit-log-tbody')) return;
-  if (!guardAuditSuperAdmin(true)) return;
-  ensureAuditLogBound();
-  const request = ++auditRequest;
-  syncAuditLogRows({ status: 'loading', totalCount: cachedAuditLog.length, rows: [] });
-  const refreshBtn = (document.getElementById('btn-refresh-audit-log') as HTMLButtonElement | null);
-  if (refreshBtn) { refreshBtn.disabled = true; refreshBtn.classList.add('is-loading'); }
-  try {
-    const res = await fetchAuditLogApi();
-    if (request !== auditRequest) return;
-    if (!res || !res.status) {
-      cachedAuditLog = [];
-      updateAuditCount(0, 0);
-      syncAuditLogRows({ status: 'error', errorMessage: res?.message || 'Gagal memuat log.', totalCount: 0, rows: [] });
-      return;
-    }
-    cachedAuditLog = (res.data?.log || []) as AuditEntry[];
-    paintAuditLogRows();
-  } finally {
-    if (refreshBtn && request === auditRequest) { refreshBtn.disabled = false; refreshBtn.classList.remove('is-loading'); }
-  }
-};
-
-/** Open the Admin Activity Audit Log modal (Super Admin only). */
-export const openAuditLogModal = () => {
-  if (!guardAuditSuperAdmin(false)) return;
-  auditSearchQuery = '';
-  const searchEl = getInput('search-audit-log');
-  if (searchEl) searchEl.value = '';
-  setAuditFilterChip('all');
-  openModal('modal-audit-log');
-  renderAuditLogList();
 };
 
 const requireMasterAdminContext = () => {
@@ -176,44 +34,86 @@ const requireMasterAdminContext = () => {
   return targetGroupId;
 };
 
+const ensureMasterGroupActive = (targetGroupId: string): boolean => {
+  if (getIsAdminSession() && getActiveGroupId() === targetGroupId) return true;
+  showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+  return false;
+};
+
+const abortedGroupResult = () => ({
+  outcome: 'neutral' as const,
+  done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning')
+});
+
+const parseMonthInputKey = (inputId: string, emptyMsg: string): string => {
+  const el = getInput(inputId);
+  if (!el || !el.value) { showToast(emptyMsg, 'error'); return ''; }
+  const parts = el.value.split('-');
+  if (parts.length !== 2 || Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) {
+    showToast('Format bulan salah.', 'error');
+    return '';
+  }
+  return `${parts[1].padStart(2, '0')}-${parts[0]}`;
+};
+
+type DeliveredMasterResult = Extract<Awaited<ReturnType<typeof deliverMutation>>, { delivered: true }>['result'];
+
+type MasterMutationSpec = {
+  targetGroupId: string;
+  dialog: Omit<Parameters<typeof showConfirmDialog>[0], 'onConfirm'>;
+  payload: Parameters<typeof deliverMutation>[0];
+  errorMessage: string;
+  onOffline: () => void;
+  onOnline: (result: DeliveredMasterResult) => void | Promise<void>;
+};
+
+const confirmMasterMutation = ({ targetGroupId, dialog, payload, errorMessage, onOffline, onOnline }: MasterMutationSpec) => {
+  showConfirmDialog({
+    ...dialog,
+    onConfirm: async () => {
+      if (!ensureMasterGroupActive(targetGroupId)) return;
+      const delivery = await deliverMutation(payload);
+      if (getActiveGroupId() !== targetGroupId) return;
+      if (!delivery.delivered) {
+        onOffline();
+        saveCache(targetGroupId);
+        return;
+      }
+      if (delivery.result.status) await onOnline(delivery.result);
+      else showToast(delivery.result.message || errorMessage, 'error');
+    }
+  });
+};
+
 export const addSkippedMonth = async () => {
   const targetGroupId = requireMasterAdminContext();
   if (!targetGroupId) return;
-  const el = getInput('input-skip-month');
-  if (!el || !el.value) return showToast('Pilih bulan terlebih dahulu.', 'error');
-  const parts = el.value.split('-');
-  if (parts.length !== 2 || Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) return showToast('Format bulan salah.', 'error');
-  const key = `${parts[1].padStart(2, '0')}-${parts[0]}`;
+  const key = parseMonthInputKey('input-skip-month', 'Pilih bulan terlebih dahulu.');
+  if (!key) return;
 
-  showConfirmDialog({
-    title: 'Tetapkan Bulan Libur?',
-    message: `Anggota akan dibebaskan dari kewajiban iuran untuk bulan ${key}. Simpan ke database?`,
-    icon: 'ph-fill ph-calendar-x',
-    badgeClass: 'warning',
-    confirmText: 'Ya, Tetapkan Libur',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'addSkippedMonth', groupId: targetGroupId, month: key });
-      if (getActiveGroupId() !== targetGroupId) return;
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Tetapkan Bulan Libur?',
+      message: `Anggota akan dibebaskan dari kewajiban iuran untuk bulan ${key}. Simpan ke database?`,
+      icon: 'ph-fill ph-calendar-x',
+      badgeClass: 'warning',
+      confirmText: 'Ya, Tetapkan Libur'
+    },
+    payload: { action: 'addSkippedMonth', groupId: targetGroupId, month: key },
+    errorMessage: 'Gagal menambahkan bulan libur.',
+    onOffline: () => {
       const state = getState();
-      if (!delivered) {
-        // Offline — queued. Reflect locally (server op is idempotent on replay).
-        if (!state.skippedMonths.includes(key)) state.skippedMonths = state.skippedMonths.concat([key]);
-        saveCache(targetGroupId);
-        renderSkippedMonthsList();
-        showDatabaseToast('Bulan Libur Ditetapkan (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
-        return;
-      }
-      if (result.status) {
-        state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.concat([key]);
-        renderSkippedMonthsList();
-        showDatabaseToast('Bulan Libur Ditetapkan', `Bulan ${key} dibebaskan dari iuran.`);
-      } else {
-        showToast(result.message || 'Gagal menambahkan bulan libur.', 'error');
-      }
+      // Offline — queued. Reflect locally (server op is idempotent on replay).
+      if (!state.skippedMonths.includes(key)) state.skippedMonths = state.skippedMonths.concat([key]);
+      renderSkippedMonthsList();
+      showDatabaseToast('Bulan Libur Ditetapkan (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
+    },
+    onOnline: (result) => {
+      const state = getState();
+      state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.concat([key]);
+      renderSkippedMonthsList();
+      showDatabaseToast('Bulan Libur Ditetapkan', `Bulan ${key} dibebaskan dari iuran.`);
     }
   });
 };
@@ -225,33 +125,27 @@ export const removeSkippedMonth = async (key: string | null) => {
     return showToast('Format bulan libur tidak valid.', 'error');
   }
 
-  showConfirmDialog({
-    title: 'Hapus Bulan Libur?',
-    message: `Kewajiban iuran untuk bulan ${key} akan diaktifkan kembali. Simpan perubahan ke database?`,
-    icon: 'ph-fill ph-calendar-check',
-    confirmText: 'Ya, Aktifkan Kembali',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'removeSkippedMonth', groupId: targetGroupId, month: key });
-      if (getActiveGroupId() !== targetGroupId) return;
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Hapus Bulan Libur?',
+      message: `Kewajiban iuran untuk bulan ${key} akan diaktifkan kembali. Simpan perubahan ke database?`,
+      icon: 'ph-fill ph-calendar-check',
+      confirmText: 'Ya, Aktifkan Kembali'
+    },
+    payload: { action: 'removeSkippedMonth', groupId: targetGroupId, month: key },
+    errorMessage: 'Gagal menghapus bulan libur.',
+    onOffline: () => {
       const state = getState();
-      if (!delivered) {
-        state.skippedMonths = state.skippedMonths.filter((s) => s !== key);
-        saveCache(targetGroupId);
-        renderSkippedMonthsList();
-        showDatabaseToast('Bulan Libur Dicabut (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
-        return;
-      }
-      if (result.status) {
-        state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.filter((s) => s !== key);
-        renderSkippedMonthsList();
-        showDatabaseToast('Bulan Libur Dicabut', `Bulan ${key} kembali aktif untuk penagihan.`);
-      } else {
-        showToast(result.message || 'Gagal menghapus bulan libur.', 'error');
-      }
+      state.skippedMonths = state.skippedMonths.filter((s) => s !== key);
+      renderSkippedMonthsList();
+      showDatabaseToast('Bulan Libur Dicabut (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
+    },
+    onOnline: (result) => {
+      const state = getState();
+      state.skippedMonths = result.data?.skippedMonths || state.skippedMonths.filter((s) => s !== key);
+      renderSkippedMonthsList();
+      showDatabaseToast('Bulan Libur Dicabut', `Bulan ${key} kembali aktif untuk penagihan.`);
     }
   });
 };
@@ -271,37 +165,26 @@ export const populateKasStartInput = () => {
 export const saveKasStart = async () => {
   const targetGroupId = requireMasterAdminContext();
   if (!targetGroupId) return;
-  const el = getInput('input-kas-start');
-  if (!el || !el.value) return showToast('Pilih bulan awal mulai kas terlebih dahulu.', 'error');
-  const parts = el.value.split('-'); // YYYY-MM from the month input
-  if (parts.length !== 2 || Number.isNaN(Number(parts[0])) || Number.isNaN(Number(parts[1]))) return showToast('Format bulan salah.', 'error');
-  const key = `${parts[1].padStart(2, '0')}-${parts[0]}`; // → MM-YYYY
+  const key = parseMonthInputKey('input-kas-start', 'Pilih bulan awal mulai kas terlebih dahulu.');
+  if (!key) return;
 
-  showConfirmDialog({
-    title: 'Tetapkan Awal Mulai Kas?',
-    message: `Grup akan mulai menagih iuran sejak bulan ${key}. Bulan sebelumnya tidak dihitung sebagai tunggakan. Simpan ke database?`,
-    icon: 'ph-fill ph-calendar-check',
-    confirmText: 'Ya, Simpan',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'setKasStart', groupId: targetGroupId, kasStart: key });
-      if (getActiveGroupId() !== targetGroupId) return;
-      const state = getState();
-      if (!delivered) {
-        state.kasStart = key;
-        saveCache(targetGroupId);
-        showDatabaseToast('Awal Kas Disimpan (Offline)', `Awal kas ${key} akan disinkronkan saat online.`);
-        return;
-      }
-      if (result.status) {
-        state.kasStart = result.data?.kasStart ?? key;
-        showDatabaseToast('Awal Mulai Kas Diperbarui', `Grup menagih iuran sejak ${key}.`);
-      } else {
-        showToast(result.message || 'Gagal menyimpan awal mulai kas.', 'error');
-      }
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Tetapkan Awal Mulai Kas?',
+      message: `Grup akan mulai menagih iuran sejak bulan ${key}. Bulan sebelumnya tidak dihitung sebagai tunggakan. Simpan ke database?`,
+      icon: 'ph-fill ph-calendar-check',
+      confirmText: 'Ya, Simpan'
+    },
+    payload: { action: 'setKasStart', groupId: targetGroupId, kasStart: key },
+    errorMessage: 'Gagal menyimpan awal mulai kas.',
+    onOffline: () => {
+      getState().kasStart = key;
+      showDatabaseToast('Awal Kas Disimpan (Offline)', `Awal kas ${key} akan disinkronkan saat online.`);
+    },
+    onOnline: (result) => {
+      getState().kasStart = result.data?.kasStart ?? key;
+      showDatabaseToast('Awal Mulai Kas Diperbarui', `Grup menagih iuran sejak ${key}.`);
     }
   });
 };
@@ -427,9 +310,7 @@ export const submitEditMasterAnggota = async (e: Event) => {
   await withLiquidSave(
     'btn-submit-edit-anggota',
     async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
-      }
+      if (!ensureMasterGroupActive(targetGroupId)) return abortedGroupResult();
       const { delivered, result } = await deliverMutation({
         action: 'updateStatusAnggota',
         groupId: targetGroupId,
@@ -554,17 +435,12 @@ export const submitTambahAnggota = async (e: Event) => {
     icon: 'ph-fill ph-user-plus',
     confirmText: 'Ya, Daftarkan',
     onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
+      if (!ensureMasterGroupActive(targetGroupId)) return;
       const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
       await withLiquidSave(
         btn,
         async () => {
-          if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-            return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
-          }
+          if (!ensureMasterGroupActive(targetGroupId)) return abortedGroupResult();
           const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', groupId: targetGroupId, nama, noWa });
           if (getActiveGroupId() !== targetGroupId) return { outcome: 'neutral', done: () => {} };
           if (!delivered) {
@@ -625,37 +501,30 @@ export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: s
     return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum mengubah statusnya.', 'warning');
   }
 
-  showConfirmDialog({
-    title: 'Ubah Status Anggota?',
-    message: `Ubah status ${angName} menjadi "${nextStatus}"? Anggota nonaktif tidak akan dimasukkan ke penagihan iuran aktif.`,
-    icon: nextStatus === 'Aktif' ? 'ph-fill ph-user-check' : 'ph-fill ph-user-minus',
-    badgeClass: nextStatus === 'Aktif' ? '' : 'warning',
-    confirmText: 'Ya, Ubah Status',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'updateStatusAnggota', groupId: targetGroupId, idAnggota, statusAktif: nextStatus });
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Ubah Status Anggota?',
+      message: `Ubah status ${angName} menjadi "${nextStatus}"? Anggota nonaktif tidak akan dimasukkan ke penagihan iuran aktif.`,
+      icon: nextStatus === 'Aktif' ? 'ph-fill ph-user-check' : 'ph-fill ph-user-minus',
+      badgeClass: nextStatus === 'Aktif' ? '' : 'warning',
+      confirmText: 'Ya, Ubah Status'
+    },
+    payload: { action: 'updateStatusAnggota', groupId: targetGroupId, idAnggota, statusAktif: nextStatus },
+    errorMessage: 'Gagal mengubah status anggota.',
+    onOffline: () => {
+      const target = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
+      if (target) target.Status_Aktif = nextStatus;
+      showDatabaseToast('Status Disimpan (Offline)', `Status ${angName} akan disinkronkan saat online.`);
+      renderMasterAnggotaTable();
+      flashMasterAnggotaSaved(idAnggota);
+    },
+    onOnline: async () => {
+      showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
+      await refreshAppData();
       if (getActiveGroupId() !== targetGroupId) return;
-      if (!delivered) {
-        const target = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
-        if (target) target.Status_Aktif = nextStatus;
-        saveCache(targetGroupId);
-        showDatabaseToast('Status Disimpan (Offline)', `Status ${angName} akan disinkronkan saat online.`);
-        renderMasterAnggotaTable();
-        flashMasterAnggotaSaved(idAnggota);
-        return;
-      }
-      if (result.status) {
-        showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
-        await refreshAppData();
-        if (getActiveGroupId() !== targetGroupId) return;
-        renderMasterAnggotaTable();
-        flashMasterAnggotaSaved(idAnggota);
-      } else {
-        showToast(result.message || 'Gagal mengubah status anggota.', 'error');
-      }
+      renderMasterAnggotaTable();
+      flashMasterAnggotaSaved(idAnggota);
     }
   });
 };
@@ -671,40 +540,33 @@ export const hapusMasterAnggotaAction = async (idAnggota: string) => {
     return showToast('Anggota ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.', 'warning');
   }
 
-  showConfirmDialog({
-    title: 'Hapus Anggota?',
-    message: `Data ${angName} akan dihapus permanen dari master anggota grup. Riwayat transaksi lama tetap tersimpan. Lanjutkan?`,
-    icon: 'ph-bold ph-trash',
-    badgeClass: 'danger',
-    confirmText: 'Ya, Hapus Anggota',
-    confirmClass: 'btn-danger-solid',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'hapusAnggota', groupId: targetGroupId, idAnggota });
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Hapus Anggota?',
+      message: `Data ${angName} akan dihapus permanen dari master anggota grup. Riwayat transaksi lama tetap tersimpan. Lanjutkan?`,
+      icon: 'ph-bold ph-trash',
+      badgeClass: 'danger',
+      confirmText: 'Ya, Hapus Anggota',
+      confirmClass: 'btn-danger-solid'
+    },
+    payload: { action: 'hapusAnggota', groupId: targetGroupId, idAnggota },
+    errorMessage: 'Gagal menghapus anggota.',
+    onOffline: () => {
+      // Offline — queued. Remove locally; if the server later rejects it
+      // (e.g. transactions still reference this member), the offline-sync
+      // reconciliation surfaces that and the next refetch restores the row.
+      const arr = getState().anggota;
+      const idx = arr.findIndex((a) => a.ID_Anggota === idAnggota);
+      if (idx !== -1) arr.splice(idx, 1);
+      showDatabaseToast('Penghapusan Disimpan (Offline)', `${angName} akan dihapus saat online.`);
+      renderMasterAnggotaTable();
+    },
+    onOnline: async () => {
+      showDatabaseToast('Anggota Dihapus', `${angName} berhasil dihapus dari database.`);
+      await refreshAppData();
       if (getActiveGroupId() !== targetGroupId) return;
-      if (!delivered) {
-        // Offline — queued. Remove locally; if the server later rejects it
-        // (e.g. transactions still reference this member), the offline-sync
-        // reconciliation surfaces that and the next refetch restores the row.
-        const arr = getState().anggota;
-        const idx = arr.findIndex((a) => a.ID_Anggota === idAnggota);
-        if (idx !== -1) arr.splice(idx, 1);
-        saveCache(targetGroupId);
-        showDatabaseToast('Penghapusan Disimpan (Offline)', `${angName} akan dihapus saat online.`);
-        renderMasterAnggotaTable();
-        return;
-      }
-      if (result.status) {
-        showDatabaseToast('Anggota Dihapus', `${angName} berhasil dihapus dari database.`);
-        await refreshAppData();
-        if (getActiveGroupId() !== targetGroupId) return;
-        renderMasterAnggotaTable();
-      } else {
-        showToast(result.message || 'Gagal menghapus anggota.', 'error');
-      }
+      renderMasterAnggotaTable();
     }
   });
 };
@@ -724,17 +586,12 @@ export const submitTambahKategori = async (e: Event) => {
     icon: 'ph-fill ph-tag',
     confirmText: 'Ya, Simpan Kategori',
     onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
+      if (!ensureMasterGroupActive(targetGroupId)) return;
       const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
       await withLiquidSave(
         btn,
         async () => {
-          if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-            return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
-          }
+          if (!ensureMasterGroupActive(targetGroupId)) return abortedGroupResult();
           const { delivered, result } = await deliverMutation({ action: 'tambahKategori', groupId: targetGroupId, nama, tipe });
           if (getActiveGroupId() !== targetGroupId) return { outcome: 'neutral', done: () => {} };
           if (!delivered) {
@@ -790,37 +647,30 @@ export const hapusMasterKategoriAction = async (idKategori: string) => {
     return showToast('Kategori ini belum tersimpan ke server. Tunggu sinkronisasi selesai sebelum menghapusnya.', 'warning');
   }
 
-  showConfirmDialog({
-    title: 'Hapus Kategori?',
-    message: `Kategori "${katName}" akan dihapus dari pilihan transaksi kas. Lanjutkan?`,
-    icon: 'ph-bold ph-trash',
-    badgeClass: 'danger',
-    confirmText: 'Ya, Hapus Kategori',
-    confirmClass: 'btn-danger-solid',
-    onConfirm: async () => {
-      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
-        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
-        return;
-      }
-      const { delivered, result } = await deliverMutation({ action: 'hapusKategori', groupId: targetGroupId, idKategori });
+  confirmMasterMutation({
+    targetGroupId,
+    dialog: {
+      title: 'Hapus Kategori?',
+      message: `Kategori "${katName}" akan dihapus dari pilihan transaksi kas. Lanjutkan?`,
+      icon: 'ph-bold ph-trash',
+      badgeClass: 'danger',
+      confirmText: 'Ya, Hapus Kategori',
+      confirmClass: 'btn-danger-solid'
+    },
+    payload: { action: 'hapusKategori', groupId: targetGroupId, idKategori },
+    errorMessage: 'Gagal menghapus kategori.',
+    onOffline: () => {
+      const arr = getState().kategori;
+      const idx = arr.findIndex((k) => k.ID_Kategori === idKategori);
+      if (idx !== -1) arr.splice(idx, 1);
+      showDatabaseToast('Penghapusan Disimpan (Offline)', `Kategori "${katName}" akan dihapus saat online.`);
+      renderMasterKategoriTable();
+    },
+    onOnline: async () => {
+      showDatabaseToast('Kategori Dihapus', `Kategori "${katName}" berhasil dihapus.`);
+      await refreshAppData();
       if (getActiveGroupId() !== targetGroupId) return;
-      if (!delivered) {
-        const arr = getState().kategori;
-        const idx = arr.findIndex((k) => k.ID_Kategori === idKategori);
-        if (idx !== -1) arr.splice(idx, 1);
-        saveCache(targetGroupId);
-        showDatabaseToast('Penghapusan Disimpan (Offline)', `Kategori "${katName}" akan dihapus saat online.`);
-        renderMasterKategoriTable();
-        return;
-      }
-      if (result.status) {
-        showDatabaseToast('Kategori Dihapus', `Kategori "${katName}" berhasil dihapus.`);
-        await refreshAppData();
-        if (getActiveGroupId() !== targetGroupId) return;
-        renderMasterKategoriTable();
-      } else {
-        showToast(result.message || 'Gagal menghapus kategori.', 'error');
-      }
+      renderMasterKategoriTable();
     }
   });
 };

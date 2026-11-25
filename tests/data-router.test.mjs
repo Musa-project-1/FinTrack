@@ -206,6 +206,9 @@ globalThis.fetch = async (url, opts) => {
   if (method === 'GET' && path === `groups/${GID_A}`) {
     return Response.json({ fields: { nama: { stringValue: 'Grup Test A' }, groupId: { stringValue: GID_A } } });
   }
+  if (method === 'GET' && path?.startsWith('_revoked_sessions/')) {
+    return Response.json({}, { status: 404 });
+  }
   if (method === 'GET' && path === 'groups/GRP-GHOST') return Response.json({}, { status: 404 });
   if (method === 'GET' && path === 'groups/GRP-REVOKED') {
     return Response.json({ fields: { revokedAfter: { integerValue: String(Math.floor(Date.now() / 1000) + 60) } } });

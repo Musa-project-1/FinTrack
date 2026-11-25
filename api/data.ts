@@ -5,7 +5,7 @@
  * group goes through this endpoint, which resolves the caller's signed session
  * and enforces per-group read/write authorization before touching the database.
  */
-import { parseBody, sendJson } from './_http.ts';
+import { enforceSameOrigin, parseBody, sendJson } from './_http.ts';
 import type { ApiRequest, ApiResponse } from '../src/types/finkas.d.ts';
 import type { GroupWriteHandler } from './_group-write.ts';
 import { requireFirestoreHeaders, fsGet } from './_sa.ts';
@@ -14,7 +14,7 @@ import { readGroupData, readAuditLog } from './_group-read.ts';
 import { WRITE_HANDLERS } from './_group-write.ts';
 import { exportSnapshot } from './_write-snapshot.ts';
 import { readAttachment, exportAttachments, ATTACHMENT_WRITE_HANDLERS } from './_attachments.ts';
-import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp, ROLES } from './_session.ts';
+import { canReadGroup, canWriteGroup, readSession, checkReadRateLimit, clientIp, isSessionRevoked, ROLES } from './_session.ts';
 
 const PUBLIC_ACTIONS = new Set(['groups']);
 const READ_ACTIONS = new Set(['read', 'audit', 'checkUpdate', 'readAttachment', 'exportAttachments', 'exportSnapshot']);
@@ -28,6 +28,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
+  if (!enforceSameOrigin(req, res)) return;
 
   try {
     const body = parseBody(req);
@@ -107,6 +108,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       }
 
       const headers = await requireFirestoreHeaders();
+      if (await isSessionRevoked(session, headers)) {
+        return unauthorized(res, 'Sesi sudah berakhir atau dicabut. Silakan masuk kembali.');
+      }
       const groupInfo = await fsGet(groupDoc(groupId), headers);
       const allowMissingUtamaAudit = action === 'audit' && groupId === 'utama' && session.role === ROLES.SUPERADMIN;
       if (!groupInfo && !allowMissingUtamaAudit) {
@@ -167,6 +171,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         return sendJson(res, 429, { status: false, message: 'Terlalu banyak permintaan perubahan data. Coba lagi sebentar.' });
       }
       const headers = await requireFirestoreHeaders();
+      if (await isSessionRevoked(session, headers)) {
+        return unauthorized(res, 'Sesi sudah berakhir atau dicabut. Silakan masuk kembali.');
+      }
       const groupInfo = await fsGet(groupDoc(groupId), headers);
       if (!groupInfo) {
         return sendJson(res, 404, { status: false, message: 'Grup tidak ditemukan.' });

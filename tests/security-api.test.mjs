@@ -7,7 +7,14 @@ process.env.FINKAS_SESSION_SECRET = 'test-session-secret-value-long-enough-12345
 const oauthResponse = mockServiceAccount();
 
 import handler from '../api/data.ts';
-import { ROLES, signSession, GROUP_SESSION_TTL } from '../api/_session.ts';
+import {
+  ROLES,
+  signSession,
+  verifySession,
+  GROUP_SESSION_TTL,
+  ADMIN_SESSION_TTL,
+  SUPERADMIN_SESSION_TTL
+} from '../api/_session.ts';
 import { encodeFields } from '../api/_sa.ts';
 import { deleteGroupTree } from '../api/_store.ts';
 import { readGroupData, readAuditLog } from '../api/_group-read.ts';
@@ -329,6 +336,9 @@ test('SEC-23: readAuditLog queries Timestamp desc server-side and api/data rate-
     if (s.includes('/documents/groups?')) {
       return Response.json({ documents: [] });
     }
+    if (s.includes('/documents/_revoked_sessions/')) {
+      return Response.json({}, { status: 404 });
+    }
     return Response.json({ fields: encodeFields({ nama: 'Group Test', groupId: 'GRP-RL' }) });
   });
 
@@ -367,4 +377,143 @@ test('SEC-23: readAuditLog queries Timestamp desc server-side and api/data rate-
     body: { action: 'catatAktivitas', groupId: 'GRP-RL', sessionToken: adminToken, aksi: 'LOGOUT_ADMIN' }
   }, blockedWrite);
   assert.equal(blockedWrite.statusCode, 429);
+});
+
+test('SEC-16: /api/data rejects cross-origin, cross-site, and non-JSON browser requests before dispatch', async (t) => {
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const s = String(url);
+    if (s.startsWith('https://oauth2.googleapis.com/')) return oauthResponse();
+    if (s.includes('/documents/groups?')) return Response.json({ documents: [] });
+    throw new Error(`Unexpected fetch: ${s}`);
+  });
+
+  const crossOriginRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: {
+      origin: 'https://evil.example',
+      host: 'finkas.example.com',
+      'content-type': 'application/json'
+    },
+    body: { action: 'groups' }
+  }, crossOriginRes);
+  assert.equal(crossOriginRes.statusCode, 403);
+  assert.equal(crossOriginRes.body.status, false);
+
+  const crossSiteRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: {
+      'sec-fetch-site': 'cross-site',
+      'content-type': 'application/json'
+    },
+    body: { action: 'groups' }
+  }, crossSiteRes);
+  assert.equal(crossSiteRes.statusCode, 403);
+
+  const nonJsonRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: {
+      origin: 'https://finkas.example.com',
+      host: 'finkas.example.com',
+      'content-type': 'text/plain'
+    },
+    body: { action: 'groups' }
+  }, nonJsonRes);
+  assert.equal(nonJsonRes.statusCode, 415);
+
+  const sameOriginRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: {
+      origin: 'https://finkas.example.com',
+      host: 'finkas.example.com',
+      'x-forwarded-proto': 'https',
+      'sec-fetch-site': 'same-origin',
+      'content-type': 'application/json',
+      'x-forwarded-for': '203.0.113.90'
+    },
+    body: { action: 'groups' }
+  }, sameOriginRes);
+  assert.equal(sameOriginRes.statusCode, 200);
+  assert.equal(sameOriginRes.body.status, true);
+});
+
+test('SEC-03: /api/data rejects jti-revoked and superadminRevokedAfterMs sessions on reads and writes', async (t) => {
+  const gid = 'GRP-REV-CHECK';
+  const adminToken = signSession({ role: ROLES.GROUP_ADMIN, gid }, ADMIN_SESSION_TTL);
+  const adminClaims = verifySession(adminToken);
+  assert.ok(adminClaims?.jti);
+
+  const superToken = signSession({ role: ROLES.SUPERADMIN, email: 'owner@example.com' }, SUPERADMIN_SESSION_TTL);
+  const superClaims = verifySession(superToken);
+  assert.ok(superClaims?.jti);
+  const futureRevokedMs = Date.now() + 5000;
+
+  let reachedGroupDocOrWrite = false;
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const s = String(url);
+    if (s.startsWith('https://oauth2.googleapis.com/')) return oauthResponse();
+    if (s.includes(`/documents/_revoked_sessions/${adminClaims.jti}`)) {
+      return Response.json({ fields: encodeFields({ jti: adminClaims.jti, role: ROLES.GROUP_ADMIN }) });
+    }
+    if (s.includes(`/documents/_revoked_sessions/${superClaims.jti}`)) {
+      return Response.json({}, { status: 404 });
+    }
+    if (s.includes('/documents/settings/app_config')) {
+      return Response.json({
+        fields: encodeFields({
+          superadmin_emails: ['owner@example.com'],
+          superadminRevokedAfterMs: futureRevokedMs
+        })
+      });
+    }
+    reachedGroupDocOrWrite = true;
+    return Response.json({ fields: encodeFields({ nama: 'Revoked Check Group', groupId: gid }) });
+  });
+
+  // Revoked jti on read
+  const revReadRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '203.0.113.91' },
+    body: { action: 'checkUpdate', groupId: gid, sessionToken: adminToken }
+  }, revReadRes);
+  assert.equal(revReadRes.statusCode, 401);
+  assert.equal(revReadRes.body.status, false);
+  assert.match(revReadRes.body.message, /berakhir atau dicabut/i);
+  assert.equal(reachedGroupDocOrWrite, false);
+
+  // Revoked jti on write
+  const revWriteRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '203.0.113.92' },
+    body: { action: 'catatAktivitas', groupId: gid, sessionToken: adminToken, aksi: 'LOGOUT_ADMIN', detail: 'revoked' }
+  }, revWriteRes);
+  assert.equal(revWriteRes.statusCode, 401);
+  assert.match(revWriteRes.body.message, /berakhir atau dicabut/i);
+  assert.equal(reachedGroupDocOrWrite, false);
+
+  // Superadmin revoked via superadminRevokedAfterMs on read & write
+  const saReadRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '203.0.113.93' },
+    body: { action: 'audit', groupId: gid, sessionToken: superToken }
+  }, saReadRes);
+  assert.equal(saReadRes.statusCode, 401);
+  assert.match(saReadRes.body.message, /berakhir atau dicabut/i);
+  assert.equal(reachedGroupDocOrWrite, false);
+
+  const saWriteRes = mockRes();
+  await handler({
+    method: 'POST',
+    headers: { 'x-forwarded-for': '203.0.113.94' },
+    body: { action: 'catatAktivitas', groupId: gid, sessionToken: superToken, aksi: 'LOGOUT_ADMIN', detail: 'sa-revoked' }
+  }, saWriteRes);
+  assert.equal(saWriteRes.statusCode, 401);
+  assert.match(saWriteRes.body.message, /berakhir atau dicabut/i);
+  assert.equal(reachedGroupDocOrWrite, false);
 });

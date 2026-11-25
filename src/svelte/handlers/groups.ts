@@ -8,9 +8,10 @@ import { resetPinInput, syncPinInput, wirePinInput } from "../ui/pin-input";
  * longer writes to Firestore directly and no longer reads credential hashes.
  */
 
-import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY, CACHE_KEY, DEFAULT_GROUP_ID } from "finkas/core/config";
+import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY, DEFAULT_GROUP_ID } from "finkas/core/config";
 import {
   clearAdminSession,
+  clearCache,
   clearGroupSession,
   getActiveGroupId,
   getAdminSession,
@@ -18,10 +19,10 @@ import {
   getGroupSession,
   getIsAdminSession,
   getIsSuperAdmin,
+  resetLedgerState,
   setActiveGroupId,
   setGroups,
-  setGroupSession,
-  setState
+  setGroupSession
 } from "finkas/core/state";
 import {
   addSuperAdminApi,
@@ -43,21 +44,10 @@ export { openGroupPicker, renderGroupPicker, initGroupPickerListeners, updateAct
 
 const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!";
 const MIN_ADMIN_PASSWORD = 6;
-const SPOTLIGHT_PREFIX = "finkas_spotlight:";
 
 let pendingGroupId = "";
 let submittingGroupPin = false;
 let latestCreds = { nama: "", pin: "", email: "", pwd: "" };
-
-const purgeStoredCaches = (gid: string) => {
-  try {
-    const storage = typeof localStorage !== "undefined" ? localStorage : null;
-    if (!storage || !gid) return;
-    storage.removeItem(`${CACHE_KEY}:${gid}`);
-    if (gid === DEFAULT_GROUP_ID) storage.removeItem(CACHE_KEY);
-    storage.removeItem(`${SPOTLIGHT_PREFIX}${gid}`);
-  } catch {}
-};
 
 const scrubCredEditForm = () => {
   if (typeof document === "undefined") return;
@@ -288,9 +278,9 @@ export const exitGroup = () => {
   const currentGid = getActiveGroupId();
   if (currentGid) {
     clearGroupSession(currentGid);
-    purgeStoredCaches(currentGid);
+    clearCache(currentGid);
   } else {
-    purgeStoredCaches(DEFAULT_GROUP_ID);
+    clearCache(DEFAULT_GROUP_ID);
   }
   if (getIsAdminSession() && !getIsSuperAdmin()) {
     clearAdminSession({ preserveGroupSessions: true });
@@ -302,14 +292,7 @@ export const exitGroup = () => {
   if (nameEl) nameEl.textContent = "Finkas";
   document.body.dataset.workspaceState = "idle";
   delete document.body.dataset.workspaceGroup;
-  try {
-    localStorage.removeItem(GROUP_OPEN_KEY);
-    localStorage.removeItem(ACTIVE_GROUP_NAME_KEY);
-  } catch (err) {
-    console.warn("[finkas] Cannot clear group state:", err?.message);
-  }
-  setActiveGroupId("");
-  setState({ anggota: [], kategori: [], transaksi: [], skippedMonths: [], kasStart: "", paymentAccount: null });
+  resetLedgerState();
   openGroupPicker();
 };
 

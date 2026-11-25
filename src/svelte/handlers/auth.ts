@@ -15,19 +15,12 @@ import {
   getAdminViewMode,
   setAdminViewMode,
   getActiveGroupId,
-  setActiveGroupId,
-  setState,
+  clearAllCaches,
+  resetLedgerState,
   clearAdminSession
 } from "finkas/core/state";
 import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "finkas/core/api";
-import {
-  GOOGLE_CLIENT_ID,
-  CACHE_KEY,
-  ACTIVE_GROUP_KEY,
-  ACTIVE_GROUP_NAME_KEY,
-  GROUP_OPEN_KEY,
-  DEFAULT_GROUP_ID
-} from "finkas/core/config";
+import { GOOGLE_CLIENT_ID } from "finkas/core/config";
 import { requestAppRefresh } from "finkas/core/mutation";
 import { getInput, htmlElements, buttonIcon, showToast } from "finkas/core/utils";
 import { closeModal } from "../ui/modal";
@@ -36,41 +29,12 @@ import { syncWorkspaceGliders } from "../ui/workspace";
 import { renderAll, renderChart } from "../render/index";
 
 const GOOGLE_SDK_SRC = "https://accounts.google.com/gsi/client";
-const CACHE_PREFIX = `${CACHE_KEY}:`;
-const SPOTLIGHT_PREFIX = "finkas_spotlight:";
 const adminLogoutCleaners = new Set<() => void>();
 
 /** Register a cleanup hook invoked on admin logout without introducing circular imports. */
 export const onAdminLogout = (cleanup: () => void) => {
   adminLogoutCleaners.add(cleanup);
   return () => { adminLogoutCleaners.delete(cleanup); };
-};
-
-const purgeStoredCaches = (gid?: string) => {
-  try {
-    const storage = typeof localStorage !== "undefined" ? localStorage : null;
-    if (!storage) return;
-    if (gid) {
-      storage.removeItem(`${CACHE_KEY}:${gid}`);
-      if (gid === DEFAULT_GROUP_ID) storage.removeItem(CACHE_KEY);
-      storage.removeItem(`${SPOTLIGHT_PREFIX}${gid}`);
-      return;
-    }
-    const keysToDelete = new Set<string>([
-      CACHE_KEY,
-      `${CACHE_KEY}:${DEFAULT_GROUP_ID}`,
-      ACTIVE_GROUP_KEY,
-      ACTIVE_GROUP_NAME_KEY,
-      GROUP_OPEN_KEY
-    ]);
-    for (let i = 0; i < storage.length; i += 1) {
-      const key = storage.key(i);
-      if (key && (key === CACHE_KEY || key.startsWith(CACHE_PREFIX) || key.startsWith(SPOTLIGHT_PREFIX))) {
-        keysToDelete.add(key);
-      }
-    }
-    keysToDelete.forEach((key) => storage.removeItem(key));
-  } catch {}
 };
 
 const scrubCredentialDom = () => {
@@ -607,7 +571,7 @@ export const logoutAdminAction = async () => {
   }
 
   clearAdminSession();
-  purgeStoredCaches();
+  clearAllCaches();
   scrubCredentialDom();
   adminLogoutCleaners.forEach((cleanup) => {
     try { cleanup(); } catch {}
@@ -622,8 +586,7 @@ export const logoutAdminAction = async () => {
     }
   }
 
-  setActiveGroupId("");
-  setState({ anggota: [], kategori: [], transaksi: [], skippedMonths: [], kasStart: "", paymentAccount: null });
+  resetLedgerState();
   handleUI();
   renderAll();
   renderChart();

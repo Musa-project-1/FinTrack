@@ -335,3 +335,93 @@ test('revocation rejects stale and undated group sessions for reads and writes',
     }
   }
 });
+
+test('read action strips Nomor_WA and operationId for MEMBER and retains them for GROUP_ADMIN (SEC-19)', async (t) => {
+  const prevFetch = globalThis.fetch;
+  t.mock.method(globalThis, 'fetch', async (url, opts) => {
+    const path = new URL(String(url)).pathname.split('/documents/')[1];
+    if (path === `groups/${GID_A}/anggota`) {
+      return Response.json({
+        documents: [{
+          name: `projects/p/databases/(default)/documents/groups/${GID_A}/anggota/ANG-1`,
+          fields: {
+            ID_Anggota: { stringValue: 'ANG-1' },
+            Nama_Anggota: { stringValue: 'Budi' },
+            Nomor_WA: { stringValue: '6281234567890' },
+            Status_Aktif: { stringValue: 'Aktif' }
+          }
+        }]
+      });
+    }
+    if (path === `groups/${GID_A}/kategori`) return Response.json({ documents: [] });
+    if (path === `groups/${GID_A}/transaksi`) {
+      return Response.json({
+        documents: [{
+          name: `projects/p/databases/(default)/documents/groups/${GID_A}/transaksi/TRX-1`,
+          fields: {
+            ID_Transaksi: { stringValue: 'TRX-1' },
+            Nominal: { integerValue: '10000' },
+            operationId: { stringValue: 'OP-SECRET-ID' }
+          }
+        }]
+      });
+    }
+    if (path === `groups/${GID_A}/settings/app_config`) return Response.json({}, { status: 404 });
+    return prevFetch(url, opts);
+  });
+
+  const memberToken = signSession({ role: ROLES.MEMBER, gid: GID_A }, GROUP_SESSION_TTL);
+  const memberRes = mockRes();
+  await handler({ method: 'POST', headers: { 'x-forwarded-for': '198.51.100.10' }, body: { action: 'read', groupId: GID_A, sessionToken: memberToken } }, memberRes);
+  assert.equal(memberRes.statusCode, 200);
+  assert.equal(memberRes.body.data.anggota[0].Nama_Anggota, 'Budi');
+  assert.equal('Nomor_WA' in memberRes.body.data.anggota[0], false);
+  assert.equal('operationId' in memberRes.body.data.transaksi[0], false);
+
+  const adminToken = signSession({ role: ROLES.GROUP_ADMIN, gid: GID_A }, GROUP_SESSION_TTL);
+  const adminRes = mockRes();
+  await handler({ method: 'POST', headers: { 'x-forwarded-for': '198.51.100.11' }, body: { action: 'read', groupId: GID_A, sessionToken: adminToken } }, adminRes);
+  assert.equal(adminRes.statusCode, 200);
+  assert.equal(adminRes.body.data.anggota[0].Nomor_WA, '6281234567890');
+  assert.equal(adminRes.body.data.transaksi[0].operationId, 'OP-SECRET-ID');
+});
+
+test('data gateway rejects prototype action names and non-string action/groupId with 400 (SEC-22)', async () => {
+  const adminToken = signSession({ role: ROLES.GROUP_ADMIN, gid: GID_A }, GROUP_SESSION_TTL);
+  for (const action of ['toString', 'constructor', 'valueOf', '__proto__']) {
+    const res = mockRes();
+    await handler({ method: 'POST', body: { action, groupId: GID_A, sessionToken: adminToken } }, res);
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.message, 'Aksi tidak dikenal.');
+  }
+
+  const nullProtoAction = Object.assign(Object.create(null), { bad: 1 });
+  const nonStrActionRes = mockRes();
+  await handler({ method: 'POST', body: { action: nullProtoAction, groupId: GID_A, sessionToken: adminToken } }, nonStrActionRes);
+  assert.equal(nonStrActionRes.statusCode, 400);
+
+  const nonStrGidRes = mockRes();
+  await handler({ method: 'POST', body: { action: 'read', groupId: nullProtoAction, sessionToken: adminToken } }, nonStrGidRes);
+  assert.equal(nonStrGidRes.statusCode, 400);
+});
+
+test('data gateway allows superadmin audit on utama even when groups/utama root doc is absent (SEC-45)', async (t) => {
+  const prevFetch = globalThis.fetch;
+  t.mock.method(globalThis, 'fetch', async (url, opts) => {
+    const path = new URL(String(url)).pathname.split('/documents/')[1];
+    if (path === 'groups/utama') return Response.json({}, { status: 404 });
+    if (path === 'groups/utama/audit_log') {
+      return Response.json({
+        documents: [{ fields: { Timestamp: { stringValue: '2026-11-20T10:00:00.000Z' }, Aksi: { stringValue: 'LOGIN_SUPERADMIN_GOOGLE' }, Detail: { stringValue: 'ok' }, groupId: { stringValue: 'utama' } } }]
+      });
+    }
+    return prevFetch(url, opts);
+  });
+
+  const token = signSession({ role: ROLES.SUPERADMIN, email: SA_WHITELIST[0] }, GROUP_SESSION_TTL);
+  const res = mockRes();
+  await handler({ method: 'POST', headers: { 'x-forwarded-for': '198.51.100.12' }, body: { action: 'audit', groupId: 'utama', sessionToken: token } }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.data.log.length, 1);
+  assert.equal(res.body.data.log[0].Aksi, 'LOGIN_SUPERADMIN_GOOGLE');
+});

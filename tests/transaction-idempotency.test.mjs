@@ -11,7 +11,22 @@ import {
 } from '../api/_transaction-idempotency.ts';
 import { addTransaction, editTransaction, deleteDocument, addBulkTransactions } from '../api/_write-transactions.ts';
 import { readTransactions, readGroupData } from '../api/_group-read.ts';
-import { decodeFields } from '../api/_sa.ts';
+import { decodeFields, encodeFields } from '../api/_sa.ts';
+
+function seedCategories(memDb, gid = 'GRP-IDEMP') {
+  memDb.docs.set(`groups/${gid}/kategori/KAT-1`, encodeFields({
+    ID_Kategori: 'KAT-1',
+    Nama_Kategori: 'Iuran',
+    Tipe: 'Masuk',
+    groupId: gid
+  }));
+  memDb.docs.set(`groups/${gid}/kategori/KAT-KELUAR`, encodeFields({
+    ID_Kategori: 'KAT-KELUAR',
+    Nama_Kategori: 'Operasional',
+    Tipe: 'Keluar',
+    groupId: gid
+  }));
+}
 
 class MemoryFirestore {
   constructor(projectId = 'finkas-kas') {
@@ -229,6 +244,7 @@ test('receiptToResponse reconstructs standard API response', () => {
 
 test('addTransaction with unique operationId allows multiple installments for same member and month', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -285,6 +301,7 @@ test('addTransaction with unique operationId allows multiple installments for sa
 
 test('addTransaction replay with same operationId returns original result without duplicating ledger rows', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -324,6 +341,7 @@ test('addTransaction replay with same operationId returns original result withou
 
 test('addTransaction rejects same operationId when submitted with different payload', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -368,6 +386,7 @@ test('addTransaction rejects same operationId when submitted with different payl
 
 test('replay of operationId after transaction deletion does NOT resurrect the transaction', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -413,6 +432,7 @@ test('replay of operationId after transaction deletion does NOT resurrect the tr
 
 test('parallel replay of same operationId resolves safely to original receipt without creating duplicates', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -455,6 +475,7 @@ test('parallel replay of same operationId resolves safely to original receipt wi
 
 test('editTransaction preserves transaction identity (stable create identity across edits)', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -544,6 +565,7 @@ test('editTransaction preserves transaction identity (stable create identity acr
 
 test('deleteDocument on transaction with operationId is idempotent', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
 
@@ -590,6 +612,7 @@ test('deleteDocument on transaction with operationId is idempotent', async () =>
 
 test('addBulkTransactions with operationId is atomic (no partial write on commit failure) and returns real rows', async () => {
   const memDb = new MemoryFirestore();
+  seedCategories(memDb);
   const realFetch = globalThis.fetch;
   let failCommit = false;
 
@@ -652,6 +675,104 @@ test('addBulkTransactions with operationId is atomic (no partial write on commit
     const res3 = await addBulkTransactions(GID, bulkPayload, HEADERS);
     assert.equal(res3.status, true);
     assert.deepEqual(res3.data, res2.data);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('editTransaction with operationId on legacy Iuran preserves deterministic migration and dedupe (SEC-05)', async () => {
+  const memDb = new MemoryFirestore();
+  seedCategories(memDb);
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
+
+  const GID = 'GRP-IDEMP';
+  const HEADERS = { Authorization: 'Bearer mock-token' };
+
+  try {
+    // Seed two legacy single-period Iuran rows: Jan and Feb
+    const janRes = await addTransaction(GID, {
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-1',
+        bulanIuran: 'Januari', tahunIuran: '2026', nominal: 10000, keterangan: 'Jan legacy'
+      }
+    }, HEADERS);
+    const febRes = await addTransaction(GID, {
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-1',
+        bulanIuran: 'Februari', tahunIuran: '2026', nominal: 10000, keterangan: 'Feb legacy'
+      }
+    }, HEADERS);
+    assert.equal(janRes.status, true);
+    assert.equal(febRes.status, true);
+
+    // Attempt to move Jan -> Feb while supplying an operationId: must reject duplicate Feb!
+    const dupEdit = await editTransaction(GID, {
+      operationId: 'OP-EDIT-LEGACY-DUP',
+      idTransaksi: janRes.data.ID_Transaksi,
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-1',
+        bulanIuran: 'Februari', tahunIuran: '2026', nominal: 10000, keterangan: 'Should reject'
+      }
+    }, HEADERS);
+    assert.equal(dupEdit.status, false);
+    assert.match(dupEdit.message, /sudah tercatat/i);
+
+    // Move Jan -> Maret WITH operationId: must migrate ID to iuranId(Maret), delete Jan, and store receipt
+    const okEdit = await editTransaction(GID, {
+      operationId: 'OP-EDIT-LEGACY-OK',
+      idTransaksi: janRes.data.ID_Transaksi,
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-1',
+        bulanIuran: 'Maret', tahunIuran: '2026', nominal: 10000, keterangan: 'Moved to Maret'
+      }
+    }, HEADERS);
+    assert.equal(okEdit.status, true);
+    assert.notEqual(okEdit.data.idTransaksi, janRes.data.ID_Transaksi);
+
+    const rows = await readTransactions(GID, HEADERS);
+    assert.equal(rows.filter((r) => r.Bulan_Iuran === 'Januari').length, 0);
+    assert.equal(rows.filter((r) => r.Bulan_Iuran === 'Maret').length, 1);
+
+    // Replay returns cached migrated idTransaksi cleanly
+    const replay = await editTransaction(GID, {
+      operationId: 'OP-EDIT-LEGACY-OK',
+      idTransaksi: janRes.data.ID_Transaksi,
+      dataForm: {
+        tipeArus: 'Masuk', idKategori: 'KAT-1', idAnggota: 'ANG-1',
+        bulanIuran: 'Maret', tahunIuran: '2026', nominal: 10000, keterangan: 'Moved to Maret'
+      }
+    }, HEADERS);
+    assert.equal(replay.status, true);
+    assert.equal(replay.data.idTransaksi, okEdit.data.idTransaksi);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('addBulkTransactions rejects per-row operationId when top-level operationId is omitted (SEC-06)', async () => {
+  const memDb = new MemoryFirestore();
+  seedCategories(memDb);
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (url, opts) => memDb.handleFetch(url, opts);
+
+  const GID = 'GRP-IDEMP';
+  const HEADERS = { Authorization: 'Bearer mock-token' };
+
+  try {
+    const res = await addBulkTransactions(GID, {
+      listTrx: [{
+        operationId: 'OP-ROW-BYPASS-1',
+        idAnggota: 'ANG-1',
+        nominal: 10000,
+        bulanIuran: 'September',
+        tahunIuran: '2026',
+        idKategori: 'KAT-1'
+      }]
+    }, HEADERS);
+    assert.equal(res.status, false);
+    assert.match(res.message, /operationId/i);
+    assert.equal((await readTransactions(GID, HEADERS)).length, 0);
   } finally {
     globalThis.fetch = realFetch;
   }

@@ -89,21 +89,6 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 
 ---
 
-## 🚀 Setup & Deployment
-
-### 1. Environment Variables
-- `FIREBASE_SERVICE_ACCOUNT` *(wajib)* — JSON kredensial Service Account Firebase (mentah atau base64). Untuk lokal, simpan di `.service-account.local.json` (masuk `.gitignore`).
-- `FIREBASE_PROJECT_ID` *(opsional)* — Default `finkas-kas`.
-- `FINKAS_SESSION_SECRET` *(disarankan)* — Secret HMAC min. 32 karakter (bila kosong, diturunkan dari private key).
-
-### 2. Deploy Firestore Rules & Vercel
-```bash
-firebase deploy --only firestore:rules   # Rilis bersama klien terbaru agar klien lama tidak ditolak sepihak
-```
-Hosting menggunakan **Vercel** dengan build command `npm run build` di [vercel.json](./vercel.json).
-
----
-
 ## 🧑‍💻 Perintah Pengembangan
 
 ```bash

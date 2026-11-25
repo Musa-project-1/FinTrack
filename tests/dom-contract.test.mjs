@@ -277,20 +277,26 @@ test('the tolerated-lookup allow-list has no stale rows', () => {
 
 /* ── Service Worker contracts ───────────────────────────────────── */
 
-test('sw.js enforces cache scoping, /api/ bypass, and opaque CDN caching', () => {
+test('sw.js enforces cache scoping, normalized /api/ bypass, and CORS-only CDN caching', () => {
   const sw = read('sw.js');
 
   // Must scope caches.match to CACHE_NAME
   assert.match(sw, /caches\.match\([^)]+cacheName:\s*CACHE_NAME/);
 
-  // Must explicitly bypass /api/
-  assert.match(sw, /url\.pathname\.startsWith\(['"]\/api\/['"]\)/);
+  // Must bypass /api/ across double-slash, percent-encoded, and case variants
+  assert.match(sw, /function normalizePathname\(pathname\)/);
+  assert.match(sw, /decodeURIComponent\(pathname\)/);
+  assert.match(sw, /function isApiRequest\(url\)/);
+  assert.ok(sw.includes('/^\\/+api(\\/|$)/i'));
+  assert.match(sw, /if \(isApiRequest\(url\)\) return;/);
 
   // Must provide offline navigation fallback
   assert.match(sw, /event\.request\.mode === ['"]navigate['"]/);
 
-  // Must allow opaque CDN responses
-  assert.match(sw, /response\.ok \|\| response\.type === ['"]opaque['"]/);
+  // Must enforce HTTPS CORS-only CDN caching (no opaque response caching)
+  assert.match(sw, /url\.protocol === ['"]https:['"] && CDN_HOSTS\.includes\(url\.hostname\)/);
+  assert.match(sw, /response && response\.ok && !response\.redirected/);
+  assert.doesNotMatch(sw, /response\.type\s*===\s*['"]opaque['"]/);
 });
 
 test('modal-menu avoids auto-focusing search input on mobile viewports', () => {

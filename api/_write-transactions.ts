@@ -26,9 +26,9 @@ import {
   TRANSACTIONS_COLLECTION,
   col,
   iuranId,
-  isValidDocId,
   newId,
   nowIso,
+  parseDocId,
   writeAuditLog
 } from './_store.ts';
 import { readTransactions } from './_group-read.ts';
@@ -36,7 +36,6 @@ import { PROOFS_COLLECTION } from './_attachments.ts';
 import {
   fail,
   ok,
-  cleanText,
   parseTransactionInput,
   type TransactionInput,
   findDuplicateIuran,
@@ -46,7 +45,6 @@ import {
 import {
   computeRequestFingerprint,
   transactionIdForOperation,
-  isValidOperationId,
   parseOperationId,
   getOperationReceipt,
   buildReceiptWrite,
@@ -56,6 +54,43 @@ import {
 /* ── Transactions ────────────────────────────────────────────────── */
 
 type Payload = Record<string, any>;
+
+/** Verify every referenced category exists in the group and matches the transaction flow direction. */
+async function verifyCategories(
+  gid: string,
+  inputs: Array<{ idKategori: string; tipeArus: string }>,
+  headers: FirestoreHeaders
+): Promise<string | null> {
+  const unique = new Map<string, Set<string>>();
+  for (const item of inputs) {
+    let types = unique.get(item.idKategori);
+    if (!types) {
+      types = new Set();
+      unique.set(item.idKategori, types);
+    }
+    types.add(item.tipeArus);
+  }
+
+  const results = await Promise.all(
+    [...unique.entries()].map(async ([idKat, types]) => ({
+      idKat,
+      types,
+      doc: await fsGet(`${col(gid, CATEGORIES_COLLECTION)}/${idKat}`, headers)
+    }))
+  );
+
+  for (const { idKat, types, doc } of results) {
+    if (!doc || (doc.groupId && doc.groupId !== gid)) {
+      return `Kategori transaksi (${idKat}) tidak ditemukan.`;
+    }
+    for (const tipe of types) {
+      if (doc.Tipe !== tipe) {
+        return `Kategori ${doc.Nama_Kategori || idKat} hanya berlaku untuk arus ${doc.Tipe || 'lain'}, bukan ${tipe}.`;
+      }
+    }
+  }
+  return null;
+}
 
 export async function addTransaction(gid: string, payload: Payload, headers: FirestoreHeaders) {
   const input = parseTransactionInput(payload?.dataForm);
@@ -68,6 +103,9 @@ export async function addTransaction(gid: string, payload: Payload, headers: Fir
 
   // 1. Legacy path without operationId: single-period dedupe
   if (!operationId) {
+    const catError = await verifyCategories(gid, [input], headers);
+    if (catError) return fail(catError);
+
     const isIuran = isIuranPayment(input);
     if (isIuran) {
       const transaksi = await readTransactions(gid, headers);
@@ -122,6 +160,9 @@ export async function addTransaction(gid: string, payload: Payload, headers: Fir
     }
     return receiptToResponse(existingReceipt);
   }
+
+  const catError = await verifyCategories(gid, [input], headers);
+  if (catError) return fail(catError);
 
   const idTrx = transactionIdForOperation(gid, operationId);
   const doc = {
@@ -224,6 +265,9 @@ export async function addAtomicBulk(gid: string, listTrx: Array<Record<string, a
   }
 
   const timestamp = nowIso();
+  const catError = await verifyCategories(gid, parsed, headers);
+  if (catError) return fail(catError);
+
   const rows: Transaksi[] = [];
   const writes: FirestoreWrite[] = [];
 
@@ -287,6 +331,9 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
     ? payload.listTrx
     : (Array.isArray(payload?.transaksiList) ? payload.transaksiList : []);
   if (!listTrx.length && Array.isArray(payload?.dataForm?.arrIdAnggota)) {
+    if (payload.dataForm.arrIdAnggota.length > MAX_BULK_TRANSACTIONS) {
+      return fail(`Maksimal ${MAX_BULK_TRANSACTIONS} transaksi per permintaan.`);
+    }
     const { arrIdAnggota, tipeArus, idKategori, bulanIuran, tahunIuran, nominal, keterangan, timestamp } = payload.dataForm;
     listTrx = arrIdAnggota.map((idAnggota: string) => ({ tipeArus, idKategori, idAnggota, bulanIuran, tahunIuran, nominal, keterangan, timestamp }));
   }
@@ -302,16 +349,18 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
 
   const parsed: TransactionInput[] = [];
   for (const raw of listTrx) {
+    if (raw && typeof raw === 'object' && raw.operationId !== undefined && raw.operationId !== null && raw.operationId !== '') {
+      return fail('ID operasi baris massal memerlukan operationId di tingkat permintaan.');
+    }
     const input = parseTransactionInput({ tipeArus: 'Masuk', ...raw });
     if ('error' in input) return fail(input.error);
     if (input.idAnggota === '-') continue;
-    const rowOpId = cleanText(raw?.operationId, 128);
-    if (rowOpId && isValidOperationId(rowOpId)) {
-      input.operationId = rowOpId;
-    }
     parsed.push(input);
   }
   if (!parsed.length) return fail('Data transaksi massal tidak valid.');
+
+  const catError = await verifyCategories(gid, parsed, headers);
+  if (catError) return fail(catError);
 
   const transaksi = await readTransactions(gid, headers);
   const skipped: string[] = [];
@@ -319,7 +368,7 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
   const seenInBatch = new Set();
 
   for (const input of parsed) {
-    if (isIuranPayment(input) && !input.operationId) {
+    if (isIuranPayment(input)) {
       const batchKey = `${input.idAnggota}:${input.bulanIuran}:${input.tahunIuran}`;
       if (seenInBatch.has(batchKey) || findDuplicateIuran(transaksi, input)) {
         skipped.push(input.idAnggota);
@@ -338,9 +387,7 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
   const writeResults = await Promise.allSettled(
     accepted.map(async (input) => {
       const isIuran = isIuranPayment(input);
-      const idTrx = input.operationId
-        ? transactionIdForOperation(gid, input.operationId)
-        : (isIuran ? iuranId(gid, input) : newId('TRX'));
+      const idTrx = isIuran ? iuranId(gid, input) : newId('TRX');
       const doc = {
         ID_Transaksi: idTrx,
         Timestamp: input.timestamp || timestamp,
@@ -351,11 +398,10 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
         Tahun_Iuran: input.tahunIuran,
         Nominal: input.nominal,
         Keterangan: input.keterangan,
-        groupId: gid,
-        ...(input.operationId ? { operationId: input.operationId } : {})
+        groupId: gid
       };
 
-      if (isIuran || input.operationId) {
+      if (isIuran) {
         const created = await fsCreateIfAbsent(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTrx}`, doc, headers);
         if (!created) {
           return { ok: false, idAnggota: input.idAnggota };
@@ -385,8 +431,9 @@ export async function addBulkTransactions(gid: string, payload: Payload, headers
 }
 
 export async function editTransaction(gid: string, payload: Payload, headers: FirestoreHeaders) {
-  const idTarget = cleanText(payload?.idTransaksi || payload?.dataForm?.idTransaksi, 40);
-  if (!idTarget || !isValidDocId(idTarget)) return fail('ID transaksi tidak valid.');
+  const parsedTarget = parseDocId(payload?.idTransaksi ?? payload?.dataForm?.idTransaksi);
+  if (parsedTarget.error || !parsedTarget.id) return fail(parsedTarget.error || 'ID transaksi tidak valid.');
+  const idTarget = parsedTarget.id;
 
   const input = parseTransactionInput(payload?.dataForm);
   if ('error' in input) return fail(input.error);
@@ -422,8 +469,12 @@ export async function editTransaction(gid: string, payload: Payload, headers: Fi
   const existing = await fsGet(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
   if (!existing) return fail('Transaksi tidak ditemukan.');
 
+  const catError = await verifyCategories(gid, [input], headers);
+  if (catError) return fail(catError);
+
   const isIuran = isIuranPayment(input);
-  if (isIuran && !operationId && !existing.operationId) {
+  const isLegacyManaged = !existing.operationId;
+  if (isIuran && isLegacyManaged) {
     const transaksi = await readTransactions(gid, headers);
     if (findDuplicateIuran(transaksi, input, idTarget)) {
       return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
@@ -439,8 +490,8 @@ export async function editTransaction(gid: string, payload: Payload, headers: Fi
     existing.Tahun_Iuran &&
     existing.Tahun_Iuran !== '-';
 
-  // Keep create identities stable across edits when transaction was created with operationId or edited with operationId
-  const targetId = (operationId || existing.operationId)
+  // Identity stability depends solely on whether the original record is operation-tracked.
+  const targetId = existing.operationId
     ? idTarget
     : (isIuran ? iuranId(gid, input) : (wasIuran ? newId('TRX') : idTarget));
 
@@ -469,10 +520,11 @@ export async function editTransaction(gid: string, payload: Payload, headers: Fi
     const writes: FirestoreWrite[] = [
       {
         update: { name: targetDocName, fields: encodeFields(doc) },
-        ...(isIuran ? { currentDocument: { exists: false } } : {})
+        currentDocument: { exists: false }
       },
       {
-        delete: oldDocName
+        delete: oldDocName,
+        currentDocument: { exists: true }
       }
     ];
 
@@ -491,10 +543,12 @@ export async function editTransaction(gid: string, payload: Payload, headers: Fi
         update: {
           name: docName(col(gid, PROOFS_COLLECTION), targetId),
           fields: encodeFields(movedProof)
-        }
+        },
+        currentDocument: { exists: false }
       });
       writes.push({
-        delete: docName(col(gid, PROOFS_COLLECTION), idTarget)
+        delete: docName(col(gid, PROOFS_COLLECTION), idTarget),
+        currentDocument: { exists: true }
       });
     }
 
@@ -505,8 +559,24 @@ export async function editTransaction(gid: string, payload: Payload, headers: Fi
     try {
       await fsCommit(writes, headers);
     } catch (err) {
-      if (isIuran && isPreconditionFailure(err)) {
-        return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
+      if (isPreconditionFailure(err)) {
+        if (operationId) {
+          const raced = await getOperationReceipt(gid, operationId, headers);
+          if (raced) {
+            if (raced.fingerprint !== fingerprint) {
+              return fail('Permintaan ditolak: operation ID sudah digunakan dengan data berbeda.');
+            }
+            return receiptToResponse(raced);
+          }
+        }
+        const stillExists = await fsGet(`${col(gid, TRANSACTIONS_COLLECTION)}/${idTarget}`, headers);
+        if (!stillExists) {
+          return fail('Transaksi tidak ditemukan.');
+        }
+        if (isIuran) {
+          return fail(`Iuran ${input.bulanIuran} ${input.tahunIuran} sudah tercatat pada transaksi lain.`);
+        }
+        return fail('Terjadi konflik saat memperbarui transaksi.');
       }
       throw err;
     }
@@ -583,11 +653,16 @@ const DELETE_AUDIT: Record<string, string> = {
 };
 
 export async function deleteDocument(gid: string, payload: Payload, headers: FirestoreHeaders) {
-  const collection = cleanText(payload?.targetCollection, 20);
-  const id = cleanText(payload?.idTransaksi || payload?.id, 40);
-  if (!DELETABLE.includes(collection)) return fail('Jalur koleksi tidak diizinkan.');
-  if (!id) return fail('ID dokumen wajib diisi.');
-  if (!isValidDocId(id)) return fail('ID dokumen tidak valid.');
+  const rawCollection = payload?.targetCollection;
+  const collection = typeof rawCollection === 'string' ? rawCollection.trim() : '';
+  if (!collection || collection.length > 20 || !DELETABLE.includes(collection)) {
+    return fail('Jalur koleksi tidak diizinkan.');
+  }
+
+  const parsedId = parseDocId(payload?.idTransaksi ?? payload?.id);
+  if (parsedId.error) return fail(parsedId.error);
+  if (!parsedId.id) return fail('ID dokumen wajib diisi.');
+  const id = parsedId.id;
 
   const rawOpId = payload?.operationId;
   const parsedOp = parseOperationId(rawOpId);

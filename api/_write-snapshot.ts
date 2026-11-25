@@ -10,12 +10,12 @@
  */
 import type { Anggota, FirestoreDoc, FirestoreHeaders, Kategori, SnapshotData, SnapshotEnvelope, Transaksi } from '../src/types/finkas.d.ts';
 import type { FirestoreWrite } from './_sa.ts';
+import { Buffer } from 'node:buffer';
 import { normalizePaymentAccount, validatePaymentAccount } from '../src/svelte/core/payment-account.ts';
 import {
   FIRESTORE_BASE,
   decodeFields,
   encodeFields,
-  fsCommit,
   fsListAll,
   fsPatch
 } from './_sa.ts';
@@ -24,31 +24,45 @@ import {
   MEMBERS_COLLECTION,
   TRANSACTIONS_COLLECTION,
   col,
+  commitWritesInBatches,
   groupDoc,
-  isValidDocId,
   memberName,
   nowIso,
+  parseDocId,
   settingsDoc,
   writeAuditLog
 } from './_store.ts';
 import {
   ARUS,
-  SKIPPED_MONTH_RE,
   STATUSES,
+  assertSafeJsonValue,
   cleanDigits,
   cleanText,
   fail,
+  isValidMonthYear,
   ok,
   parseTransactionInput
 } from './_write-shared.ts';
 import {
+  MAX_EXPORT_ATTACHMENTS_BYTES,
   PROOFS_COLLECTION,
   validateAttachmentInput
 } from './_attachments.ts';
 import {
   OPERATIONS_COLLECTION,
-  isValidOperationId
+  parseOperationId
 } from './_transaction-idempotency.ts';
+
+export const MAX_SNAPSHOT_OPERATIONS = 12000;
+const FORBIDDEN_SNAPSHOT_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+const hasForbiddenObjectKeys = (obj: unknown): string | null => {
+  if (!obj || typeof obj !== 'object') return null;
+  for (const key of Object.getOwnPropertyNames(obj)) {
+    if (FORBIDDEN_SNAPSHOT_KEYS.has(key)) return key;
+  }
+  return null;
+};
 
 /* ── Read-only Transaction Helpers ───────────────────────────────── */
 
@@ -98,6 +112,9 @@ async function listAllInTx(colPath: string, headers: FirestoreHeaders, transacti
     pageToken = json.nextPageToken || '';
     if (!pageToken) break;
   }
+  if (pageToken) {
+    throw new Error(`Koleksi melebihi batas 40 halaman: ${colPath}`);
+  }
   return docs;
 }
 
@@ -121,13 +138,21 @@ type ValidatedSnapshot = Omit<SnapshotData, 'anggota'|'kategori'|'transaksi'> & 
 
 /** Validate full snapshot data shape, limits and record integrity before writing. */
 export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<string, unknown>}): {valid: false, error: string} | {valid: true, data: ValidatedSnapshot} {
-  if (!raw || typeof raw !== 'object') {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     return { valid: false, error: 'Format snapshot tidak valid.' };
+  }
+  const forbiddenRaw = hasForbiddenObjectKeys(raw);
+  if (forbiddenRaw) {
+    return { valid: false, error: `Kunci objek tidak diizinkan dalam snapshot: ${forbiddenRaw}` };
   }
 
   const data = (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data))
     ? raw.data
     : raw;
+  const forbiddenData = hasForbiddenObjectKeys(data);
+  if (forbiddenData) {
+    return { valid: false, error: `Kunci objek tidak diizinkan dalam snapshot: ${forbiddenData}` };
+  }
 
   if (!Array.isArray(data.anggota) || !Array.isArray(data.transaksi)) {
     return { valid: false, error: 'Format snapshot tidak valid.' };
@@ -167,13 +192,17 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
   if (rawAttachments.length > 10000) {
     return { valid: false, error: 'Snapshot melebihi batas maksimum lampiran (10.000).' };
   }
-  if (rawOperations.length > 20000) {
-    return { valid: false, error: 'Snapshot melebihi batas maksimum histori operasi (20.000).' };
+  if (rawOperations.length > MAX_SNAPSHOT_OPERATIONS) {
+    return { valid: false, error: `Snapshot melebihi batas maksimum histori operasi (${MAX_SNAPSHOT_OPERATIONS.toLocaleString('id-ID')}).` };
   }
 
-  const rawKasStart = cleanText(data.kasStart ?? raw.kasStart, 7);
-  if (rawKasStart && !SKIPPED_MONTH_RE.test(rawKasStart)) {
-    return { valid: false, error: 'Format awal kas di snapshot tidak valid (harus MM-YYYY).' };
+  const rawKasStartInput = data.kasStart ?? raw.kasStart;
+  let rawKasStart = '';
+  if (rawKasStartInput !== undefined && rawKasStartInput !== null && !(typeof rawKasStartInput === 'string' && rawKasStartInput.trim() === '')) {
+    if (!isValidMonthYear(rawKasStartInput)) {
+      return { valid: false, error: 'Format awal kas di snapshot tidak valid (harus MM-YYYY tahun 2000–2100).' };
+    }
+    rawKasStart = String(rawKasStartInput).trim();
   }
 
   if (data.paymentAccount != null && validatePaymentAccount(data.paymentAccount)) {
@@ -182,15 +211,19 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
   const paymentAccount = data.paymentAccount == null ? undefined : normalizePaymentAccount(data.paymentAccount);
 
   const skippedMonths = Array.isArray(rawSkipped)
-    ? rawSkipped.filter((m: string) => SKIPPED_MONTH_RE.test(m))
+    ? rawSkipped.filter((m: unknown): m is string => isValidMonthYear(m)).map((m) => m.trim())
     : [];
 
   const seenMember = new Set<string>();
   for (const a of anggota) {
-    const id = cleanText(a?.ID_Anggota ?? a?.idAnggota, 40);
-    const nama = cleanText(a?.Nama_Anggota ?? a?.namaAnggota, 80);
-    if (!id || !isValidDocId(id) || !nama) {
-      return { valid: false, error: 'Data anggota di snapshot tidak valid (ID atau Nama kosong).' };
+    if (!a || typeof a !== 'object' || Array.isArray(a) || hasForbiddenObjectKeys(a)) {
+      return { valid: false, error: 'Data anggota di snapshot tidak valid.' };
+    }
+    const parsedId = parseDocId(a.ID_Anggota ?? a.idAnggota);
+    const id = parsedId.id;
+    const nama = cleanText(a.Nama_Anggota ?? a.namaAnggota, 80);
+    if (parsedId.error || !id || !nama) {
+      return { valid: false, error: parsedId.error || 'Data anggota di snapshot tidak valid (ID atau Nama kosong).' };
     }
     if (seenMember.has(id)) {
       return { valid: false, error: `Snapshot mengandung duplikat ID_Anggota: ${id}` };
@@ -200,10 +233,15 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
 
   const seenKat = new Set<string>();
   for (const k of kategori) {
-    const id = cleanText(k?.ID_Kategori ?? k?.idKategori, 40);
-    const tipe = k?.Tipe ?? k?.tipe;
-    if (!id || !isValidDocId(id) || !ARUS.includes(tipe)) {
+    if (!k || typeof k !== 'object' || Array.isArray(k) || hasForbiddenObjectKeys(k)) {
       return { valid: false, error: 'Data kategori di snapshot tidak valid.' };
+    }
+    const parsedId = parseDocId(k.ID_Kategori ?? k.idKategori);
+    const id = parsedId.id;
+    const namaKat = cleanText(k.Nama_Kategori ?? k.namaKategori, 60);
+    const tipe = k.Tipe ?? k.tipe;
+    if (parsedId.error || !id || !namaKat || typeof tipe !== 'string' || !ARUS.includes(tipe)) {
+      return { valid: false, error: parsedId.error || 'Data kategori di snapshot tidak valid.' };
     }
     if (seenKat.has(id)) {
       return { valid: false, error: `Snapshot mengandung duplikat ID_Kategori: ${id}` };
@@ -212,29 +250,44 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
   }
 
   const seenTrx = new Set<string>();
+  const normalizedParsedTrx: Array<{ raw: Record<string, any>; id: string; nominal: number; opId?: string }> = [];
   for (const t of transaksi) {
+    if (!t || typeof t !== 'object' || Array.isArray(t) || hasForbiddenObjectKeys(t)) {
+      return { valid: false, error: 'Transaksi di snapshot tidak valid.' };
+    }
     const parsed = parseTransactionInput(t);
     if ('error' in parsed) return { valid: false, error: `Transaksi di snapshot tidak valid: ${parsed.error}` };
-    const id = cleanText(t?.ID_Transaksi ?? t?.idTransaksi, 40);
-    if (!id || !isValidDocId(id)) {
-      return { valid: false, error: `Snapshot mengandung ID_Transaksi tidak valid: ${id}` };
+    const parsedId = parseDocId(t.ID_Transaksi ?? t.idTransaksi);
+    if (parsedId.error || !parsedId.id) {
+      return { valid: false, error: `Snapshot mengandung ID_Transaksi tidak valid: ${String(t.ID_Transaksi ?? t.idTransaksi ?? '')}` };
     }
+    const id = parsedId.id;
     if (seenTrx.has(id)) {
       return { valid: false, error: `Snapshot mengandung duplikat ID_Transaksi: ${id}` };
     }
+    let validatedOpId: string | undefined;
+    if (t.operationId !== undefined && t.operationId !== null && t.operationId !== '') {
+      const parsedOp = parseOperationId(t.operationId);
+      if (parsedOp.error || !parsedOp.id) {
+        return { valid: false, error: `Snapshot mengandung operationId transaksi tidak valid pada ${id}.` };
+      }
+      validatedOpId = parsedOp.id;
+    }
     seenTrx.add(id);
+    normalizedParsedTrx.push({ raw: t, id, nominal: parsed.nominal, opId: validatedOpId });
   }
 
   const seenProof = new Set<string>();
   const validAttachments: SnapshotData['attachments'] = [];
   for (const att of rawAttachments) {
-    if (!att || typeof att !== 'object') {
+    if (!att || typeof att !== 'object' || Array.isArray(att) || hasForbiddenObjectKeys(att)) {
       return { valid: false, error: 'Data lampiran di snapshot tidak valid.' };
     }
-    const idTrx = cleanText(att.idTransaksi, 40);
-    if (!idTrx || !isValidDocId(idTrx)) {
-      return { valid: false, error: `ID transaksi lampiran tidak valid: ${idTrx}` };
+    const parsedAttId = parseDocId(att.idTransaksi);
+    if (parsedAttId.error || !parsedAttId.id) {
+      return { valid: false, error: `ID transaksi lampiran tidak valid: ${String(att.idTransaksi ?? '')}` };
     }
+    const idTrx = parsedAttId.id;
     if (!seenTrx.has(idTrx)) {
       return { valid: false, error: `Lampiran bukti mengacu pada transaksi yang tidak ada dalam snapshot: ${idTrx}` };
     }
@@ -261,21 +314,34 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
   const seenOp = new Set<string>();
   const validOperations: SnapshotData['operations'] = [];
   for (const op of rawOperations) {
-    if (!op || typeof op !== 'object') {
+    if (!op || typeof op !== 'object' || Array.isArray(op) || hasForbiddenObjectKeys(op)) {
       return { valid: false, error: 'Data operasi di snapshot tidak valid.' };
     }
-    const opId = cleanText(op.operationId, 128);
-    if (!isValidOperationId(opId)) {
-      return { valid: false, error: `ID operasi tidak valid: ${opId}` };
+    const parsedOp = parseOperationId(op.operationId);
+    if (parsedOp.error || !parsedOp.id) {
+      return { valid: false, error: `ID operasi tidak valid: ${String(op.operationId ?? '')}` };
     }
+    const opId = parsedOp.id;
     if (seenOp.has(opId)) {
       return { valid: false, error: `Snapshot mengandung duplikat operationId: ${opId}` };
     }
     seenOp.add(opId);
 
-    const fingerprint = cleanText(op.fingerprint, 64);
-    if (!fingerprint || !/^[a-f0-9]{64}$/i.test(fingerprint)) {
+    if (typeof op.fingerprint !== 'string' || !/^[a-f0-9]{64}$/i.test(op.fingerprint.trim())) {
       return { valid: false, error: `Fingerprint operasi tidak valid: ${opId}` };
+    }
+    const fingerprint = op.fingerprint.trim();
+
+    let safeResponseData: object | null = null;
+    if (op.responseData !== undefined && op.responseData !== null) {
+      if (typeof op.responseData !== 'object' || Array.isArray(op.responseData)) {
+        return { valid: false, error: `Data respons operasi tidak valid: ${opId}` };
+      }
+      const safetyErr = assertSafeJsonValue(op.responseData, 6, 256 * 1024);
+      if (safetyErr) {
+        return { valid: false, error: `Data respons operasi tidak aman (${opId}): ${safetyErr}` };
+      }
+      safeResponseData = op.responseData;
     }
 
     validOperations.push({
@@ -286,16 +352,17 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
       createdAt: cleanText(op.createdAt, 30) || nowIso(),
       responseStatus: op.responseStatus !== false,
       responseMessage: cleanText(op.responseMessage, 200),
-      responseData: (op.responseData && typeof op.responseData === 'object') ? op.responseData : null
+      responseData: safeResponseData
     });
   }
 
   // Normalize Bukti metadata on transactions strictly from included attachments.
   const proofMap = new Map(validAttachments.map((a) => [a.idTransaksi, a]));
-  const normalizedTransaksi = transaksi.map((t) => {
-    const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40);
+  const normalizedTransaksi = normalizedParsedTrx.map(({ raw: t, id: idTrx, nominal, opId }) => {
     const att = proofMap.get(idTrx);
-    const copy = { ...t };
+    const copy: Record<string, unknown> = { ...t, Nominal: nominal };
+    if (opId) copy.operationId = opId;
+    else delete copy.operationId;
     if (att) {
       copy.Bukti = {
         name: att.name,
@@ -327,8 +394,10 @@ export function validateSnapshot(raw: Record<string, unknown> & {data?: Record<s
 /* ── Export Snapshot ─────────────────────────────────────────────── */
 
 /** Export an atomic point-in-time snapshot of a group's full ledger and proofs. */
-export async function exportSnapshot(gid: string, payloadOrHeaders: Record<string, any>, maybeHeaders?: FirestoreHeaders) {
+export async function exportSnapshot(gid: string, payloadOrHeaders: Record<string, any>, maybeHeaders?: FirestoreHeaders): Promise<{status: boolean, message: string, data?: object|null, payloadTooLarge?: boolean}> {
   const headers: FirestoreHeaders = maybeHeaders ?? payloadOrHeaders;
+  const payload = maybeHeaders ? payloadOrHeaders : {};
+  const includeAttachments = payload?.includeAttachments !== false && !payload?.metadataOnly;
   const transaction = await beginReadOnlyTx(headers);
   const consistency = transaction ? 'firestore-read-only-transaction' : 'best-effort-read';
 
@@ -345,7 +414,7 @@ export async function exportSnapshot(gid: string, payloadOrHeaders: Record<strin
       listAllInTx(col(gid, MEMBERS_COLLECTION), headers, transaction),
       listAllInTx(col(gid, CATEGORIES_COLLECTION), headers, transaction),
       listAllInTx(col(gid, TRANSACTIONS_COLLECTION), headers, transaction),
-      listAllInTx(col(gid, PROOFS_COLLECTION), headers, transaction),
+      includeAttachments ? listAllInTx(col(gid, PROOFS_COLLECTION), headers, transaction) : Promise.resolve([]),
       listAllInTx(col(gid, OPERATIONS_COLLECTION), headers, transaction),
       getDocInTx(settingsDoc(gid), headers, transaction),
       getDocInTx(groupDoc(gid), headers, transaction)
@@ -354,17 +423,19 @@ export async function exportSnapshot(gid: string, payloadOrHeaders: Record<strin
     const anggota = (memberDocs.map((d) => d.fields).sort((a, b) => (a.ID_Anggota || '').localeCompare(b.ID_Anggota || '')) as Anggota[]);
     const kategori = (categoryDocs.map((d) => d.fields).sort((a, b) => (a.ID_Kategori || '').localeCompare(b.ID_Kategori || '')) as Kategori[]);
     const belongsToGroup = (doc: {name: string, fields: Record<string, any>}) => !doc.fields?.groupId || doc.fields.groupId === gid;
-    const attachments = proofDocs.filter(belongsToGroup).map((d) => {
-      const f = d.fields || {};
-      return {
-        idTransaksi: f.idTransaksi || d.name.split('/').pop(),
-        name: f.name || 'bukti',
-        type: f.type || 'application/octet-stream',
-        size: Number(f.size) || 0,
-        base64: f.base64 || '',
-        uploadedAt: f.uploadedAt || ''
-      };
-    }).sort((a, b) => (a.idTransaksi || '').localeCompare(b.idTransaksi || ''));
+    const attachments = includeAttachments
+      ? proofDocs.filter(belongsToGroup).map((d) => {
+          const f = d.fields || {};
+          return {
+            idTransaksi: f.idTransaksi || d.name.split('/').pop(),
+            name: f.name || 'bukti',
+            type: f.type || 'application/octet-stream',
+            size: Number(f.size) || 0,
+            base64: f.base64 || '',
+            uploadedAt: f.uploadedAt || ''
+          };
+        }).sort((a, b) => (a.idTransaksi || '').localeCompare(b.idTransaksi || ''))
+      : [];
 
     const operations = operationDocs.filter(belongsToGroup).map((d) => {
       const f = d.fields || {};
@@ -429,6 +500,16 @@ export async function exportSnapshot(gid: string, payloadOrHeaders: Record<strin
       }
     };
 
+    const envelopeBytes = Buffer.byteLength(JSON.stringify({ status: true, data: { snapshot } }), 'utf8');
+    if (envelopeBytes > MAX_EXPORT_ATTACHMENTS_BYTES) {
+      return {
+        status: false,
+        payloadTooLarge: true,
+        message: 'Ukuran snapshot melebihi batas respon 4 MiB karena lampiran bukti. Ekspor dengan includeAttachments: false lalu ekspor lampiran secara bertahap.',
+        data: { stats: snapshot.stats, maxBytes: MAX_EXPORT_ATTACHMENTS_BYTES }
+      };
+    }
+
     return ok('Snapshot database berhasil diekspor.', { snapshot });
   } finally {
     if (transaction) {
@@ -442,7 +523,7 @@ export async function exportSnapshot(gid: string, payloadOrHeaders: Record<strin
 /** Restore a full database snapshot into a group. */
 export async function restoreSnapshot(gid: string, payload: Record<string, any> & { data?: Record<string, any>, sourceGroupId?: string, confirmCrossGroup?: boolean, allowCrossGroup?: boolean }, headers: FirestoreHeaders) {
   const rawData = payload?.data || payload;
-  const explicitSourceGid = cleanText(payload?.sourceGroupId || rawData?.group?.id || rawData?.groupId, 40);
+  const explicitSourceGid = cleanText(payload?.sourceGroupId || payload?.group?.id || rawData?.group?.id || rawData?.groupId, 40);
   const embeddedGids = [rawData?.anggota, rawData?.kategori, rawData?.transaksi]
     .flatMap((records) => Array.isArray(records) ? records.map((r) => cleanText(r?.groupId, 40)) : []);
   const sourceGid = explicitSourceGid && explicitSourceGid !== gid
@@ -461,136 +542,135 @@ export async function restoreSnapshot(gid: string, payload: Record<string, any> 
   const timestamp = nowIso();
   const idOf = (doc: {name?: string}) => String(doc.name || '').split('/').pop() || '';
 
-  const upsertThenPrune = async (collName: string, keptIds: Set<string>, buildWrites: () => Array<FirestoreWrite>) => {
-    const writes = buildWrites();
-    for (let i = 0; i < writes.length; i += 400) {
-      await fsCommit(writes.slice(i, i + 400), headers);
-    }
-    const existing = await fsListAll(col(gid, collName), headers);
-    const stale = existing.filter((doc) => !keptIds.has(idOf(doc)));
-    for (let i = 0; i < stale.length; i += 400) {
-      await fsCommit(stale.slice(i, i + 400).map((doc) => ({ delete: doc.name })), headers);
-    }
-  };
+  // Pre-read all existing collections before mutating anything so a read/limit failure aborts cleanly.
+  const [existingAnggota, existingKategori, existingProofs, existingOperations, existingTransaksi] = await Promise.all([
+    fsListAll(col(gid, MEMBERS_COLLECTION), headers),
+    fsListAll(col(gid, CATEGORIES_COLLECTION), headers),
+    fsListAll(col(gid, PROOFS_COLLECTION), headers),
+    fsListAll(col(gid, OPERATIONS_COLLECTION), headers),
+    fsListAll(col(gid, TRANSACTIONS_COLLECTION), headers)
+  ]);
 
-  // 1. Anggota
   const anggotaIds = new Set<string>();
-  await upsertThenPrune(MEMBERS_COLLECTION, anggotaIds, () =>
-    anggota.map((a) => {
-      const id = cleanText(a.ID_Anggota ?? a.idAnggota, 40);
-      const status = a.Status_Aktif ?? a.statusAktif;
-      anggotaIds.add(id);
-      return {
-        update: {
-          name: memberName(gid, MEMBERS_COLLECTION, id),
-          fields: encodeFields({
-            ID_Anggota: id,
-            Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
-            Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
-            Status_Aktif: typeof status === 'string' && STATUSES.includes(status) ? status : 'Aktif',
-            Tanggal_Gabung: cleanText(a.Tanggal_Gabung ?? a.tanggalGabung, 30),
-            groupId: gid
-          })
-        }
-      };
-    })
-  );
+  const anggotaWrites: FirestoreWrite[] = anggota.map((a) => {
+    const id = cleanText(a.ID_Anggota ?? a.idAnggota, 40);
+    const status = a.Status_Aktif ?? a.statusAktif;
+    anggotaIds.add(id);
+    return {
+      update: {
+        name: memberName(gid, MEMBERS_COLLECTION, id),
+        fields: encodeFields({
+          ID_Anggota: id,
+          Nama_Anggota: cleanText(a.Nama_Anggota ?? a.namaAnggota, 80),
+          Nomor_WA: cleanDigits(a.Nomor_WA ?? a.nomorWa, 20),
+          Status_Aktif: typeof status === 'string' && STATUSES.includes(status) ? status : 'Aktif',
+          Tanggal_Gabung: cleanText(a.Tanggal_Gabung ?? a.tanggalGabung, 30),
+          groupId: gid
+        })
+      }
+    };
+  });
 
-  // 2. Kategori
   const kategoriIds = new Set<string>();
-  await upsertThenPrune(CATEGORIES_COLLECTION, kategoriIds, () =>
-    kategori.map((k) => {
-      const id = cleanText(k.ID_Kategori ?? k.idKategori, 40);
-      kategoriIds.add(id);
-      return {
-        update: {
-          name: memberName(gid, CATEGORIES_COLLECTION, id),
-          fields: encodeFields({
-            ID_Kategori: id,
-            Nama_Kategori: cleanText(k.Nama_Kategori ?? k.namaKategori, 60),
-            Tipe: k.Tipe ?? k.tipe,
-            groupId: gid
-          })
-        }
-      };
-    })
-  );
+  const kategoriWrites: FirestoreWrite[] = kategori.map((k) => {
+    const id = cleanText(k.ID_Kategori ?? k.idKategori, 40);
+    kategoriIds.add(id);
+    return {
+      update: {
+        name: memberName(gid, CATEGORIES_COLLECTION, id),
+        fields: encodeFields({
+          ID_Kategori: id,
+          Nama_Kategori: cleanText(k.Nama_Kategori ?? k.namaKategori, 60),
+          Tipe: k.Tipe ?? k.tipe,
+          groupId: gid
+        })
+      }
+    };
+  });
 
-  // 3. Bukti Lampiran (upserted before transactions so proofs always exist when referenced)
   const attachmentIds = new Set<string>();
-  await upsertThenPrune(PROOFS_COLLECTION, attachmentIds, () =>
-    attachments.map((att) => {
-      attachmentIds.add(att.idTransaksi);
-      return {
-        update: {
-          name: memberName(gid, PROOFS_COLLECTION, att.idTransaksi),
-          fields: encodeFields({
-            groupId: gid,
-            idTransaksi: att.idTransaksi,
-            name: att.name,
-            type: att.type,
-            size: att.size,
-            base64: att.base64,
-            uploadedAt: att.uploadedAt
-          })
-        }
-      };
-    })
-  );
+  const attachmentWrites: FirestoreWrite[] = attachments.map((att) => {
+    attachmentIds.add(att.idTransaksi);
+    return {
+      update: {
+        name: memberName(gid, PROOFS_COLLECTION, att.idTransaksi),
+        fields: encodeFields({
+          groupId: gid,
+          idTransaksi: att.idTransaksi,
+          name: att.name,
+          type: att.type,
+          size: att.size,
+          base64: att.base64,
+          uploadedAt: att.uploadedAt
+        })
+      }
+    };
+  });
 
-  // 4. Operation Receipts (create/delete retry idempotency preserved)
   const operationIds = new Set<string>();
-  await upsertThenPrune(OPERATIONS_COLLECTION, operationIds, () =>
-    operations.map((op) => {
-      operationIds.add(op.operationId);
-      return {
-        update: {
-          name: memberName(gid, OPERATIONS_COLLECTION, op.operationId),
-          fields: encodeFields({
-            groupId: gid,
-            operationId: op.operationId,
-            fingerprint: op.fingerprint,
-            action: op.action,
-            status: op.status,
-            createdAt: op.createdAt,
-            responseStatus: op.responseStatus,
-            responseMessage: op.responseMessage,
-            responseData: op.responseData
-          })
-        }
-      };
-    })
-  );
+  const operationWrites: FirestoreWrite[] = operations.map((op) => {
+    operationIds.add(op.operationId);
+    return {
+      update: {
+        name: memberName(gid, OPERATIONS_COLLECTION, op.operationId),
+        fields: encodeFields({
+          groupId: gid,
+          operationId: op.operationId,
+          fingerprint: op.fingerprint,
+          action: op.action,
+          status: op.status,
+          createdAt: op.createdAt,
+          responseStatus: op.responseStatus,
+          responseMessage: op.responseMessage,
+          responseData: op.responseData
+        })
+      }
+    };
+  });
 
-  // 5. Transaksi
   const transaksiIds = new Set<string>();
-  await upsertThenPrune(TRANSACTIONS_COLLECTION, transaksiIds, () =>
-    transaksi.map((t) => {
-      const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40);
-      transaksiIds.add(idTrx);
-      const fields: Record<string, any> = {
-        ID_Transaksi: idTrx,
-        Timestamp: cleanText(t.Timestamp ?? t.timestamp, 30) || timestamp,
-        Tipe_Arus: t.Tipe_Arus ?? t.tipeArus,
-        ID_Kategori: cleanText(t.ID_Kategori ?? t.idKategori, 40),
-        ID_Anggota: cleanText(t.ID_Anggota ?? t.idAnggota, 40) || '-',
-        Bulan_Iuran: cleanText(t.Bulan_Iuran ?? t.bulanIuran, 20) || '-',
-        Tahun_Iuran: cleanText(t.Tahun_Iuran ?? t.tahunIuran, 4) || '-',
-        Nominal: Math.round(Number(t.Nominal ?? t.nominal) || 0),
-        Keterangan: cleanText(t.Keterangan ?? t.keterangan, 200),
-        groupId: gid
-      };
-      if (t.operationId) fields.operationId = cleanText(t.operationId, 128);
-      if (t.Bukti) fields.Bukti = t.Bukti;
+  const transaksiWrites: FirestoreWrite[] = transaksi.map((t) => {
+    const idTrx = cleanText(t.ID_Transaksi ?? t.idTransaksi, 40);
+    transaksiIds.add(idTrx);
+    const fields: Record<string, any> = {
+      ID_Transaksi: idTrx,
+      Timestamp: cleanText(t.Timestamp ?? t.timestamp, 30) || timestamp,
+      Tipe_Arus: t.Tipe_Arus ?? t.tipeArus,
+      ID_Kategori: cleanText(t.ID_Kategori ?? t.idKategori, 40),
+      ID_Anggota: cleanText(t.ID_Anggota ?? t.idAnggota, 40) || '-',
+      Bulan_Iuran: cleanText(t.Bulan_Iuran ?? t.bulanIuran, 20) || '-',
+      Tahun_Iuran: cleanText(t.Tahun_Iuran ?? t.tahunIuran, 4) || '-',
+      Nominal: Number(t.Nominal ?? t.nominal),
+      Keterangan: cleanText(t.Keterangan ?? t.keterangan, 200),
+      groupId: gid
+    };
+    if (t.operationId) fields.operationId = String(t.operationId);
+    if (t.Bukti) fields.Bukti = t.Bukti;
 
-      return {
-        update: {
-          name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
-          fields: encodeFields(fields)
-        }
-      };
-    })
-  );
+    return {
+      update: {
+        name: memberName(gid, TRANSACTIONS_COLLECTION, idTrx),
+        fields: encodeFields(fields)
+      }
+    };
+  });
+
+  // Upsert all collections before pruning any stale documents.
+  await commitWritesInBatches(anggotaWrites, headers);
+  await commitWritesInBatches(kategoriWrites, headers);
+  await commitWritesInBatches(attachmentWrites, headers);
+  await commitWritesInBatches(operationWrites, headers);
+  await commitWritesInBatches(transaksiWrites, headers);
+
+  const staleDeletes: FirestoreWrite[] = [
+    ...existingAnggota.filter((doc) => !anggotaIds.has(idOf(doc))),
+    ...existingKategori.filter((doc) => !kategoriIds.has(idOf(doc))),
+    ...existingProofs.filter((doc) => !attachmentIds.has(idOf(doc))),
+    ...existingOperations.filter((doc) => !operationIds.has(idOf(doc))),
+    ...existingTransaksi.filter((doc) => !transaksiIds.has(idOf(doc)))
+  ].map((doc) => ({ delete: doc.name }));
+
+  await commitWritesInBatches(staleDeletes, headers);
 
   // Restoring a cash ledger across groups must retain the target group's transfer account.
   const settings: Record<string, any> = { skippedMonths, kasStart: kasStart || '' };

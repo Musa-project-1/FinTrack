@@ -1,5 +1,6 @@
 import type { AppState, Transaksi } from '../../types/finkas';
 import { billingPeriod } from './dues';
+import { normalizePaymentAccount } from './payment-account';
 /**
  * @module state
  * Centralized application state, cache persistence and session handling.
@@ -17,8 +18,50 @@ import {
   ADMIN_VIEW_MODE_KEY,
   GROUP_SESSIONS_KEY,
   ACTIVE_GROUP_KEY,
+  ACTIVE_GROUP_NAME_KEY,
+  GROUP_OPEN_KEY,
   DEFAULT_GROUP_ID
 } from './config';
+
+const GROUP_ID_PATTERN = /^[A-Za-z0-9-]{3,40}$/;
+const SPOTLIGHT_PREFIX = 'finkas_spotlight:';
+const FORBIDDEN_JSON_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+export const isValidGroupId = (gid: unknown): gid is string =>
+  typeof gid === 'string' && GROUP_ID_PATTERN.test(gid) && !FORBIDDEN_JSON_KEYS.has(gid);
+
+export const isPlainRecord = (val: unknown): val is Record<string, unknown> =>
+  Boolean(val) && typeof val === 'object' && !Array.isArray(val);
+
+const sanitizeJsonValue = (val: unknown, depth: number, maxDepth: number): unknown => {
+  if (depth > maxDepth) {
+    throw new Error('Struktur JSON melebihi batas kedalaman.');
+  }
+  if (val === null || typeof val !== 'object') {
+    return val;
+  }
+  if (Array.isArray(val)) {
+    return val.map((item) => sanitizeJsonValue(item, depth + 1, maxDepth));
+  }
+  const clean: Record<string, unknown> = {};
+  for (const key of Object.keys(val)) {
+    if (FORBIDDEN_JSON_KEYS.has(key)) continue;
+    const sanitized = sanitizeJsonValue((val as Record<string, unknown>)[key], depth + 1, maxDepth);
+    Object.defineProperty(clean, key, {
+      value: sanitized,
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
+  }
+  return clean;
+};
+
+/** Parse JSON while stripping prototype-pollution keys and bounding nesting depth. */
+export const parseSafeJson = (raw: string, maxDepth: number = 32): unknown => {
+  const parsed: unknown = JSON.parse(raw, (key, value) => (FORBIDDEN_JSON_KEYS.has(key) ? undefined : value));
+  return sanitizeJsonValue(parsed, 0, maxDepth);
+};
 
 const emptyLedger = (): AppState => ({
   anggota: [],
@@ -177,11 +220,28 @@ export const loadCache = (targetGroupId: string = getActiveGroupId()) => {
       publishStorageStatus('unknown', 'load', null, targetGroupId);
       return false;
     }
-    const data = JSON.parse(cached);
-    if (!data || !['anggota', 'kategori', 'transaksi'].every((key) => Array.isArray(data[key]))) {
+    const data = parseSafeJson(cached, 32);
+    if (!isPlainRecord(data) || !['anggota', 'kategori', 'transaksi'].every((key) =>
+      Array.isArray(data[key]) && (data[key] as unknown[]).every(isPlainRecord)
+    )) {
       throw new Error('Cache pembukuan tidak valid.');
     }
-    setState({ ...data, skippedMonths: data.skippedMonths || [], kasStart: data.kasStart || '', paymentAccount: data.paymentAccount || null });
+    const skippedMonths = Array.isArray(data.skippedMonths)
+      ? data.skippedMonths.filter((m): m is string => typeof m === 'string')
+      : [];
+    const kasStart = typeof data.kasStart === 'string' ? data.kasStart : '';
+    const paymentAccount = isPlainRecord(data.paymentAccount)
+      ? normalizePaymentAccount(data.paymentAccount)
+      : null;
+
+    setState({
+      anggota: data.anggota as AppState['anggota'],
+      kategori: data.kategori as AppState['kategori'],
+      transaksi: data.transaksi as AppState['transaksi'],
+      skippedMonths,
+      kasStart,
+      paymentAccount
+    });
     publishStorageStatus('saved', 'load', null, targetGroupId);
     return true;
   } catch (err) {
@@ -191,15 +251,101 @@ export const loadCache = (targetGroupId: string = getActiveGroupId()) => {
   }
 };
 
+const collectStorageKeys = (storage: Storage): string[] => {
+  const keys: string[] = [];
+  if (typeof storage.length === 'number' && typeof storage.key === 'function') {
+    for (let i = 0; i < storage.length; i += 1) {
+      const k = storage.key(i);
+      if (k) keys.push(k);
+    }
+  } else {
+    for (const k of Object.keys(storage)) keys.push(k);
+  }
+  return keys;
+};
+
+/** Remove cached ledger and spotlight history for a single group. */
+export const clearCache = (targetGroupId: string = getActiveGroupId()) => {
+  if (!targetGroupId) return false;
+  try {
+    const storage = getLocalStorage();
+    if (!storage) return false;
+    storage.removeItem(`${CACHE_KEY}:${targetGroupId}`);
+    if (targetGroupId === DEFAULT_GROUP_ID) storage.removeItem(CACHE_KEY);
+    storage.removeItem(`${SPOTLIGHT_PREFIX}${targetGroupId}`);
+    publishStorageStatus('unknown', 'clear', null, targetGroupId);
+    return true;
+  } catch (err) {
+    console.warn('[finkas] Cache clear failed:', err?.message);
+    return false;
+  }
+};
+
+/** Purge all cached group ledgers and spotlight histories from localStorage. */
+export const clearAllCaches = () => {
+  try {
+    const storage = getLocalStorage();
+    if (!storage) return false;
+    for (const key of collectStorageKeys(storage)) {
+      if (key === CACHE_KEY || key.startsWith(`${CACHE_KEY}:`) || key.startsWith(SPOTLIGHT_PREFIX)) {
+        storage.removeItem(key);
+      }
+    }
+    publishStorageStatus('unknown', 'clear');
+    return true;
+  } catch (err) {
+    console.warn('[finkas] All caches clear failed:', err?.message);
+    return false;
+  }
+};
+
+/** Reset in-memory ledger state and optionally clear the active group selection. */
+export const resetLedgerState = ({ clearActiveGroup = true }: { clearActiveGroup?: boolean } = {}) => {
+  const previousGroupId = activeGroupId;
+  Object.assign(state, emptyLedger());
+  currentRekapYear = String(billingPeriod().year);
+  currentHistoryFilter = 'semua';
+
+  if (clearActiveGroup) {
+    activeGroupId = '';
+    try {
+      const storage = getLocalStorage();
+      storage?.removeItem(ACTIVE_GROUP_KEY);
+      storage?.removeItem(ACTIVE_GROUP_NAME_KEY);
+      storage?.removeItem(GROUP_OPEN_KEY);
+    } catch (err) {
+      console.warn('[finkas] Cannot clear active group keys:', err?.message);
+    }
+  }
+
+  notifyStateChange();
+  if (clearActiveGroup && previousGroupId) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('finkas:group-changed', {
+        detail: { groupId: '', previousGroupId }
+      }));
+    }
+  }
+};
+
 /* ── Session tokens ──────────────────────────────────────────────── */
 
-let groupSessions: Record<string, string> = {};
+let groupSessions: Record<string, string> = Object.create(null);
 
 try {
   const raw = getLocalStorage()?.getItem(GROUP_SESSIONS_KEY);
-  if (raw) groupSessions = JSON.parse(raw) || {};
+  if (raw) {
+    const parsed = parseSafeJson(raw, 4);
+    if (isPlainRecord(parsed)) {
+      for (const [gid, token] of Object.entries(parsed)) {
+        if (isValidGroupId(gid) && typeof token === 'string' && token) {
+          groupSessions[gid] = token;
+        }
+      }
+    }
+  }
 } catch (err) {
-  groupSessions = {};
+  groupSessions = Object.create(null);
 }
 
 const persistGroupSessions = () => {
@@ -212,26 +358,25 @@ const persistGroupSessions = () => {
 
 /** Store the token that authorizes access to a group. */
 export const setGroupSession = (gid: string, token: string) => {
-  if (!gid || !token) return;
+  if (!isValidGroupId(gid) || typeof token !== 'string' || !token) return;
   groupSessions[gid] = token;
   persistGroupSessions();
 };
 
 /** Token authorizing access to a group, or '' when it has not been unlocked. */
-export const getGroupSession = (gid: string | null | undefined) => groupSessions[gid || ''] || '';
+export const getGroupSession = (gid: string | null | undefined) =>
+  (isValidGroupId(gid) && Object.hasOwn(groupSessions, gid) ? groupSessions[gid] : '');
 
 /** Forget a group's token (on exit, or when the server rejects it). */
 export const clearGroupSession = (gid: string) => {
-  if (!gid) return;
+  if (!isValidGroupId(gid)) return;
   delete groupSessions[gid];
   persistGroupSessions();
 };
 
 /** Clear all stored group tokens. */
 export const clearAllGroupSessions = () => {
-  for (const k of Object.keys(groupSessions)) {
-    delete groupSessions[k];
-  }
+  groupSessions = Object.create(null);
   persistGroupSessions();
 };
 

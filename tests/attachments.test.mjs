@@ -523,3 +523,53 @@ test('initAttachmentControls safely runs without throwing when DOM elements are 
     initAttachmentControls({ container: '#non-existent-selector' });
   });
 });
+
+test('validateAttachmentInput fast-fails oversized base64, mismatched data URL MIME, and active PDF payloads (SEC-21)', () => {
+  const hugeString = 'A'.repeat(760_001);
+  const hugeRes = validateAttachmentInput({ idTransaksi: TRX_ID, file: { name: 'huge.jpg', base64: hugeString } });
+  assert.equal(hugeRes.valid, false);
+
+  const badDataUrl = validateAttachmentInput({
+    idTransaksi: TRX_ID,
+    file: { name: 'bad.png', base64: `data:image/svg+xml;base64,${PNG_HEADER.toString('base64')}` }
+  });
+  assert.equal(badDataUrl.valid, false);
+  assert.match(badDataUrl.error, /MIME data URL/i);
+
+  for (const dangerous of [
+    '%PDF-1.4\n1 0 obj<</OpenAction<</S/JavaScript/JS(app.alert(1))>>>>endobj',
+    '%PDF-1.4\n1 0 obj<</#4aS(x)>>endobj',
+    '%PDF-1.4\n1 0 obj<</Launch/cmd>>endobj'
+  ]) {
+    const pdfRes = validateAttachmentInput({
+      idTransaksi: TRX_ID,
+      file: { name: 'evil.pdf', type: 'application/pdf', base64: Buffer.from(dangerous).toString('base64') }
+    });
+    assert.equal(pdfRes.valid, false);
+    assert.match(pdfRes.error, /skrip|aksi aktif/i);
+  }
+});
+
+test('readAttachment re-validates stored MIME/filename and exportAttachments paginates safely (SEC-21 / SEC-07)', async () => {
+  const headers = { Authorization: 'Bearer mock-sa-token' };
+  const badTrx = 'TRX-STORED-BAD';
+  mockDb.docs.set(`groups/${GID_A}/transaction_proofs/${badTrx}`, {
+    groupId: GID_A,
+    idTransaksi: badTrx,
+    name: '../../evil.html',
+    type: 'text/html',
+    size: 10,
+    base64: Buffer.from('test').toString('base64')
+  });
+
+  const readRes = await readAttachment(GID_A, { idTransaksi: badTrx }, headers);
+  assert.equal(readRes.status, true);
+  assert.equal(readRes.data.type, 'application/octet-stream');
+  assert.ok(!readRes.data.name.includes('..') && !readRes.data.name.includes('/'));
+
+  const paged = await exportAttachments(GID_A, headers, { offset: 0, limit: 1 });
+  assert.equal(paged.status, true);
+  assert.equal(paged.data.attachments.length, 1);
+  assert.equal(paged.data.total >= 1, true);
+  mockDb.docs.delete(`groups/${GID_A}/transaction_proofs/${badTrx}`);
+});

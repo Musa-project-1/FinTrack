@@ -1,5 +1,5 @@
 import type { SnapshotEnvelope } from '../../types/finkas';
-import { normalizePaymentAccount } from 'finkas/core/payment-account';
+import { normalizePaymentAccount, validatePaymentAccount } from 'finkas/core/payment-account';
 /**
  * @module handlers/backup
  * Disaster Recovery: Full JSON Snapshot Backup & Restore.
@@ -10,18 +10,20 @@ import { normalizePaymentAccount } from 'finkas/core/payment-account';
  */
 
 import {
-  setState,
-  saveCache,
   getIsAdminSession,
   getActiveGroupId,
-  getGroups
+  getGroups,
+  isPlainRecord,
+  parseSafeJson
 } from 'finkas/core/state';
 import { postToBackend, logAuditEvent } from 'finkas/core/api';
+import { requestAppRefresh } from 'finkas/core/mutation';
 import { showToast, isOnline } from 'finkas/core/utils';
 import { getOfflineItems } from 'finkas/core/offline-store';
-import { renderAll } from '../render/index';
 import { closeModal } from '../ui/modal';
 import { flashDownloadRing, isReducedMotion } from '../ui/ui-moments';
+
+const MAX_BACKUP_FILE_BYTES = 20 * 1024 * 1024;
 
 /**
  * Export full JSON snapshot of Finkas database for disaster recovery directly from server.
@@ -104,13 +106,31 @@ export const restoreJSONBackup = (file: File) => {
 
   if (!file) return;
 
+  const targetGid = getActiveGroupId();
+  if (!targetGid) {
+    return showToast('ID grup aktif belum dipilih.', 'error');
+  }
+
+  if (typeof file.size === 'number' && file.size > MAX_BACKUP_FILE_BYTES) {
+    return showToast('Ukuran file backup melebihi batas maksimum 20 MB.', 'error');
+  }
+
   const reader = new FileReader();
   reader.onload = async (e) => {
     try {
-      const content = JSON.parse(String(e.target?.result));
+      if (getActiveGroupId() !== targetGid) {
+        return showToast('Grup aktif berubah sebelum file dibaca, restore dibatalkan.', 'warning');
+      }
+
+      const rawText = typeof e.target?.result === 'string' ? e.target.result : String(e.target?.result ?? '');
+      if (rawText.length > MAX_BACKUP_FILE_BYTES) {
+        return showToast('Ukuran file backup melebihi batas maksimum 20 MB.', 'error');
+      }
+
+      const content = parseSafeJson(rawText, 32);
 
       // Schema verification
-      if (!content || !content.data || !Array.isArray(content.data.anggota) || !Array.isArray(content.data.transaksi)) {
+      if (!isPlainRecord(content) || !isPlainRecord(content.data) || !Array.isArray(content.data.anggota) || !Array.isArray(content.data.transaksi)) {
         return showToast('Format file backup tidak valid atau rusak.', 'error');
       }
 
@@ -137,6 +157,9 @@ export const restoreJSONBackup = (file: File) => {
       if (operations !== undefined && !Array.isArray(operations)) {
         return showToast('Format data riwayat operasi di file backup tidak valid.', 'error');
       }
+      if (kasStart !== undefined && kasStart !== null && typeof kasStart !== 'string') {
+        return showToast('Format tanggal mulai kas di file backup tidak valid.', 'error');
+      }
 
       const safeKategori = Array.isArray(kategori) ? kategori : [];
       const safeSkipped = Array.isArray(skippedMonths) ? skippedMonths : [];
@@ -162,23 +185,78 @@ export const restoreJSONBackup = (file: File) => {
         return showToast('File backup melebihi batas maksimum riwayat operasi (20.000).', 'error');
       }
 
-      const invalidAnggota = anggota.some((a: Record<string, unknown> | null) => !a || typeof a !== 'object' || (!a.ID_Anggota && !a.idAnggota));
+      const invalidAnggota = anggota.some((a) => !isPlainRecord(a) || !(
+        (typeof a.ID_Anggota === 'string' && a.ID_Anggota.trim()) ||
+        (typeof a.idAnggota === 'string' && a.idAnggota.trim())
+      ));
       if (invalidAnggota) {
         return showToast('Terdapat data anggota tidak valid di file backup.', 'error');
       }
 
-      const invalidTrx = transaksi.some((t: Record<string, unknown> | null) => !t || typeof t !== 'object' || (!t.Nominal && t.nominal === undefined));
+      const invalidKategori = safeKategori.some((k) => !isPlainRecord(k) || !(
+        (typeof k.ID_Kategori === 'string' && k.ID_Kategori.trim()) ||
+        (typeof k.idKategori === 'string' && k.idKategori.trim())
+      ));
+      if (invalidKategori) {
+        return showToast('Terdapat data kategori tidak valid di file backup.', 'error');
+      }
+
+      const invalidTrx = transaksi.some((t) => {
+        if (!isPlainRecord(t)) return true;
+        const nominal = Number(t.Nominal ?? t.nominal);
+        const tipe = t.Tipe_Arus ?? t.tipeArus;
+        const ts = t.Timestamp ?? t.timestamp;
+        return !Number.isFinite(nominal) || nominal <= 0
+          || (tipe !== 'Masuk' && tipe !== 'Keluar')
+          || typeof ts !== 'string' || !Number.isFinite(Date.parse(ts));
+      });
       if (invalidTrx) {
         return showToast('Terdapat transaksi tidak valid di file backup.', 'error');
       }
 
+      const invalidSkipped = safeSkipped.some((m) => typeof m !== 'string' || !m.trim() || m.trim().length > 20);
+      if (invalidSkipped) {
+        return showToast('Terdapat data bulan libur tidak valid di file backup.', 'error');
+      }
+
+      const invalidAttachments = safeAttachments.some((att) =>
+        !isPlainRecord(att)
+        || typeof att.idTransaksi !== 'string' || !att.idTransaksi.trim()
+        || typeof att.base64 !== 'string' || !att.base64.length
+      );
+      if (invalidAttachments) {
+        return showToast('Terdapat lampiran bukti tidak valid di file backup.', 'error');
+      }
+
+      const invalidOperations = safeOperations.some((op) =>
+        !isPlainRecord(op)
+        || typeof op.operationId !== 'string' || !op.operationId.trim()
+        || typeof op.action !== 'string' || !op.action.trim()
+      );
+      if (invalidOperations) {
+        return showToast('Terdapat riwayat operasi tidak valid di file backup.', 'error');
+      }
+
+      let normalizedPaymentAccount: ReturnType<typeof normalizePaymentAccount> | null = null;
+      if (paymentAccount !== undefined && paymentAccount !== null) {
+        if (!isPlainRecord(paymentAccount)) {
+          return showToast('Format rekening tujuan di file backup tidak valid.', 'error');
+        }
+        const paErr = validatePaymentAccount(paymentAccount);
+        if (paErr) {
+          return showToast(paErr, 'error');
+        }
+        normalizedPaymentAccount = normalizePaymentAccount(paymentAccount);
+      }
+
       const countTrx = transaksi.length;
       const countAng = anggota.length;
-      const srcGroup = content.group?.nama || content.group?.id || 'tak diketahui';
-      const srcGid = content.group?.id || '';
-      const activeGid = getActiveGroupId();
-      const activeName = getGroups().find((g) => g.id === activeGid)?.nama || activeGid;
-      const isCrossGroup = Boolean(srcGid && srcGid !== activeGid);
+      const groupMeta = isPlainRecord(content.group) ? content.group : null;
+      const srcGid = typeof groupMeta?.id === 'string' ? groupMeta.id.trim() : '';
+      const srcGroup = (typeof groupMeta?.nama === 'string' && groupMeta.nama.trim()) || srcGid || 'tak diketahui';
+      const missingGroupId = !srcGid;
+      const activeName = getGroups().find((g) => g.id === targetGid)?.nama || targetGid;
+      const isCrossGroup = Boolean(srcGid && srcGid !== targetGid);
 
       const confirmMsg =
         `Pulihkan database dari file backup?\n` +
@@ -190,22 +268,35 @@ export const restoreJSONBackup = (file: File) => {
         `• ${safeAttachments.length} Bukti Pembayaran\n\n` +
         `Seluruh data server akan DIGANTIKAN. Tindakan ini tidak dapat dibatalkan.`;
 
-      if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-        if (!window.confirm(confirmMsg)) return;
-        if (isCrossGroup) {
-          const crossMsg =
-            `PERINGATAN LINTAS GRUP:\n` +
-            `Backup ini berasal dari grup "${srcGroup}" (${srcGid}), ` +
-            `tetapi grup aktif adalah "${activeName}" (${activeGid}).\n\n` +
-            `Seluruh data grup tujuan akan digantikan dengan data dari backup ini. Tetap lanjutkan?`;
-          if (!window.confirm(crossMsg)) return;
-        }
+      if (typeof window === 'undefined' || typeof window.confirm !== 'function') {
+        return showToast('Konfirmasi interaktif tidak tersedia; restore dibatalkan.', 'error');
+      }
+
+      if (!window.confirm(confirmMsg)) return;
+      if (missingGroupId) {
+        const missingMsg =
+          `PERINGATAN ID GRUP HILANG:\n` +
+          `File backup ini tidak mencantumkan ID grup asal.\n` +
+          `Data grup "${activeName}" (${targetGid}) akan digantikan sepenuhnya. Tetap lanjutkan?`;
+        if (!window.confirm(missingMsg)) return;
+      } else if (isCrossGroup) {
+        const crossMsg =
+          `PERINGATAN LINTAS GRUP:\n` +
+          `Backup ini berasal dari grup "${srcGroup}" (${srcGid}), ` +
+          `tetapi grup aktif adalah "${activeName}" (${targetGid}).\n\n` +
+          `Seluruh data grup tujuan akan digantikan dengan data dari backup ini. Tetap lanjutkan?`;
+        if (!window.confirm(crossMsg)) return;
+      }
+
+      if (getActiveGroupId() !== targetGid) {
+        return showToast('Grup aktif berubah, restore dibatalkan.', 'warning');
       }
 
       showToast('Memulihkan database ke server...', 'info');
 
       const res = await postToBackend<{ transaksi: number; attachments: number }>({
         action: 'restoreSnapshot',
+        groupId: targetGid,
         sourceGroupId: srcGid,
         confirmCrossGroup: isCrossGroup,
         data: {
@@ -213,12 +304,14 @@ export const restoreJSONBackup = (file: File) => {
           kategori: safeKategori,
           transaksi,
           skippedMonths: safeSkipped,
-          kasStart: kasStart || '',
-          ...(paymentAccount && srcGid === activeGid ? { paymentAccount } : {}),
+          kasStart: typeof kasStart === 'string' ? kasStart : '',
+          ...(normalizedPaymentAccount && srcGid === targetGid ? { paymentAccount: normalizedPaymentAccount } : {}),
           attachments: safeAttachments,
           operations: safeOperations
         }
       });
+
+      if (getActiveGroupId() !== targetGid) return;
 
       if (!res) {
         showToast('Tidak dapat terhubung ke server. Coba lagi saat online.', 'error');
@@ -229,17 +322,7 @@ export const restoreJSONBackup = (file: File) => {
         return;
       }
 
-      // Reflect restored data locally
-      setState({
-        anggota,
-        kategori: safeKategori,
-        transaksi,
-        skippedMonths: safeSkipped,
-        kasStart: kasStart || '',
-        ...(paymentAccount && srcGid === activeGid ? { paymentAccount: normalizePaymentAccount(paymentAccount) } : {})
-      });
-      saveCache();
-      renderAll();
+      requestAppRefresh();
 
       const countRestored = res.data?.transaksi ?? countTrx;
       const countAtt = res.data?.attachments ?? safeAttachments.length;

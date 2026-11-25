@@ -25,23 +25,28 @@ interface ServiceAccount {
 }
 
 let serviceAccountCache: ServiceAccount | null = null;
-let serviceAccountLoaded = false;
+let warnedMissingServiceAccount = false;
 
 /** Resolve the service account from the environment (raw JSON or base64) or,
  * for local development only, from `.service-account.local.json`. */
 export function getServiceAccount(): ServiceAccount | null {
-  if (serviceAccountLoaded) return serviceAccountCache;
-  serviceAccountLoaded = true;
+  if (serviceAccountCache) return serviceAccountCache;
 
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (raw) {
     try {
-      serviceAccountCache = JSON.parse(raw);
-      return serviceAccountCache;
-    } catch (err) {
-      try {
-        serviceAccountCache = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+      const parsed = JSON.parse(raw);
+      if (parsed?.client_email && parsed?.private_key) {
+        serviceAccountCache = parsed;
         return serviceAccountCache;
+      }
+    } catch {
+      try {
+        const parsed = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+        if (parsed?.client_email && parsed?.private_key) {
+          serviceAccountCache = parsed;
+          return serviceAccountCache;
+        }
       } catch (innerErr) {
         console.error('[finkas] FIREBASE_SERVICE_ACCOUNT is neither valid JSON nor base64 JSON:', innerErr?.message);
       }
@@ -51,14 +56,20 @@ export function getServiceAccount(): ServiceAccount | null {
   const localPath = path.resolve(process.cwd(), '.service-account.local.json');
   if (fs.existsSync(localPath)) {
     try {
-      serviceAccountCache = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-      return serviceAccountCache;
+      const parsed = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+      if (parsed?.client_email && parsed?.private_key) {
+        serviceAccountCache = parsed;
+        return serviceAccountCache;
+      }
     } catch (err) {
       console.error('[finkas] Failed to parse .service-account.local.json:', err?.message);
     }
   }
 
-  console.error('[finkas] No service account configured (FIREBASE_SERVICE_ACCOUNT missing).');
+  if (!warnedMissingServiceAccount) {
+    warnedMissingServiceAccount = true;
+    console.error('[finkas] No service account configured (FIREBASE_SERVICE_ACCOUNT missing).');
+  }
   return null;
 }
 
@@ -72,13 +83,16 @@ export const hasServiceAccount = () => {
 
 let cachedToken: string | null = null;
 let cachedTokenExpiresAt = 0;
+let cachedTokenKey = '';
+const FETCH_TIMEOUT_MS = 10_000;
 
 /** Exchange a signed JWT for a Google OAuth2 access token scoped to Datastore. */
 export async function getGoogleAccessToken(serviceAccount: ServiceAccount | null): Promise<string|null> {
   if (!serviceAccount?.client_email || !serviceAccount?.private_key) return null;
 
+  const cacheKey = `${serviceAccount.client_email}:${serviceAccount.private_key.slice(-24)}`;
   const now = Math.floor(Date.now() / 1000);
-  if (cachedToken && now < cachedTokenExpiresAt - 60) return cachedToken;
+  if (cachedToken && cachedTokenKey === cacheKey && now < cachedTokenExpiresAt - 60) return cachedToken;
 
   const header = { alg: 'RS256', typ: 'JWT' };
   const claimSet = {
@@ -101,7 +115,8 @@ export async function getGoogleAccessToken(serviceAccount: ServiceAccount | null
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       assertion: `${signInput}.${signature}`
-    })
+    }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
   });
   if (!res.ok) {
     console.error('[finkas] OAuth token exchange failed:', res.status, await res.text().catch(() => ''));
@@ -109,7 +124,12 @@ export async function getGoogleAccessToken(serviceAccount: ServiceAccount | null
   }
 
   const data = await res.json();
+  if (!data || typeof data.access_token !== 'string' || !data.access_token.trim()) {
+    console.error('[finkas] OAuth token response missing access_token.');
+    return null;
+  }
   cachedToken = data.access_token;
+  cachedTokenKey = cacheKey;
   cachedTokenExpiresAt = now + Number(data.expires_in || 3600);
   return cachedToken;
 }
@@ -139,9 +159,15 @@ export function constantTimeEqual(a: string, b: string): boolean {
 
 /* ── Firestore value encoding/decoding ───────────────────────────── */
 
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const MAX_CODEC_DEPTH = 32;
+
 /** Decode a single Firestore typed value into a plain JS value.
  * Recursive, so nested arrays and maps round-trip correctly. */
-export function decodeValue(value: Record<string, any> | null | undefined): unknown {
+export function decodeValue(value: Record<string, any> | null | undefined, depth: number = 0): unknown {
+  if (depth > MAX_CODEC_DEPTH) {
+    throw new Error('Kedalaman struktur data Firestore melebihi batas aman.');
+  }
   if (!value || typeof value !== 'object') return null;
   if ('stringValue' in value) return value.stringValue;
   if ('integerValue' in value) return Number(value.integerValue);
@@ -149,43 +175,59 @@ export function decodeValue(value: Record<string, any> | null | undefined): unkn
   if ('booleanValue' in value) return Boolean(value.booleanValue);
   if ('timestampValue' in value) return value.timestampValue;
   if ('nullValue' in value) return null;
-  if ('arrayValue' in value) return (value.arrayValue.values || []).map(decodeValue);
-  if ('mapValue' in value) return decodeFields(value.mapValue.fields || {});
+  if ('arrayValue' in value) return (value.arrayValue.values || []).map((item: Record<string, any>) => decodeValue(item, depth + 1));
+  if ('mapValue' in value) return decodeFields(value.mapValue.fields || {}, depth + 1);
   if ('geoPointValue' in value) return value.geoPointValue;
   if ('referenceValue' in value) return value.referenceValue;
   return null;
 }
 
 /** Decode a Firestore `fields` object into a plain JS object. */
-export function decodeFields(fields: Record<string, any> | null | undefined): Record<string, any> {
+export function decodeFields(fields: Record<string, any> | null | undefined, depth: number = 0): Record<string, any> {
+  if (depth > MAX_CODEC_DEPTH) {
+    throw new Error('Kedalaman struktur field Firestore melebihi batas aman.');
+  }
   const out: Record<string, any> = {};
   Object.entries(fields || {}).forEach(([key, value]) => {
-    out[key] = decodeValue(value);
+    if (DANGEROUS_KEYS.has(key)) return;
+    Object.defineProperty(out, key, {
+      value: decodeValue(value, depth + 1),
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
   });
   return out;
 }
 
 /** Encode a plain JS value into a Firestore typed value. */
-export function encodeValue(value: unknown): FirestoreValue {
+export function encodeValue(value: unknown, depth: number = 0): FirestoreValue {
+  if (depth > MAX_CODEC_DEPTH) {
+    throw new Error('Kedalaman struktur data melebihi batas aman.');
+  }
   if (value === null || value === undefined) return { nullValue: null };
   if (typeof value === 'boolean') return { booleanValue: value };
   if (typeof value === 'number') {
     return Number.isInteger(value) ? { integerValue: String(value) } : { doubleValue: value };
   }
   if (Array.isArray(value)) {
-    return { arrayValue: { values: value.map(encodeValue) } };
+    return { arrayValue: { values: value.map((item) => encodeValue(item, depth + 1)) } };
   }
   if (typeof value === 'object') {
-    return { mapValue: { fields: encodeFields(value) } };
+    return { mapValue: { fields: encodeFields(value, depth + 1) } };
   }
   return { stringValue: String(value) };
 }
 
 /** Encode a plain JS object into a Firestore `fields` object. */
-export function encodeFields(obj: object | null | undefined): Record<string, FirestoreValue> {
+export function encodeFields(obj: object | null | undefined, depth: number = 0): Record<string, FirestoreValue> {
+  if (depth > MAX_CODEC_DEPTH) {
+    throw new Error('Kedalaman struktur objek melebihi batas aman.');
+  }
   const fields: Record<string, FirestoreValue> = {};
   Object.entries(obj || {}).forEach(([key, value]) => {
-    fields[key] = encodeValue(value);
+    if (DANGEROUS_KEYS.has(key)) return;
+    fields[key] = encodeValue(value, depth + 1);
   });
   return fields;
 }
@@ -198,11 +240,11 @@ export const resourceName = (docPath: string): string =>
 
 /** Build an error carrying the HTTP status and Firestore's own error body.
  *
- * The body is what separates a rejected write precondition — a normal,
- * expected outcome — from a real infrastructure fault, and a status code alone
- * cannot tell them apart. */
+ * The raw body stays on `.body` (used by `isPreconditionFailure`) rather than
+ * `.message`, preventing internal project/path leakage if a caller logs or
+ * surfaces `error.message`. */
 const firestoreError = (message: string, status: number, body: string): Error => {
-  const error = new Error(body ? `${message} ${body}` : message);
+  const error = new Error(message);
   return Object.assign(error, { status, body });
 };
 
@@ -215,16 +257,28 @@ export const isPreconditionFailure = (error: Error & {body?: string}): boolean =
 
 const docUrl = (docPath: string, query: string = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 
-/** Read a single document. */
-export async function fsGet(docPath: string, headers: FirestoreHeaders): Promise<Record<string, any>|null> {
-  const res = await fetch(docUrl(docPath), { headers });
+/** Read a single document along with its Firestore `updateTime` metadata. */
+export async function fsGetWithMeta(docPath: string, headers: FirestoreHeaders): Promise<{fields: Record<string, any>, updateTime?: string}|null> {
+  const res = await fetch(docUrl(docPath), {
+    headers,
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+  });
   if (res.status === 404) return null;
   if (!res.ok) {
     console.error('[finkas] fsGet failed:', docPath, res.status, await res.text().catch(() => ''));
     throw new Error(`Gagal membaca dokumen (${res.status}).`);
   }
   const json = await res.json();
-  return decodeFields(json.fields);
+  return {
+    fields: decodeFields(json.fields),
+    updateTime: typeof json.updateTime === 'string' ? json.updateTime : undefined
+  };
+}
+
+/** Read a single document. */
+export async function fsGet(docPath: string, headers: FirestoreHeaders): Promise<Record<string, any>|null> {
+  const meta = await fsGetWithMeta(docPath, headers);
+  return meta ? meta.fields : null;
 }
 
 /** Create or merge a document. */
@@ -233,7 +287,8 @@ export async function fsPatch(docPath: string, data: object, headers: FirestoreH
   const res = await fetch(docUrl(docPath, query ? `?${query}` : ''), {
     method: 'PATCH',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: encodeFields(data) })
+    body: JSON.stringify({ fields: encodeFields(data) }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
   });
   if (!res.ok) {
     console.error('[finkas] fsPatch failed:', docPath, res.status, await res.text().catch(() => ''));
@@ -244,7 +299,11 @@ export async function fsPatch(docPath: string, data: object, headers: FirestoreH
 
 /** Delete a document. Idempotent. */
 export async function fsDelete(docPath: string, headers: FirestoreHeaders) {
-  const res = await fetch(docUrl(docPath), { method: 'DELETE', headers });
+  const res = await fetch(docUrl(docPath), {
+    method: 'DELETE',
+    headers,
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+  });
   if (!res.ok && res.status !== 404) {
     console.error('[finkas] fsDelete failed:', docPath, res.status);
     throw new Error(`Gagal menghapus dokumen (${res.status}).`);
@@ -255,14 +314,15 @@ export async function fsDelete(docPath: string, headers: FirestoreHeaders) {
 export type FirestoreWrite = (
   | { update: { name: string, fields: object }, updateMask?: { fieldPaths: string[] } }
   | { delete: string }
-) & { currentDocument?: { exists: boolean } };
+) & { currentDocument?: { exists?: boolean, updateTime?: string } };
 
 /** Execute an atomic batch of writes. */
 export async function fsCommit(writes: FirestoreWrite[], headers: FirestoreHeaders) {
   const res = await fetch(`${FIRESTORE_BASE}:commit`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ writes })
+    body: JSON.stringify({ writes }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -287,7 +347,8 @@ export async function fsCreateIfAbsent(docPath: string, data: object, headers: F
         update: { name: resourceName(docPath), fields: encodeFields(data) },
         currentDocument: { exists: false }
       }]
-    })
+    }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
   });
   if (res.ok) return true;
 
@@ -305,7 +366,10 @@ export async function fsListAll(colPath: string, headers: FirestoreHeaders, maxP
   let pageToken = '';
   for (let page = 0; page < maxPages; page += 1) {
     const query = `?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ''}`;
-    const res = await fetch(docUrl(colPath, query), { headers });
+    const res = await fetch(docUrl(colPath, query), {
+      headers,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+    });
     if (!res.ok) {
       console.error('[finkas] fsListAll failed:', colPath, res.status);
       throw new Error(`Gagal membaca koleksi (${res.status}).`);

@@ -12,7 +12,7 @@ import {
 
 import { postToBackend, logAuditEvent } from './api';
 import { showToast } from './utils';
-import { getActiveGroupId } from './state';
+import { getActiveGroupId, getAdminEmail, getAdminRole, getIsAdminSession } from './state';
 
 export {
   openOfflineDB,
@@ -20,7 +20,41 @@ export {
   getOfflineItems as getOfflineTransactions
 };
 
+/** Explicit allowlist of mutations safe to buffer in IndexedDB and replay offline. */
+export const OFFLINE_QUEUEABLE_ACTIONS = new Set([
+  'tambahTransaksi',
+  'tambahTransaksiMassal',
+  'editTransaksi',
+  'hapusTransaksi',
+  'tambahAnggota',
+  'hapusAnggota',
+  'updateStatusAnggota',
+  'tambahKategori',
+  'hapusKategori',
+  'addSkippedMonth',
+  'removeSkippedMonth',
+  'setKasStart',
+  'catatAktivitas'
+]);
+
 const normalizeGroupId = (groupId: unknown) => typeof groupId === 'string' ? groupId.trim() : '';
+
+/** Derive a non-secret scope tag binding a queued item to its group and initiator identity. */
+const computeInitiatorScope = async (groupId: string): Promise<string> => {
+  const role = String(getAdminRole() || '').trim().toLowerCase() || 'admin';
+  const email = String(getAdminEmail() || '').trim().toLowerCase();
+  const raw = `${groupId}|${role}|${email}`;
+  if (typeof crypto !== 'undefined' && crypto.subtle && typeof TextEncoder !== 'undefined') {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(digest).slice(0, 12), (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let hash = 2166136261;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `scope-${(hash >>> 0).toString(16)}`;
+};
 
 /** Return counts only, excluding legacy rows without a group. */
 export const countQueuedTransactionsByGroup = async () => {
@@ -80,6 +114,7 @@ export const emitQueueStatus = async (groupId?: string, queueState: 'idle' | 'qu
 
 /** Delete a single queued item and notify listeners of updated count. */
 export const deleteOfflineTransaction = async (id: number, expectedGroupId: string = ''): Promise<boolean> => {
+  if (!getIsAdminSession()) return false;
   const guardGid = normalizeGroupId(expectedGroupId);
   if (guardGid) {
     const { items } = await getGroupOfflineTransactions(guardGid);
@@ -92,11 +127,17 @@ export const deleteOfflineTransaction = async (id: number, expectedGroupId: stri
 
 /** Queue a payload for later sync. Stempel groupId agar replay tidak
  * nyasar ke grup lain bila user pindah grup sebelum online. */
-export const queueOfflinePayload = async (payload: {groupId?: string}) => {
+export const queueOfflinePayload = async (payload: {groupId?: string, action?: string, [key: string]: unknown}) => {
   const targetGid = normalizeGroupId(payload?.groupId || getActiveGroupId());
   if (!targetGid) throw new Error('ID grup aktif belum dipilih untuk antrean offline.');
+  const action = typeof payload?.action === 'string' ? payload.action : '';
+  if (!OFFLINE_QUEUEABLE_ACTIONS.has(action)) {
+    throw new Error(`Aksi "${action || 'unknown'}" tidak diizinkan untuk antrean offline.`);
+  }
+  const initiatorScope = await computeInitiatorScope(targetGid);
   const queuedPayload = {
-    payload: { ...payload, groupId: targetGid },
+    payload: { ...payload, action, groupId: targetGid },
+    initiatorScope,
     queuedAt: new Date().toISOString()
   };
   await addOfflineItem(queuedPayload);
@@ -165,19 +206,30 @@ export const classifySyncResponse = (resJSON: SyncResponse | null): 'unreachable
  * confirmed by the server yet. */
 export const isUnsyncedTempId = (id: string): boolean => typeof id === 'string' && /-TEMP-/.test(id);
 
-/** Active replay promise to prevent concurrent replay races. */
+/** Active replay promise and target group to prevent concurrent replay races across group switches. */
 let activeReplayPromise: Promise<void>|null = null;
+let activeReplayGroup = '';
 
 /** Sync all pending offline transactions to the backend.
  * Avoids concurrent replay races and aborts cleanly across group switches. */
 export const syncOfflineTransactions = (onSuccess?: () => void): Promise<void> => {
-  if (activeReplayPromise) {
-    return activeReplayPromise;
-  }
-
   const replayGroup = normalizeGroupId(getActiveGroupId());
   if (!replayGroup) return Promise.resolve();
 
+  if (activeReplayPromise) {
+    if (activeReplayGroup === replayGroup) {
+      return activeReplayPromise;
+    }
+    const prior = activeReplayPromise;
+    return prior.catch(() => null).then(() => {
+      if (normalizeGroupId(getActiveGroupId()) !== replayGroup) return;
+      return syncOfflineTransactions(onSuccess);
+    });
+  }
+
+  if (!getIsAdminSession()) return Promise.resolve();
+
+  activeReplayGroup = replayGroup;
   activeReplayPromise = (async () => {
     let switchedGroup = false;
     const markSwitched = () => { switchedGroup = true; };
@@ -187,9 +239,17 @@ export const syncOfflineTransactions = (onSuccess?: () => void): Promise<void> =
     let duplicateCount = 0;
     let skippedUnscoped = 0;
     let skippedOtherGroup = 0;
+    let skippedQuarantined = 0;
     try {
+      const currentScope = await computeInitiatorScope(replayGroup);
       const queued = await getOfflineItems();
-      if (queued.some((item) => normalizeGroupId(item?.payload?.groupId) === replayGroup)) {
+      const hasEligibleForGroup = queued.some((item) => {
+        const gid = normalizeGroupId(item?.payload?.groupId);
+        const action = typeof item?.payload?.action === 'string' ? item.payload.action : '';
+        const itemScope = (item as { initiatorScope?: unknown })?.initiatorScope;
+        return gid === replayGroup && OFFLINE_QUEUEABLE_ACTIONS.has(action) && itemScope === currentScope;
+      });
+      if (hasEligibleForGroup) {
         await emitQueueStatus(replayGroup, 'sending');
       }
 
@@ -207,6 +267,12 @@ export const syncOfflineTransactions = (onSuccess?: () => void): Promise<void> =
         }
         if (itemGid !== replayGroup) {
           skippedOtherGroup += 1;
+          continue;
+        }
+        const action = typeof item?.payload?.action === 'string' ? item.payload.action : '';
+        const itemScope = (item as { initiatorScope?: unknown })?.initiatorScope;
+        if (!OFFLINE_QUEUEABLE_ACTIONS.has(action) || typeof itemScope !== 'string' || itemScope !== currentScope) {
+          skippedQuarantined += 1;
           continue;
         }
 
@@ -256,10 +322,16 @@ export const syncOfflineTransactions = (onSuccess?: () => void): Promise<void> =
     } else if (skippedOtherGroup > 0) {
       showToast(`${skippedOtherGroup} antrean milik grup lain – pindah grup untuk mengirim.`, 'info');
     }
-    if (!successCount && !duplicateCount && skippedUnscoped) {
+    if (!successCount && !duplicateCount && skippedQuarantined > 0) {
+      showToast(`${skippedQuarantined} antrean ditahan karena sesi atau aksi tidak cocok.`, 'warning');
+    }
+    if (!successCount && !duplicateCount && !skippedQuarantined && skippedUnscoped) {
       showToast(`${skippedUnscoped} antrean lama tanpa ID grup dilewati demi isolasi data.`, 'warning');
     }
-  })().finally(() => { activeReplayPromise = null; });
+  })().finally(() => {
+    activeReplayPromise = null;
+    activeReplayGroup = '';
+  });
 
   return activeReplayPromise;
 };

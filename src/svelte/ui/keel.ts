@@ -5,17 +5,25 @@
 
 import { showToast } from 'finkas/core/utils';
 
+const setSafeButtonText = (target: Element, text: string) => {
+  const value = String(text ?? '');
+  if ('replaceChildren' in target && typeof target.replaceChildren === 'function' && typeof document?.createTextNode === 'function') {
+    target.replaceChildren(document.createTextNode(value));
+    return;
+  }
+  target.textContent = value;
+};
+
 /**
  * Run a task with a button in its busy state, restoring it afterwards.
  */
-export const withBusyButton = async (buttonId: string, busyHtml: string, idleHtml: string, task: () => unknown) => {
+export const withBusyButton = async (buttonId: string, busyText: string, idleText: string, task: () => unknown) => {
   const btn = (document.getElementById(buttonId) as HTMLButtonElement|null);
   if (btn) {
     if (btn.disabled || btn.getAttribute("aria-busy") === "true") return;
     if (btn.offsetWidth && btn.offsetWidth > 0) btn.style?.setProperty?.("--btn-lock-w", `${btn.offsetWidth}px`);
     const holdLabel = btn.querySelector?.(".hold-label");
-    if (holdLabel) holdLabel.innerHTML = busyHtml;
-    else btn.innerHTML = busyHtml;
+    setSafeButtonText(holdLabel || btn, busyText);
     btn.disabled = true;
     btn.setAttribute("aria-busy", "true");
   }
@@ -24,8 +32,7 @@ export const withBusyButton = async (buttonId: string, busyHtml: string, idleHtm
   } finally {
     if (btn) {
       const holdLabel = btn.querySelector?.(".hold-label");
-      if (holdLabel) holdLabel.innerHTML = idleHtml;
-      else btn.innerHTML = idleHtml;
+      setSafeButtonText(holdLabel || btn, idleText);
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
       btn.style?.removeProperty?.("--btn-lock-w");

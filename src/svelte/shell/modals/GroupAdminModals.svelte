@@ -156,7 +156,7 @@
           </div>
           <div class="cred-card-row">
             <span class="cred-row-label"><i class="ph ph-lock-key" aria-hidden="true"></i><span>PIN Warga</span></span>
-            <code class="cred-code" id="cred-disp-pin">1234</code>
+            <code class="cred-code" id="cred-disp-pin">-</code>
           </div>
           <div class="cred-card-row">
             <span class="cred-row-label"><i class="ph ph-envelope" aria-hidden="true"></i><span>Email Admin</span></span>
@@ -181,6 +181,40 @@
           <span>Salin Format WhatsApp</span>
         </button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- 0e. Modal Edit Kredensial Admin Grup (Super Admin) -->
+  <dialog class="modal-overlay hybrid-dialog" id="modal-group-cred-edit" aria-labelledby="modal-cred-edit-title">
+    <div class="modal-content modal-sm">
+      <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
+      <div class="modal-header-standard">
+        <div class="modal-header-left">
+          <div class="modal-badge-icon"><i class="ph-fill ph-key" aria-hidden="true"></i></div>
+          <div class="modal-title-wrap">
+            <h2 id="modal-cred-edit-title">Atur Akun Admin Grup</h2>
+            <p id="cred-edit-group-label">-</p>
+          </div>
+        </div>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <form id="form-edit-group-creds">
+        <input type="hidden" id="edit-group-cred-id" name="edit-group-cred-id">
+        <div class="form-group">
+          <label for="edit-group-cred-email">Email Admin</label>
+          <input type="email" id="edit-group-cred-email" name="edit-group-cred-email" class="form-control" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="edit-group-cred-pwd">Password Admin Baru</label>
+          <input type="password" id="edit-group-cred-pwd" name="edit-group-cred-pwd" class="form-control" minlength="6" placeholder="Minimal 6 karakter..." required autocomplete="new-password">
+        </div>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-secondary" data-action="close-modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit-group-creds">Simpan Kredensial</button>
+        </div>
+      </form>
     </div>
   </dialog>
 

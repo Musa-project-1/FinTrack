@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "scripts": {
-    "build": "vite build && vite build --mode onboarding && node scripts/render-shells.mjs && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify",
+    "build": "vite build && vite build --mode onboarding && node scripts/render-shells.mjs && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify && node scripts/stage-dist.mjs",
     "test": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
     "check": "npm run build && node scripts/verify.mjs && npm test",
     "release": "node scripts/bump.mjs && npm run check"

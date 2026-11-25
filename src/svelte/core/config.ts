@@ -13,7 +13,8 @@ export const API = {
   LOGIN: '/api/login',
   LOGIN_GOOGLE: '/api/login-google',
   GROUP_ADMIN: '/api/create-group',
-  VERIFY_PIN: '/api/verify-group-pin'
+  VERIFY_PIN: '/api/verify-group-pin',
+  LOGOUT: '/api/logout'
 };
 
 /** Indonesian month names (0-indexed: NAMA_BULAN[0] = "Januari") */

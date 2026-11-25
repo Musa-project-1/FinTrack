@@ -255,7 +255,7 @@
               <span class="master-id-pill" id="edit-master-anggota-id-badge">ANG-0000</span>
             </div>
             <div class="flex-align-gap">
-              <a id="edit-master-anggota-wa-link" href="#" target="_blank" rel="noopener" class="btn btn-outline btn-sm master-wa-btn">
+              <a id="edit-master-anggota-wa-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm master-wa-btn">
                 <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>Chat WA</span>
               </a>
               <button type="button" class="btn btn-outline btn-sm" id="btn-modal-view-profil" data-action="view-profil-from-modal">

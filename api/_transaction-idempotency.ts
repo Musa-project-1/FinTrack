@@ -25,17 +25,23 @@ export function parseOperationId(raw: unknown) {
   return { id: cleaned };
 }
 
+const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /** Compute a deterministic SHA-256 fingerprint from the action and normalized data.
- * Sorts object keys recursively to guarantee order-invariance. */
+ * Sorts object keys recursively to guarantee order-invariance while blocking prototype keys. */
 export function computeRequestFingerprint(action: string, normalizedData: object): string {
-  const canonicalJson = JSON.stringify({ action, data: normalizedData }, (key, value) => {
+  const canonicalJson = JSON.stringify({ action, data: normalizedData }, (_key, value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return Object.keys(value)
-        .sort()
-        .reduce((sorted: Record<string, unknown>, k) => {
-          sorted[k] = value[k];
-          return sorted;
-        }, {});
+      const sorted = Object.create(null) as Record<string, unknown>;
+      for (const k of Object.keys(value).sort()) {
+        if (FORBIDDEN_KEYS.has(k)) {
+          throw new Error(`Kunci objek tidak diizinkan: ${k}`);
+        }
+        if (Object.hasOwn(value, k)) {
+          sorted[k] = (value as Record<string, unknown>)[k];
+        }
+      }
+      return sorted;
     }
     return value;
   });

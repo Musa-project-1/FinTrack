@@ -23,6 +23,9 @@ globalThis.fetch = async (url, opts) => {
       headers: { 'Content-Type': 'application/json' }
     });
   }
+  if (target.includes('/documents/_revoked_sessions/')) {
+    return new Response('{}', { status: 404, headers: { 'Content-Type': 'application/json' } });
+  }
   throw new Error(`Unexpected request: ${target}`);
 };
 

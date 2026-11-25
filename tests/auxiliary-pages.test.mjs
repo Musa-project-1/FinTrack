@@ -204,6 +204,7 @@ test('src/pages/404.html uses display=optional on Google Fonts and preserves lan
   const fontLinks = [...doc.querySelectorAll('link[href*="fonts.googleapis.com/css2"]')];
   assert.equal(fontLinks.length, 1);
   assert.ok(fontLinks[0].getAttribute('href').includes('display=optional'));
+  assert.equal(fontLinks[0].getAttribute('crossorigin'), 'anonymous');
   assert.ok(!html.includes('display=swap'));
 
   assert.ok(doc.querySelector('main.container'), '404.html must have <main class="container">');
@@ -220,11 +221,17 @@ test('src/pages/404.html uses display=optional on Google Fonts and preserves lan
 test('src/pages/offline.html stays 100% offline-isolated with semantic main, button type, and hidden decorative SVGs', () => {
   const html = read('src/pages/offline.html');
   assert.doesNotMatch(html, /https:\/\//i, 'offline.html must make zero external https:// requests');
+  const offlineJs = read('src/pages/offline.js');
+  assert.doesNotMatch(offlineJs, /https?:\/\//i, 'offline.js must make zero external http(s):// requests');
 
   const dom = new JSDOM(html);
   const doc = dom.window.document;
 
-  assert.equal(doc.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"], script[src]').length, 0);
+  assert.equal(doc.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"]').length, 0);
+  assert.equal(doc.querySelectorAll('script:not([src])').length, 0);
+  const scripts = [...doc.querySelectorAll('script[src]')];
+  assert.equal(scripts.length, 1);
+  assert.equal(scripts[0].getAttribute('src'), 'src/pages/offline.js');
   assert.ok(doc.querySelector('main.container'), 'offline.html must use semantic <main class="container">');
   assert.equal(doc.querySelector('div.container'), null, 'offline.html must not use <div class="container">');
 
@@ -232,6 +239,7 @@ test('src/pages/offline.html stays 100% offline-isolated with semantic main, but
   assert.ok(retryBtn);
   assert.equal(retryBtn.tagName, 'BUTTON');
   assert.equal(retryBtn.getAttribute('type'), 'button');
+  assert.equal(retryBtn.getAttribute('onclick'), null);
 
   const svgs = [...doc.querySelectorAll('svg')];
   assert.equal(svgs.length, 2);
@@ -241,4 +249,22 @@ test('src/pages/offline.html stays 100% offline-isolated with semantic main, but
   }
 
   dom.window.close();
+});
+
+test('auxiliary pages contain zero inline scripts and zero inline on* event handler attributes', () => {
+  for (const page of PAGES) {
+    const html = read(page.file);
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
+    assert.equal(doc.querySelectorAll('script:not([src])').length, 0, `${page.file} must not contain inline <script>`);
+    for (const el of doc.querySelectorAll('*')) {
+      for (const attr of el.attributes) {
+        assert.ok(
+          !attr.name.toLowerCase().startsWith('on'),
+          `${page.file} contains inline handler attribute "${attr.name}" on <${el.tagName.toLowerCase()}>`
+        );
+      }
+    }
+    dom.window.close();
+  }
 });

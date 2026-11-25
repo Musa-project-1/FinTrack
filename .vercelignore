@@ -1,0 +1,31 @@
+# Credentials & local secrets (never upload to Vercel)
+.service-account.local.json
+.firebaserc
+.env
+.env.*
+*.pem
+*.key
+*service-account*.json
+
+# Non-build tooling, docs, tests, and staged outputs
+.agents/
+.hermes/
+.scratch/
+.impeccable/
+.test-localstorage.json
+.git/
+.github/
+.vercel/
+node_modules/
+docs/
+tests/
+tmp/
+*.zip
+dist/
+AGENTS.md
+GLOSSARY.md
+skills-lock.json
+__pycache__/
+*.pyc
+AUDIT_*.md
+*_SPEC.md

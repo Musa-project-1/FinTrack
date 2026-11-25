@@ -13,20 +13,20 @@ import {
   CATEGORIES_COLLECTION,
   MEMBERS_COLLECTION,
   col,
-  isValidDocId,
   newId,
   nowIso,
+  parseDocId,
   settingsDoc,
   writeAuditLog
 } from './_store.ts';
 import {
-  SKIPPED_MONTH_RE,
   ARUS,
   STATUSES,
   fail,
   ok,
   cleanText,
-  cleanDigits
+  cleanDigits,
+  isValidMonthYear
 } from './_write-shared.ts';
 
 /* ── Skipped months ──────────────────────────────────────────────── */
@@ -34,8 +34,8 @@ import {
 type Payload = Record<string, any>;
 
 export async function changeSkippedMonth(gid: string, payload: Payload, headers: FirestoreHeaders, shouldAdd: boolean) {
-  const month = cleanText(payload?.month, 7);
-  if (!SKIPPED_MONTH_RE.test(month)) return fail('Format bulan libur harus MM-YYYY.');
+  if (!isValidMonthYear(payload?.month)) return fail('Format bulan libur harus MM-YYYY (tahun 2000–2100).');
+  const month = String(payload.month).trim();
 
   const settings = await fsGet(settingsDoc(gid), headers);
   const current = settings?.skippedMonths || [];
@@ -48,6 +48,19 @@ export async function changeSkippedMonth(gid: string, payload: Payload, headers:
   return ok('Pengaturan bulan libur diperbarui.', { skippedMonths: updated });
 }
 
+/** Current year & month (1-indexed) in Asia/Jakarta (WIB), matching client dues billing. */
+function currentWibPeriod(): { year: number; month: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit'
+  }).formatToParts(new Date());
+  return {
+    year: Number(parts.find((p) => p.type === 'year')?.value),
+    month: Number(parts.find((p) => p.type === 'month')?.value)
+  };
+}
+
 /**
  * Set the month a group starts billing dues (the arrears window origin).
  *
@@ -57,16 +70,20 @@ export async function changeSkippedMonth(gid: string, payload: Payload, headers:
  * month is rejected so the arrears window can never start after "now".
  */
 export async function setKasStart(gid: string, payload: Payload, headers: FirestoreHeaders) {
-  const raw = cleanText(payload?.kasStart, 7);
+  const rawInput = payload?.kasStart;
+  let raw = '';
 
   // Empty clears the override (revert to the legacy fallback).
-  if (raw !== '') {
-    if (!SKIPPED_MONTH_RE.test(raw)) return fail('Format awal kas harus MM-YYYY.');
+  if (rawInput !== undefined && rawInput !== null && !(typeof rawInput === 'string' && rawInput.trim() === '')) {
+    if (!isValidMonthYear(rawInput)) {
+      return fail('Format awal kas harus MM-YYYY (tahun 2000–2100).');
+    }
+    raw = String(rawInput).trim();
     const [mm, yyyy] = raw.split('-').map(Number);
-    const start = new Date(yyyy, mm - 1, 1).getTime();
-    const now = new Date();
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    if (start > thisMonth) return fail('Awal kas tidak boleh melewati bulan berjalan.');
+    const wib = currentWibPeriod();
+    if (yyyy > wib.year || (yyyy === wib.year && mm > wib.month)) {
+      return fail('Awal kas tidak boleh melewati bulan berjalan.');
+    }
   }
 
   await fsPatch(settingsDoc(gid), { kasStart: raw }, headers, ['kasStart']);
@@ -108,10 +125,13 @@ export async function addMember(gid: string, payload: Payload, headers: Firestor
 }
 
 export async function updateMemberStatus(gid: string, payload: Payload, headers: FirestoreHeaders) {
-  const idAnggota = cleanText(payload?.idAnggota, 40);
+  const parsedId = parseDocId(payload?.idAnggota);
+  if (parsedId.error || !parsedId.id) return fail(parsedId.error || 'ID anggota tidak valid.');
+  const idAnggota = parsedId.id;
   const statusAktif = payload?.statusAktif;
-  if (!idAnggota || !isValidDocId(idAnggota)) return fail('ID anggota tidak valid.');
-  if (!STATUSES.includes(statusAktif)) return fail('Status anggota harus Aktif atau Nonaktif.');
+  if (typeof statusAktif !== 'string' || !STATUSES.includes(statusAktif)) {
+    return fail('Status anggota harus Aktif atau Nonaktif.');
+  }
 
   const existing = await fsGet(`${col(gid, MEMBERS_COLLECTION)}/${idAnggota}`, headers);
   if (!existing) return fail('Anggota tidak ditemukan.');
@@ -141,7 +161,7 @@ export async function addCategory(gid: string, payload: Payload, headers: Firest
   const nama = cleanText(payload?.nama, 60);
   const tipe = payload?.tipe;
   if (!nama) return fail('Nama kategori wajib diisi.');
-  if (!ARUS.includes(tipe)) return fail('Tipe kategori harus Masuk atau Keluar.');
+  if (typeof tipe !== 'string' || !ARUS.includes(tipe)) return fail('Tipe kategori harus Masuk atau Keluar.');
 
   const idKategori = newId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K');
   const doc = { ID_Kategori: idKategori, Nama_Kategori: nama, Tipe: tipe, groupId: gid };
@@ -162,8 +182,10 @@ const CLIENT_AUDIT_ACTIONS = new Set([
 ]);
 
 export async function noteClientAudit(gid: string, payload: Payload, headers: FirestoreHeaders) {
-  const aksi = cleanText(payload?.aksi, 40);
-  if (!CLIENT_AUDIT_ACTIONS.has(aksi)) return fail('Aksi audit tidak diizinkan.');
+  const aksi = typeof payload?.aksi === 'string' ? payload.aksi.trim() : '';
+  if (!aksi || aksi.length > 40 || !CLIENT_AUDIT_ACTIONS.has(aksi)) {
+    return fail('Aksi audit tidak diizinkan.');
+  }
   await writeAuditLog(gid, aksi, cleanText(payload?.detail, 200), headers);
   return ok('Aktivitas dicatat.');
 }

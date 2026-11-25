@@ -101,12 +101,14 @@ test('a group admin may read and write only its own group', () => {
   assert.equal(canWriteGroup(admin, 'GRP-BBBB'), false);
 });
 
-test('a superadmin may read and write every group', () => {
-  const root = { role: ROLES.SUPERADMIN, gid: '' };
+test('a superadmin may read and write every group when on the whitelist', () => {
+  const root = { role: ROLES.SUPERADMIN, gid: '', email: 'root@finkas.id' };
 
-  assert.equal(canReadGroup(root, GROUP), true);
-  assert.equal(canWriteGroup(root, GROUP), true);
-  assert.equal(canReadGroup(root, 'anything'), true);
+  assert.equal(canReadGroup(root, GROUP, null, ['root@finkas.id']), true);
+  assert.equal(canWriteGroup(root, GROUP, null, ['root@finkas.id']), true);
+  assert.equal(canReadGroup(root, 'anything', null, ['root@finkas.id']), true);
+  assert.equal(canReadGroup(root, GROUP), false);
+  assert.equal(canWriteGroup(root, GROUP), false);
 });
 
 test('canReadGroup and canWriteGroup enforce superadmin whitelist when provided', () => {

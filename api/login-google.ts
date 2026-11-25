@@ -12,20 +12,44 @@
  * Every mutating action requires a valid, non-expired Super Admin session.
  * There is no `NODE_ENV` bypass and no body-supplied `isSuperAdmin` shortcut.
  */
-import { parseBody, sendJson, type JsonBody } from './_http.ts';
-import type { ApiHandlerResult, ApiRequest, ApiResponse, FirestoreHeaders, SessionClaims } from '../src/types/finkas.d.ts';
+import { enforceSameOrigin, parseBody, sendJson, type JsonBody } from './_http.ts';
+import type { ApiHandlerResult, ApiRequest, ApiResponse, FirestoreHeaders } from '../src/types/finkas.d.ts';
 import { fsPatch, requireFirestoreHeaders } from './_sa.ts';
 import { APP_CONFIG_DOC, readSuperadminEmails, writeAuditLog } from './_store.ts';
 import {
   ROLES,
+  RateLimitUnavailableError,
   SUPERADMIN_SESSION_TTL,
+  type VerifiedSessionClaims,
+  checkRateLimit,
+  clearRateLimit,
   clientIp,
+  isSessionRevoked,
   readSession,
+  registerFailedAttempt,
   signSession
 } from './_session.ts';
 
-const PRIMARY_OWNER = (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
+const DEFAULT_GOOGLE_CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
+const GOOGLE_TOKENINFO_TIMEOUT_MS = 8000;
+const MAX_GOOGLE_ATTEMPTS_IP = 10;
+const GOOGLE_LOCK_WINDOW_MS = 15 * 60 * 1000;
+const GOOGLE_TOKEN_RE = /^[A-Za-z0-9._-]{1,4096}$/;
+const VALID_GOOGLE_ISSUERS = new Set(['accounts.google.com', 'https://accounts.google.com']);
 
+let warnedDefaultClientId = false;
+
+const getPrimaryOwner = () => (process.env.FINKAS_PRIMARY_OWNER || '').toLowerCase().trim();
+
+function getExpectedGoogleClientId(): string {
+  const configured = (process.env.GOOGLE_CLIENT_ID || '').trim();
+  if (configured) return configured;
+  if (!warnedDefaultClientId) {
+    warnedDefaultClientId = true;
+    console.warn('[finkas] GOOGLE_CLIENT_ID is not set; falling back to default public OAuth client ID.');
+  }
+  return DEFAULT_GOOGLE_CLIENT_ID;
+}
 
 /* ── Superadmin whitelist helpers ─────────────────────────────────── */
 
@@ -36,19 +60,18 @@ async function saveSuperadminList(list: string[], headers: FirestoreHeaders) {
 
 /* ── Require a valid Super Admin session ─────────────────────────── */
 
-/** Verify a live Super Admin session whose email is STILL on the whitelist.
- *
- * A signature and a role are not enough: `remove` only edits the email list,
- * so a session minted before that removal stays cryptographically valid for
- * its whole TTL (30 days). Re-checking the email here is what makes a
- * revocation take effect. The check runs before any Firestore call, so a
- * removed admin is refused even when the database is unreachable. */
-const requireSuperAdmin = async (body: JsonBody, headers: FirestoreHeaders): Promise<{session: SessionClaims, emails: string[]}|null> => {
-  const session = readSession(body);
-  if (!session || session.role !== ROLES.SUPERADMIN) return null;
+/** Verify a live Super Admin session whose email is STILL on the whitelist
+ * and whose token has not been revoked. */
+const requireSuperAdmin = async (
+  session: VerifiedSessionClaims,
+  headers: FirestoreHeaders
+): Promise<{session: VerifiedSessionClaims, emails: string[]}|null> => {
+  if (session.role !== ROLES.SUPERADMIN) return null;
 
   const email = String(session.email || '').toLowerCase().trim();
   if (!email) return null;
+
+  if (await isSessionRevoked(session, headers)) return null;
 
   const emails = await readSuperadminEmails(headers);
   if (!emails.includes(email)) return null;
@@ -58,61 +81,67 @@ const requireSuperAdmin = async (body: JsonBody, headers: FirestoreHeaders): Pro
 
 /* ── Actions ─────────────────────────────────────────────────────── */
 
-async function loginWithGoogle(body: JsonBody, headers: FirestoreHeaders, ip: string) {
-  const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
-  if (!rawToken) {
-    return { code: 400, payload: { status: false, message: 'Token otentikasi Google diperlukan.' } };
+async function recordGoogleFailure(ipKey: string, code: number, message: string): Promise<ApiHandlerResult> {
+  const attempt = await registerFailedAttempt(ipKey, MAX_GOOGLE_ATTEMPTS_IP, GOOGLE_LOCK_WINDOW_MS);
+  if (attempt.locked) {
+    return {
+      code: 429,
+      payload: {
+        status: false,
+        message: `Terlalu banyak percobaan login Google. Coba lagi dalam ${attempt.retryAfterSec} detik.`,
+        data: { retryAfterSec: attempt.retryAfterSec }
+      }
+    };
   }
+  return { code, payload: { status: false, message } };
+}
 
+async function loginWithGoogle(rawToken: string, headers: FirestoreHeaders, ip: string, ipKey: string) {
   // Verify the token with Google's tokeninfo endpoint.
   const isAccessToken = rawToken.startsWith('ya29.');
   const query = isAccessToken
     ? `access_token=${encodeURIComponent(rawToken)}`
     : `id_token=${encodeURIComponent(rawToken)}`;
 
-  const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?${query}`);
+  const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?${query}`, {
+    signal: AbortSignal.timeout(GOOGLE_TOKENINFO_TIMEOUT_MS)
+  });
   if (!googleRes.ok) {
-    return { code: 401, payload: { status: false, message: 'Token Google tidak valid atau sudah kedaluwarsa.' } };
+    return recordGoogleFailure(ipKey, 401, 'Token Google tidak valid atau sudah kedaluwarsa.');
   }
 
   const gData = await googleRes.json();
-
-  const DEFAULT_GOOGLE_CLIENT_ID = '837369279315-f8s1pp1c16gtoili3104bn5qv9nd0385.apps.googleusercontent.com';
-  const expectedClientId = (
-    process.env.GOOGLE_CLIENT_ID ||
-    process.env.VITE_GOOGLE_CLIENT_ID ||
-    DEFAULT_GOOGLE_CLIENT_ID
-  ).trim();
+  const expectedClientId = getExpectedGoogleClientId();
 
   // Verify the audience for BOTH token types. An id_token carries the client_id
   // in `aud`; an access token minted by our initTokenClient carries it in
-  // `aud`/`azp` on tokeninfo. Skipping this for access tokens let a `ya29.`
-  // token issued to ANY other Google app (with the email scope) mint a Super
-  // Admin session for a whitelisted email — a full auth bypass.
-  const tokenAudience = gData.aud || gData.azp || '';
-  if (tokenAudience !== expectedClientId) {
-    return { code: 401, payload: { status: false, message: 'Audience token Google tidak cocok.' } };
+  // `aud`/`azp` on tokeninfo.
+  const tokenAudience = gData?.aud || gData?.azp || '';
+  if (typeof tokenAudience !== 'string' || tokenAudience !== expectedClientId) {
+    return recordGoogleFailure(ipKey, 401, 'Audience token Google tidak cocok.');
   }
 
-  const isVerified = gData.email_verified === 'true' || gData.email_verified === true || gData.verified_email === true;
+  if (!isAccessToken && gData?.iss !== undefined && !VALID_GOOGLE_ISSUERS.has(String(gData.iss))) {
+    return recordGoogleFailure(ipKey, 401, 'Issuer token Google tidak valid.');
+  }
+
+  const isVerified = gData?.email_verified === 'true' || gData?.email_verified === true || gData?.verified_email === true;
   if (!isVerified) {
-    return { code: 401, payload: { status: false, message: 'Email Google belum diverifikasi.' } };
+    return recordGoogleFailure(ipKey, 401, 'Email Google belum diverifikasi.');
   }
 
-  const verifiedEmail = (gData.email || '').toLowerCase().trim();
+  const verifiedEmail = String(gData?.email || '').toLowerCase().trim();
   if (!verifiedEmail) {
-    return { code: 401, payload: { status: false, message: 'Email tidak ditemukan dalam respons Google.' } };
+    return recordGoogleFailure(ipKey, 401, 'Email tidak ditemukan dalam respons Google.');
   }
 
   const allowedEmails = await readSuperadminEmails(headers);
   if (!allowedEmails.includes(verifiedEmail)) {
     await writeAuditLog('utama', 'LOGIN_GOOGLE_DITOLAK', `${verifiedEmail} dari ${ip}`, headers);
-    return {
-      code: 403,
-      payload: { status: false, message: `Akun Google (${verifiedEmail}) bukan Super Admin pemilik Finkas.` }
-    };
+    return recordGoogleFailure(ipKey, 403, `Akun Google (${verifiedEmail}) bukan Super Admin pemilik Finkas.`);
   }
 
+  await clearRateLimit(ipKey);
   const sessionToken = signSession({ role: ROLES.SUPERADMIN, email: verifiedEmail }, SUPERADMIN_SESSION_TTL);
   await writeAuditLog('utama', 'LOGIN_SUPERADMIN_GOOGLE', `${verifiedEmail} dari ${ip}`, headers);
 
@@ -134,18 +163,19 @@ async function loginWithGoogle(body: JsonBody, headers: FirestoreHeaders, ip: st
 }
 
 async function listSuperAdmins(emails: string[]) {
+  const primaryOwner = getPrimaryOwner();
   return {
     code: 200,
     payload: {
       status: true,
-      data: emails.map((email) => ({ email, isPrimary: email === PRIMARY_OWNER }))
+      data: emails.map((email) => ({ email, isPrimary: Boolean(primaryOwner) && email === primaryOwner }))
     }
   };
 }
 
 async function addSuperAdmin(body: JsonBody, headers: FirestoreHeaders, emails: string[]) {
   const newEmail = String(body?.emailToAdd || '').trim().toLowerCase();
-  if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+  if (!newEmail || newEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
     return { code: 400, payload: { status: false, message: 'Format email tidak valid.' } };
   }
 
@@ -162,7 +192,8 @@ async function addSuperAdmin(body: JsonBody, headers: FirestoreHeaders, emails: 
 
 async function removeSuperAdmin(body: JsonBody, headers: FirestoreHeaders, emails: string[]) {
   const removeEmail = String(body?.emailToRemove || '').trim().toLowerCase();
-  if (PRIMARY_OWNER && removeEmail === PRIMARY_OWNER) {
+  const primaryOwner = getPrimaryOwner();
+  if (primaryOwner && removeEmail === primaryOwner) {
     return { code: 400, payload: { status: false, message: 'Email Pemilik Utama tidak boleh dihapus.' } };
   }
 
@@ -171,6 +202,10 @@ async function removeSuperAdmin(body: JsonBody, headers: FirestoreHeaders, email
   }
 
   const updated = emails.filter((em) => em !== removeEmail);
+  if (updated.length === 0) {
+    return { code: 400, payload: { status: false, message: 'Minimal satu email Super Admin harus tetap terdaftar.' } };
+  }
+
   await saveSuperadminList(updated, headers);
   await writeAuditLog('utama', 'HAPUS_SUPERADMIN', removeEmail, headers);
 
@@ -189,6 +224,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
+  if (!enforceSameOrigin(req, res)) return;
 
   try {
     const body = parseBody(req);
@@ -196,15 +232,33 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     // Login does not require an existing session.
     if (action === 'login') {
-      const headers = await requireFirestoreHeaders();
+      const rawToken = String(body?.idToken || body?.accessToken || body?.token || '').trim();
+      if (!rawToken) {
+        return sendJson(res, 400, { status: false, message: 'Token otentikasi Google diperlukan.' });
+      }
+      if (!GOOGLE_TOKEN_RE.test(rawToken)) {
+        return sendJson(res, 400, { status: false, message: 'Format token Google tidak valid.' });
+      }
+
       const ip = clientIp(req);
-      const result = await loginWithGoogle(body, headers, ip);
+      const ipKey = `google-login-ip:${ip}`;
+      const lock = await checkRateLimit(ipKey);
+      if (lock.locked) {
+        return sendJson(res, 429, {
+          status: false,
+          message: `Terlalu banyak percobaan login Google. Coba lagi dalam ${lock.retryAfterSec} detik.`,
+          data: { retryAfterSec: lock.retryAfterSec }
+        });
+      }
+
+      const headers = await requireFirestoreHeaders();
+      const result = await loginWithGoogle(rawToken, headers, ip, ipKey);
       return sendJson(res, result.code, result.payload);
     }
 
     // Reject what can be rejected with no database first: a missing, expired,
     // wrongly-signed, or email-less session is a 403, never a 500, even when
-    // Firestore is unreachable. The whitelist check below needs credentials.
+    // Firestore is unreachable. The revocation and whitelist checks below need credentials.
     const session = readSession(body);
     if (!session || session.role !== ROLES.SUPERADMIN) {
       return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
@@ -214,19 +268,21 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     const headers = await requireFirestoreHeaders();
-    const auth = await requireSuperAdmin(body, headers);
+    const auth = await requireSuperAdmin(session, headers);
     if (!auth) {
       return sendJson(res, 403, { status: false, message: 'Sesi Super Admin tidak valid atau sudah berakhir.' });
     }
 
-    const guardedHandler = GUARDED_ACTIONS[action];
-    if (!guardedHandler) {
+    if (!Object.hasOwn(GUARDED_ACTIONS, action)) {
       return sendJson(res, 400, { status: false, message: 'Aksi tidak dikenal.' });
     }
 
-    const result = await guardedHandler(body, headers, auth.emails);
+    const result = await GUARDED_ACTIONS[action](body, headers, auth.emails);
     return sendJson(res, result.code, result.payload);
   } catch (error) {
+    if (error instanceof RateLimitUnavailableError) {
+      return sendJson(res, 503, { status: false, message: error.message });
+    }
     console.error('[finkas] login-google error:', error?.message);
     return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan pada server autentikasi.' });
   }

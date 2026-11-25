@@ -7,7 +7,15 @@
  */
 
 import { API } from './config';
-import { getActiveGroupId, clearGroupSession, resolveSessionToken } from './state';
+import {
+  clearAdminSession,
+  clearGroupSession,
+  getActiveGroupId,
+  getAdminSession,
+  getGroupSession,
+  getIsSuperAdmin,
+  resolveSessionToken
+} from './state';
 
 export type ApiResponse<T> = { status: boolean, httpStatus: number, message?: string, data?: T|null, unauthorized?: boolean, updatedAt?: string };
 
@@ -32,6 +40,7 @@ export const apiPost = async <T>(endpoint: string, body: object): Promise<ApiRes
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body || {})
     });
@@ -73,8 +82,21 @@ export const dataRequest = async <T>({
   if (!result) return null;
 
   if (requiresAuth && (result.httpStatus === 401 || result.httpStatus === 403)) {
-    // The token is gone, expired, or forbidden/revoked — drop it so the user is asked for the PIN again.
-    clearGroupSession(groupId);
+    // Drop the rejected token only if it is still the active token post-await
+    // so late pre-logout or pre-relogin responses never clobber a newer session.
+    if (sessionToken === getGroupSession(groupId)) {
+      clearGroupSession(groupId);
+    }
+    const isCurrentAdminSession = Boolean(sessionToken) && sessionToken === getAdminSession();
+    const isSuperAdmin = getIsSuperAdmin();
+    if (isCurrentAdminSession && (result.httpStatus === 401 || (result.httpStatus === 403 && isSuperAdmin))) {
+      clearAdminSession({ preserveGroupSessions: !isSuperAdmin });
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('finkas:session-expired', {
+          detail: { groupId, httpStatus: result.httpStatus }
+        }));
+      }
+    }
     return { ...result, unauthorized: true };
   }
   return result;

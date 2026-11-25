@@ -84,6 +84,9 @@ test('addTransaction honours a client-supplied Timestamp and ignores an invalid 
   try {
     globalThis.fetch = async (url, options) => {
       const urlStr = String(url);
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('/kategori/KAT-1')) {
+        return { ok: true, status: 200, json: async () => ({ fields: { ID_Kategori: { stringValue: 'KAT-1' }, Nama_Kategori: { stringValue: 'Operasional' }, Tipe: { stringValue: 'Keluar' } } }) };
+      }
       if (options?.method === 'PATCH') {
         patched.push({ url: urlStr, body: JSON.parse(options.body) });
         return { ok: true, status: 200, json: async () => ({}) };
@@ -130,6 +133,9 @@ test('editTransaction moves document to target iuranId when period changes and d
   try {
     globalThis.fetch = async (url, options) => {
       const urlStr = String(url);
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('/kategori/KAT-1')) {
+        return { ok: true, status: 200, json: async () => ({ fields: { ID_Kategori: { stringValue: 'KAT-1' }, Nama_Kategori: { stringValue: 'Iuran' }, Tipe: { stringValue: 'Masuk' } } }) };
+      }
       // fsGet existing document
       if ((!options?.method || options.method === 'GET') && urlStr.includes(janId)) {
         return {
@@ -220,6 +226,9 @@ test('addBulkTransactions uses fsCreateIfAbsent precondition and handles duplica
   try {
     globalThis.fetch = async (url, options) => {
       const urlStr = String(url);
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('/kategori/KAT-1')) {
+        return { ok: true, status: 200, json: async () => ({ fields: { ID_Kategori: { stringValue: 'KAT-1' }, Nama_Kategori: { stringValue: 'Iuran' }, Tipe: { stringValue: 'Masuk' } } }) };
+      }
       // readTransactions (fsListAll) returns empty
       if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
         return { ok: true, status: 200, json: async () => ({ documents: [] }) };
@@ -263,6 +272,9 @@ test('addBulkTransactions tolerates individual row network failure without crash
   try {
     globalThis.fetch = async (url, options) => {
       const urlStr = String(url);
+      if ((!options?.method || options.method === 'GET') && urlStr.includes('/kategori/KAT-1')) {
+        return { ok: true, status: 200, json: async () => ({ fields: { ID_Kategori: { stringValue: 'KAT-1' }, Nama_Kategori: { stringValue: 'Iuran' }, Tipe: { stringValue: 'Masuk' } } }) };
+      }
       if ((!options?.method || options.method === 'GET') && urlStr.includes('pageSize=300')) {
         return { ok: true, status: 200, json: async () => ({ documents: [] }) };
       }
@@ -572,7 +584,7 @@ test('restoreSnapshot rejects document IDs with path traversal or invalid charac
     restoreSnapshot(GID, {
       data: {
         anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Ok' }],
-        kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+        kategori: [{ ID_Kategori: 'KAT-1', Nama_Kategori: 'Iuran', Tipe: 'Masuk' }],
         transaksi: [{ ID_Transaksi: '../../private/config', nominal: 1000, tipeArus: 'Masuk', idKategori: 'KAT-1' }]
       }
     }, NO_HEADERS),
@@ -591,7 +603,7 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
             { ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' },
             { ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Kembar' }
           ],
-          kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+          kategori: [{ ID_Kategori: 'KAT-1', Nama_Kategori: 'Iuran', Tipe: 'Masuk' }],
           transaksi: []
         }
       },
@@ -609,8 +621,8 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
         data: {
           anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' }],
           kategori: [
-            { ID_Kategori: 'KAT-1', Tipe: 'Masuk' },
-            { ID_Kategori: 'KAT-1', Tipe: 'Keluar' }
+            { ID_Kategori: 'KAT-1', Nama_Kategori: 'Iuran', Tipe: 'Masuk' },
+            { ID_Kategori: 'KAT-1', Nama_Kategori: 'Keluar', Tipe: 'Keluar' }
           ],
           transaksi: []
         }
@@ -628,7 +640,7 @@ test('restoreSnapshot rejects snapshot with duplicate IDs before touching Firest
       {
         data: {
           anggota: [{ ID_Anggota: 'ANG-1', Nama_Anggota: 'Anggota Satu' }],
-          kategori: [{ ID_Kategori: 'KAT-1', Tipe: 'Masuk' }],
+          kategori: [{ ID_Kategori: 'KAT-1', Nama_Kategori: 'Iuran', Tipe: 'Masuk' }],
           transaksi: [
             { ID_Transaksi: 'TRX-101', Nominal: 10000, Tipe_Arus: 'Masuk', ID_Kategori: 'KAT-1' },
             { ID_Transaksi: 'TRX-101', Nominal: 20000, Tipe_Arus: 'Masuk', ID_Kategori: 'KAT-1' }

@@ -1,10 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { gateway, payment, pdf } from './helpers/installment-gateway.mjs';
+import { fsPatch } from '../api/_sa.ts';
+
+async function seedGateway(t) {
+  const db = gateway(t);
+  const cat = await db.call({ action: 'tambahKategori', nama: 'Dues', tipe: 'Masuk' });
+  const gid = cat.body.data.groupId;
+  await fsPatch(`groups/${gid}/kategori/KAT-DUES`, {
+    ID_Kategori: 'KAT-DUES', Nama_Kategori: 'Dues', Tipe: 'Masuk', groupId: gid
+  }, { Authorization: 'Bearer synthetic' });
+  await fsPatch(`groups/${gid}/kategori/KAT-OTHER`, {
+    ID_Kategori: 'KAT-OTHER', Nama_Kategori: 'Other', Tipe: 'Masuk', groupId: gid
+  }, { Authorization: 'Bearer synthetic' });
+  db.gid = gid;
+  return db;
+}
 
 // Approved seam: signed /api/data requests and public ledger/proof reads.
 test('gateway bulk operation adds another installment and returns real committed rows', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   assert.equal((await db.add('OP-INSTALLMENT-ONE')).code, 200);
   const payload = { action: 'tambahTransaksiMassal', operationId: 'OP-BULK-INSTALLMENT', listTrx: [payment()] };
   const result = await db.call(payload);
@@ -22,7 +37,7 @@ test('gateway bulk operation adds another installment and returns real committed
 });
 
 test('gateway bulk rejects commit on failure without partial row writes then replays cleanly', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const payload = {
     action: 'tambahTransaksiMassal',
     operationId: 'OP-BULK-FAIL-REPLAY',
@@ -48,7 +63,7 @@ test('gateway bulk rejects commit on failure without partial row writes then rep
 });
 
 test('gateway rejects operationId reuse when payload differs in timestamp, category or amount', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const opId = 'OP-FINGERPRINT-MISMATCH';
   const base = payment();
   assert.equal((await db.call({ action: 'tambahTransaksi', operationId: opId, dataForm: base })).code, 200);
@@ -80,7 +95,7 @@ test('gateway rejects operationId reuse when payload differs in timestamp, categ
 });
 
 test('deleted transaction is NOT resurrected by operationId replay', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const opId = 'OP-NO-RESURRECT';
   const createRes = await db.add(opId);
   assert.equal(createRes.code, 200);
@@ -97,7 +112,7 @@ test('deleted transaction is NOT resurrected by operationId replay', async (t) =
 });
 
 test('concurrent edits do not overwrite attachments and deletion removes proofs atomically', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const createRes = await db.add('OP-PROOF-TX');
   assert.equal(createRes.code, 200);
   const id = createRes.body.data.ID_Transaksi;
@@ -139,7 +154,7 @@ test('concurrent edits do not overwrite attachments and deletion removes proofs 
 });
 
 test('edit vs delete precondition: editing a deleted transaction fails cleanly without resurrecting', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const createRes = await db.add('OP-EDIT-DEL-RACE');
   assert.equal(createRes.code, 200);
   const id = createRes.body.data.ID_Transaksi;
@@ -157,7 +172,7 @@ test('edit vs delete precondition: editing a deleted transaction fails cleanly w
 });
 
 test('legacy requests without operationId retain dedupe compatibility', async (t) => {
-  const db = gateway(t);
+  const db = await seedGateway(t);
   const p = payment();
 
   // First legacy submission succeeds
@@ -183,4 +198,66 @@ test('malformed and oversized operationId is rejected not truncated', async () =
 
   const malformed = parseOperationId('bad id!');
   assert.ok(malformed.error);
+});
+
+test('concurrent editTransaction move-vs-delete does not resurrect or duplicate legacy rows (SEC-04)', async (t) => {
+  const db = await seedGateway(t);
+  const janRes = await db.call({
+    action: 'tambahTransaksi',
+    dataForm: payment({ bulanIuran: 'Januari', tahunIuran: '2026', nominal: 10000 })
+  });
+  assert.equal(janRes.code, 200);
+  const janId = janRes.body.data.ID_Transaksi;
+
+  // Race: a concurrent delete commits right before editTransaction's move batch commits
+  let raced = false;
+  db.beforeCommit = async (writes) => {
+    if (!raced && writes.some((w) => w.delete && w.delete.endsWith(`/${janId}`))) {
+      raced = true;
+      await db.remove(janId);
+    }
+  };
+
+  const editRes = await db.call({
+    action: 'editTransaksi',
+    idTransaksi: janId,
+    dataForm: payment({ bulanIuran: 'Februari', tahunIuran: '2026', nominal: 10000 })
+  });
+  assert.equal(editRes.code, 400);
+  assert.match(editRes.body.message, /tidak ditemukan/i);
+  assert.equal((await db.rows()).length, 0, 'deleted row must NOT be resurrected under new period ID');
+});
+
+test('concurrent editTransaction move-vs-move commits only once without duplicating ledger rows (SEC-04)', async (t) => {
+  const db = await seedGateway(t);
+  const janRes = await db.call({
+    action: 'tambahTransaksi',
+    dataForm: payment({ bulanIuran: 'Januari', tahunIuran: '2026', nominal: 10000 })
+  });
+  assert.equal(janRes.code, 200);
+  const janId = janRes.body.data.ID_Transaksi;
+
+  // Race: concurrent move to Maret completes before our move to Februari commits
+  let raced = false;
+  db.beforeCommit = async () => {
+    if (!raced) {
+      raced = true;
+      const winner = await db.call({
+        action: 'editTransaksi',
+        idTransaksi: janId,
+        dataForm: payment({ bulanIuran: 'Maret', tahunIuran: '2026', nominal: 10000 })
+      });
+      assert.equal(winner.code, 200);
+    }
+  };
+
+  const loser = await db.call({
+    action: 'editTransaksi',
+    idTransaksi: janId,
+    dataForm: payment({ bulanIuran: 'Februari', tahunIuran: '2026', nominal: 10000 })
+  });
+  assert.equal(loser.code, 400);
+  const rows = await db.rows();
+  assert.equal(rows.length, 1, 'exactly one transaction row must remain');
+  assert.equal(rows[0].Bulan_Iuran, 'Maret');
 });

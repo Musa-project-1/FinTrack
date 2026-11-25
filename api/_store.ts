@@ -9,7 +9,9 @@
  *   groups/{gid}/anggota|kategori|transaksi|audit_log
  */
 import type { FirestoreHeaders } from '../src/types/finkas.d.ts';
+import type { FirestoreWrite } from './_sa.ts';
 import crypto from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { fsCommit, fsDelete, fsGet, fsListAll, fsPatch, docName } from './_sa.ts';
 
 export const MEMBERS_COLLECTION = 'anggota';
@@ -31,10 +33,23 @@ export const GROUP_SUBCOLLECTIONS = [
 export const APP_CONFIG_DOC = 'settings/app_config';
 
 export const GROUP_ID_RE = /^[A-Za-z0-9-]{3,40}$/;
-export const isValidGroupId = (gid: string) => GROUP_ID_RE.test(String(gid || '').trim());
+export const isValidGroupId = (gid: unknown): boolean =>
+  typeof gid === 'string' && GROUP_ID_RE.test(gid.trim());
 
 export const DOC_ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
-export const isValidDocId = (id: string) => DOC_ID_RE.test(String(id || '').trim());
+export const isValidDocId = (id: unknown): boolean =>
+  typeof id === 'string' && DOC_ID_RE.test(id.trim());
+
+/** Validate a document ID strictly without silently truncating oversized inputs. */
+export function parseDocId(raw: unknown): { id: string | null; error?: string } {
+  if (raw === undefined || raw === null || raw === '') return { id: null };
+  if (typeof raw !== 'string') return { id: null, error: 'ID dokumen harus berupa teks.' };
+  const cleaned = raw.trim();
+  if (!cleaned) return { id: null };
+  if (cleaned.length > 40) return { id: null, error: 'ID dokumen melebihi batas 40 karakter.' };
+  if (!DOC_ID_RE.test(cleaned)) return { id: null, error: 'ID dokumen tidak valid.' };
+  return { id: cleaned };
+}
 
 export const groupDoc = (gid: string) => `groups/${gid}`;
 export const col = (gid: string, name: string) => `groups/${gid}/${name}`;
@@ -156,14 +171,48 @@ export async function setPrivateConfig(gid: string, data: Record<string, unknown
   return true;
 }
 
+export const MAX_BATCH_COMMIT_BYTES = 4 * 1024 * 1024;
+export const MAX_BATCH_COMMIT_WRITES = 400;
+
+/** Commit Firestore writes in chunks respecting both count and serialized JSON byte limits. */
+export async function commitWritesInBatches(
+  writes: FirestoreWrite[],
+  headers: FirestoreHeaders,
+  maxBytes: number = MAX_BATCH_COMMIT_BYTES,
+  maxCount: number = MAX_BATCH_COMMIT_WRITES
+) {
+  let batch: FirestoreWrite[] = [];
+  let batchBytes = 16; // `{"writes":[]}` envelope overhead
+
+  for (const write of writes) {
+    const writeBytes = Buffer.byteLength(JSON.stringify(write), 'utf8') + 1;
+    if (writeBytes > maxBytes) {
+      throw new Error('Ukuran operasi tunggal melebihi batas batch Firestore.');
+    }
+    if (batch.length > 0 && (batch.length >= maxCount || batchBytes + writeBytes > maxBytes)) {
+      await fsCommit(batch, headers);
+      batch = [];
+      batchBytes = 16;
+    }
+    batch.push(write);
+    batchBytes += writeBytes;
+  }
+
+  if (batch.length > 0) {
+    await fsCommit(batch, headers);
+  }
+}
+
 /** Remove a group and every document nested beneath it. */
 export async function deleteGroupTree(gid: string, headers: FirestoreHeaders): Promise<number> {
   let deleted = 0;
   for (const name of GROUP_SUBCOLLECTIONS) {
-    const docs = await fsListAll(col(gid, name), headers);
-    for (let i = 0; i < docs.length; i += 400) {
-      const writes = docs.slice(i, i + 400).map((doc) => ({ delete: doc.name }));
-      await fsCommit(writes, headers);
+    const colPath = col(gid, name);
+    for (let page = 0; page < 200; page += 1) {
+      const docs = await fsListAll(colPath, headers, 1, true);
+      if (!docs.length) break;
+      const writes = docs.map((doc) => ({ delete: doc.name }));
+      await commitWritesInBatches(writes, headers);
       deleted += writes.length;
     }
   }

@@ -15,10 +15,13 @@ import {
   getAdminViewMode,
   setAdminViewMode,
   getActiveGroupId,
+  clearAllCaches,
+  resetLedgerState,
   clearAdminSession
 } from "finkas/core/state";
 import { loginAdminApi, loginGoogleSuperAdminApi, logoutAdminApi } from "finkas/core/api";
 import { GOOGLE_CLIENT_ID } from "finkas/core/config";
+import { requestAppRefresh } from "finkas/core/mutation";
 import { getInput, htmlElements, buttonIcon, showToast } from "finkas/core/utils";
 import { closeModal } from "../ui/modal";
 import { syncBulkDues } from "../ui/bulk-dues";
@@ -26,6 +29,25 @@ import { syncWorkspaceGliders } from "../ui/workspace";
 import { renderAll, renderChart } from "../render/index";
 
 const GOOGLE_SDK_SRC = "https://accounts.google.com/gsi/client";
+const adminLogoutCleaners = new Set<() => void>();
+
+/** Register a cleanup hook invoked on admin logout without introducing circular imports. */
+export const onAdminLogout = (cleanup: () => void) => {
+  adminLogoutCleaners.add(cleanup);
+  return () => { adminLogoutCleaners.delete(cleanup); };
+};
+
+const scrubCredentialDom = () => {
+  if (typeof document === "undefined") return;
+  for (const id of ["cred-disp-nama", "cred-disp-pin", "cred-disp-email", "cred-disp-pwd"]) {
+    document.getElementById(id)?.replaceChildren(document.createTextNode("-"));
+  }
+  for (const id of ["edit-group-cred-id", "edit-group-cred-email", "edit-group-cred-pwd"]) {
+    const input = getInput(id);
+    if (input) input.value = "";
+  }
+  document.getElementById("cred-edit-group-label")?.replaceChildren(document.createTextNode("-"));
+};
 
 const syncRoleAdminTitle = () => {
   const roleAdminBtn = document.getElementById("role-btn-admin");
@@ -382,6 +404,7 @@ export const submitLoginAdmin = async (e: Event) => {
       pulseRoleSwitcher();
       renderAll();
       renderChart();
+      if (getActiveGroupId()) requestAppRefresh();
 
       showToast(`Berhasil Login sebagai ${roleLabel}!`, "success");
       return;
@@ -426,6 +449,7 @@ const loadGoogleGsiScript = () => new Promise<void>((resolve, reject) => {
   script.src = GOOGLE_SDK_SRC;
   script.async = true;
   script.defer = true;
+  script.referrerPolicy = "no-referrer";
   script.onload = () => resolve();
   script.onerror = () => reject(new Error("Gagal memuat Google Sign-In SDK."));
   document.head.appendChild(script);
@@ -489,6 +513,7 @@ export const loginGoogleSuperAdminAction = async () => {
           pulseRoleSwitcher();
           renderAll();
           renderChart();
+          if (getActiveGroupId()) requestAppRefresh();
           showToast("Selamat datang, Super Admin!", "success");
           resolve();
         },
@@ -535,21 +560,35 @@ export const handleStealthBadgeClick = () => {
 
 /* ── Logout ──────────────────────────────────────────────────────── */
 
-/** End the admin session. */
+/** End the admin session and purge cached ledger PII/credentials from the browser. */
 export const logoutAdminAction = async () => {
   closeModal("modal-logout");
 
-  const res = await logoutAdminApi();
-  if (res?.status) {
-    handleUI();
-    renderAll();
-    showToast("Berhasil logout.", "success");
-    return;
+  try {
+    await logoutAdminApi();
+  } catch {
+    // Even if the audit note failed, the local session must not survive.
   }
 
-  // Even if the audit note failed, the local session must not survive.
   clearAdminSession();
+  clearAllCaches();
+  scrubCredentialDom();
+  adminLogoutCleaners.forEach((cleanup) => {
+    try { cleanup(); } catch {}
+  });
+
+  if (typeof document !== "undefined") {
+    const nameEl = document.getElementById("app-group-name");
+    if (nameEl) nameEl.textContent = "Finkas";
+    if (document.body?.dataset) {
+      document.body.dataset.workspaceState = "idle";
+      delete document.body.dataset.workspaceGroup;
+    }
+  }
+
+  resetLedgerState();
   handleUI();
   renderAll();
+  renderChart();
   showToast("Berhasil logout.", "success");
 };

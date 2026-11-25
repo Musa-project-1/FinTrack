@@ -43,7 +43,7 @@
           <span class="workspace-brand"><strong>Finkas</strong><small>Buku Kas Digital</small></span>
         </a>
         <button class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup" aria-label="Pilih Grup"></button>
-        <button type="button" class="group-queue-pill" id="group-queue-badge" data-action="open-offline-queue" hidden title="Antrean transaksi offline" aria-label="Antrean transaksi offline">
+        <button type="button" class="group-queue-pill admin-only" id="group-queue-badge" data-action="open-offline-queue" hidden title="Antrean transaksi offline" aria-label="Antrean transaksi offline">
           <i class="ph ph-cloud-arrow-up" aria-hidden="true"></i>
           <span id="group-queue-badge-count">0</span>
         </button>

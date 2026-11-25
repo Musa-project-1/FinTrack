@@ -12,6 +12,7 @@ import {
   clearGroupSession,
   getActiveGroupId,
   getAdminSession,
+  getGroupSession,
   getIsSuperAdmin,
   resolveSessionToken
 } from './state';
@@ -72,7 +73,6 @@ export const dataRequest = async <T>({
     return { status: false, httpStatus: 400, unauthorized: true, message: 'ID grup wajib diisi.' };
   }
   const sessionToken = requiresAuth ? resolveSessionToken(groupId, needsWrite) : '';
-  const usedAdminSession = Boolean(sessionToken) && sessionToken === getAdminSession();
 
   if (requiresAuth && !sessionToken) {
     return { status: false, httpStatus: 401, unauthorized: true, message: 'Sesi tidak ditemukan. Silakan masuk kembali.' };
@@ -82,10 +82,14 @@ export const dataRequest = async <T>({
   if (!result) return null;
 
   if (requiresAuth && (result.httpStatus === 401 || result.httpStatus === 403)) {
-    // The token is gone, expired, or forbidden/revoked — drop it so the user is asked for the PIN again.
-    clearGroupSession(groupId);
+    // Drop the rejected token only if it is still the active token post-await
+    // so late pre-logout or pre-relogin responses never clobber a newer session.
+    if (sessionToken === getGroupSession(groupId)) {
+      clearGroupSession(groupId);
+    }
+    const isCurrentAdminSession = Boolean(sessionToken) && sessionToken === getAdminSession();
     const isSuperAdmin = getIsSuperAdmin();
-    if (usedAdminSession && (result.httpStatus === 401 || (result.httpStatus === 403 && isSuperAdmin))) {
+    if (isCurrentAdminSession && (result.httpStatus === 401 || (result.httpStatus === 403 && isSuperAdmin))) {
       clearAdminSession({ preserveGroupSessions: !isSuperAdmin });
       if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
         window.dispatchEvent(new CustomEvent('finkas:session-expired', {

@@ -8,10 +8,9 @@
  */
 
 import { API } from './config';
-import { apiPost, logAuditEvent, type ApiResponse } from './api-client';
+import { apiPost, type ApiResponse } from './api-client';
 import {
   clearAdminSession,
-  getActiveGroupId,
   getAdminSession,
   setAdminEmail,
   setAdminRole,
@@ -107,14 +106,11 @@ export const removeSuperAdminApi = async (emailToRemove: string): Promise<{statu
 /**
  * End the admin session.
  *
- * The audit entry is dispatched before the token is cleared, so the request
- * still carries the credential that authorizes it.
+ * Revokes the token server-side via `API.LOGOUT` (which also records `LOGOUT_ADMIN`
+ * server-side) before clearing local credentials.
  */
 export const logoutAdminApi = async () => {
   const sessionToken = getAdminSession();
-  if (sessionToken && getActiveGroupId()) {
-    logAuditEvent('LOGOUT_ADMIN', 'Admin logout');
-  }
   try {
     if (sessionToken) {
       await apiPost(API.LOGOUT, { sessionToken });

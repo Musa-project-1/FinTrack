@@ -203,9 +203,28 @@ test('SEC-03: API.LOGOUT is defined and logoutAdminApi posts sessionToken then c
   };
 
   await logoutAdminApi();
-  assert.ok(calls.some((c) => c.url === '/api/logout' && c.body.sessionToken === 'tok-admin-logout'));
+  assert.deepEqual(calls.map((c) => c.url), ['/api/logout']);
+  assert.equal(calls[0].body.sessionToken, 'tok-admin-logout');
   assert.equal(getAdminSession(), '');
   assert.equal(getGroupSession('GRP-OUT'), '');
+
+  // Late 401 from pre-logout/pre-relogin request must not clobber a new session or emit finkas:session-expired
+  setAdminSession('tok-old');
+  setGroupSession('GRP-OUT', 'tok-old');
+  let expiredOnStale = 0;
+  const onExpired = () => { expiredOnStale++; };
+  window.addEventListener('finkas:session-expired', onExpired);
+  const inFlight = Promise.withResolvers();
+  globalThis.fetch = () => inFlight.promise;
+  const staleReq = dataRequest({ action: 'read', groupId: 'GRP-OUT', needsWrite: true });
+  setAdminSession('tok-new');
+  setGroupSession('GRP-OUT', 'tok-new');
+  inFlight.resolve(Response.json({ status: false, message: 'Expired' }, { status: 401 }));
+  await staleReq;
+  window.removeEventListener('finkas:session-expired', onExpired);
+  assert.equal(getAdminSession(), 'tok-new');
+  assert.equal(getGroupSession('GRP-OUT'), 'tok-new');
+  assert.equal(expiredOnStale, 0);
 
   // Also clears session cleanly when offline/fetch fails
   setAdminSession('tok-offline-logout');
@@ -579,6 +598,17 @@ test('SEC-27: restoreJSONBackup enforces 20 MiB cap, schema/numeric checks, fail
     data: {
       anggota: [['nested']],
       transaksi: [{ Nominal: 1000, Tipe_Arus: 'Masuk', Timestamp: '2026-01-01T00:00:00Z' }]
+    }
+  });
+  assert.equal(fetchCalls, 0);
+
+  // Reject raw malformed paymentAccount strings before digit-stripping normalization
+  await runRestoreWith({
+    group: { id: 'GRP-BKP', nama: 'BKP' },
+    data: {
+      anggota: [{ ID_Anggota: 'A1' }],
+      transaksi: [{ Nominal: 1000, Tipe_Arus: 'Masuk', Timestamp: '2026-01-01T00:00:00Z' }],
+      paymentAccount: { bank: 'BCA', number: '1234567890', holder: 'Bendahara', whatsapp: 'bad<script>08123456789' }
     }
   });
   assert.equal(fetchCalls, 0);

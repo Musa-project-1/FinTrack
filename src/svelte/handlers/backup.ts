@@ -242,11 +242,11 @@ export const restoreJSONBackup = (file: File) => {
         if (!isPlainRecord(paymentAccount)) {
           return showToast('Format rekening tujuan di file backup tidak valid.', 'error');
         }
-        normalizedPaymentAccount = normalizePaymentAccount(paymentAccount);
-        const paErr = validatePaymentAccount(normalizedPaymentAccount);
+        const paErr = validatePaymentAccount(paymentAccount);
         if (paErr) {
           return showToast(paErr, 'error');
         }
+        normalizedPaymentAccount = normalizePaymentAccount(paymentAccount);
       }
 
       const countTrx = transaksi.length;

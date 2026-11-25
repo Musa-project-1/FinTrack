@@ -29,6 +29,12 @@ globalThis.fetch = async (url, opts) => {
   if (target.includes('/documents/_ratelimit/')) {
     return Response.json({}, { status: opts?.method === 'PATCH' ? 200 : 404 });
   }
+  if (target.endsWith(':commit') && opts?.method === 'POST') {
+    const body = JSON.parse(opts.body || '{}');
+    if (Array.isArray(body.writes) && body.writes.every((w) => String(w.update?.name || '').includes('/_ratelimit/'))) {
+      return Response.json({ writeResults: body.writes.map(() => ({})) }, { status: 200 });
+    }
+  }
   throw new Error(`Unexpected request: ${target}`);
 };
 
@@ -240,7 +246,8 @@ test('login migrates legacy SHA-256 master password on app_config to scrypt', as
       }
       return new Response(JSON.stringify({
         fields: {
-          admin_password_hash: { stringValue: legacyHash }
+          admin_password_hash: { stringValue: legacyHash },
+          superadmin_emails: { arrayValue: { values: [{ stringValue: 'owner@example.com' }] } }
         }
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
@@ -309,7 +316,12 @@ test('missing group rejects PIN access and routes admin login audits to utama', 
       return Response.json({ fields: { pin_hash: { stringValue: legacyDigest('1234', `finkas-pin:${groupId}`) } } });
     }
     if (path.endsWith('/documents/settings/app_config')) {
-      return Response.json({ fields: { admin_password_hash: { stringValue: legacyDigest(password) } } });
+      return Response.json({
+        fields: {
+          admin_password_hash: { stringValue: legacyDigest(password) },
+          superadmin_emails: { arrayValue: { values: [{ stringValue: 'owner@example.com' }] } }
+        }
+      });
     }
     if (path.includes('/audit_log/') && opts?.method === 'PATCH') {
       audits.push({ path, fields: JSON.parse(opts.body).fields });

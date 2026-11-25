@@ -26,6 +26,18 @@ globalThis.fetch = async (url, opts) => {
   if (target.includes('/documents/groups/utama/audit_log')) {
     return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
+  if (target.includes('/documents/_revoked_sessions/')) {
+    return new Response('{}', { status: 404, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (target.includes('/documents/_ratelimit/')) {
+    return Response.json({}, { status: opts?.method === 'PATCH' ? 200 : 404 });
+  }
+  if (target.endsWith(':commit') && opts?.method === 'POST') {
+    const body = JSON.parse(opts.body || '{}');
+    if (Array.isArray(body.writes) && body.writes.every((w) => String(w.update?.name || '').includes('/_ratelimit/'))) {
+      return Response.json({ writeResults: body.writes.map(() => ({})) }, { status: 200 });
+    }
+  }
   throw new Error(`Unexpected request: ${target}`);
 };
 

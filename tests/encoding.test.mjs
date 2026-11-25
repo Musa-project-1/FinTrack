@@ -97,3 +97,27 @@ test('dot-separated keys are preserved verbatim', () => {
   const doc = { 'a.b': 'c' };
   assert.deepEqual(Object.keys(decodeFields(encodeFields(doc))), ['a.b']);
 });
+test('encodeFields and decodeFields strip prototype-pollution keys and enforce depth cap', () => {
+  const malicious = JSON.parse('{"__proto__":{"polluted":true},"constructor":{"x":1},"prototype":{"y":2},"ok":"safe"}');
+  const encoded = encodeFields(malicious);
+  assert.deepEqual(Object.keys(encoded), ['ok']);
+  const decoded = decodeFields({
+    __proto__: { mapValue: { fields: { polluted: { booleanValue: true } } } },
+    constructor: { stringValue: 'bad' },
+    prototype: { stringValue: 'bad' },
+    ok: { stringValue: 'safe' }
+  });
+  assert.equal(Object.prototype.polluted, undefined);
+  assert.equal(Object.hasOwn(decoded, '__proto__'), false);
+  assert.equal(Object.hasOwn(decoded, 'constructor'), false);
+  assert.equal(Object.hasOwn(decoded, 'prototype'), false);
+  assert.equal(decoded.ok, 'safe');
+
+  let deep = { leaf: 1 };
+  for (let i = 0; i < 40; i++) deep = { nested: deep };
+  assert.throws(() => encodeFields(deep), /batas aman/);
+
+  let deepEncoded = { stringValue: 'x' };
+  for (let i = 0; i < 40; i++) deepEncoded = { mapValue: { fields: { nested: deepEncoded } } };
+  assert.throws(() => decodeFields({ root: deepEncoded }), /batas aman/);
+});

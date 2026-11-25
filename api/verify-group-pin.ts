@@ -6,13 +6,14 @@
  * cannot be bypassed by calling the API directly. A successful attempt returns a
  * signed, expiring session token that authorizes reads for that group.
  */
-import { parseBody, sendJson } from './_http.ts';
+import { enforceSameOrigin, parseBody, sendJson } from './_http.ts';
 import type { ApiRequest, ApiResponse } from '../src/types/finkas.d.ts';
 import { requireFirestoreHeaders, fsGet, fsPatch } from './_sa.ts';
 import { getPrivateConfig, groupDoc, isValidGroupId, setPrivateConfig, writeAuditLog } from './_store.ts';
 import {
   GROUP_SESSION_TTL,
   ROLES,
+  RateLimitUnavailableError,
   checkRateLimit,
   clearRateLimit,
   clientIp,
@@ -34,6 +35,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { status: false, message: 'Method Not Allowed' });
   }
+  if (!enforceSameOrigin(req, res)) return;
 
   try {
     const body = parseBody(req);
@@ -102,11 +104,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return sendJson(res, 401, { status: false, message: GENERIC_PIN_ERROR });
     }
 
-    // Upgrade a legacy hash to scrypt now that we hold the plaintext PIN.
-    if (!storedPin && legacyStored) {
+    // Upgrade any legacy (non-scrypt) hash to scrypt now that we hold the plaintext PIN.
+    if (!storedPin || !candidate.startsWith('scrypt$')) {
       await setPrivateConfig(groupId, { pin_hash: hashSecret(pin, pinScope(groupId)) }, headers);
-      await fsPatch(groupDoc(groupId), { pin_hash: null }, headers, ['pin_hash']).catch((err) =>
-        console.error('[finkas] Legacy pin_hash cleanup failed:', err?.message));
+      if (!storedPin && legacyStored) {
+        await fsPatch(groupDoc(groupId), { pin_hash: null }, headers, ['pin_hash']).catch((err) =>
+          console.error('[finkas] Legacy pin_hash cleanup failed:', err?.message));
+      }
     }
 
     await Promise.all([clearRateLimit(ipKey), clearRateLimit(groupKey)]);
@@ -118,6 +122,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       data: { sessionToken: signSession({ role: ROLES.MEMBER, gid: groupId }, GROUP_SESSION_TTL) }
     });
   } catch (error) {
+    if (error instanceof RateLimitUnavailableError) {
+      return sendJson(res, 503, { status: false, message: error.message });
+    }
     console.error('[finkas] verify-group-pin error:', error?.message);
     return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan server.' });
   }

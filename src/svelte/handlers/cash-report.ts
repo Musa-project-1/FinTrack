@@ -174,6 +174,7 @@ export const printMonthlyCashReport = (targetMonth?: string, options: { allowInc
     pw.document.open();
     pw.document.write(html);
     pw.document.close();
+    try { pw.opener = null; } catch (_) {}
     pw.focus();
 
     try {

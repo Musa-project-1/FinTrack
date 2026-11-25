@@ -20,7 +20,7 @@
       </td>
       <td class="td-wa-col">
         {#if row.waHref}
-          <a href={row.waHref} target="_blank" rel="noopener" class="master-wa-link" title="Chat WhatsApp"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i> <span>{row.rawWa}</span></a>
+          <a href={row.waHref} target="_blank" rel="noopener noreferrer" class="master-wa-link" title="Chat WhatsApp"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i> <span>{row.rawWa}</span></a>
         {:else}
           <span class="text-muted">-</span>
         {/if}

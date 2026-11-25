@@ -65,16 +65,30 @@ export function validateClientAttachment(file: { name?: string; size: number; ty
   }
 
   const mime = String(file.type || '').toLowerCase().trim();
+  const normalizedMime = mime === 'image/jpg' ? 'image/jpeg' : mime;
   const name = String(('name' in file && file.name) || '').toLowerCase().trim();
 
-  const mimeMatches = ALLOWED_MIME_TYPES.includes(mime);
+  const mimeMatches = ALLOWED_MIME_TYPES.includes(normalizedMime);
   const extMatches = ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
 
-  // If mime is missing (some mobile webviews omit type), fallback to extension check
-  if (!mimeMatches && !extMatches) {
+  // If browser reports a MIME type, require it to be on the allowlist (reject active types like text/html).
+  // Fallback to extension matching only when the browser omits MIME (e.g., certain mobile webviews).
+  if (normalizedMime && !mimeMatches) {
     return {
       valid: false,
       error: 'Format berkas tidak didukung. Pilih berkas JPEG, PNG, WebP, atau PDF.'
+    };
+  }
+  if (!normalizedMime && !extMatches) {
+    return {
+      valid: false,
+      error: 'Format berkas tidak didukung. Pilih berkas JPEG, PNG, WebP, atau PDF.'
+    };
+  }
+  if (name && !extMatches) {
+    return {
+      valid: false,
+      error: 'Ekstensi berkas tidak didukung. Pilih berkas JPEG, PNG, WebP, atau PDF.'
     };
   }
 
@@ -120,14 +134,40 @@ export function base64ToBlob(base64: string, mimeType = 'application/octet-strea
 }
 
 /**
+ * Sanitize an attachment download filename (remove path separators, control chars, traversal).
+ */
+export function sanitizeAttachmentFilename(filename?: string | null, fallback = 'bukti-transaksi') {
+  const raw = String(filename || '').split(/[\\/]/).pop() || '';
+  const cleaned = raw
+    .replace(/[\x00-\x1f\x7f"<>:|?*]/g, '_')
+    .replace(/^\.+/, '')
+    .trim()
+    .slice(0, 120);
+  if (!cleaned || cleaned === '.' || cleaned === '..') return fallback;
+  return cleaned;
+}
+
+/**
+ * Enforce client allowlist for downloadable attachment MIME types.
+ */
+export function resolveSafeDownloadMimeType(mimeType?: string | null) {
+  const mime = String(mimeType || '').toLowerCase().trim();
+  const normalized = mime === 'image/jpg' ? 'image/jpeg' : mime;
+  return ALLOWED_MIME_TYPES.includes(normalized) ? normalized : 'application/octet-stream';
+}
+
+/**
  * Trigger a browser file download for a given Blob.
  */
 export function triggerBlobDownload(blob: Blob, filename = 'bukti-transaksi') {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  const url = URL.createObjectURL(blob);
+  const safeType = resolveSafeDownloadMimeType(blob.type);
+  const safeBlob = blob.type === safeType ? blob : new Blob([blob], { type: safeType });
+  const safeName = sanitizeAttachmentFilename(filename);
+  const url = URL.createObjectURL(safeBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = safeName;
   a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
@@ -283,8 +323,10 @@ export async function downloadAttachmentBlob({ idTransaksi, groupId = null }: At
   }
 
   const { base64, type, name, size } = res.data;
-  const blob = base64ToBlob(base64, type);
-  return { blob, name, type, size };
+  const safeType = resolveSafeDownloadMimeType(type);
+  const safeName = sanitizeAttachmentFilename(name);
+  const blob = base64ToBlob(base64, safeType);
+  return { blob, name: safeName, type: safeType, size };
 }
 
 /**

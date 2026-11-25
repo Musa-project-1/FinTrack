@@ -65,7 +65,7 @@
               <span class="nav-badge-tag is-super">SUPERADMIN</span>
             </button>
 
-            <button type="button" class="nav-item" data-action="open-offline-queue" data-keywords="antrean offline pending sinkron koneksi internet database">
+            <button type="button" class="nav-item admin-only" data-action="open-offline-queue" data-keywords="antrean offline pending sinkron koneksi internet database">
               <span class="nav-ico is-warning"><i class="ph ph-cloud-arrow-up" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.offline.title">Antrean Offline</span>

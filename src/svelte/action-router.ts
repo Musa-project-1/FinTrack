@@ -3,7 +3,7 @@
  * Delegated `[data-action]` DOM click router for Finkas workspace.
  */
 
-import { getIsAdminView, getState, getActiveGroupId } from "finkas/core/state";
+import { getIsAdminSession, getIsAdminView, getIsSuperAdmin, getState, getActiveGroupId } from "finkas/core/state";
 import { getInput, getSelect, closestHtml, showToast } from "finkas/core/utils";
 import { syncOfflineTransactions, deleteOfflineTransaction } from "finkas/core/offline";
 import { runManualSyncRekap } from "finkas/core/sync";
@@ -56,7 +56,7 @@ import { switchWorkspace, openWorkspaceHistory } from "./ui/workspace";
 import {
   openGroupPicker, exitGroup, requestGroupPin, submitGroupPin, openGroupAdmin,
   resetGroupPinAction, removeGroupAction, renameGroupAction, manageGroupCredsAction,
-  copyGroupWhatsAppAction, removeSuperAdminAction
+  copyGroupWhatsAppAction, removeSuperAdminAction, clearLatestCreds
 } from "./handlers/groups";
 
 export interface AppActionRouterDeps {
@@ -91,8 +91,14 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       case 'open-group-admin':  closeHeaderDropdown(); openGroupAdmin(); break;
       case 'rename-group':      renameGroupAction(id); break;
       case 'reset-group-pin':   resetGroupPinAction(id); break;
-      case 'manage-group-creds': manageGroupCredsAction(id); break;
-      case 'copy-cred-wa':      copyGroupWhatsAppAction(target); break;
+      case 'manage-group-creds':
+        if (!getIsSuperAdmin()) { showToast('Hanya Super Admin yang dapat mengelola akun admin grup.', 'error'); break; }
+        manageGroupCredsAction(id);
+        break;
+      case 'copy-cred-wa':
+        if (!getIsSuperAdmin()) { showToast('Hanya Super Admin yang dapat menyalin kredensial grup.', 'error'); break; }
+        copyGroupWhatsAppAction(target);
+        break;
       case 'remove-superadmin-email': removeSuperAdminAction(target.getAttribute('data-email')); break;
       case 'remove-group':      removeGroupAction(id); break;
 
@@ -145,7 +151,10 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       case 'open-login':        closeHeaderDropdown(); openModal('modal-login'); break;
       case 'stealth-badge-click': handleStealthBadgeClick(); break;
       case 'login-google-superadmin': loginGoogleSuperAdminAction(); break;
-      case 'open-offline-queue': openOfflineQueueModal(); break;
+      case 'open-offline-queue':
+        if (!getIsAdminSession()) { showToast('Hanya pengurus yang dapat melihat antrean offline.', 'error'); openModal('modal-login'); break; }
+        openOfflineQueueModal();
+        break;
       case 'open-skipped-months': openSkippedMonthsModal(); break;
       case 'open-audit-log':    closeHeaderDropdown(); openAuditLogModal(); break;
       case 'refresh-audit-log': renderAuditLogList(); break;
@@ -221,7 +230,10 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
       /* ── Modals ───────────────────────────────────── */
       case 'close-modal': {
         const modalEl = target.closest('.modal-overlay');
-        if (modalEl?.id) closeModal(modalEl.id);
+        if (modalEl?.id) {
+          closeModal(modalEl.id);
+          if (modalEl.id === 'modal-group-credentials') clearLatestCreds();
+        }
         break;
       }
       case 'switch-tab': {
@@ -312,9 +324,16 @@ export function attachAppActionRouter(deps: AppActionRouterDeps): void {
         break;
 
       /* ── Offline sync ─────────────────────────────── */
-      case 'sync-now':          syncOfflineTransactions(() => { deps.initApp(); renderChart(); }); break;
-      case 'refresh-offline':   renderOfflineQueueList(); break;
+      case 'sync-now':
+        if (!getIsAdminSession()) { showToast('Hanya pengurus yang dapat menyinkronkan antrean offline.', 'error'); break; }
+        syncOfflineTransactions(() => { deps.initApp(); renderChart(); });
+        break;
+      case 'refresh-offline':
+        if (!getIsAdminSession()) break;
+        renderOfflineQueueList();
+        break;
       case 'delete-offline-item': {
+        if (!getIsAdminSession()) { showToast('Hanya pengurus yang dapat menghapus antrean offline.', 'error'); break; }
         const itemId = parseInt(target.dataset.itemId || '', 10);
         const groupId = getActiveGroupId();
         if (!groupId?.trim()) break;

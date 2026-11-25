@@ -8,7 +8,7 @@ import { resetPinInput, syncPinInput, wirePinInput } from "../ui/pin-input";
  * longer writes to Firestore directly and no longer reads credential hashes.
  */
 
-import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY } from "finkas/core/config";
+import { API, ACTIVE_GROUP_NAME_KEY, ONBOARDING_SEEN_KEY, GROUP_OPEN_KEY, CACHE_KEY, DEFAULT_GROUP_ID } from "finkas/core/config";
 import {
   clearAdminSession,
   clearGroupSession,
@@ -20,7 +20,8 @@ import {
   getIsSuperAdmin,
   setActiveGroupId,
   setGroups,
-  setGroupSession
+  setGroupSession,
+  setState
 } from "finkas/core/state";
 import {
   addSuperAdminApi,
@@ -35,16 +36,61 @@ import { getInput, showToast } from "finkas/core/utils";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion";
 import { flashCopyFeedback } from "../ui/keel";
 import { openModal, closeModal, switchTab } from "../ui/modal";
-import { handleUI, renderAdminUI } from "./auth";
+import { handleUI, renderAdminUI, onAdminLogout } from "./auth";
 
 import { openGroupPicker, initGroupPickerListeners, updateActiveGroupQueueBadge } from "./group-picker";
 export { openGroupPicker, renderGroupPicker, initGroupPickerListeners, updateActiveGroupQueueBadge } from "./group-picker";
 
 const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#@!";
 const MIN_ADMIN_PASSWORD = 6;
+const SPOTLIGHT_PREFIX = "finkas_spotlight:";
 
 let pendingGroupId = "";
+let submittingGroupPin = false;
 let latestCreds = { nama: "", pin: "", email: "", pwd: "" };
+
+const purgeStoredCaches = (gid: string) => {
+  try {
+    const storage = typeof localStorage !== "undefined" ? localStorage : null;
+    if (!storage || !gid) return;
+    storage.removeItem(`${CACHE_KEY}:${gid}`);
+    if (gid === DEFAULT_GROUP_ID) storage.removeItem(CACHE_KEY);
+    storage.removeItem(`${SPOTLIGHT_PREFIX}${gid}`);
+  } catch {}
+};
+
+const scrubCredEditForm = () => {
+  if (typeof document === "undefined") return;
+  for (const id of ["edit-group-cred-id", "edit-group-cred-email", "edit-group-cred-pwd"]) {
+    const field = getInput(id);
+    if (field) field.value = "";
+  }
+  document.getElementById("cred-edit-group-label")?.replaceChildren(document.createTextNode("-"));
+};
+
+/** Clear cached plaintext credentials and reset credential modal DOM nodes. */
+export const clearLatestCreds = () => {
+  latestCreds = { nama: "", pin: "", email: "", pwd: "" };
+  if (typeof document === "undefined") return;
+  for (const id of ["cred-disp-nama", "cred-disp-pin", "cred-disp-email", "cred-disp-pwd"]) {
+    document.getElementById(id)?.replaceChildren(document.createTextNode("-"));
+  }
+  scrubCredEditForm();
+};
+
+const bindCredModalCleanup = () => {
+  if (typeof document === "undefined") return;
+  const bind = (id: string, fn: () => void) => {
+    const dlg = document.getElementById(id);
+    if (!dlg || dlg.dataset?.credCloseBound) return;
+    if (dlg.dataset) dlg.dataset.credCloseBound = "1";
+    dlg.addEventListener("close", fn);
+  };
+  bind("modal-group-credentials", clearLatestCreds);
+  bind("modal-group-cred-edit", scrubCredEditForm);
+};
+
+if (typeof onAdminLogout === "function") onAdminLogout(clearLatestCreds);
 
 /**
  * Generate a cryptographically random admin password without modulo bias.
@@ -139,41 +185,52 @@ export const requestGroupPin = (id: string) => {
 
 /** Kirim PIN yang diketik user. */
 export const submitGroupPin = async () => {
-  if (!pendingGroupId) return;
-  const pin = getInput("group-pin")?.value || "";
-  const msg = document.getElementById("group-pin-msg");
-  const res = await verifyGroupPin(pendingGroupId, pin);
+  if (!pendingGroupId || submittingGroupPin) return;
+  submittingGroupPin = true;
+  const submitBtn = typeof document.querySelector === "function"
+    ? document.querySelector<HTMLButtonElement>('#modal-group-pin [data-action="submit-group-pin"]')
+    : null;
+  if (submitBtn) submitBtn.disabled = true;
 
-  if (msg) msg.replaceChildren(document.createTextNode(res.message || ""));
-  if (!res.status) {
-    showToast(res.message ?? "", "error");
-    const firstPin = getInput("group-pin");
-    const pinRow = firstPin?.closest<HTMLElement>(".pin-row");
-    if (pinRow) {
-      pinRow.classList.remove("is-error");
-      void pinRow.offsetWidth;
-      pinRow.classList.add("is-error");
+  try {
+    const pin = getInput("group-pin")?.value || "";
+    const msg = document.getElementById("group-pin-msg");
+    const res = await verifyGroupPin(pendingGroupId, pin);
+
+    if (msg) msg.replaceChildren(document.createTextNode(res.message || ""));
+    if (!res.status) {
+      showToast(res.message ?? "", "error");
+      const firstPin = getInput("group-pin");
+      const pinRow = firstPin?.closest<HTMLElement>(".pin-row");
+      if (pinRow) {
+        pinRow.classList.remove("is-error");
+        void pinRow.offsetWidth;
+        pinRow.classList.add("is-error");
+      }
+      if (firstPin) {
+        firstPin.value = "";
+        firstPin.setAttribute("aria-invalid", "true");
+        syncPinInput(firstPin);
+      }
+      firstPin?.focus();
+      return;
     }
-    if (firstPin) {
-      firstPin.value = "";
-      firstPin.setAttribute("aria-invalid", "true");
-      syncPinInput(firstPin);
+    const unlockedGroupId = pendingGroupId;
+    const pinRow = getInput("group-pin")?.closest<HTMLElement>(".pin-row");
+    pinRow?.classList?.remove("is-error");
+    pinRow?.classList?.add("is-unlocked");
+    document.getElementById("group-pin-badge")?.classList?.add("is-unlocked");
+    const lockIcon = document.getElementById("group-pin-lock-icon");
+    if (lockIcon) lockIcon.className = "ph-fill ph-lock-key-open";
+    if (globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches && typeof globalThis.setTimeout === "function") {
+      await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, 420); });
     }
-    firstPin?.focus();
-    return;
+    enterGroup(unlockedGroupId);
+    resetGroupPinCelebration();
+  } finally {
+    submittingGroupPin = false;
+    if (submitBtn) submitBtn.disabled = false;
   }
-  const unlockedGroupId = pendingGroupId;
-  const pinRow = getInput("group-pin")?.closest<HTMLElement>(".pin-row");
-  pinRow?.classList?.remove("is-error");
-  pinRow?.classList?.add("is-unlocked");
-  document.getElementById("group-pin-badge")?.classList?.add("is-unlocked");
-  const lockIcon = document.getElementById("group-pin-lock-icon");
-  if (lockIcon) lockIcon.className = "ph-fill ph-lock-key-open";
-  if (globalThis.window?.matchMedia?.("(prefers-reduced-motion: no-preference)")?.matches && typeof globalThis.setTimeout === "function") {
-    await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, 420); });
-  }
-  enterGroup(unlockedGroupId);
-  resetGroupPinCelebration();
 };
 
 /* ── Enter / exit ────────────────────────────────────────────────── */
@@ -187,6 +244,10 @@ export const enterGroup = (id: string) => {
 
   // An admin session only covers its own group, so switching groups ends it.
   if (currentActive && currentActive !== id && getIsAdminSession() && !getIsSuperAdmin()) {
+    const adminToken = getAdminSession();
+    if (adminToken && getGroupSession(currentActive) === adminToken) {
+      clearGroupSession(currentActive);
+    }
     clearAdminSession({ preserveGroupSessions: true });
     handleUI();
     renderAdminUI();
@@ -222,17 +283,21 @@ export const enterGroup = (id: string) => {
   }
 };
 
-/** Keluar dari grup aktif. */
+/** Keluar dari grup aktif dan bersihkan cache/kredensial grup dari browser. */
 export const exitGroup = () => {
   const currentGid = getActiveGroupId();
   if (currentGid) {
     clearGroupSession(currentGid);
+    purgeStoredCaches(currentGid);
+  } else {
+    purgeStoredCaches(DEFAULT_GROUP_ID);
   }
   if (getIsAdminSession() && !getIsSuperAdmin()) {
     clearAdminSession({ preserveGroupSessions: true });
     handleUI();
     renderAdminUI();
   }
+  clearLatestCreds();
   const nameEl = document.getElementById("app-group-name");
   if (nameEl) nameEl.textContent = "Finkas";
   document.body.dataset.workspaceState = "idle";
@@ -244,6 +309,7 @@ export const exitGroup = () => {
     console.warn("[finkas] Cannot clear group state:", err?.message);
   }
   setActiveGroupId("");
+  setState({ anggota: [], kategori: [], transaksi: [], skippedMonths: [], kasStart: "", paymentAccount: null });
   openGroupPicker();
 };
 
@@ -264,6 +330,7 @@ const callGroupAdmin = async (body: { action: string; [key: string]: unknown }):
 
 /** Tampilkan modal kartu kredensial. */
 export const showCredentialsModal = (info: typeof latestCreds) => {
+  bindCredModalCleanup();
   latestCreds = { ...info };
   document.getElementById("cred-disp-nama")?.replaceChildren(document.createTextNode(info.nama || "-"));
   document.getElementById("cred-disp-pin")?.replaceChildren(document.createTextNode(info.pin || "-"));
@@ -272,8 +339,12 @@ export const showCredentialsModal = (info: typeof latestCreds) => {
   openModal("modal-group-credentials");
 };
 
-/** Salin format WhatsApp. */
-export const copyGroupWhatsAppAction = async (btn?: HTMLElement | null) => {
+/** Salin format WhatsApp (hanya Super Admin; minta konfirmasi eksplisit sebelum menyalin sandi polos). */
+export const copyGroupWhatsAppAction = async (btn?: HTMLElement | null, options?: { includePassword?: boolean }) => {
+  if (!getIsSuperAdmin()) {
+    showToast("Hanya Super Admin yang dapat menyalin kredensial grup.", "error");
+    return;
+  }
   const { nama, pin, email, pwd } = latestCreds;
   const origin = window.location.origin;
 
@@ -282,21 +353,33 @@ export const copyGroupWhatsAppAction = async (btn?: HTMLElement | null) => {
     `Grup: ${nama || "Grup Kas"}`
   ];
 
-  if (pin && pin !== '-' && pin !== '1234') {
+  if (pin && pin !== "-" && pin !== "1234") {
     lines.push(`\n📌 *Akses Warga (Lihat Rekap & Kas)*\nPIN Masuk: ${pin}`);
   }
 
-  const hasEmail = email && email !== '-';
-  const hasPwd = pwd && pwd !== '-';
+  const hasEmail = Boolean(email && email !== "-");
+  const hasPwd = Boolean(pwd && pwd !== "-");
+  let includePwd = false;
+  if (hasPwd) {
+    if (options?.includePassword === true) {
+      includePwd = true;
+    } else if (typeof window !== "undefined" && typeof window.confirm === "function") {
+      includePwd = window.confirm(
+        "Sertakan kata sandi admin dalam teks polos ke clipboard?\n\nPilih OK untuk menyertakan password, atau Batal untuk menyalin tanpa password."
+      );
+    }
+  }
   if (hasEmail || hasPwd) {
     const adminLines = [`\n🔐 *Akses Pengurus (Catat & Edit Kas)*`];
     if (hasEmail) adminLines.push(`Email Admin: ${email}`);
-    if (hasPwd) adminLines.push(`Password Admin: ${pwd}`);
-    lines.push(adminLines.join('\n'));
+    if (hasPwd) {
+      adminLines.push(includePwd ? `Password Admin: ${pwd}` : "Password Admin: [tidak disalin — kirim terpisah secara aman]");
+    }
+    lines.push(adminLines.join("\n"));
   }
 
   lines.push(`\n🌐 Akses Aplikasi:\n${origin}`);
-  const text = lines.join('\n');
+  const text = lines.join("\n");
 
   try {
     await navigator.clipboard.writeText(text);
@@ -307,35 +390,64 @@ export const copyGroupWhatsAppAction = async (btn?: HTMLElement | null) => {
   }
 };
 
-/** Atur atau Reset Akun Admin Grup untuk grup tertentu. */
+/** Buka modal masked form untuk mengatur/mengatur ulang Akun Admin Grup. */
 export const manageGroupCredsAction = async (id: string) => {
+  if (!getIsSuperAdmin()) {
+    showToast("Hanya Super Admin yang dapat mengatur akun admin grup.", "error");
+    return;
+  }
   const label = getGroups().find((g) => g.id === id)?.nama || id;
   const defaultSlug = label.toLowerCase().replace(/[^a-z0-9]/g, "");
   const defaultEmail = `admin.${defaultSlug || "kas"}@finkas.id`;
 
-  const emailInput = window.prompt(`Masukkan Email Admin untuk "${label}":`, defaultEmail);
-  if (emailInput === null) return;
-  const cleanEmail = emailInput.trim().toLowerCase();
-  if (!cleanEmail || !cleanEmail.includes("@")) { showToast("Email tidak valid.", "error"); return; }
+  bindCredModalCleanup();
+  const idInput = getInput("edit-group-cred-id");
+  const emailInput = getInput("edit-group-cred-email");
+  const pwdInput = getInput("edit-group-cred-pwd");
+  if (idInput) idInput.value = id;
+  document.getElementById("cred-edit-group-label")?.replaceChildren(document.createTextNode(label));
+  if (emailInput) emailInput.value = defaultEmail;
+  if (pwdInput) pwdInput.value = "";
+  openModal("modal-group-cred-edit");
+  setTimeout(() => { getInput("edit-group-cred-pwd")?.focus?.(); }, 80);
+};
 
-  const generatedPwd = generateRandomPassword(10);
-  const pwdInput = window.prompt(`Masukkan Password Admin baru untuk "${label}":`, generatedPwd);
-  if (pwdInput === null) return;
-  const cleanPwd = pwdInput.trim();
+/** Simpan perubahan Email & Password Admin Grup dari modal `#modal-group-cred-edit`. */
+export const submitEditGroupCreds = async (e?: Event) => {
+  e?.preventDefault?.();
+  if (!getIsSuperAdmin()) {
+    showToast("Hanya Super Admin yang dapat mengatur akun admin grup.", "error");
+    return;
+  }
+  const id = (getInput("edit-group-cred-id")?.value || "").trim();
+  const cleanEmail = (getInput("edit-group-cred-email")?.value || "").trim().toLowerCase();
+  const pwdEl = getInput("edit-group-cred-pwd");
+  const cleanPwd = (pwdEl?.value || "").trim();
+
+  if (!id) { showToast("ID grup tidak ditemukan.", "error"); return; }
+  if (!cleanEmail || !cleanEmail.includes("@")) { showToast("Email tidak valid.", "error"); return; }
   if (cleanPwd.length < MIN_ADMIN_PASSWORD) {
     showToast(`Password admin minimal ${MIN_ADMIN_PASSWORD} karakter.`, "error");
     return;
   }
 
-  const res = await callGroupAdmin({
-    action: "set-admin-credential", groupId: id, adminEmail: cleanEmail, adminPassword: cleanPwd
-  });
-
-  if (res.status) {
-    showToast("Akun Admin Grup berhasil diset!", "success");
-    showCredentialsModal({ nama: label, pin: "(PIN grup tetap sama)", email: cleanEmail, pwd: cleanPwd });
-  } else {
-    showToast(res.message ?? "", "error");
+  const label = getGroups().find((g) => g.id === id)?.nama || id;
+  const submitBtn = document.getElementById("btn-submit-edit-group-creds") as HTMLButtonElement | null;
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    const res = await callGroupAdmin({
+      action: "set-admin-credential", groupId: id, adminEmail: cleanEmail, adminPassword: cleanPwd
+    });
+    if (res.status) {
+      closeModal("modal-group-cred-edit");
+      showToast("Akun Admin Grup berhasil diset!", "success");
+      showCredentialsModal({ nama: label, pin: "(PIN grup tetap sama)", email: cleanEmail, pwd: cleanPwd });
+    } else {
+      showToast(res.message ?? "", "error");
+    }
+  } finally {
+    if (pwdEl) pwdEl.value = "";
+    if (submitBtn) submitBtn.disabled = false;
   }
 };
 
@@ -593,7 +705,9 @@ export const initGroupsUI = (onGroupChanged?: () => void) => {
   }
 
   initGroupPickerListeners();
+  bindCredModalCleanup();
   document.getElementById("form-create-group")?.addEventListener("submit", submitCreateGroup);
+  document.getElementById("form-edit-group-creds")?.addEventListener("submit", submitEditGroupCreds);
   document.getElementById("form-add-superadmin")?.addEventListener("submit", submitAddSuperAdminAction);
   document.getElementById("search-group-admin")?.addEventListener("input", renderGroupAdmin);
 

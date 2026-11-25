@@ -67,7 +67,7 @@ export const renderLunasHtml = (isNewlyPaid: boolean = false, style: StampStyle 
   </span>`;
 };
 
-const passbookEmblems: Record<string, string> = {
+const passbookEmblems: Record<string, string> = Object.freeze({
   seal: '<circle class="seal-halo" cx="20" cy="20" r="18"/><circle class="seal-track-ring" cx="20" cy="20" r="15"/><circle class="seal-core" cx="20" cy="20" r="12.2"/><path class="seal-check" d="M14.4 20.2 L18.2 24 L26 15.8"/>',
   rosette: `<path class="seal-halo" d="${rosettePath(15.8, 19)}"/><path class="seal-core" d="${rosettePath(12.6, 15.5)}"/><circle class="seal-core-ring" cx="20" cy="20" r="9.6"/><path class="seal-check" d="M14.6 20.2 L18.2 23.8 L25.6 16"/>`,
   shield: '<path class="seal-halo" d="M20 2.5 L34.5 8 V18.8 C34.5 28.2 28.3 34.2 20 37.2 C11.7 34.2 5.5 28.2 5.5 18.8 V8 Z"/><path class="seal-core" d="M20 5.8 L31.2 10.1 V18.6 C31.2 26 26.3 30.9 20 33.4 C13.7 30.9 8.8 26 8.8 18.6 V10.1 Z"/><path class="seal-check" d="M14.6 19.8 L18.3 23.5 L25.8 15.6"/>',
@@ -75,9 +75,14 @@ const passbookEmblems: Record<string, string> = {
   upcoming: '<circle class="seal-upcoming-ring" cx="20" cy="20" r="13"/><circle class="seal-upcoming-dot" cx="20" cy="20" r="2.2"/>',
   holiday: '<circle class="seal-holiday-ring" cx="20" cy="20" r="13"/><path class="seal-holiday-bar" d="M15 20 H25"/>',
   unpaid: '<circle class="seal-unpaid-ring" cx="20" cy="20" r="14"/><path class="seal-unpaid-hand" d="M20 13.5 V20 L24 22.4"/>'
-};
+});
 
-export const renderPassbookEmblem = (kind: string, style: StampStyle = getActiveIndicatorStyle()) => `
+export const renderPassbookEmblem = (kind: string, style: StampStyle = getActiveIndicatorStyle()) => {
+  const inner = kind === 'paid'
+    ? (Object.hasOwn(passbookEmblems, style) ? passbookEmblems[style] : passbookEmblems.seal)
+    : (Object.hasOwn(passbookEmblems, kind) ? passbookEmblems[kind] : '');
+  return `
   <svg class="seal-svg" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-    ${kind === 'paid' ? passbookEmblems[style] || passbookEmblems.seal : passbookEmblems[kind]}
+    ${inner}
   </svg>`;
+};

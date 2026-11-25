@@ -84,23 +84,33 @@ test('duplicate withLiquidSave call is ignored while save is active', async () =
   assert.equal(calls, 1);
 });
 
-test('withBusyButton sets and clears aria-busy and disabled', async () => {
+test('withBusyButton sets and clears aria-busy and disabled without innerHTML', async () => {
   const busySnapshots = [];
+  let innerHtmlWrites = 0;
   const fakeBtn = {
     disabled: false,
-    innerHTML: 'Kirim',
+    _text: 'Kirim',
+    get textContent() { return this._text; },
+    set textContent(v) { this._text = String(v); },
+    get innerHTML() { return this._text; },
+    set innerHTML(v) { innerHtmlWrites += 1; this._text = String(v); },
+    replaceChildren(...nodes) {
+      this._text = nodes.map(n => n?.textContent ?? String(n ?? '')).join('');
+    },
     getAttribute: name => name === 'aria-busy' ? (fakeBtn._busy ? 'true' : null) : null,
     setAttribute: (name, val) => { if (name === 'aria-busy') fakeBtn._busy = val; },
     removeAttribute: name => { if (name === 'aria-busy') fakeBtn._busy = null; },
   };
   globalThis.document.getElementById = id => id === 'busy-btn' ? fakeBtn : null;
+  globalThis.document.createTextNode = val => ({ textContent: String(val) });
 
-  await withBusyButton('busy-btn', 'Memuat...', 'Kirim', async () => {
-    busySnapshots.push({ disabled: fakeBtn.disabled, html: fakeBtn.innerHTML, aria: fakeBtn.getAttribute('aria-busy') });
+  await withBusyButton('busy-btn', '<img src=x onerror=alert(1)>', 'Kirim', async () => {
+    busySnapshots.push({ disabled: fakeBtn.disabled, text: fakeBtn.textContent, aria: fakeBtn.getAttribute('aria-busy') });
   });
 
-  assert.deepEqual(busySnapshots, [{ disabled: true, html: 'Memuat...', aria: 'true' }]);
+  assert.deepEqual(busySnapshots, [{ disabled: true, text: '<img src=x onerror=alert(1)>', aria: 'true' }]);
+  assert.equal(innerHtmlWrites, 0, 'withBusyButton must never assign innerHTML');
   assert.equal(fakeBtn.disabled, false);
-  assert.equal(fakeBtn.innerHTML, 'Kirim');
+  assert.equal(fakeBtn.textContent, 'Kirim');
   assert.equal(fakeBtn.getAttribute('aria-busy'), null);
 });

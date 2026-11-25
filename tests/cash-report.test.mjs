@@ -161,6 +161,11 @@ test('CSV formula injection characters are neutralized', () => {
   assert.equal(cashReport.escapeCsvFormula('@cmd'), `"'@cmd"`);
   assert.equal(cashReport.escapeCsvFormula('\tcmd'), `"'\tcmd"`);
   assert.equal(cashReport.escapeCsvFormula('\rcmd'), `"'\rcmd"`);
+  assert.equal(cashReport.escapeCsvFormula('aman\n=cmd'), `"aman\n'=cmd"`);
+  assert.equal(cashReport.escapeCsvFormula('aman\r+cmd'), `"aman\r'+cmd"`);
+  assert.equal(cashReport.escapeCsvFormula('aman\r\n@cmd'), `"aman\r\n'@cmd"`);
+  assert.equal(cashReport.escapeCsvFormula('aman\n  -1+1'), `"aman\n'  -1+1"`);
+  assert.equal(cashReport.escapeCsvFormula('aman\n\tcmd'), `"aman\n'\tcmd"`);
   assert.equal(cashReport.escapeCsvFormula('Normal Text'), `"Normal Text"`);
   assert.equal(cashReport.escapeCsvFormula('Text with "quotes"'), `"Text with ""quotes"""`);
   assert.equal(cashReport.escapeCsvFormula(15000, true), '15000');
@@ -333,6 +338,23 @@ test('strict exports block: print and CSV are rejected when ledger has invalid t
 
 test('printMonthlyCashReport and exportMonthlyCashCSV succeed when ledger is valid', t => {
   installReportDom(t);
+  const events = [];
+  let openedWin = null;
+  window.open = () => {
+    openedWin = {
+      opener: window,
+      document: {
+        open() {},
+        write() {},
+        close() { events.push('close'); }
+      },
+      focus() {},
+      addEventListener() {},
+      print() {},
+      close() {}
+    };
+    return openedWin;
+  };
 
   setState({
     transaksi: structuredClone(boundaryLedger),
@@ -343,6 +365,8 @@ test('printMonthlyCashReport and exportMonthlyCashCSV succeed when ledger is val
   const printRes = cashReportHandler.printMonthlyCashReport('2026-10');
   assert.equal(printRes.blocked, false);
   assert.equal(printRes.printed, true);
+  assert.equal(openedWin.opener, null, 'print window must clear opener after document.close');
+  assert.ok(events.includes('close'));
   assert.equal(printRes.report.month, '2026-10');
   assert.ok(printRes.html.includes('Laporan Kas Bulanan'));
   assert.ok(printRes.html.includes('Rp&nbsp;21.000') || printRes.html.includes('Rp 21.000') || printRes.html.includes('21.000'));

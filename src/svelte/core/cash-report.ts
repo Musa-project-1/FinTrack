@@ -353,10 +353,12 @@ export const escapeCsvFormula = (value: unknown, isNumeric: boolean = false): st
     return Number.isFinite(num) ? String(num) : '""';
   }
   let str = String(value);
-  // Neutralize spreadsheet formula triggers (=, +, -, @, tab, cr, lf)
+  // Neutralize spreadsheet formula triggers (=, +, -, @, tab, cr, lf) at cell start
   if (/^\s*[=+\-@\t\r\n]/.test(str)) {
     str = "'" + str;
   }
+  // Neutralize formula triggers immediately following embedded CR/LF inside multiline cells
+  str = str.replace(/([\r\n]+)([ ]*[=+\-@\t])/g, "$1'$2");
   return '"' + str.replace(/"/g, '""') + '"';
 };
 

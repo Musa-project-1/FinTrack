@@ -1,6 +1,6 @@
 type AuditEntry = { Aksi: string; Detail?: string; Timestamp: string };
 
-import { getState, getIsAdminSession, getIsSuperAdmin } from "finkas/core/state";
+import { getState, getIsAdminSession, getIsSuperAdmin, getActiveGroupId, saveCache } from "finkas/core/state";
 import { fetchAuditLogApi } from "finkas/core/api";
 import { isUnsyncedTempId } from "finkas/core/offline";
 import { getInput, getSelect, requiredField, htmlElements, closestHtml, showToast, showDatabaseToast, getInitials } from "finkas/core/utils";
@@ -46,9 +46,15 @@ const AUDIT_SPECS = [
 ] as const;
 
 /** Human-readable labels, semantic tones, and category groups for audit actions. */
-export const AUDIT_ACTION_LABELS = Object.fromEntries(
-  AUDIT_SPECS.map(([key, label, tone, cat, icon]) => [key, { label, tone, cat, icon, color: TONE_COLOR[tone] }])
+export const AUDIT_ACTION_LABELS: Record<string, { label: string; tone: keyof typeof TONE_COLOR; cat: string; icon: string; color: string }> = Object.assign(
+  Object.create(null),
+  Object.fromEntries(
+    AUDIT_SPECS.map(([key, label, tone, cat, icon]) => [key, { label, tone, cat, icon, color: TONE_COLOR[tone] }])
+  )
 );
+
+const getAuditActionMeta = (aksi: string) =>
+  Object.hasOwn(AUDIT_ACTION_LABELS, aksi) ? AUDIT_ACTION_LABELS[aksi] : undefined;
 
 let cachedAuditLog: AuditEntry[] = [];
 let auditFilterCat = 'all';
@@ -85,12 +91,12 @@ const paintAuditLogRows = () => {
   if (!tbody) return;
   const q = auditSearchQuery.trim().toLowerCase();
   const rows = cachedAuditLog.filter((entry) => {
-    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi, cat: 'grup' };
+    const meta = getAuditActionMeta(entry.Aksi) || { label: entry.Aksi, cat: 'grup' };
     if (auditFilterCat !== 'all' && meta.cat !== auditFilterCat) return false;
     if (!q) return true;
     return `${meta.label} ${entry.Aksi || ''} ${entry.Detail || ''} ${formatAuditDate(entry.Timestamp)}`.toLowerCase().includes(q);
   }).map((entry, index) => {
-    const meta = AUDIT_ACTION_LABELS[entry.Aksi] || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
+    const meta = getAuditActionMeta(entry.Aksi) || { label: entry.Aksi || 'AKSI', tone: 'neutral', icon: 'ph-activity' };
     return {
       key: `${index}-${entry.Timestamp}`, timestampText: formatAuditDate(entry.Timestamp),
       label: meta.label, tone: meta.tone, icon: meta.icon, detail: String(entry.Detail || '')
@@ -157,7 +163,22 @@ export const openAuditLogModal = () => {
   renderAuditLogList();
 };
 
+const requireMasterAdminContext = () => {
+  if (!getIsAdminSession()) {
+    showToast('Hanya admin grup yang berwenang mengubah data master.', 'error');
+    return '';
+  }
+  const targetGroupId = getActiveGroupId();
+  if (!targetGroupId) {
+    showToast('Pilih grup kas aktif terlebih dahulu.', 'error');
+    return '';
+  }
+  return targetGroupId;
+};
+
 export const addSkippedMonth = async () => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   const el = getInput('input-skip-month');
   if (!el || !el.value) return showToast('Pilih bulan terlebih dahulu.', 'error');
   const parts = el.value.split('-');
@@ -171,11 +192,17 @@ export const addSkippedMonth = async () => {
     badgeClass: 'warning',
     confirmText: 'Ya, Tetapkan Libur',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'addSkippedMonth', month: key });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'addSkippedMonth', groupId: targetGroupId, month: key });
+      if (getActiveGroupId() !== targetGroupId) return;
       const state = getState();
       if (!delivered) {
         // Offline — queued. Reflect locally (server op is idempotent on replay).
         if (!state.skippedMonths.includes(key)) state.skippedMonths = state.skippedMonths.concat([key]);
+        saveCache(targetGroupId);
         renderSkippedMonthsList();
         showDatabaseToast('Bulan Libur Ditetapkan (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
         return;
@@ -192,6 +219,8 @@ export const addSkippedMonth = async () => {
 };
 
 export const removeSkippedMonth = async (key: string | null) => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   if (!key || typeof key !== 'string' || !/^\d{2}-\d{4}$/.test(key)) {
     return showToast('Format bulan libur tidak valid.', 'error');
   }
@@ -202,10 +231,16 @@ export const removeSkippedMonth = async (key: string | null) => {
     icon: 'ph-fill ph-calendar-check',
     confirmText: 'Ya, Aktifkan Kembali',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'removeSkippedMonth', month: key });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'removeSkippedMonth', groupId: targetGroupId, month: key });
+      if (getActiveGroupId() !== targetGroupId) return;
       const state = getState();
       if (!delivered) {
         state.skippedMonths = state.skippedMonths.filter((s) => s !== key);
+        saveCache(targetGroupId);
         renderSkippedMonthsList();
         showDatabaseToast('Bulan Libur Dicabut (Offline)', `Bulan ${key} akan disinkronkan saat online.`);
         return;
@@ -234,6 +269,8 @@ export const populateKasStartInput = () => {
 };
 
 export const saveKasStart = async () => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   const el = getInput('input-kas-start');
   if (!el || !el.value) return showToast('Pilih bulan awal mulai kas terlebih dahulu.', 'error');
   const parts = el.value.split('-'); // YYYY-MM from the month input
@@ -246,10 +283,16 @@ export const saveKasStart = async () => {
     icon: 'ph-fill ph-calendar-check',
     confirmText: 'Ya, Simpan',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'setKasStart', kasStart: key });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'setKasStart', groupId: targetGroupId, kasStart: key });
+      if (getActiveGroupId() !== targetGroupId) return;
       const state = getState();
       if (!delivered) {
         state.kasStart = key;
+        saveCache(targetGroupId);
         showDatabaseToast('Awal Kas Disimpan (Offline)', `Awal kas ${key} akan disinkronkan saat online.`);
         return;
       }
@@ -364,6 +407,8 @@ export const bukaModalEditMasterAnggota = (idAnggota: string) => {
 
 export const submitEditMasterAnggota = async (e: Event) => {
   e?.preventDefault?.();
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   const idAnggota = (getInput('edit-master-anggota-id')?.value || '').trim();
   const nama = (getInput('edit-master-nama-input')?.value || '').trim();
   const noWa = (getInput('edit-master-wa-input')?.value || '').trim();
@@ -382,22 +427,33 @@ export const submitEditMasterAnggota = async (e: Event) => {
   await withLiquidSave(
     'btn-submit-edit-anggota',
     async () => {
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
+      }
       const { delivered, result } = await deliverMutation({
         action: 'updateStatusAnggota',
+        groupId: targetGroupId,
         idAnggota,
         statusAktif,
         nama,
         noWa
       });
+      if (getActiveGroupId() !== targetGroupId) return { outcome: 'neutral', done: () => {} };
 
       if (!delivered) {
         // Offline — queued. Reflect locally so the table matches until sync.
         const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
         if (ang) { ang.Nama_Anggota = nama; ang.Status_Aktif = statusAktif; ang.Nomor_WA = noWa; }
+        saveCache(targetGroupId);
         return {
           outcome: 'success',
-          onSettled: () => { renderMasterAnggotaTable(); flashMasterAnggotaSaved(idAnggota); },
+          onSettled: () => {
+            if (getActiveGroupId() !== targetGroupId) return;
+            renderMasterAnggotaTable();
+            flashMasterAnggotaSaved(idAnggota);
+          },
           done: () => {
+            if (getActiveGroupId() !== targetGroupId) return;
             closeModal('modal-edit-master-anggota');
             showDatabaseToast('Perubahan Disimpan (Offline)', `Data ${nama} akan disinkronkan saat online.`);
           }
@@ -414,9 +470,11 @@ export const submitEditMasterAnggota = async (e: Event) => {
       return {
         outcome: 'success',
         done: async () => {
+          if (getActiveGroupId() !== targetGroupId) return;
           closeModal('modal-edit-master-anggota');
           showDatabaseToast('Data Anggota Diperbarui', `Perubahan untuk ${nama} berhasil disimpan.`);
           await refreshAppData();
+          if (getActiveGroupId() !== targetGroupId) return;
           renderMasterAnggotaTable();
           flashMasterAnggotaSaved(idAnggota);
         }
@@ -483,6 +541,8 @@ export const openKelolaMasterModal = () => {
 
 export const submitTambahAnggota = async (e: Event) => {
   e.preventDefault();
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   const nama = (getInput('input-nama-anggota')?.value || '').trim();
   const noWa = (getInput('input-wa-anggota')?.value || '').trim();
   if (!nama) return showToast('Nama anggota tidak boleh kosong.', 'error');
@@ -494,20 +554,33 @@ export const submitTambahAnggota = async (e: Event) => {
     icon: 'ph-fill ph-user-plus',
     confirmText: 'Ya, Daftarkan',
     onConfirm: async () => {
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
       const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
       await withLiquidSave(
         btn,
         async () => {
-          const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', nama, noWa });
+          if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+            return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
+          }
+          const { delivered, result } = await deliverMutation({ action: 'tambahAnggota', groupId: targetGroupId, nama, noWa });
+          if (getActiveGroupId() !== targetGroupId) return { outcome: 'neutral', done: () => {} };
           if (!delivered) {
             const tempId = tempMasterId('ANG');
             // Offline — queued. Show an optimistic row with a temp id; the next online refetch replaces it.
             getState().anggota.push({ ID_Anggota: tempId, Nama_Anggota: nama, Nomor_WA: noWa, Status_Aktif: 'Aktif' });
+            saveCache(targetGroupId);
             requiredField('input-nama-anggota').value = '';
             requiredField('input-wa-anggota').value = '';
             return {
               outcome: 'success',
-              onSettled: () => { renderMasterAnggotaTable(); flashMasterAnggotaSaved(tempId); },
+              onSettled: () => {
+                if (getActiveGroupId() !== targetGroupId) return;
+                renderMasterAnggotaTable();
+                flashMasterAnggotaSaved(tempId);
+              },
               done: () => showDatabaseToast('Anggota Disimpan (Offline)', `${nama} akan disinkronkan saat online.`)
             };
           }
@@ -517,12 +590,15 @@ export const submitTambahAnggota = async (e: Event) => {
           return {
             outcome: 'success',
             onSettled: () => {
+              if (getActiveGroupId() !== targetGroupId) return;
               requiredField('input-nama-anggota').value = '';
               requiredField('input-wa-anggota').value = '';
             },
             done: async () => {
+              if (getActiveGroupId() !== targetGroupId) return;
               showDatabaseToast('Anggota Baru Ditambahkan', `Anggota ${nama} berhasil didaftarkan ke database.`);
               await refreshAppData();
+              if (getActiveGroupId() !== targetGroupId) return;
               renderMasterAnggotaTable();
               const addedId = (result.data as { idAnggota?: string } | undefined)?.idAnggota
                 || (getState().anggota || []).filter((a) => a.Nama_Anggota === nama).pop()?.ID_Anggota || '';
@@ -537,6 +613,8 @@ export const submitTambahAnggota = async (e: Event) => {
 };
 
 export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: string | null) => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   if (!idAnggota || (nextStatus !== 'Aktif' && nextStatus !== 'Nonaktif')) {
     return showToast('Parameter status anggota tidak valid.', 'error');
   }
@@ -554,10 +632,16 @@ export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: s
     badgeClass: nextStatus === 'Aktif' ? '' : 'warning',
     confirmText: 'Ya, Ubah Status',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'updateStatusAnggota', idAnggota, statusAktif: nextStatus });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'updateStatusAnggota', groupId: targetGroupId, idAnggota, statusAktif: nextStatus });
+      if (getActiveGroupId() !== targetGroupId) return;
       if (!delivered) {
         const target = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
         if (target) target.Status_Aktif = nextStatus;
+        saveCache(targetGroupId);
         showDatabaseToast('Status Disimpan (Offline)', `Status ${angName} akan disinkronkan saat online.`);
         renderMasterAnggotaTable();
         flashMasterAnggotaSaved(idAnggota);
@@ -566,6 +650,7 @@ export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: s
       if (result.status) {
         showDatabaseToast('Status Anggota Diperbarui', `Status ${angName} berhasil diubah ke ${nextStatus}.`);
         await refreshAppData();
+        if (getActiveGroupId() !== targetGroupId) return;
         renderMasterAnggotaTable();
         flashMasterAnggotaSaved(idAnggota);
       } else {
@@ -576,6 +661,8 @@ export const toggleStatusAnggotaAction = async (idAnggota: string, nextStatus: s
 };
 
 export const hapusMasterAnggotaAction = async (idAnggota: string) => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   if (!idAnggota) return showToast('ID anggota tidak valid.', 'error');
   const ang = (getState().anggota || []).find((a) => a.ID_Anggota === idAnggota);
   const angName = ang?.Nama_Anggota || 'Anggota';
@@ -592,7 +679,12 @@ export const hapusMasterAnggotaAction = async (idAnggota: string) => {
     confirmText: 'Ya, Hapus Anggota',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'hapusAnggota', idAnggota });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'hapusAnggota', groupId: targetGroupId, idAnggota });
+      if (getActiveGroupId() !== targetGroupId) return;
       if (!delivered) {
         // Offline — queued. Remove locally; if the server later rejects it
         // (e.g. transactions still reference this member), the offline-sync
@@ -600,6 +692,7 @@ export const hapusMasterAnggotaAction = async (idAnggota: string) => {
         const arr = getState().anggota;
         const idx = arr.findIndex((a) => a.ID_Anggota === idAnggota);
         if (idx !== -1) arr.splice(idx, 1);
+        saveCache(targetGroupId);
         showDatabaseToast('Penghapusan Disimpan (Offline)', `${angName} akan dihapus saat online.`);
         renderMasterAnggotaTable();
         return;
@@ -607,6 +700,7 @@ export const hapusMasterAnggotaAction = async (idAnggota: string) => {
       if (result.status) {
         showDatabaseToast('Anggota Dihapus', `${angName} berhasil dihapus dari database.`);
         await refreshAppData();
+        if (getActiveGroupId() !== targetGroupId) return;
         renderMasterAnggotaTable();
       } else {
         showToast(result.message || 'Gagal menghapus anggota.', 'error');
@@ -617,6 +711,8 @@ export const hapusMasterAnggotaAction = async (idAnggota: string) => {
 
 export const submitTambahKategori = async (e: Event) => {
   e.preventDefault();
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   const tipe = getSelect('input-tipe-kategori')?.value;
   const nama = (getInput('input-nama-kategori')?.value || '').trim();
   if (tipe !== 'Masuk' && tipe !== 'Keluar') return showToast('Pilih tipe kategori yang valid.', 'error');
@@ -628,18 +724,31 @@ export const submitTambahKategori = async (e: Event) => {
     icon: 'ph-fill ph-tag',
     confirmText: 'Ya, Simpan Kategori',
     onConfirm: async () => {
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
       const btn = (e.target as HTMLFormElement | null)?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
       await withLiquidSave(
         btn,
         async () => {
-          const { delivered, result } = await deliverMutation({ action: 'tambahKategori', nama, tipe });
+          if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+            return { outcome: 'neutral', done: () => showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning') };
+          }
+          const { delivered, result } = await deliverMutation({ action: 'tambahKategori', groupId: targetGroupId, nama, tipe });
+          if (getActiveGroupId() !== targetGroupId) return { outcome: 'neutral', done: () => {} };
           if (!delivered) {
             const tempKatId = tempMasterId(tipe === 'Masuk' ? 'KAT-M' : 'KAT-K');
             getState().kategori.push({ ID_Kategori: tempKatId, Nama_Kategori: nama, Tipe: tipe });
+            saveCache(targetGroupId);
             requiredField('input-nama-kategori').value = '';
             return {
               outcome: 'success',
-              onSettled: () => { renderMasterKategoriTable(); flashMasterKategoriSaved(tempKatId); },
+              onSettled: () => {
+                if (getActiveGroupId() !== targetGroupId) return;
+                renderMasterKategoriTable();
+                flashMasterKategoriSaved(tempKatId);
+              },
               done: () => showDatabaseToast('Kategori Disimpan (Offline)', `Kategori "${nama}" akan disinkronkan saat online.`)
             };
           }
@@ -649,11 +758,14 @@ export const submitTambahKategori = async (e: Event) => {
           return {
             outcome: 'success',
             onSettled: () => {
+              if (getActiveGroupId() !== targetGroupId) return;
               requiredField('input-nama-kategori').value = '';
             },
             done: async () => {
+              if (getActiveGroupId() !== targetGroupId) return;
               showDatabaseToast('Kategori Kas Ditambahkan', `Kategori "${nama}" (${tipe}) berhasil disimpan.`);
               await refreshAppData();
+              if (getActiveGroupId() !== targetGroupId) return;
               renderMasterKategoriTable();
               const addedKatId = (result.data as { idKategori?: string } | undefined)?.idKategori
                 || (getState().kategori || []).filter((k) => k.Nama_Kategori === nama && k.Tipe === tipe).pop()?.ID_Kategori || '';
@@ -668,6 +780,8 @@ export const submitTambahKategori = async (e: Event) => {
 };
 
 export const hapusMasterKategoriAction = async (idKategori: string) => {
+  const targetGroupId = requireMasterAdminContext();
+  if (!targetGroupId) return;
   if (!idKategori) return showToast('ID kategori tidak valid.', 'error');
   const kat = (getState().kategori || []).find((k) => k.ID_Kategori === idKategori);
   const katName = kat?.Nama_Kategori || 'Kategori';
@@ -684,11 +798,17 @@ export const hapusMasterKategoriAction = async (idKategori: string) => {
     confirmText: 'Ya, Hapus Kategori',
     confirmClass: 'btn-danger-solid',
     onConfirm: async () => {
-      const { delivered, result } = await deliverMutation({ action: 'hapusKategori', idKategori });
+      if (!getIsAdminSession() || getActiveGroupId() !== targetGroupId) {
+        showToast('Grup kas telah berganti. Operasi dibatalkan.', 'warning');
+        return;
+      }
+      const { delivered, result } = await deliverMutation({ action: 'hapusKategori', groupId: targetGroupId, idKategori });
+      if (getActiveGroupId() !== targetGroupId) return;
       if (!delivered) {
         const arr = getState().kategori;
         const idx = arr.findIndex((k) => k.ID_Kategori === idKategori);
         if (idx !== -1) arr.splice(idx, 1);
+        saveCache(targetGroupId);
         showDatabaseToast('Penghapusan Disimpan (Offline)', `Kategori "${katName}" akan dihapus saat online.`);
         renderMasterKategoriTable();
         return;
@@ -696,6 +816,7 @@ export const hapusMasterKategoriAction = async (idKategori: string) => {
       if (result.status) {
         showDatabaseToast('Kategori Dihapus', `Kategori "${katName}" berhasil dihapus.`);
         await refreshAppData();
+        if (getActiveGroupId() !== targetGroupId) return;
         renderMasterKategoriTable();
       } else {
         showToast(result.message || 'Gagal menghapus kategori.', 'error');

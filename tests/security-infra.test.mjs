@@ -218,8 +218,16 @@ test('vite.config.ts hides sourcemaps and package.json/bump.mjs enforce safe exe
   assert.match(bump, /\/\^\\d\+\$\//);
 });
 
-// SEC-34 CI workflow hardening (.github/workflows/ci.yml) is documented in the PR for manual application
-// because the git push OAuth credential lacks the GitHub `workflow` scope.
+test('.github/workflows/ci.yml pins actions to commit SHAs, restricts permissions, and runs npm audit', () => {
+  const ci = read('.github/workflows/ci.yml');
+  assert.match(ci, /^permissions:\s*\n\s+contents:\s*read\b/m);
+  assert.doesNotMatch(ci, /uses:\s*actions\/checkout@v\d+/);
+  assert.doesNotMatch(ci, /uses:\s*actions\/setup-node@v\d+/);
+  assert.match(ci, /uses:\s*actions\/checkout@11d5960a326750d5838078e36cf38b85af677262\b/);
+  assert.match(ci, /persist-credentials:\s*false/);
+  assert.match(ci, /uses:\s*actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020\b/);
+  assert.match(ci, /npm audit --audit-level=high/);
+});
 
 test('offline.js binds click handler on .btn-retry without throwing and triggers reload', async () => {
   const offlineHtml = read('src/pages/offline.html');

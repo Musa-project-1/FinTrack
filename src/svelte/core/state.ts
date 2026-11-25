@@ -408,7 +408,8 @@ export const setAdminSession = (token: string) => {
   setAdminViewMode('admin');
 };
 
-export const getIsSuperAdmin = () => adminRole === 'superadmin';
+/** Whether an active session holds the Super Admin role. */
+export const getIsSuperAdmin = () => Boolean(adminSessionToken) && adminRole === 'superadmin';
 
 /** Whether an admin session is active. */
 export const getIsAdminSession = () => Boolean(adminSessionToken);

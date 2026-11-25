@@ -115,6 +115,12 @@ test('an admin session toggles the admin and superadmin flags', () => {
 
   state.setAdminRole('superadmin');
   assert.equal(state.getIsSuperAdmin(), true);
+
+  state.clearAdminSession();
+  state.setAdminRole('superadmin');
+  assert.equal(state.getIsSuperAdmin(), false, 'stale superadmin role without adminSessionToken must not bypass PIN');
+  state.setAdminSession('fresh-sa-token');
+  assert.equal(state.getIsSuperAdmin(), true);
 });
 
 test('clearing the admin session clears every field and group sessions', () => {

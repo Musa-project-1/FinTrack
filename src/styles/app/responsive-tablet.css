@@ -24,7 +24,7 @@
 
     @media (max-width: 768px) {
       .header-actions { display: flex; gap: 8px; align-items: center; }
-      .header-actions .btn span { display: none; }
+      .header-actions .btn:not(#btn-header-menu) span { display: none; }
       .header-dropdown .dropdown-item { padding: 12px; font-size: 14px; }
       .desktop-only { display: none !important; }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { appStore } from '../../stores/app.svelte';
+  import { showToast } from 'finkas/core/utils';
   import { closeModal, openModal } from '../../ui/modal';
   import { openGroupAdmin } from '../../handlers/groups';
   import { openAuditLogModal, openKelolaMasterModal } from '../../handlers/master';
@@ -13,6 +14,10 @@
     closeModal('modal-menu');
     fn();
   };
+  const onInstallPwa = fromMenu(() => {
+    if (window.__pwaPrompt) window.__pwaPrompt.prompt();
+    else showToast('Gunakan opsi Add to Home Screen di browser Anda.', 'info');
+  });
   const onLogoutPrompt = (e: MouseEvent) => { e.stopPropagation(); openModal('modal-logout'); };
 </script>
 
@@ -149,7 +154,7 @@
               <i class="ph ph-caret-right nav-chev" aria-hidden="true"></i>
             </button>
 
-            <button type="button" class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;" data-keywords="install pasang pwa aplikasi hp home screen">
+            <button type="button" class="nav-item" id="btn-pwa-install" data-action="install-pwa" style="display: none;" data-keywords="install pasang pwa aplikasi hp home screen" onclick={onInstallPwa}>
               <span class="nav-ico is-accent"><i class="ph ph-device-mobile" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.pwa.title">Instal Aplikasi Finkas</span>

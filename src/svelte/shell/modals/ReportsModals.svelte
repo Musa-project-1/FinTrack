@@ -215,7 +215,7 @@
           <h2 class="dlg-title" id="passbook-modal-title">Buku Iuran Digital Anggota</h2>
           <p class="dlg-subtitle" id="profil-subtitle">Riwayat setoran &amp; kartu iuran 12 bulan</p>
         </div>
-        <button type="button" class="dlg-close-btn close-modal-btn" data-action="close-modal" autofocus aria-label="Tutup dialog" onclick={onClose('modal-profil-anggota')}>
+        <button type="button" class="dlg-close-btn close-modal-btn" data-action="close-modal" aria-label="Tutup dialog" onclick={onClose('modal-profil-anggota')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>

@@ -433,8 +433,8 @@ test('delete confirmation button accepts single clicks and uses coral danger pol
   assert.match(read('src/styles/app/modals-base.css'), /\.modal-center-dialog\s*\{[^}]*position:\s*relative;/s);
   assert.match(read('src/svelte/dashboard/HistoryLedger.svelte'), /\.ledger-row\.is-deleting\s*\{[^}]*max-height:\s*0\s*!important;/s);
 
-  const routerSrc = read('src/svelte/action-router.ts');
-  assert.match(routerSrc, /closeModal\('modal-edit-transaksi',\s*true\)/);
+  const trxModalsSrc = read('src/svelte/shell/modals/TransactionsModals.svelte');
+  assert.match(trxModalsSrc, /closeModal\('modal-edit-transaksi',\s*true\)/);
 
   const trxSrc = read('src/svelte/handlers/transactions.ts');
   assert.match(trxSrc, /withLiquidSave\(\s*"btn-hapus"/);

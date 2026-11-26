@@ -1,7 +1,108 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { getIsAdminSession, getIsAdminView, getState } from 'finkas/core/state';
+  import { showToast } from 'finkas/core/utils';
+  import { openModal, closeHeaderDropdown } from '../ui/modal';
+  import { toggleTheme } from '../ui/theme';
+  import { switchWorkspace, openWorkspaceHistory } from '../ui/workspace';
+  import { toggleBulkMode, reviewBulkDues } from '../ui/bulk-dues';
+  import { playKasiAction } from '../ui/kasi-mascot';
+  import { startGuidedTour, advanceGuidedTour } from '../ui/guided-tour';
+  import { setAdminViewModeAction } from '../handlers/auth';
+  import {
+    setBottomNavActive, closeActiveModal, setHistoryFilter, openTampilanModal,
+    openDuesLegend, setPrivacyMode, openCommandHubModal
+  } from '../handlers/navigation';
+  import { bukaModalTransaksi } from '../handlers/transactions';
+  import { openKelolaMasterModal } from '../handlers/master';
+  import { openOfflineQueueModal } from '../handlers/offlineQueue';
+  import { createGroupReminderMessage } from '../handlers/export';
+  import { bukaProfilAnggota } from '../handlers/profile';
+  import { openSelfPay } from '../handlers/self-pay';
+  import { openGroupPicker } from '../handlers/groups';
+  import { filterDuesStatus } from '../stores/rekap.svelte';
+  import { showSpotlightDetail, getPinnedMemberId, setMemberPin } from '../stores/spotlight.svelte';
 
   let { modals }: { modals?: Snippet } = $props();
+
+  const stop = (e: MouseEvent) => e.stopPropagation();
+
+  const onOpenAbout = (e: MouseEvent) => { stop(e); openModal('modal-about'); };
+  const onOpenGroups = (e: MouseEvent) => { stop(e); openGroupPicker(); };
+  const onOpenOfflineQueue = (e: MouseEvent) => {
+    stop(e);
+    if (!getIsAdminSession()) {
+      showToast('Hanya pengurus yang dapat melihat antrean offline.', 'error');
+      openModal('modal-login');
+      return;
+    }
+    openOfflineQueueModal();
+  };
+  const onSetRoleView = (role: string) => (e: MouseEvent) => { stop(e); setAdminViewModeAction(role); };
+  const onOpenTampilan = (e: MouseEvent) => { stop(e); openTampilanModal(); };
+  const onTogglePrivacy = (e: MouseEvent) => {
+    stop(e);
+    setPrivacyMode(document.body.classList.contains('privacy-mode') ? 'off' : 'on');
+  };
+  const onToggleTheme = (e: MouseEvent) => {
+    stop(e);
+    toggleTheme(e, e.currentTarget as HTMLElement);
+  };
+  const onOpenMenu = (e: MouseEvent) => { stop(e); openCommandHubModal(); };
+  const onBukaTransaksi = (e: MouseEvent) => { stop(e); bukaModalTransaksi(); };
+  const onPrintReminder = (e: MouseEvent) => { stop(e); createGroupReminderMessage(e.currentTarget as HTMLElement); };
+  const onOpenMaster = (e: MouseEvent) => { stop(e); closeHeaderDropdown(); openKelolaMasterModal(); };
+  const onBentoHistory = (filter: string) => (e: MouseEvent) => { stop(e); openWorkspaceHistory(filter); };
+  const onSpotlightBook = (e: MouseEvent) => {
+    stop(e);
+    const id = (e.currentTarget as HTMLElement).getAttribute('data-id') || '';
+    bukaProfilAnggota(id);
+  };
+  const onSpotlightUnpin = (e: MouseEvent) => { stop(e); setMemberPin('', true); };
+  const onSpotlightPay = (e: MouseEvent) => { stop(e); showSpotlightDetail('pay'); };
+  const onBulkToggle = (e: MouseEvent) => { stop(e); toggleBulkMode(switchWorkspace); };
+  const onBulkReview = (e: MouseEvent) => { stop(e); reviewBulkDues(bukaModalTransaksi); };
+  const onSwitchWorkspace = (panel: string) => (e: MouseEvent) => { stop(e); switchWorkspace(panel); };
+  const onFilterDues = (status: string) => (e: MouseEvent) => { stop(e); filterDuesStatus(status); };
+  const onHistoryFilter = (filter: string) => (e: MouseEvent) => { stop(e); setHistoryFilter(filter); };
+  const onOpenDuesLegend = (e: MouseEvent) => { stop(e); openDuesLegend(); };
+  const onKasiAction = (action: string) => (e: MouseEvent) => {
+    stop(e);
+    if (action === 'guide') startGuidedTour();
+    else playKasiAction(action);
+  };
+  const onTourStep = (step: string) => (e: MouseEvent) => { stop(e); advanceGuidedTour(step); };
+  const onNavRekap = (e: MouseEvent) => {
+    stop(e);
+    closeActiveModal();
+    switchWorkspace('iuran');
+    setBottomNavActive('nav-rekap');
+    const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+    document.getElementById('section-rekap')?.scrollIntoView({ behavior });
+  };
+  const onNavRiwayat = (e: MouseEvent) => {
+    stop(e);
+    closeActiveModal();
+    switchWorkspace('history');
+    setBottomNavActive('nav-riwayat');
+    document.getElementById('workspace-history')?.scrollIntoView();
+  };
+  const onNavStats = (e: MouseEvent) => {
+    stop(e);
+    closeActiveModal();
+    switchWorkspace('stats');
+    document.getElementById('workspace-stats')?.scrollIntoView();
+  };
+  const onNavCatat = (e: MouseEvent) => {
+    stop(e);
+    setBottomNavActive('nav-catat');
+    if (getIsAdminView()) bukaModalTransaksi();
+    else openModal('modal-login');
+  };
+  const onNavPay = (e: MouseEvent) => {
+    stop(e);
+    openSelfPay(getPinnedMemberId() || getState().anggota.find((person) => person.Status_Aktif === 'Aktif')?.ID_Anggota);
+  };
 </script>
 
   <div class="bg-stage" id="bg-stage" aria-hidden="true">
@@ -42,14 +143,14 @@
   <header class="header hybrid-topbar">
     <div class="hybrid-topbar-inner">
       <div class="header-left">
-        <a href="#" class="brand-link connection-status" id="btn-about" data-action="open-about" tabindex="0" role="button" title="Tentang Finkas" aria-label="Finkas: Status Online">
+        <button type="button" class="brand-link connection-status" id="btn-about" data-action="open-about" title="Tentang Finkas" aria-label="Finkas: Status Online" onclick={onOpenAbout}>
           <img src="icons/icon-light-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-light">
           <img src="icons/icon-192.svg" alt="Logo Finkas" class="brand-logo-img brand-logo-dark">
           <span class="status-dot"></span>
           <span class="workspace-brand"><strong>Finkas</strong><small>Buku Kas Digital</small></span>
-        </a>
-        <button class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup" aria-label="Pilih Grup"></button>
-        <button type="button" class="group-queue-pill admin-only" id="group-queue-badge" data-action="open-offline-queue" hidden title="Antrean transaksi offline" aria-label="Antrean transaksi offline">
+        </button>
+        <button type="button" class="group-name" id="app-group-name" data-action="open-groups" title="Pilih Grup" aria-label="Pilih Grup" onclick={onOpenGroups}></button>
+        <button type="button" class="group-queue-pill admin-only" id="group-queue-badge" data-action="open-offline-queue" hidden title="Antrean transaksi offline" aria-label="Antrean transaksi offline" onclick={onOpenOfflineQueue}>
           <i class="ph ph-cloud-arrow-up" aria-hidden="true"></i>
           <span id="group-queue-badge-count">0</span>
         </button>
@@ -58,11 +159,11 @@
       <div class="hybrid-topbar-role">
         <div class="role-switcher-track admin-session-only" id="role-switcher" role="tablist" aria-label="Mode Pengguna">
           <span class="workspace-glider" aria-hidden="true"></span>
-          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-anggota" data-action="set-role-view" data-role="anggota" aria-selected="false" tabindex="-1">
+          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-anggota" data-action="set-role-view" data-role="anggota" aria-selected="false" tabindex="-1" onclick={onSetRoleView('anggota')}>
             <i class="ph ph-user" aria-hidden="true"></i>
             <span>Anggota</span>
           </button>
-          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-admin" data-action="set-role-view" data-role="admin" aria-selected="true" tabindex="0">
+          <button type="button" class="role-switcher-btn" role="tab" id="role-btn-admin" data-action="set-role-view" data-role="admin" aria-selected="true" tabindex="0" onclick={onSetRoleView('admin')}>
             <i class="ph-fill ph-shield-check" aria-hidden="true"></i>
             <span>Admin</span>
           </button>
@@ -71,19 +172,19 @@
       <div class="header-right">
         <!-- Unified Actions (single set for desktop + mobile) -->
         <div class="header-actions" id="header-actions">
-          <button class="btn btn-icon" data-action="open-tampilan" aria-label="Tampilan" title="Tampilan">
+          <button type="button" class="btn btn-icon" data-action="open-tampilan" aria-label="Tampilan" title="Tampilan" onclick={onOpenTampilan}>
             <i class="ph ph-palette fs-18" aria-hidden="true"></i><span>Tampilan</span>
           </button>
-          <button class="btn btn-icon" data-action="toggle-privacy" aria-label="Sensor Saldo" title="Sensor Saldo" aria-pressed="false">
+          <button type="button" class="btn btn-icon" data-action="toggle-privacy" aria-label="Sensor Saldo" title="Sensor Saldo" aria-pressed="false" onclick={onTogglePrivacy}>
             <i class="ph ph-eye fs-18" aria-hidden="true"></i><span>Sensor Saldo</span>
           </button>
 
-          <button class="btn btn-icon" id="btn-theme-toggle" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema">
+          <button type="button" class="btn btn-icon" id="btn-theme-toggle" aria-label="Ganti Tema" data-action="toggle-theme" title="Ganti Tema" onclick={onToggleTheme}>
             <i class="ph ph-moon theme-icon fs-18"></i>
           </button>
 
           <!-- Hamburger Button opens Unified Menu Modal (#17 Menu Morph) -->
-          <button class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" aria-expanded="false" title="Menu">
+          <button type="button" class="btn btn-icon" id="btn-header-menu" data-action="open-menu-modal" aria-label="Buka Menu" aria-expanded="false" title="Menu" onclick={onOpenMenu}>
             <span class="menu-morph-bars" aria-hidden="true"><span></span><span></span><span></span></span>
           </button>
 
@@ -105,7 +206,7 @@
       <div>
         <span class="group-overview-role non-admin-only"><i class="ph ph-eye" aria-hidden="true"></i> <span data-i18n="role.member">Tampilan Anggota · Transparansi Kas</span></span>
         <span class="group-overview-role admin-only"><i class="ph ph-shield-check" aria-hidden="true"></i> <span data-i18n="role.admin">Mode Pengurus</span></span>
-        <h1 id="group-overview-name" tabindex="-1"></h1>
+        <h1 id="group-overview-name" tabindex="-1">Finkas</h1>
         <div class="group-overview-meta">
           <span id="group-overview-fee"></span>
           <span id="group-overview-members"></span>
@@ -113,9 +214,9 @@
         </div>
       </div>
       <div class="group-overview-actions admin-only">
-        <button type="button" class="btn btn-primary" data-action="buka-transaksi"><i class="ph ph-plus" aria-hidden="true"></i> Catat Kas</button>
-        <button type="button" class="btn" data-action="print-reminder"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i> Pesan WA</button>
-        <button type="button" class="btn" data-action="open-kelola-master"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Data Master</button>
+        <button type="button" class="btn btn-primary" data-action="buka-transaksi" onclick={onBukaTransaksi}><i class="ph ph-plus" aria-hidden="true"></i> Catat Kas</button>
+        <button type="button" class="btn" data-action="print-reminder" onclick={onPrintReminder}><i class="ph ph-whatsapp-logo" aria-hidden="true"></i> Pesan WA</button>
+        <button type="button" class="btn" data-action="open-kelola-master" onclick={onOpenMaster}><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Data Master</button>
       </div>
     </section>
 
@@ -142,12 +243,12 @@
           <div class="bento-compliance-track" id="bento-compliance" role="progressbar" aria-valuenow="0" aria-label="Kepatuhan iuran tahun ini"><div class="bento-compliance-fill"></div></div>
         </div>
       </article>
-      <button type="button" class="bento-kpi bento-flow bento-in hybrid-card" data-cascade="1" data-action="bento-history" data-filter="masuk" aria-label="Buka riwayat pemasukan" aria-describedby="ui-masuk">
+      <button type="button" class="bento-kpi bento-flow bento-in hybrid-card" data-cascade="1" data-action="bento-history" data-filter="masuk" aria-label="Buka riwayat pemasukan" aria-describedby="ui-masuk" onclick={onBentoHistory('masuk')}>
         <span class="bento-kpi-heading"><strong>Total Pemasukan</strong><span aria-hidden="true"><i class="ph ph-arrow-down-left"></i></span></span>
         <span class="bento-money sensitive-amt" id="ui-masuk" data-amount-prefix="+">+Rp 0</span>
         <span class="bento-flow-link"><span id="bento-inflow-detail"></span><span class="bento-drill-label">Masuk <i class="ph ph-arrow-right" aria-hidden="true"></i></span></span>
       </button>
-      <button type="button" class="bento-kpi bento-flow bento-out hybrid-card" data-cascade="2" data-action="bento-history" data-filter="keluar" aria-label="Buka riwayat pengeluaran" aria-describedby="ui-keluar">
+      <button type="button" class="bento-kpi bento-flow bento-out hybrid-card" data-cascade="2" data-action="bento-history" data-filter="keluar" aria-label="Buka riwayat pengeluaran" aria-describedby="ui-keluar" onclick={onBentoHistory('keluar')}>
         <span class="bento-kpi-heading"><strong>Total Pengeluaran</strong><span aria-hidden="true"><i class="ph ph-arrow-up-right"></i></span></span>
         <span class="bento-money sensitive-amt" id="ui-keluar" data-amount-prefix="−">−Rp 0</span>
         <span class="bento-flow-link"><span id="bento-outflow-detail"></span><span class="bento-drill-label">Keluar <i class="ph ph-arrow-right" aria-hidden="true"></i></span></span>
@@ -193,7 +294,7 @@
               <span class="meta-chip amber tnum" hidden="" id="spotlight-arrears-chip">0 Bulan Tertunggak</span>
               <span class="meta-chip paid tnum" hidden="" id="spotlight-paid-chip">Lunas Bulan Berjalan</span>
             </div>
-            <button aria-label="Buka buku iuran anggota" class="spotlight-name-btn" data-action="profil" id="spotlight-book" type="button">
+            <button aria-label="Buka buku iuran anggota" class="spotlight-name-btn" data-action="profil" id="spotlight-book" type="button" onclick={onSpotlightBook}>
               <span id="spotlight-name">-</span>
               <i aria-hidden="true" class="ph ph-identification-card"></i>
             </button>
@@ -203,11 +304,11 @@
         <div class="spotlight-actions">
           <label class="sr-only" for="spotlight-swap-select">Ganti Anggota Tersemat</label>
           <select class="form-control select-ctrl select-compact-34" id="spotlight-swap-select"></select>
-          <button class="btn btn-secondary btn-compact-34" data-action="spotlight-unpin" id="btn-unpin-member" type="button">
+          <button class="btn btn-secondary btn-compact-34" data-action="spotlight-unpin" id="btn-unpin-member" type="button" onclick={onSpotlightUnpin}>
             <i aria-hidden="true" class="ph ph-push-pin-slash"></i>
             <span>Lepas</span>
           </button>
-          <button class="btn btn-primary btn-compact-34" data-action="spotlight-pay" id="spotlight-pay-btn" type="button">
+          <button class="btn btn-primary btn-compact-34" data-action="spotlight-pay" id="spotlight-pay-btn" type="button" onclick={onSpotlightPay}>
             <i aria-hidden="true" class="ph-bold ph-hand-coins"></i>
             <span id="spotlight-pay-label">Bayar Iuran</span>
           </button>
@@ -222,7 +323,7 @@
       <div class="priority-heading">
         <span class="quick-cek-icon" aria-hidden="true"><i class="ph-fill ph-lightning"></i></span>
         <div><h2 id="priority-title">Tunggakan Prioritas</h2><p id="priority-period"></p></div>
-        <button type="button" class="btn" data-action="bulk-toggle" aria-pressed="false"><i class="ph ph-check-square" aria-hidden="true"></i> Pilih Banyak</button>
+        <button type="button" class="btn" data-action="bulk-toggle" aria-pressed="false" onclick={onBulkToggle}><i class="ph ph-check-square" aria-hidden="true"></i> Pilih Banyak</button>
       </div>
       <ul id="priority-members" class="priority-list"></ul>
     </section>
@@ -230,8 +331,8 @@
     <aside id="bulk-dock" class="bulk-dock" aria-label="Pilihan pembayaran massal" hidden>
       <p id="bulk-status" role="status"></p>
       <div>
-        <button type="button" class="btn" data-action="bulk-toggle">Batal</button>
-        <button type="button" class="btn btn-primary" data-action="bulk-review" disabled>Tinjau Pembayaran</button>
+        <button type="button" class="btn" data-action="bulk-toggle" onclick={onBulkToggle}>Batal</button>
+        <button type="button" class="btn btn-primary" data-action="bulk-review" disabled onclick={onBulkReview}>Tinjau Pembayaran</button>
       </div>
     </aside>
 
@@ -239,9 +340,9 @@
       <div class="workspace-tabs-scroll">
         <div class="workspace-tabs" role="tablist" aria-label="Tampilan Buku Kas">
           <span class="workspace-glider" aria-hidden="true"></span>
-          <button type="button" id="workspace-tab-iuran" role="tab" data-action="switch-workspace" data-panel="iuran" aria-selected="true" aria-controls="workspace-iuran" tabindex="0"><i class="ph ph-table" aria-hidden="true"></i><span>Status Iuran</span></button>
-          <button type="button" id="workspace-tab-history" role="tab" data-action="switch-workspace" data-panel="history" aria-selected="false" aria-controls="workspace-history" tabindex="-1"><i class="ph ph-receipt" aria-hidden="true"></i><span class="workspace-label-desktop">Riwayat Arus Kas</span><span class="workspace-label-mobile">Arus Kas</span></button>
-          <button type="button" id="workspace-tab-stats" role="tab" data-action="switch-workspace" data-panel="stats" aria-selected="false" aria-controls="workspace-stats" tabindex="-1"><i class="ph ph-chart-bar" aria-hidden="true"></i><span class="workspace-label-desktop">Kesehatan &amp; Grafik Kas</span><span class="workspace-label-mobile">Grafik Kas</span></button>
+          <button type="button" id="workspace-tab-iuran" role="tab" data-action="switch-workspace" data-panel="iuran" aria-selected="true" aria-controls="workspace-iuran" tabindex="0" onclick={onSwitchWorkspace('iuran')}><i class="ph ph-table" aria-hidden="true"></i><span>Status Iuran</span></button>
+          <button type="button" id="workspace-tab-history" role="tab" data-action="switch-workspace" data-panel="history" aria-selected="false" aria-controls="workspace-history" tabindex="-1" onclick={onSwitchWorkspace('history')}><i class="ph ph-receipt" aria-hidden="true"></i><span class="workspace-label-desktop">Riwayat Arus Kas</span><span class="workspace-label-mobile">Arus Kas</span></button>
+          <button type="button" id="workspace-tab-stats" role="tab" data-action="switch-workspace" data-panel="stats" aria-selected="false" aria-controls="workspace-stats" tabindex="-1" onclick={onSwitchWorkspace('stats')}><i class="ph ph-chart-bar" aria-hidden="true"></i><span class="workspace-label-desktop">Kesehatan &amp; Grafik Kas</span><span class="workspace-label-mobile">Grafik Kas</span></button>
         </div>
       </div>
       <div class="workspace-matrix-tools" role="group" aria-label="Cari dan filter status iuran">
@@ -255,11 +356,11 @@
         </div>
         <div class="workspace-status-filter" role="group" aria-label="Filter status tahun terpilih">
           <span class="workspace-glider" aria-hidden="true"></span>
-          <button type="button" data-action="filter-dues-status" data-status-filter="all" aria-pressed="true">Semua</button>
-          <button type="button" data-action="filter-dues-status" data-status-filter="unpaid" aria-pressed="false">Nunggak</button>
-          <button type="button" data-action="filter-dues-status" data-status-filter="paid" aria-pressed="false">Lunas</button>
+          <button type="button" data-action="filter-dues-status" data-status-filter="all" aria-pressed="true" onclick={onFilterDues('all')}>Semua</button>
+          <button type="button" data-action="filter-dues-status" data-status-filter="unpaid" aria-pressed="false" onclick={onFilterDues('unpaid')}>Nunggak</button>
+          <button type="button" data-action="filter-dues-status" data-status-filter="paid" aria-pressed="false" onclick={onFilterDues('paid')}>Lunas</button>
         </div>
-        <button type="button" class="btn btn-secondary workspace-jump" data-action="open-menu-modal" aria-label="Buka Pencarian Cepat"><i class="ph ph-command" aria-hidden="true"></i><span>Lompat Cepat</span><span class="workspace-kbd-hint" aria-hidden="true">Ctrl+K</span></button>
+        <button type="button" class="btn btn-secondary workspace-jump" data-action="open-menu-modal" aria-label="Buka Pencarian Cepat" onclick={onOpenMenu}><i class="ph ph-command" aria-hidden="true"></i><span>Lompat Cepat</span><span class="workspace-kbd-hint" aria-hidden="true">Ctrl+K</span></button>
       </div>
       <div class="workspace-history-tools" role="group" aria-label="Cari dan filter riwayat arus kas">
         <div class="workspace-search">
@@ -268,14 +369,14 @@
         </div>
         <div class="workspace-status-filter" role="group" aria-label="Jenis Arus Kas">
           <span class="workspace-glider" aria-hidden="true"></span>
-          <button type="button" data-action="set-history-filter" data-filter="semua" aria-pressed="true">Semua (0)</button>
-          <button type="button" data-action="set-history-filter" data-filter="masuk" aria-pressed="false">Masuk (0)</button>
-          <button type="button" data-action="set-history-filter" data-filter="keluar" aria-pressed="false">Keluar (0)</button>
+          <button type="button" data-action="set-history-filter" data-filter="semua" aria-pressed="true" onclick={onHistoryFilter('semua')}>Semua (0)</button>
+          <button type="button" data-action="set-history-filter" data-filter="masuk" aria-pressed="false" onclick={onHistoryFilter('masuk')}>Masuk (0)</button>
+          <button type="button" data-action="set-history-filter" data-filter="keluar" aria-pressed="false" onclick={onHistoryFilter('keluar')}>Keluar (0)</button>
         </div>
       </div>
     </div>
     <div class="workspace-panels">
-    <section id="workspace-iuran" class="workspace-panel" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-iuran" tabindex="0">
+    <div id="workspace-iuran" class="workspace-panel" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-iuran" tabindex="0">
     <div class="table-card hybrid-card hybrid-matrix" id="section-rekap">
 <!-- Desktop Table Header (Clean 1-Row Toolbar) -->
 <div class="table-header desktop-only">
@@ -300,7 +401,7 @@
 <i class="ph ph-arrows-clockwise sync-rekap-icon" aria-hidden="true"></i>
 <span class="sync-rekap-label">Sinkron</span>
 </button>
-<button class="dues-status-help" data-action="open-dues-legend" type="button"><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
+<button class="dues-status-help" data-action="open-dues-legend" type="button" onclick={onOpenDuesLegend}><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
 </div>
 </div>
 <!-- Mobile matrix toolbar -->
@@ -327,12 +428,12 @@
 <i class="ph ph-arrows-clockwise sync-rekap-icon" aria-hidden="true"></i>
 <span class="sync-rekap-label">Sinkron</span>
 </button>
-<button class="dues-status-help" data-action="open-dues-legend" type="button"><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
+<button class="dues-status-help" data-action="open-dues-legend" type="button" onclick={onOpenDuesLegend}><i aria-hidden="true" class="ph ph-question"></i><span>Arti Status</span></button>
 </div>
 </div>
 </div>
 
-      <div class="table-responsive" tabindex="0" role="region" aria-label="Matriks Status Iuran 12 Bulan">
+      <div class="table-responsive" role="region" aria-label="Matriks Status Iuran 12 Bulan">
         <table class="table-matriks">
           <caption class="sr-only">Status pembayaran iuran per anggota sepanjang 12 bulan</caption>
           <thead>
@@ -370,8 +471,8 @@
         </div>
       </nav>
     </div>
-    </section>
-    <section id="workspace-history" class="workspace-panel hybrid-card" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-history" tabindex="0" hidden>
+    </div>
+    <div id="workspace-history" class="workspace-panel hybrid-card" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-history" tabindex="0" hidden>
       <div class="hybrid-ledger-toolbar">
         <strong id="hybrid-ledger-count">Menampilkan 0 transaksi</strong>
         <span>Klik baris untuk membuka Struk Digital</span>
@@ -392,8 +493,8 @@
           </div>
         </div>
       </nav>
-    </section>
-    <section id="workspace-stats" class="workspace-panel analytics-grid" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-stats" tabindex="0" hidden>
+    </div>
+    <div id="workspace-stats" class="workspace-panel analytics-grid" data-cascade="5" role="tabpanel" aria-labelledby="workspace-tab-stats" tabindex="0" hidden>
       <article class="hybrid-card chart-card">
         <div class="chart-head">
           <div><h2 class="chart-title" id="hybrid-chart-title">Arus Kas Bulanan &amp; Tren Saldo</h2>
@@ -412,7 +513,7 @@
         </div>
         <div class="breakdown-list" id="hybrid-analytics-breakdown"></div>
       </article>
-    </section>
+    </div>
     </div>
   </main>
 
@@ -507,12 +608,12 @@
     </button>
     <div class="kasi-mini-bubble" id="kasi-mini-bubble" hidden aria-live="polite"></div>
     <div class="kasi-halo" id="kasi-halo" role="group" aria-label="Interaksi Kasi" hidden>
-      <button type="button" data-action="kasi-action" data-kasi="pet"><i class="ph-fill ph-hand-palm" aria-hidden="true"></i><span>Elus</span></button>
-      <button type="button" data-action="kasi-action" data-kasi="coin"><i class="ph-fill ph-coin" aria-hidden="true"></i><span>Koin</span></button>
-      <button type="button" data-action="kasi-action" data-kasi="fish"><i class="ph-fill ph-fish-simple" aria-hidden="true"></i><span>Ikan</span></button>
-      <button type="button" data-action="kasi-action" data-kasi="flip"><i class="ph-fill ph-paw-print" aria-hidden="true"></i><span>Salto</span></button>
-      <button type="button" data-action="kasi-action" data-kasi="trick"><i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Trik</span></button>
-      <button type="button" data-action="kasi-action" data-kasi="guide"><i class="ph-fill ph-book-open-text" aria-hidden="true"></i><span>Panduan</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="pet" onclick={onKasiAction('pet')}><i class="ph-fill ph-hand-palm" aria-hidden="true"></i><span>Elus</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="coin" onclick={onKasiAction('coin')}><i class="ph-fill ph-coin" aria-hidden="true"></i><span>Koin</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="fish" onclick={onKasiAction('fish')}><i class="ph-fill ph-fish-simple" aria-hidden="true"></i><span>Ikan</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="flip" onclick={onKasiAction('flip')}><i class="ph-fill ph-paw-print" aria-hidden="true"></i><span>Salto</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="trick" onclick={onKasiAction('trick')}><i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Trik</span></button>
+      <button type="button" data-action="kasi-action" data-kasi="guide" onclick={onKasiAction('guide')}><i class="ph-fill ph-book-open-text" aria-hidden="true"></i><span>Panduan</span></button>
     </div>
     <span id="kasi-feedback" class="sr-only" aria-live="polite"></span>
   </aside>
@@ -606,14 +707,14 @@
         </svg>
         <div class="guided-tour-head-text">
           <p id="guided-tour-count"></p>
-          <h2 id="guided-tour-title" tabindex="-1"></h2>
+          <h2 id="guided-tour-title" tabindex="-1">Panduan Finkas</h2>
         </div>
       </div>
       <p id="guided-tour-description"></p>
       <div class="guided-tour-actions">
-        <button type="button" class="btn" data-action="guided-tour-step" data-step="skip">Lewati Tur</button>
-        <button type="button" class="btn" data-action="guided-tour-step" data-step="back" hidden>Kembali</button>
-        <button type="button" class="btn btn-primary" data-action="guided-tour-step" data-step="next">Lanjut</button>
+        <button type="button" class="btn" data-action="guided-tour-step" data-step="skip" onclick={onTourStep('skip')}>Lewati Tur</button>
+        <button type="button" class="btn" data-action="guided-tour-step" data-step="back" hidden onclick={onTourStep('back')}>Kembali</button>
+        <button type="button" class="btn btn-primary" data-action="guided-tour-step" data-step="next" onclick={onTourStep('next')}>Lanjut</button>
       </div>
     </div>
   </dialog>
@@ -622,23 +723,23 @@
 
   <!-- Bottom Navigation (mobile only) -->
   <nav class="bottom-nav mobile-bottom-nav" id="bottom-nav" aria-label="Navigasi Cepat Seluler">
-    <button type="button" class="bottom-nav-item mobile-nav-btn active" data-action="nav-rekap" aria-controls="workspace-iuran" aria-current="location">
+    <button type="button" class="bottom-nav-item mobile-nav-btn active" data-action="nav-rekap" aria-controls="workspace-iuran" aria-current="location" onclick={onNavRekap}>
       <i class="ph ph-table" aria-hidden="true"></i>
       <span>Status Iuran</span>
     </button>
-    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-riwayat" aria-controls="workspace-history">
+    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-riwayat" aria-controls="workspace-history" onclick={onNavRiwayat}>
       <i class="ph ph-receipt" aria-hidden="true"></i>
       <span>Arus Kas</span>
     </button>
-    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-stats" aria-controls="workspace-stats">
+    <button type="button" class="bottom-nav-item mobile-nav-btn" data-action="nav-stats" aria-controls="workspace-stats" onclick={onNavStats}>
       <i class="ph ph-chart-bar" aria-hidden="true"></i>
       <span>Grafik</span>
     </button>
-    <button type="button" class="bottom-nav-item mobile-nav-btn cta admin-only" data-action="nav-catat">
+    <button type="button" class="bottom-nav-item mobile-nav-btn cta admin-only" data-action="nav-catat" onclick={onNavCatat}>
       <i class="ph-bold ph-plus" aria-hidden="true"></i>
       <span>Catat Kas</span>
     </button>
-    <button type="button" class="bottom-nav-item mobile-nav-btn cta non-admin-only" data-action="nav-pay">
+    <button type="button" class="bottom-nav-item mobile-nav-btn cta non-admin-only" data-action="nav-pay" onclick={onNavPay}>
       <i class="ph-bold ph-hand-coins" aria-hidden="true"></i>
       <span>Bayar</span>
     </button>

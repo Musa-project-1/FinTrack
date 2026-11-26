@@ -285,7 +285,7 @@
       border-radius: 8px; text-align: start; transition: color 150ms ease;
     }
     #spotlight-name {
-      min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
       overflow: hidden; overflow-wrap: anywhere; padding-block: 1px;
     }
     @media (hover: hover) and (pointer: fine) {

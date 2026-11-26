@@ -23,7 +23,7 @@
     <div class="hybrid-self-pay-body">
       <div class="self-pay-field">
         <label for="self-pay-member">Atas Nama Anggota</label>
-        <select id="self-pay-member" class="form-control" autofocus></select>
+        <select id="self-pay-member" class="form-control"></select>
       </div>
 
       <section class="self-pay-field" aria-labelledby="self-pay-period-title">

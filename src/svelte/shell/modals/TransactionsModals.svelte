@@ -1,11 +1,26 @@
 <script lang="ts">
+  import { getInput } from 'finkas/core/utils';
   import { closeConfirmDialog, closeModal, executeConfirmAction, switchTab } from '../../ui/modal';
-  import { eksekusiHapus } from '../../handlers/transactions';
+  import { eksekusiHapus, konfirmasiHapus } from '../../handlers/transactions';
+  import { cetakStruk } from '../../handlers/export';
 
   const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
   const onSwitchTrxTab = (tab: string) => (e: MouseEvent) => {
     e.stopPropagation();
     switchTab(tab, 'modal-transaksi');
+  };
+  const onCetakDariEdit = (e: MouseEvent) => {
+    e.stopPropagation();
+    const idTrx = getInput('edit-id')?.value;
+    if (idTrx) cetakStruk(idTrx);
+  };
+  const onHapusDariEdit = (e: MouseEvent) => {
+    e.stopPropagation();
+    const idTrx = getInput('edit-id')?.value;
+    if (idTrx) {
+      closeModal('modal-edit-transaksi', true);
+      konfirmasiHapus(idTrx);
+    }
   };
   const onDeleteConfirm = (e: MouseEvent) => { e.stopPropagation(); eksekusiHapus(); };
   const onConfirmCancel = (e: MouseEvent) => { e.stopPropagation(); closeConfirmDialog(); };
@@ -391,10 +406,10 @@
                 <span class="edit-origin-summary" id="edit-origin-summary">-</span>
               </div>
               <div class="edit-origin-actions">
-                <button type="button" class="btn btn-outline btn-secondary edit-quick-btn" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi">
+                <button type="button" class="btn btn-outline btn-secondary edit-quick-btn" data-action="cetak-dari-edit" id="btn-edit-cetak" title="Cetak Struk Transaksi" onclick={onCetakDariEdit}>
                   <i class="ph-bold ph-printer" aria-hidden="true"></i> <span>Struk</span>
                 </button>
-                <button type="button" class="btn btn-danger-outline edit-quick-btn" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi">
+                <button type="button" class="btn btn-danger-outline edit-quick-btn" data-action="hapus-dari-edit" id="btn-edit-hapus" title="Hapus Transaksi" onclick={onHapusDariEdit}>
                   <i class="ph-bold ph-trash" aria-hidden="true"></i> <span>Hapus</span>
                 </button>
               </div>

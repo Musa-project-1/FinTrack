@@ -66,7 +66,7 @@
             </div>
             <div class="auth-input-shell">
               <span class="auth-input-icon" aria-hidden="true"><i class="ph ph-key"></i></span>
-              <input type="password" id="input-admin-pwd" name="admin-pwd" class="auth-input auth-pwd-input" placeholder="Masukkan kata sandi..." required autofocus autocomplete="current-password" enterkeyhint="done">
+              <input type="password" id="input-admin-pwd" name="admin-pwd" class="auth-input auth-pwd-input" placeholder="Masukkan kata sandi..." required autocomplete="current-password" enterkeyhint="done">
               <button type="button" id="btn-toggle-pwd" class="btn-pwd-peek auth-pwd-toggle" aria-pressed="false" aria-label="Tampilkan kata sandi" aria-controls="input-admin-pwd">
                 <i class="ph ph-eye" id="icon-toggle-pwd" aria-hidden="true"></i>
               </button>

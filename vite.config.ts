@@ -113,7 +113,16 @@ export default defineConfig(({ mode }) => {
           offline: resolve(ROOT, 'offline.html'),
           notfound: resolve(ROOT, '404.html'),
         },
-        output: { minify: true },
+        output: {
+          minify: true,
+          codeSplitting: {
+            groups: [
+              { name: 'vendor-svelte', test: /node_modules\//, priority: 40 },
+              { name: 'finkas-core', test: /src\/svelte\/core\//, priority: 30 },
+              { name: 'finkas-islands', test: /src\/svelte\/(dashboard|modals|forms)\//, priority: 20 },
+            ],
+          },
+        },
       },
     },
   };

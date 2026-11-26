@@ -112,6 +112,7 @@
     border-radius: 12px;
     background: var(--surface-2);
     border: 1px solid var(--border);
+    transition: background-color 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   :global(#modal-quickpay .qp-rapel-wrap[hidden]) {
     display: none;
@@ -131,6 +132,7 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--text-main);
+    transition: color 200ms ease;
   }
   :global(#modal-quickpay .qp-rapel-wrap.is-rapel-active .qp-rapel-title) {
     color: var(--accent);
@@ -145,7 +147,10 @@
     color: var(--accent);
     border: 1px solid var(--accent-border);
     cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  :global(#modal-quickpay .qp-rapel-all-btn:active) {
+    transform: scale(0.95);
   }
   :global(#modal-quickpay .qp-rapel-all-btn[aria-pressed="true"]) {
     background: var(--accent);
@@ -172,7 +177,10 @@
     color: var(--text-muted);
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    transition: background-color 200ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms ease, border-color 200ms ease, transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  :global(#modal-quickpay .qp-rapel-pill:active) {
+    transform: scale(0.94);
   }
   :global(#modal-quickpay .qp-rapel-pill[aria-pressed="true"]) {
     background: var(--accent);
@@ -180,13 +188,21 @@
     border-color: var(--accent);
     font-weight: 700;
   }
+  :global(#modal-quickpay .qp-rapel-pill.is-wave-pop) {
+    animation: qpPillWave 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--qp-wave-i, 0) * 34ms);
+  }
   :global(#modal-quickpay .qp-rapel-lock-hint) {
     font-size: 11px;
     font-weight: 600;
     color: var(--text-muted);
+    animation: qpFadeSlideIn 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   :global(#modal-quickpay .qp-rapel-lock-hint[hidden]) {
     display: none;
+  }
+  :global(#modal-quickpay .input-with-prefix) {
+    transition: background-color 220ms ease, border-color 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   :global(#modal-quickpay .input-with-prefix.is-rapel-locked) {
     background: var(--surface-2);
@@ -196,9 +212,44 @@
     color: var(--text-main);
     cursor: default;
   }
+  :global(#modal-quickpay .is-rapel-pulse) {
+    animation: qpFocusPulse 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  :global(#modal-quickpay .qp-status-pill) {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
   :global(#modal-quickpay .qp-status-pill.is-rapel) {
     background: var(--accent-tint);
     color: var(--accent);
     border-color: var(--accent-border);
+  }
+  @keyframes qpPillWave {
+    0% { transform: scale(0.9); }
+    55% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+  @keyframes qpFocusPulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.015); border-color: var(--accent); }
+    100% { transform: scale(1); }
+  }
+  @keyframes qpFadeSlideIn {
+    0% { opacity: 0; transform: translateY(-3px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(#modal-quickpay .qp-rapel-wrap),
+    :global(#modal-quickpay .qp-rapel-title),
+    :global(#modal-quickpay .qp-rapel-all-btn),
+    :global(#modal-quickpay .qp-rapel-pill),
+    :global(#modal-quickpay .input-with-prefix),
+    :global(#modal-quickpay .qp-status-pill) {
+      transition: none;
+    }
+    :global(#modal-quickpay .qp-rapel-pill.is-wave-pop),
+    :global(#modal-quickpay .qp-rapel-lock-hint),
+    :global(#modal-quickpay .is-rapel-pulse) {
+      animation: none;
+    }
   }
 </style>

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Finkas - Modern PWA Kas & Iuran",
   "engines": {
-    "node": ">=26.0.0"
+    "node": "24.x"
   },
   "scripts": {
     "build": "node scripts/render-shells.mjs && vite build && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify",

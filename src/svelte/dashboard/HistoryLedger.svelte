@@ -1,10 +1,76 @@
 <script lang="ts">
-  import { historyStore as vm } from '../stores/history.svelte';
+  import {
+    historyStore as vm,
+    toggleHistorySelectMode,
+    toggleHistoryRowSelect,
+    toggleSelectAllHistory
+  } from '../stores/history.svelte';
+  import { confirmBulkDeleteTransactions } from '../handlers/bulk-delete-transactions';
+
+  const selectedSet = $derived(new Set(vm.selectedIds));
+  const allSelected = $derived(
+    vm.allFilteredIds.length > 0 && vm.allFilteredIds.every((id) => selectedSet.has(id))
+  );
+
+  const onRowClick = (id: string) => (e: MouseEvent) => {
+    if (!vm.selectMode) return;
+    e.stopPropagation();
+    toggleHistoryRowSelect(id);
+  };
 </script>
+
+{#if vm.isAdmin && vm.rows.length}
+  <div class="ledger-bulk-bar admin-only" class:is-active={vm.selectMode}>
+    {#if !vm.selectMode}
+      <button type="button" class="btn btn-secondary ledger-bulk-trigger" onclick={toggleHistorySelectMode}>
+        <i class="ph ph-check-square" aria-hidden="true"></i>
+        <span>Pilih Banyak</span>
+      </button>
+    {:else}
+      <div class="ledger-bulk-left">
+        <button type="button" class="btn btn-secondary ledger-bulk-btn" onclick={toggleSelectAllHistory} disabled={vm.isDeleting}>
+          <i class="ph {allSelected ? 'ph-x-square' : 'ph-checks'}" aria-hidden="true"></i>
+          <span>{allSelected ? 'Batal Pilih' : `Pilih Semua (${vm.allFilteredIds.length})`}</span>
+        </button>
+        <span class="ledger-bulk-count">{vm.selectedIds.length} dipilih</span>
+      </div>
+      <div class="ledger-bulk-right">
+        <button
+          type="button"
+          class="btn ledger-bulk-delete-btn"
+          disabled={vm.selectedIds.length === 0 || vm.isDeleting}
+          onclick={() => confirmBulkDeleteTransactions(vm.selectedIds)}
+        >
+          <i class="ph-bold ph-trash" aria-hidden="true"></i>
+          <span>{vm.isDeleting ? 'Menghapus…' : `Hapus (${vm.selectedIds.length})`}</span>
+        </button>
+        <button type="button" class="btn btn-secondary ledger-bulk-btn" onclick={toggleHistorySelectMode} disabled={vm.isDeleting}>
+          <span>Selesai</span>
+        </button>
+      </div>
+    {/if}
+  </div>
+{/if}
 
 {#if vm.rows.length}
   {#each vm.rows as row, idx (row.id + ':' + idx)}
-    <button type="button" class="ledger-row" class:is-just-updated={vm.updatedId === row.id} data-action="open-receipt" data-id={row.id}>
+    {@const checked = selectedSet.has(row.id)}
+    <button
+      type="button"
+      class="ledger-row"
+      class:is-just-updated={vm.updatedId === row.id}
+      class:is-select-mode={vm.selectMode}
+      class:is-selected={vm.selectMode && checked}
+      data-action={vm.selectMode ? undefined : 'open-receipt'}
+      data-id={row.id}
+      aria-pressed={vm.selectMode ? checked : undefined}
+      onclick={onRowClick(row.id)}
+    >
+      {#if vm.selectMode}
+        <span class="ledger-check-box" class:is-checked={checked} aria-hidden="true">
+          {#if checked}<i class="ph-bold ph-check"></i>{/if}
+        </span>
+      {/if}
       <span class="ledger-type-icon {row.flow}" aria-hidden="true"><i class="ph {row.inflow ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i></span>
       <span class="ledger-main">
         <span class="ledger-title" title={row.title}>{row.title}</span>
@@ -12,7 +78,7 @@
           <span class="cat-tag">{row.category}</span><span class="ledger-id">{row.id}</span></span>
       </span>
       <span class="ledger-amt-col"><span class="ledger-amt {row.flow} nominal-val sensitive-amt">{row.amountText}</span>
-        <span class="ledger-action-hint">{row.hint}</span></span>
+        <span class="ledger-action-hint">{vm.selectMode ? (checked ? 'Terpilih' : 'Ketuk untuk pilih') : row.hint}</span></span>
     </button>
   {/each}
 {:else}
@@ -498,6 +564,75 @@
       0% { background-color: transparent; box-shadow: inset 0 0 0 1px transparent; }
       22% { background-color: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border); }
       100% { background-color: transparent; box-shadow: inset 0 0 0 1px transparent; }
+    }
+
+    .ledger-bulk-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .ledger-bulk-bar.is-active {
+      justify-content: space-between;
+      background: var(--surface-2);
+    }
+    .ledger-bulk-left,
+    .ledger-bulk-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ledger-bulk-trigger,
+    .ledger-bulk-btn,
+    .ledger-bulk-delete-btn {
+      font-size: 12px;
+      padding: 6px 12px;
+      min-height: 34px;
+      gap: 6px;
+    }
+    .ledger-bulk-count {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .ledger-bulk-delete-btn {
+      background: var(--danger);
+      color: var(--danger-ink);
+      border: 1px solid var(--danger);
+      font-weight: 700;
+    }
+    .ledger-bulk-delete-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .ledger-check-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--danger-ink);
+      font-size: 12px;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 140ms ease;
+    }
+    .ledger-check-box.is-checked {
+      background: var(--danger);
+      border-color: var(--danger);
+      transform: scale(1.04);
+    }
+    .ledger-row.is-selected {
+      background: var(--danger-bg);
     }
   }
 </style>

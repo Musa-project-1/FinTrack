@@ -54,9 +54,25 @@ export function computeSpotlightViewModel(ledger: DuesLedger, current: Period, o
   const total = member?.months.length ?? 0;
   const arrearsCount = member?.unpaidMonths ?? 0;
   const selected = opts.selectedMonth === undefined ? undefined : periods[opts.selectedMonth];
-  const pending = adminHidden ? [] : ledger.members.map(({ ang }) => ({ ang, month: ledger.getMonth(ang, monthIndex, year) }))
-    .filter(({ month }) => month.due && month.remaining > 0)
-    .sort((a, b) => b.month.remaining - a.month.remaining || a.ang.Nama_Anggota.localeCompare(b.ang.Nama_Anggota, 'id'));
+  const pending = adminHidden ? [] : ledger.members
+    .map((summary) => {
+      const owedUnpaid = summary.months.filter((m) => m.owed && m.remaining > 0);
+      if (!owedUnpaid.length) return null;
+      const oldest = owedUnpaid[0];
+      return {
+        ang: summary.ang,
+        arrears: summary.arrears,
+        unpaidMonths: owedUnpaid.length,
+        oldestMonth: oldest,
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+    .sort((a, b) =>
+      b.arrears - a.arrears ||
+      b.unpaidMonths - a.unpaidMonths ||
+      a.ang.Nama_Anggota.localeCompare(b.ang.Nama_Anggota, 'id')
+    );
+  const totalPendingArrears = pending.reduce((sum, entry) => sum + entry.arrears, 0);
 
   return {
     memberHidden, adminHidden, members, pinnedId, hasPinned: Boolean(member),
@@ -74,11 +90,22 @@ export function computeSpotlightViewModel(ledger: DuesLedger, current: Period, o
       return { index, name, shortName: name.slice(0, 3), status, appearance, icon, owed: month.owed, ariaLabel: `${name}, ${status}` };
     }),
     detail: selected ? detailFor(selected, pinnedId) : null,
-    priorityTitle: `Tunggakan Prioritas (${monthName} ${year})`,
-    priorityPeriod: pending.length ? `${pending.length} anggota belum lunas ${monthName}` : 'Tidak ada tunggakan bulan ini',
-    priorityItems: pending.slice(0, 4).map(({ ang, month }) => ({
-      memberId: ang.ID_Anggota, memberName: ang.Nama_Anggota, remainingLabel: `Sisa ${formatDisplayRp(month.remaining)}`,
-      monthName, monthShort: monthName.slice(0, 3), year
-    }))
+    priorityTitle: `Tunggakan Prioritas (${year})`,
+    priorityPeriod: pending.length
+      ? `${pending.length} anggota menunggak · Total ${formatDisplayRp(totalPendingArrears)}`
+      : `Semua anggota lunas s.d. ${monthName}`,
+    priorityItems: pending.map(({ ang, arrears, unpaidMonths, oldestMonth }) => {
+      const targetMonthName = NAMA_BULAN[oldestMonth.monthIndex];
+      return {
+        memberId: ang.ID_Anggota,
+        memberName: ang.Nama_Anggota,
+        remainingLabel: unpaidMonths > 1
+          ? `${unpaidMonths} bln · ${formatDisplayRp(arrears)}`
+          : `Sisa ${formatDisplayRp(oldestMonth.remaining)}`,
+        monthName: targetMonthName,
+        monthShort: targetMonthName.slice(0, 3),
+        year: oldestMonth.year,
+      };
+    })
   };
 }

@@ -279,14 +279,14 @@ test('pin controls, monthly details, keyboard focus and admin arrears update syn
   render();
   assert.equal(byId('member-spotlight').hidden, true);
   assert.equal(byId('admin-priorities').hidden, false);
-  assert.equal(byId('priority-title').textContent, 'Tunggakan Prioritas (Mei 2025)');
-  assert.equal(byId('priority-period').textContent, '5 anggota belum lunas Mei');
-  assert.deepEqual([...document.querySelectorAll('#priority-members li > span')].map(s => s.textContent),
-    ['Ana', 'Budi', 'Cici', 'Dewi']);
+  assert.equal(byId('priority-title').textContent, 'Tunggakan Prioritas (2025)');
+  assert.match(byId('priority-period').textContent, /^5 anggota menunggak · Total /);
+  assert.deepEqual([...document.querySelectorAll('#priority-members .priority-item-name')].map(s => s.textContent),
+    ['Ana', 'Budi', 'Cici', 'Dewi', 'Zara']);
   const first = document.querySelector('#priority-members button[data-action="quickpay-card"]');
-  assert.deepEqual({ ...first.dataset }, { action: 'quickpay-card', anggota: 'A6', bulan: 'Mei', year: '2025' });
-  assert.equal(first.getAttribute('aria-label'), 'Lunasi iuran Mei untuk Ana');
-  assert.equal(first.previousElementSibling.title, 'Sisa ' + formatRp(10000));
+  assert.deepEqual({ ...first.dataset }, { action: 'quickpay-card', anggota: 'A6', bulan: 'Januari', year: '2025' });
+  assert.equal(first.getAttribute('aria-label'), 'Lunasi iuran Januari untuk Ana');
+  assert.equal(first.previousElementSibling.title, '4 bln · ' + formatRp(40000));
 });
 
 const stage3 = {

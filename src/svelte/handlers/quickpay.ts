@@ -21,6 +21,13 @@ import {
   integrateServerTransaction,
   rerenderAfterLedgerChange
 } from "./transaction-shared";
+import {
+  canAnimateQuickPay,
+  getQuickPayDisplayedNominal,
+  setQuickPayDisplayedNominal,
+  triggerQuickPayPulse,
+  rollQuickPayNumbers
+} from "./quickpay-motion";
 
 export interface PayableMonthOption {
   monthIndex: number;
@@ -105,7 +112,7 @@ const renderQuickPayPresets = () => {
   syncQuickPayPresets({ chips });
 };
 
-const renderQuickPayRapelStrip = () => {
+const renderQuickPayRapelStrip = (newlyAddedMonths?: Set<string>) => {
   const wrap = document.getElementById("qp-rapel-wrap");
   const pillsEl = document.getElementById("qp-rapel-pills");
   const allBtn = document.getElementById("btn-qp-rapel-all");
@@ -134,6 +141,28 @@ const renderQuickPayRapelStrip = () => {
   }
 
   const selectedSet = new Set(selectedMonths);
+  const existingBtns = Array.from(pillsEl.querySelectorAll?.("[data-qp-month]") || []) as HTMLButtonElement[];
+  const canReuse = existingBtns.length === payableMonths.length &&
+    existingBtns.every((b, idx) => b.getAttribute?.("data-qp-month") === payableMonths[idx].bulan);
+
+  if (canReuse) {
+    let waveIdx = 0;
+    for (let i = 0; i < payableMonths.length; i++) {
+      const m = payableMonths[i];
+      const btn = existingBtns[i];
+      const active = selectedSet.has(m.bulan);
+      btn.setAttribute?.("aria-pressed", String(active));
+      btn.classList?.remove?.("is-wave-pop");
+      if (active && newlyAddedMonths?.has(m.bulan) && canAnimateQuickPay()) {
+        btn.style?.setProperty?.("--qp-wave-i", String(Math.min(waveIdx, 5)));
+        void btn.offsetWidth;
+        btn.classList?.add?.("is-wave-pop");
+        waveIdx += 1;
+      }
+    }
+    return;
+  }
+
   pillsEl.replaceChildren?.();
   for (const m of payableMonths) {
     const btn = document.createElement("button");
@@ -150,12 +179,21 @@ const renderQuickPayRapelStrip = () => {
   }
 };
 
-const syncNominalFromSelection = () => {
+const syncNominalFromSelection = (animate = false) => {
   if (!qpContext) return;
   const selected = getSelectedMonthOptions();
   const total = selected.reduce((sum, m) => sum + m.remaining, 0) || qpContext.remaining;
-  const input = getInput("qp-nominal");
-  if (input) input.value = new Intl.NumberFormat("id-ID").format(total);
+  const prev = getQuickPayDisplayedNominal() || getRawNominal("qp-nominal") || 0;
+  if (animate) {
+    rollQuickPayNumbers(prev, total);
+    triggerQuickPayPulse(document.getElementById("qp-nominal-wrap"));
+    triggerQuickPayPulse(document.getElementById("qp-impact-callout"));
+    triggerQuickPayPulse(document.getElementById("qp-status-badge"));
+  } else {
+    setQuickPayDisplayedNominal(total);
+    const input = getInput("qp-nominal");
+    if (input) input.value = new Intl.NumberFormat("id-ID").format(total);
+  }
   if (selected.length === 1) {
     qpContext.bulan = selected[0].bulan;
     qpContext.paid = selected[0].paid;
@@ -201,7 +239,7 @@ const markQuickPaySettled = (nominal: number, count = 1) => {
   setText("qp-impact-status", count > 1 ? `${count} Bulan Lunas Tercatat` : (full ? "Lunas Tercatat" : "Cicilan Tercatat"));
 };
 
-const renderQuickPayMeta = () => {
+const renderQuickPayMeta = (newlyAddedMonths?: Set<string>) => {
   if (!qpContext) return;
   const { nama, tahun } = qpContext;
   const selected = getSelectedMonthOptions();
@@ -244,7 +282,7 @@ const renderQuickPayMeta = () => {
     }
   }
 
-  renderQuickPayRapelStrip();
+  renderQuickPayRapelStrip(newlyAddedMonths);
   renderQuickPayPresets();
 };
 
@@ -288,29 +326,33 @@ const toggleRapelMonth = (bulan: string) => {
   const exists = qpContext.payableMonths.some((m) => m.bulan === bulan);
   if (!exists) return;
   const current = new Set(qpContext.selectedMonths);
+  const newlyAdded = new Set<string>();
   if (current.has(bulan)) {
     if (current.size <= 1) return;
     current.delete(bulan);
   } else {
     current.add(bulan);
+    newlyAdded.add(bulan);
   }
   qpContext.selectedMonths = qpContext.payableMonths
     .filter((m) => current.has(m.bulan))
     .map((m) => m.bulan);
-  syncNominalFromSelection();
-  renderQuickPayMeta();
+  renderQuickPayMeta(newlyAdded);
   updateQuickPayPreview();
+  syncNominalFromSelection(true);
 };
 
 const toggleRapelAllOverdue = () => {
   if (!qpContext) return;
   const targets = getOverduePresetTargets();
   if (targets.length === 0) return;
-  const allSelected = targets.every((b) => qpContext!.selectedMonths.includes(b));
+  const prevSet = new Set(qpContext.selectedMonths);
+  const allSelected = targets.every((b) => prevSet.has(b));
   qpContext.selectedMonths = allSelected ? [qpContext.bulan] : targets;
-  syncNominalFromSelection();
-  renderQuickPayMeta();
+  const newlyAdded = new Set(qpContext.selectedMonths.filter((b) => !prevSet.has(b)));
+  renderQuickPayMeta(newlyAdded);
   updateQuickPayPreview();
+  syncNominalFromSelection(true);
 };
 
 const ensureQuickPayBound = () => {
@@ -430,6 +472,7 @@ export const openQuickPaySheet = (idAnggota: string, bulan: string, year = curre
     payableMonths,
     selectedMonths: [bulan]
   };
+  setQuickPayDisplayedNominal(defaultNominal);
   resetQuickPaySettledState();
   ensureQuickPayBound();
   renderQuickPayMeta();

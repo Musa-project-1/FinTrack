@@ -381,11 +381,11 @@ test('SEC-02: concurrent registerFailedAttempt calls never lose updates and fail
   assert.equal(google503.statusCode, 503);
 });
 
-/* ── SEC-03: 12h Admin/SuperAdmin TTL, jti, /api/logout & superadminRevokedAfter ── */
+/* ── SEC-03: Admin/SuperAdmin TTL, jti, /api/logout & superadminRevokedAfter ── */
 
-test('SEC-03: admin/superadmin tokens expire in 12h, carry jti, and are revoked by /api/logout & legacy master upgrade', async () => {
-  assert.equal(sessionMod.ADMIN_SESSION_TTL, 12 * 60 * 60);
-  assert.equal(sessionMod.SUPERADMIN_SESSION_TTL, 12 * 60 * 60);
+test('SEC-03: admin/superadmin tokens use configured TTL, carry jti, and are revoked by /api/logout & legacy master upgrade', async () => {
+  assert.equal(sessionMod.ADMIN_SESSION_TTL, 30 * 24 * 60 * 60);
+  assert.equal(sessionMod.SUPERADMIN_SESSION_TTL, 100 * 365 * 24 * 60 * 60);
   assert.equal(sessionMod.GROUP_SESSION_TTL, 30 * 24 * 60 * 60);
 
   const masterPass = 'legacy-master-secret';
@@ -404,7 +404,7 @@ test('SEC-03: admin/superadmin tokens expire in 12h, carry jti, and are revoked 
   });
   globalThis.fetch = db.fetchImpl;
 
-  // Group admin login gets 12h TTL + jti
+  // Group admin login gets 30d TTL + jti
   const adminRes = mockRes();
   await loginHandler({
     method: 'POST',
@@ -413,7 +413,7 @@ test('SEC-03: admin/superadmin tokens expire in 12h, carry jti, and are revoked 
   assert.equal(adminRes.statusCode, 200);
   const adminClaims = sessionMod.verifySession(adminRes.body.data.sessionToken);
   assert.ok(adminClaims?.jti && adminClaims.jti.length >= 16);
-  assert.equal(adminClaims.exp - adminClaims.iat, 12 * 60 * 60);
+  assert.equal(adminClaims.exp - adminClaims.iat, 30 * 24 * 60 * 60);
 
   // Pre-upgrade superadmin token minted before master password upgrade
   const oldSuperToken = sessionMod.signSession({ role: sessionMod.ROLES.SUPERADMIN, email: 'owner@example.com' }, sessionMod.SUPERADMIN_SESSION_TTL);

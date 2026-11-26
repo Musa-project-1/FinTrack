@@ -16,7 +16,7 @@
       font-size: 24px;
       border-radius: 8px;
     }
-    .pin-control:focus-within { outline: 2px solid var(--accent, var(--lp-pure)); outline-offset: 3px; }
+    .pin-control:focus-within { outline: none; }
     .pin-control > .pin-input:focus { outline: none; }
     .pin-control:has([aria-invalid="true"]) > span { border-color: var(--danger, var(--lp-danger)); }
 

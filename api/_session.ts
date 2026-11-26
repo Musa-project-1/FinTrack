@@ -29,8 +29,8 @@ export const ROLES = {
 };
 
 export const GROUP_SESSION_TTL = 30 * 24 * 60 * 60; // 30 hari (member PIN session)
-export const ADMIN_SESSION_TTL = 12 * 60 * 60; // 12 jam (group admin session)
-export const SUPERADMIN_SESSION_TTL = 12 * 60 * 60; // 12 jam (superadmin session)
+export const ADMIN_SESSION_TTL = 30 * 24 * 60 * 60; // 30 hari (group admin session)
+export const SUPERADMIN_SESSION_TTL = 100 * 365 * 24 * 60 * 60; // 100 tahun / efektif selamanya sampai logout atau dicabut
 
 export type VerifiedSessionClaims = SessionClaims & {
   jti?: string;

@@ -1,3 +1,17 @@
+<script lang="ts">
+  import { closeConfirmDialog, closeModal, executeConfirmAction, switchTab } from '../../ui/modal';
+  import { eksekusiHapus } from '../../handlers/transactions';
+
+  const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
+  const onSwitchTrxTab = (tab: string) => (e: MouseEvent) => {
+    e.stopPropagation();
+    switchTab(tab, 'modal-transaksi');
+  };
+  const onDeleteConfirm = (e: MouseEvent) => { e.stopPropagation(); eksekusiHapus(); };
+  const onConfirmCancel = (e: MouseEvent) => { e.stopPropagation(); closeConfirmDialog(); };
+  const onConfirmSubmit = (e: MouseEvent) => { e.stopPropagation(); executeConfirmAction(); };
+</script>
+
 <!-- 13. Modal Catat Transaksi Baru (Wizard 3-Langkah: Iuran & Operasional) -->
   <dialog class="modal-overlay hybrid-dialog dues-dialog" id="modal-transaksi" aria-labelledby="modal-transaksi-title">
     <div class="modal-content modal-xl modal-data-dialog trx-record-sheet">
@@ -12,7 +26,7 @@
             <p>Catat pembayaran iuran anggota atau arus kas operasional</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-transaksi')}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
       <nav class="trx-stepper" id="trx-stepper" aria-label="Langkah pencatatan">
@@ -52,10 +66,10 @@
       <div class="trx-tabs-bar" id="trx-tabs-bar">
         <div class="tab-header trx-tab-track" role="tablist" aria-label="Jenis Pencatatan">
           <div class="trx-glider-pill" aria-hidden="true"></div>
-          <button type="button" class="tab-btn active" id="btn-tab-iuran" role="tab" aria-selected="true" aria-controls="tab-iuran" data-action="switch-tab" data-tab="iuran">
+          <button type="button" class="tab-btn active" id="btn-tab-iuran" role="tab" aria-selected="true" aria-controls="tab-iuran" data-action="switch-tab" data-tab="iuran" onclick={onSwitchTrxTab('iuran')}>
             <i class="ph ph-users-three" aria-hidden="true"></i><span>Iuran Anggota</span>
           </button>
-          <button type="button" class="tab-btn" id="btn-tab-operasional" role="tab" aria-selected="false" aria-controls="tab-operasional" data-action="switch-tab" data-tab="operasional">
+          <button type="button" class="tab-btn" id="btn-tab-operasional" role="tab" aria-selected="false" aria-controls="tab-operasional" data-action="switch-tab" data-tab="operasional" onclick={onSwitchTrxTab('operasional')}>
             <i class="ph ph-arrows-left-right" aria-hidden="true"></i><span>Kas Operasional</span>
           </button>
         </div>
@@ -153,7 +167,7 @@
 
           <div class="hybrid-settings-footer trx-sheet-footer">
             <div class="trx-footer-left">
-              <button type="button" class="btn btn-secondary" data-action="close-modal" data-trx-show-steps="1">Batal</button>
+              <button type="button" class="btn btn-secondary" data-action="close-modal" data-trx-show-steps="1" onclick={onClose('modal-transaksi')}>Batal</button>
               <button type="button" class="btn btn-secondary" data-trx-prev hidden data-trx-show-steps="2 3">Kembali</button>
               <span class="trx-footer-meta" hidden data-trx-show-steps="2">
                 <span id="summary-count">0 dipilih</span><span class="trx-meta-dot" aria-hidden="true">·</span><strong id="iuran-step2-total">Rp 0</strong>
@@ -278,7 +292,7 @@
 
           <div class="hybrid-settings-footer trx-sheet-footer">
             <div class="trx-footer-left">
-              <button type="button" class="btn btn-secondary" data-action="close-modal" data-trx-show-steps="1">Batal</button>
+              <button type="button" class="btn btn-secondary" data-action="close-modal" data-trx-show-steps="1" onclick={onClose('modal-transaksi')}>Batal</button>
               <button type="button" class="btn btn-secondary" data-trx-prev hidden data-trx-show-steps="2 3">Kembali</button>
               <span class="trx-footer-meta" id="ops-step2-summary" hidden data-trx-show-steps="2">Pengeluaran (−) · Rp 0</span>
             </div>
@@ -327,7 +341,7 @@
             <p>Sesuaikan arus kas, nominal, atau catatan dengan tinjauan dampak saldo</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-edit-transaksi')}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
       <nav class="trx-stepper" id="edit-stepper" aria-label="Langkah koreksi">
@@ -535,7 +549,7 @@
 
         <div class="hybrid-settings-footer trx-sheet-footer">
           <div class="trx-footer-left">
-            <button type="button" class="btn btn-secondary" data-action="close-modal" data-edit-show-steps="1">Batal</button>
+            <button type="button" class="btn btn-secondary" data-action="close-modal" data-edit-show-steps="1" onclick={onClose('modal-edit-transaksi')}>Batal</button>
             <button type="button" class="btn btn-secondary" data-edit-prev hidden data-edit-show-steps="2 3">Kembali</button>
             <span class="trx-footer-meta edit-footer-pill" id="edit-footer-pill" data-edit-show-steps="1 2">
               <span>Selisih:</span><strong id="edit-footer-delta">Rp 0 (Tetap)</strong>
@@ -582,8 +596,8 @@
       <p>Data yang dihapus akan dicatat ke log aktivitas dan saldo kas akan disesuaikan.</p>
       <input type="hidden" id="hapus-id-target">
       <div class="modal-dialog-actions">
-        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-delete">Batal</button>
-        <button type="button" class="btn btn-primary btn-danger-solid btn-liquid" data-action="confirm-delete" id="btn-hapus"><span class="keel-label">Ya, Hapus</span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
+        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-delete" onclick={onClose('modal-hapus')}>Batal</button>
+        <button type="button" class="btn btn-primary btn-danger-solid btn-liquid" data-action="confirm-delete" id="btn-hapus" onclick={onDeleteConfirm}><span class="keel-label">Ya, Hapus</span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
       </div>
       <div class="pay-verified-stage" id="hapus-verified-stage" aria-hidden="true">
         <div class="pay-verified-card">
@@ -612,8 +626,8 @@
       <h2 id="confirm-title">Konfirmasi Perubahan</h2>
       <p id="confirm-message">Apakah Anda yakin ingin menyimpan perubahan ini ke database?</p>
       <div class="modal-dialog-actions">
-        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-confirm-action">Batal</button>
-        <button type="button" class="btn btn-primary" data-action="confirm-action-submit" id="btn-confirm-action-submit">Ya, Lanjutkan</button>
+        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-confirm-action" onclick={onConfirmCancel}>Batal</button>
+        <button type="button" class="btn btn-primary" data-action="confirm-action-submit" id="btn-confirm-action-submit" onclick={onConfirmSubmit}>Ya, Lanjutkan</button>
       </div>
     </div>
   </dialog>

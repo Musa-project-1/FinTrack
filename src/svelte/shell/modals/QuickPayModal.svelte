@@ -1,3 +1,9 @@
+<script lang="ts">
+  import { closeModal } from '../../ui/modal';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-quickpay'); };
+</script>
+
   <!-- 8. Quick Pay Hybrid Kinetic Sheet -->
   <dialog class="modal-overlay hybrid-dialog dues-dialog" id="modal-quickpay" aria-labelledby="modal-quickpay-title">
     <div class="modal-content quickpay-sheet">
@@ -12,7 +18,7 @@
             <p id="qp-periode"></p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup dialog"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup dialog" onclick={onClose}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
       <form id="form-quickpay" class="qp-form">
         <input type="hidden" id="qp-id-anggota">
@@ -63,7 +69,7 @@
         </div>
 
         <div class="hybrid-settings-footer qp-sheet-footer">
-          <button type="button" class="btn btn-secondary" data-action="close-modal">Batal</button>
+          <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose}>Batal</button>
           <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-quickpay">
             <span class="keel-fill" aria-hidden="true"></span>
             <span class="keel-label">Simpan Pembayaran</span>

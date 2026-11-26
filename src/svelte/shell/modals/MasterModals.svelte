@@ -1,3 +1,59 @@
+<script lang="ts">
+  import { getInput } from 'finkas/core/utils';
+  import { syncOfflineTransactions } from 'finkas/core/offline';
+  import { closeModal, switchTab } from '../../ui/modal';
+  import {
+    addSkippedMonth,
+    hapusMasterAnggotaAction,
+    hapusMasterKategoriAction,
+    renderAuditLogList,
+    saveKasStart,
+  } from '../../handlers/master';
+  import { renderOfflineQueueList } from '../../handlers/offlineQueue';
+  import { bukaProfilAnggota } from '../../handlers/profile';
+
+  const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
+  const onMasterTab = (tab: string) => (e: MouseEvent) => {
+    e.stopPropagation();
+    switchTab(tab, 'modal-kelola-master');
+  };
+  const onRefreshAudit = (e: MouseEvent) => { e.stopPropagation(); renderAuditLogList(); };
+  const onSaveKasStart = (e: MouseEvent) => { e.stopPropagation(); saveKasStart(); };
+  const onAddSkip = (e: MouseEvent) => { e.stopPropagation(); addSkippedMonth(); };
+  const onViewProfil = (e: MouseEvent) => {
+    e.stopPropagation();
+    const id = getInput('edit-master-anggota-id')?.value || '';
+    if (id) {
+      closeModal('modal-edit-master-anggota');
+      bukaProfilAnggota(id);
+    }
+  };
+  const onHapusAnggota = (e: MouseEvent) => {
+    e.stopPropagation();
+    const id = getInput('edit-master-anggota-id')?.value || '';
+    if (id) {
+      closeModal('modal-edit-master-anggota');
+      hapusMasterAnggotaAction(id);
+    }
+  };
+  const onHapusKategori = (e: MouseEvent) => {
+    e.stopPropagation();
+    const id = getInput('edit-master-kategori-id')?.value || '';
+    if (id) {
+      closeModal('modal-edit-master-kategori');
+      hapusMasterKategoriAction(id);
+    }
+  };
+  const onRefreshOffline = (e: MouseEvent) => { e.stopPropagation(); renderOfflineQueueList(); };
+  const onSyncOffline = (e: MouseEvent) => {
+    e.stopPropagation();
+    syncOfflineTransactions(() => {
+      window.dispatchEvent(new CustomEvent('finkas:request-refresh'));
+      renderOfflineQueueList();
+    });
+  };
+</script>
+
 <!-- 3. Modal Log Aktivitas / Audit Log (Super Admin Only · Hybrid Kinetic) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-audit-log" aria-labelledby="modal-audit-log-title">
     <div class="modal-content modal-md modal-data-dialog audit-sheet">
@@ -16,10 +72,10 @@
           </div>
         </div>
         <div class="audit-header-actions">
-          <button type="button" id="btn-refresh-audit-log" class="btn btn-outline btn-secondary audit-refresh-btn" data-action="refresh-audit-log" aria-label="Refresh">
+          <button type="button" id="btn-refresh-audit-log" class="btn btn-outline btn-secondary audit-refresh-btn" data-action="refresh-audit-log" aria-label="Refresh" onclick={onRefreshAudit}>
             <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> <span>Refresh</span>
           </button>
-          <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-audit-log')}>
             <i class="ph ph-x" aria-hidden="true"></i>
           </button>
         </div>
@@ -61,7 +117,7 @@
 
       <div class="hybrid-settings-footer audit-sheet-footer">
         <span class="audit-footer-hint"><i class="ph-fill ph-lock-key" aria-hidden="true"></i> Menampilkan maksimal 100 aktivitas terbaru · Akses eksklusif Super Admin</span>
-        <button type="button" class="btn btn-secondary" data-action="close-modal">Tutup</button>
+        <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-audit-log')}>Tutup</button>
       </div>
     </div>
   </dialog>
@@ -80,22 +136,22 @@
             <p>Pengaturan anggota, pos kategori, bulan libur, dan rekening kas</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-kelola-master')}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
       <div class="master-tabs-bar">
         <div class="tab-header master-tab-track" role="tablist" aria-label="Kategori Data Master">
           <div class="master-glider-pill" aria-hidden="true"></div>
-          <button type="button" class="tab-btn active" id="btn-master-tab-anggota" role="tab" aria-selected="true" aria-controls="tab-master-anggota" data-action="switch-tab" data-tab="tab-master-anggota">
+          <button type="button" class="tab-btn active" id="btn-master-tab-anggota" role="tab" aria-selected="true" aria-controls="tab-master-anggota" data-action="switch-tab" data-tab="tab-master-anggota" onclick={onMasterTab('tab-master-anggota')}>
             <i class="ph ph-users" aria-hidden="true"></i><span>Anggota</span><span class="master-tab-count" id="master-count-anggota">0</span>
           </button>
-          <button type="button" class="tab-btn" id="btn-master-tab-kategori" role="tab" aria-selected="false" aria-controls="tab-master-kategori" data-action="switch-tab" data-tab="tab-master-kategori">
+          <button type="button" class="tab-btn" id="btn-master-tab-kategori" role="tab" aria-selected="false" aria-controls="tab-master-kategori" data-action="switch-tab" data-tab="tab-master-kategori" onclick={onMasterTab('tab-master-kategori')}>
             <i class="ph ph-tag" aria-hidden="true"></i><span>Kategori</span><span class="master-tab-count" id="master-count-kategori">0</span>
           </button>
-          <button type="button" class="tab-btn" id="btn-master-tab-skipped" role="tab" aria-selected="false" aria-controls="tab-master-skipped" data-action="switch-tab" data-tab="tab-master-skipped">
+          <button type="button" class="tab-btn" id="btn-master-tab-skipped" role="tab" aria-selected="false" aria-controls="tab-master-skipped" data-action="switch-tab" data-tab="tab-master-skipped" onclick={onMasterTab('tab-master-skipped')}>
             <i class="ph ph-calendar-x" aria-hidden="true"></i><span>Bulan Libur</span><span class="master-tab-count" id="master-count-skipped">0</span>
           </button>
-          <button type="button" class="tab-btn" id="btn-master-tab-payment" role="tab" aria-selected="false" aria-controls="tab-master-payment" data-action="switch-tab" data-tab="tab-master-payment">
+          <button type="button" class="tab-btn" id="btn-master-tab-payment" role="tab" aria-selected="false" aria-controls="tab-master-payment" data-action="switch-tab" data-tab="tab-master-payment" onclick={onMasterTab('tab-master-payment')}>
             <i class="ph ph-bank" aria-hidden="true"></i><span>Rekening</span>
           </button>
         </div>
@@ -175,7 +231,7 @@
               <p class="master-skip-hint">Awal mulai kas menandai bulan pertama grup menarik iuran. Bulan sebelumnya tidak dihitung sebagai tunggakan.</p>
               <div class="skip-month-input-row">
                 <input type="month" id="input-kas-start" name="input-kas-start" class="form-control flex-1 mpick" data-placeholder="Pilih awal mulai kas..." aria-label="Pilih Awal Mulai Kas" />
-                <button type="button" class="btn btn-primary admin-only" data-action="save-kas-start"><i class="ph-bold ph-calendar-check" aria-hidden="true"></i><span>Simpan</span></button>
+                <button type="button" class="btn btn-primary admin-only" data-action="save-kas-start" onclick={onSaveKasStart}><i class="ph-bold ph-calendar-check" aria-hidden="true"></i><span>Simpan</span></button>
               </div>
             </div>
             <div class="master-form-card master-period-card skip-month-body">
@@ -186,7 +242,7 @@
               <p class="master-skip-hint">Bulan yang ditandai sebagai bulan libur akan dibebaskan dari kewajiban iuran seluruh anggota.</p>
               <div class="skip-month-input-row">
                 <input type="month" id="input-skip-month" name="input-skip-month" class="form-control flex-1 mpick" data-placeholder="Pilih bulan libur..." aria-label="Pilih Bulan Libur" />
-                <button type="button" class="btn btn-primary admin-only" data-action="add-skip"><i class="ph-bold ph-plus" aria-hidden="true"></i><span>Tambah</span></button>
+                <button type="button" class="btn btn-primary admin-only" data-action="add-skip" onclick={onAddSkip}><i class="ph-bold ph-plus" aria-hidden="true"></i><span>Tambah</span></button>
               </div>
             </div>
           </div>
@@ -224,7 +280,7 @@
 
       <div class="hybrid-settings-footer master-sheet-footer">
         <span class="master-footer-hint">Perubahan tersimpan langsung ke tampilan aktif.</span>
-        <button type="button" class="btn btn-secondary" data-action="close-modal">Selesai</button>
+        <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-kelola-master')}>Selesai</button>
       </div>
     </div>
   </dialog>
@@ -243,7 +299,7 @@
             <p>Perbarui identitas, nomor WhatsApp, dan status keanggotaan</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-edit-master-anggota')}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
       <form id="form-edit-master-anggota" class="master-edit-form">
@@ -258,7 +314,7 @@
               <a id="edit-master-anggota-wa-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm master-wa-btn">
                 <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>Chat WA</span>
               </a>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-modal-view-profil" data-action="view-profil-from-modal">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-modal-view-profil" data-action="view-profil-from-modal" onclick={onViewProfil}>
                 <i class="ph-bold ph-clock-counter-clockwise" aria-hidden="true"></i><span>Riwayat Setoran</span>
               </button>
             </div>
@@ -285,7 +341,7 @@
         </div>
 
         <div class="hybrid-settings-footer master-sheet-footer">
-          <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-anggota" data-action="hapus-anggota-from-modal">
+          <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-anggota" data-action="hapus-anggota-from-modal" onclick={onHapusAnggota}>
             <i class="ph-bold ph-trash" aria-hidden="true"></i><span>Hapus</span>
           </button>
           <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-edit-anggota"><span class="keel-label">Simpan Perubahan</span><span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7.5"/></svg></span></button>
@@ -308,7 +364,7 @@
             <p>Informasi pos arus kas dan tindakan penghapusan</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-edit-master-kategori')}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
       </div>
 
       <input type="hidden" id="edit-master-kategori-id">
@@ -328,10 +384,10 @@
       </div>
 
       <div class="hybrid-settings-footer master-sheet-footer">
-        <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-kategori" data-action="hapus-kategori-from-modal">
+        <button type="button" class="btn btn-danger-outline" id="btn-modal-hapus-kategori" data-action="hapus-kategori-from-modal" onclick={onHapusKategori}>
           <i class="ph-bold ph-trash" aria-hidden="true"></i><span>Hapus Kategori</span>
         </button>
-        <button type="button" class="btn btn-primary" data-action="close-modal">Selesai</button>
+        <button type="button" class="btn btn-primary" data-action="close-modal" onclick={onClose('modal-edit-master-kategori')}>Selesai</button>
       </div>
     </div>
   </dialog>
@@ -351,10 +407,10 @@
           </div>
         </div>
         <div class="queue-header-actions">
-          <button type="button" id="btn-refresh-offline" class="btn btn-outline btn-secondary queue-refresh-btn" data-action="refresh-offline" aria-label="Refresh">
+          <button type="button" id="btn-refresh-offline" class="btn btn-outline btn-secondary queue-refresh-btn" data-action="refresh-offline" aria-label="Refresh" onclick={onRefreshOffline}>
             <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> <span>Refresh</span>
           </button>
-          <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+          <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-offline-queue')}>
             <i class="ph ph-x" aria-hidden="true"></i>
           </button>
         </div>
@@ -375,8 +431,8 @@
       </div>
 
       <div class="hybrid-settings-footer queue-sheet-footer">
-        <button type="button" class="btn btn-secondary" data-action="close-modal">Tutup</button>
-        <button type="button" id="btn-sync-offline-now" class="btn btn-primary" data-action="sync-now">
+        <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-offline-queue')}>Tutup</button>
+        <button type="button" id="btn-sync-offline-now" class="btn btn-primary" data-action="sync-now" onclick={onSyncOffline}>
           <i class="ph-bold ph-arrows-clockwise" aria-hidden="true"></i> <span>Sinkron Sekarang</span>
         </button>
       </div>

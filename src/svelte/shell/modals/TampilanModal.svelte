@@ -1,3 +1,17 @@
+<script lang="ts">
+  import { closeModal } from '../../ui/modal';
+  import { setBgTexture, setLanguage, setPalette, setTheme } from '../../ui/theme';
+  import { setCurrencyFormat, setIndicatorStyle } from '../../handlers/navigation';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-tampilan'); };
+  const onLang = (lang: 'id' | 'en') => (e: MouseEvent) => { e.stopPropagation(); setLanguage(lang); };
+  const onPalette = (pal: string) => (e: MouseEvent) => { e.stopPropagation(); setPalette(pal); };
+  const onTheme = (mode: 'light' | 'dark' | 'auto') => (e: MouseEvent) => { e.stopPropagation(); setTheme(mode); };
+  const onStyle = (style: string) => (e: MouseEvent) => { e.stopPropagation(); setIndicatorStyle(style); };
+  const onTexture = (tex: string) => (e: MouseEvent) => { e.stopPropagation(); setBgTexture(tex); };
+  const onFormat = (fmt: string) => (e: MouseEvent) => { e.stopPropagation(); setCurrencyFormat(fmt); };
+</script>
+
 <dialog class="modal-overlay hybrid-dialog" id="modal-tampilan" aria-labelledby="modal-tampilan-title">
   <div class="modal-content modal-md hybrid-settings">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
@@ -6,7 +20,7 @@
         <h2 id="modal-tampilan-title">Tampilan &amp; Bahasa</h2>
         <p id="modal-tampilan-subtitle">Sesuaikan bahasa, tema warna, pencahayaan, dan gaya tampilan aplikasi</p>
       </div>
-      <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+      <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose}><i class="ph-bold ph-x" aria-hidden="true"></i></button>
     </div>
     <div class="hybrid-settings-body">
 
@@ -15,11 +29,11 @@
 <span class="tampilan-sec-label" id="tampilan-sec-lang">Bahasa Aplikasi</span>
 <div aria-label="Bahasa Aplikasi" class="glider-track tampilan-glider cols-2" id="language-picker" role="group">
 <div aria-hidden="true" class="glider-pill"></div>
-<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-language" data-lang="id" type="button">
+<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-language" data-lang="id" type="button" onclick={onLang('id')}>
 <i aria-hidden="true" class="ph ph-translate"></i>
 <span>Bahasa Indonesia</span>
 </button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-language" data-lang="en" type="button">
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-language" data-lang="en" type="button" onclick={onLang('en')}>
 <i aria-hidden="true" class="ph ph-globe"></i>
 <span>English</span>
 </button>
@@ -30,7 +44,7 @@
 <section aria-labelledby="tampilan-sec-palette" class="tampilan-section">
 <span class="tampilan-sec-label" id="tampilan-sec-palette">Paket Harmoni Warna</span>
 <div class="tampilan-grid-2" id="palette-picker">
-<button aria-pressed="true" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="terracotta" data-palette="terracotta" type="button">
+<button aria-pressed="true" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="terracotta" data-palette="terracotta" type="button" onclick={onPalette('terracotta')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="pal-dots">
 <span class="pal-dot pal-brand"></span>
@@ -44,7 +58,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="cobalt" data-palette="cobalt" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="cobalt" data-palette="cobalt" type="button" onclick={onPalette('cobalt')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="pal-dots">
 <span class="pal-dot pal-brand"></span>
@@ -58,7 +72,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="charcoal" data-palette="charcoal" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="charcoal" data-palette="charcoal" type="button" onclick={onPalette('charcoal')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="pal-dots">
 <span class="pal-dot pal-brand"></span>
@@ -72,7 +86,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="indigo" data-palette="indigo" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-palette" data-pal-preview="indigo" data-palette="indigo" type="button" onclick={onPalette('indigo')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="pal-dots">
 <span class="pal-dot pal-brand"></span>
@@ -93,15 +107,15 @@
 <span class="tampilan-sec-label" id="tampilan-sec-theme">Mode Pencahayaan</span>
 <div aria-label="Mode Pencahayaan" class="glider-track tampilan-glider cols-3" id="theme-mode-picker" role="group">
 <div aria-hidden="true" class="glider-pill"></div>
-<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="light" type="button">
+<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="light" type="button" onclick={onTheme('light')}>
 <i aria-hidden="true" class="ph ph-sun"></i>
 <span>Terang</span>
 </button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="dark" type="button">
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="dark" type="button" onclick={onTheme('dark')}>
 <i aria-hidden="true" class="ph ph-moon"></i>
 <span>Gelap</span>
 </button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="auto" type="button">
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-theme-mode" data-theme="auto" type="button" onclick={onTheme('auto')}>
 <i aria-hidden="true" class="ph ph-desktop"></i>
 <span>Otomatis</span>
 </button>
@@ -114,16 +128,16 @@
 <span class="tampilan-sec-label" id="tampilan-sec-stamp">Gaya Stempel Lunas</span>
 <div aria-label="Gaya Stempel Lunas" class="glider-track tampilan-glider cols-3" id="indicator-style-picker" role="group">
 <div aria-hidden="true" class="glider-pill"></div>
-<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="seal" type="button">Segel Bulat</button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="rosette" type="button">Lencana Roset</button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="shield" type="button">Perisai Sah</button>
+<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="seal" type="button" onclick={onStyle('seal')}>Segel Bulat</button>
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="rosette" type="button" onclick={onStyle('rosette')}>Lencana Roset</button>
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-indicator-style" data-style="shield" type="button" onclick={onStyle('shield')}>Perisai Sah</button>
 </div>
 </section>
 <!-- Section 3: Suasana Latar Belakang -->
 <section aria-labelledby="tampilan-sec-bg" class="tampilan-section">
 <span class="tampilan-sec-label" id="tampilan-sec-bg">Suasana Latar Belakang</span>
 <div class="tampilan-grid-2" id="texture-picker">
-<button aria-pressed="true" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="aurora" type="button">
+<button aria-pressed="true" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="aurora" type="button" onclick={onTexture('aurora')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="bg-opt-icon"><i class="ph ph-palette"></i></span>
 <span class="tampilan-card-meta">
@@ -133,7 +147,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="topo" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="topo" type="button" onclick={onTexture('topo')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="bg-opt-icon"><i class="ph ph-waves"></i></span>
 <span class="tampilan-card-meta">
@@ -143,7 +157,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="paper" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="paper" type="button" onclick={onTexture('paper')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="bg-opt-icon"><i class="ph ph-dots-nine"></i></span>
 <span class="tampilan-card-meta">
@@ -153,7 +167,7 @@
 </span>
 <i aria-hidden="true" class="ph-fill ph-check-circle tampilan-check"></i>
 </button>
-<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="clean" type="button">
+<button aria-pressed="false" class="tampilan-option-card style-option-card" data-action="select-texture" data-texture="clean" type="button" onclick={onTexture('clean')}>
 <span class="tampilan-card-left">
 <span aria-hidden="true" class="bg-opt-icon"><i class="ph ph-circle-half"></i></span>
 <span class="tampilan-card-meta">
@@ -170,8 +184,8 @@
 <span class="tampilan-sec-label" id="tampilan-sec-numfmt">Format Nominal Kas</span>
 <div aria-label="Format Nominal Kas" class="glider-track tampilan-glider cols-2" id="currency-format-picker" role="group">
 <div aria-hidden="true" class="glider-pill"></div>
-<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-currency-format" data-format="full" type="button">Lengkap (Rp 50.000)</button>
-<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-currency-format" data-format="compact" type="button">Ringkas (Rp 50rb / 3,5 Jt)</button>
+<button aria-pressed="true" class="glider-btn style-option-card" data-action="select-currency-format" data-format="full" type="button" onclick={onFormat('full')}>Lengkap (Rp 50.000)</button>
+<button aria-pressed="false" class="glider-btn style-option-card" data-action="select-currency-format" data-format="compact" type="button" onclick={onFormat('compact')}>Ringkas (Rp 50rb / 3,5 Jt)</button>
 </div>
 </section>
 <section aria-labelledby="tampilan-sec-kasi" class="tampilan-section">
@@ -187,7 +201,7 @@
     </div>
     <div class="hybrid-settings-footer">
       <span id="tampilan-footer-note">Pengaturan tersimpan otomatis di perangkat ini.</span>
-      <button type="button" class="btn" data-action="close-modal" id="tampilan-close-btn">Selesai</button>
+      <button type="button" class="btn" data-action="close-modal" id="tampilan-close-btn" onclick={onClose}>Selesai</button>
     </div>
   </div>
 </dialog>

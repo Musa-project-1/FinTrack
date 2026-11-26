@@ -1,3 +1,12 @@
+<script lang="ts">
+  import { closeModal, switchTab } from '../../ui/modal';
+  import { startGuidedTour } from '../../ui/guided-tour';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-faq'); };
+  const onFaqTab = (tab: string) => (e: MouseEvent) => { e.stopPropagation(); switchTab(tab, 'modal-faq'); };
+  const onStartTour = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-faq'); startGuidedTour(); };
+</script>
+
 <!-- 10. Modal Panduan & FAQ -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-faq" aria-labelledby="modal-faq-title">
     <div class="modal-content modal-md">
@@ -12,7 +21,7 @@
             <p id="modal-faq-subtitle">Penjelasan status iuran dan pertanyaan yang sering diajukan</p>
           </div>
         </div>
-        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose}><i class="ph ph-x"></i></button>
       </div>
 
       <div class="kasi-stage">
@@ -137,8 +146,8 @@
       </div>
 
       <div class="tampilan-top-tabs faq-tabs" aria-label="Isi panduan">
-        <button type="button" class="tab-btn active" data-action="switch-tab" data-tab="faq-glossary">Kamus Status</button>
-        <button type="button" class="tab-btn" data-action="switch-tab" data-tab="faq-questions">FAQ</button>
+        <button type="button" class="tab-btn active" data-action="switch-tab" data-tab="faq-glossary" onclick={onFaqTab('faq-glossary')}>Kamus Status</button>
+        <button type="button" class="tab-btn" data-action="switch-tab" data-tab="faq-questions" onclick={onFaqTab('faq-questions')}>FAQ</button>
       </div>
       <div class="tab-content active" id="tab-faq-glossary">
       <section class="dues-legend" id="dues-legend" aria-labelledby="dues-legend-title" tabindex="-1">
@@ -157,7 +166,7 @@
         </dl>
       </section>
 
-        <button type="button" class="btn btn-secondary" data-action="start-guided-tour"><i class="ph ph-map-trifold" aria-hidden="true"></i> Ulangi Tur</button>
+        <button type="button" class="btn btn-secondary" data-action="start-guided-tour" onclick={onStartTour}><i class="ph ph-map-trifold" aria-hidden="true"></i> Ulangi Tur</button>
       </div>
       <div class="tab-content faq-list" id="tab-faq-questions" role="list">
         <details class="faq-item" role="listitem">
@@ -218,7 +227,7 @@
 
       <div class="modal-footer-actions">
         <span class="modal-footer-hint">Panduan ringkas transparansi buku kas warga.</span>
-        <button type="button" class="btn btn-secondary" data-action="close-modal">Selesai</button>
+        <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose}>Selesai</button>
       </div>
     </div>
   </dialog>

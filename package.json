@@ -8,7 +8,7 @@
     "node": ">=26.0.0"
   },
   "scripts": {
-    "build": "node scripts/render-shells.mjs && vite build && vite build --mode lib-dashboard && vite build --mode lib-onboarding && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify",
+    "build": "node scripts/render-shells.mjs && vite build && node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./src/input.css -o ./style.css --minify",
     "test:node": "node --localstorage-file=./.test-localstorage.json --test \"tests/**/*.test.mjs\"",
     "test:vitest": "vitest run",
     "test": "npm run test:node && npm run test:vitest",

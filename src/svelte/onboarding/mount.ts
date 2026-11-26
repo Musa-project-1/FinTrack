@@ -14,9 +14,9 @@ export function syncOnboardingGroupList(input: OnboardingGroupInput) {
   const target = globalThis.document?.getElementById?.('group-list');
   if (!target?.ownerDocument || typeof Element === 'undefined') return;
   if (!mounted.has(target)) {
-    const comps: OnboardingComponents = registeredComponents ?? require('./components');
+    if (!registeredComponents) throw new Error('Onboarding components must be registered via registerOnboardingComponents() before mounting.');
     target.replaceChildren();
-    mount(comps.OnboardingGroupList, { target });
+    mount(registeredComponents.OnboardingGroupList, { target });
     mounted.add(target);
   }
   flushSync();

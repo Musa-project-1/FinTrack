@@ -1,23 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
+import { createServer } from 'vite';
 
 const chrome = process.env.CHROME_BIN || '/usr/bin/google-chrome';
 const execFileAsync = promisify(execFile);
-
-const contentTypeFor = (filePath) => {
-  if (filePath.endsWith('.js')) return 'text/javascript; charset=utf-8';
-  if (filePath.endsWith('.css')) return 'text/css; charset=utf-8';
-  if (filePath.endsWith('.woff2')) return 'font/woff2';
-  if (filePath.endsWith('.svg')) return 'image/svg+xml';
-  return 'text/html; charset=utf-8';
-};
 
 /** Launch headless Chrome to dump DOM with CI-safe flags; retries once on SIGTERM timeout. */
 async function runDumpDom(url, attempts = 2) {
@@ -44,26 +35,19 @@ test('custom controls preserve labels, validation, dynamic state and keyboard se
   skip: !existsSync(chrome) && 'Set CHROME_BIN to run browser regression tests',
 }, async () => {
   const root = resolve(import.meta.dirname, '..');
-  const server = createServer(async (req, res) => {
-    try {
-      const reqPath = new URL(req.url, 'http://localhost').pathname;
-      const path = resolve(root, '.' + reqPath);
-      if (!path.startsWith(root + '/')) throw new Error('Invalid path');
-      res.setHeader('Content-Type', contentTypeFor(path));
-      res.setHeader('Connection', 'close');
-      res.end(await readFile(path));
-    } catch {
-      res.writeHead(404, { Connection: 'close' }).end();
-    }
+  const server = await createServer({
+    root,
+    server: { host: '127.0.0.1', port: 0, hmr: false },
+    logLevel: 'silent',
   });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  await server.listen();
   try {
+    const addr = server.httpServer.address();
     const { stdout } = await runDumpDom(
-      `http://127.0.0.1:${server.address().port}/tests/fixtures/custom-controls.html`
+      `http://127.0.0.1:${addr.port}/tests/fixtures/custom-controls.html`
     );
     assert.match(stdout, /data-result="passed"/, stdout);
   } finally {
-    server.closeAllConnections();
-    await new Promise(resolve => server.close(resolve));
+    await server.close();
   }
 });

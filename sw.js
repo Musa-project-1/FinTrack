@@ -41,13 +41,8 @@ const LOCAL_ASSETS = [
   'fonts/phosphor/light/Phosphor-Light.woff2',
   'fonts/phosphor/thin/style.css',
   'fonts/phosphor/thin/Phosphor-Thin.woff2',
-  'src/ui/svelte-dashboard.js',
-  'src/ui/svelte-onboarding.js',
-  'src/app.js',
   'src/sw-register.js',
-  'src/pages/onboarding.js',
   'src/pages/onboarding-boot-theme.js',
-  'src/pages/privacy.js',
   'src/pages/offline.js'
 ];
 

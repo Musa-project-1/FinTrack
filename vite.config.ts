@@ -4,7 +4,6 @@ import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
-import { authoredSourcemaps } from './scripts/authored-sourcemaps.mjs';
 import { generateDistServiceWorker } from './scripts/generate-dist-sw.mjs';
 
 const ROOT = import.meta.dirname;
@@ -77,53 +76,33 @@ const aliases = {
   'finkas/bulk-dues': resolve(ROOT, 'src/svelte/ui/bulk-dues.ts'),
 };
 
-export default defineConfig(({ mode }) => {
-  if (mode === 'lib-dashboard' || mode === 'lib-onboarding') {
-    const isOnboarding = mode === 'lib-onboarding';
-    return {
-      resolve: { alias: aliases },
-      plugins: [svelte(), authoredSourcemaps()],
-      build: {
-        sourcemap: 'hidden',
-        lib: isOnboarding
-          ? { entry: 'src/svelte/onboarding/mount.ts', formats: ['es'], fileName: () => 'svelte-onboarding.js' }
-          : { entry: 'src/svelte/mount.ts', formats: ['es'], fileName: () => 'svelte-dashboard.js' },
-        outDir: 'src/ui',
-        emptyOutDir: false,
-        minify: true,
-        rolldownOptions: { output: { minify: true } },
+export default defineConfig(() => ({
+  resolve: { alias: aliases },
+  plugins: [tailwindcss(), svelte(), finkasDistPlugin()],
+  server: { hmr: false },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: 'hidden',
+    minify: true,
+    rolldownOptions: {
+      input: {
+        index: resolve(ROOT, 'index.html'),
+        onboarding: resolve(ROOT, 'onboarding.html'),
+        privacy: resolve(ROOT, 'privacy.html'),
+        offline: resolve(ROOT, 'offline.html'),
+        notfound: resolve(ROOT, '404.html'),
       },
-    };
-  }
-
-  return {
-    resolve: { alias: aliases },
-    plugins: [tailwindcss(), svelte(), finkasDistPlugin()],
-    server: { hmr: false },
-    build: {
-      outDir: 'dist',
-      emptyOutDir: true,
-      sourcemap: 'hidden',
-      minify: true,
-      rolldownOptions: {
-        input: {
-          index: resolve(ROOT, 'index.html'),
-          onboarding: resolve(ROOT, 'onboarding.html'),
-          privacy: resolve(ROOT, 'privacy.html'),
-          offline: resolve(ROOT, 'offline.html'),
-          notfound: resolve(ROOT, '404.html'),
-        },
-        output: {
-          minify: true,
-          codeSplitting: {
-            groups: [
-              { name: 'vendor-svelte', test: /node_modules\//, priority: 40 },
-              { name: 'finkas-core', test: /src\/svelte\/core\//, priority: 30 },
-              { name: 'finkas-islands', test: /src\/svelte\/(dashboard|modals|forms)\//, priority: 20 },
-            ],
-          },
+      output: {
+        minify: true,
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-svelte', test: /node_modules\//, priority: 40 },
+            { name: 'finkas-core', test: /src\/svelte\/core\//, priority: 30 },
+            { name: 'finkas-islands', test: /src\/svelte\/(dashboard|modals|forms)\//, priority: 20 },
+          ],
         },
       },
     },
-  };
-});
+  },
+}));

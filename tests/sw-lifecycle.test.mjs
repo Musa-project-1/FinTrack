@@ -54,7 +54,7 @@ test('install atomically caches all core assets before skipping waiting', async 
   const gate = deferred();
   const w = worker({ cache: { addAll: async (assets) => {
     assert.ok(assets.includes('index.html'));
-    assert.ok(assets.includes('src/app.js'));
+    assert.ok(assets.includes('src/sw-register.js'));
     assert.ok(assets.includes('fonts/phosphor/regular/Phosphor.woff2'));
     assert.ok(!assets.includes('assets/hero-atmosphere.png'));
     await gate.promise;
@@ -105,7 +105,7 @@ test('warm local assets respond before stalled fetch and keep cache writes alive
       assert.equal(options.cacheName, cacheName);
       return cached;
     } }, cache: { put: async () => write.promise } });
-  const event = w.dispatch('fetch', request('src/app.js'));
+  const event = w.dispatch('fetch', request('src/sw-register.js'));
   assert.equal(await event.response, cached);
   assert.equal(w.timers.length, 0);
   assert.equal(event.pending.length, 1);

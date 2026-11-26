@@ -11,7 +11,8 @@
 <input class="mpick" id="named-month" aria-label="Bulan laporan">
 <pre id="result"></pre>
 <script type="module">
-import { initCustomDropdowns, syncCdrop, initMonthPickers } from '/src/ui/svelte-dashboard.js';
+import { initCustomDropdowns, syncCdrop } from '/src/svelte/ui/cdrop.ts';
+import { initMonthPickers } from '/src/svelte/ui/mpick.ts';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const name = el => el.getAttribute('aria-labelledby')?.split(/\s+/).map(id => document.getElementById(id).textContent).join(' ') || el.getAttribute('aria-label');
 const key = (el, value) => el.dispatchEvent(new KeyboardEvent('keydown', {key: value, bubbles: true, cancelable: true}));

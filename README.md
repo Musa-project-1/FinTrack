@@ -83,7 +83,7 @@ Seluruh operasi membaca dan menulis melewati Vercel Functions di `api/`:
 │   ├── pages/                    # Template statis 404.html / offline.html & boot-theme scripts
 │   ├── types/                    # Tipe domain global (finkas.d.ts)
 │   └── sw-register.js            # Registrasi Service Worker
-├── scripts/                      # render-shells.mjs, generate-dist-sw.mjs, authored-sourcemaps.mjs, bump.mjs, verify.mjs
+├── scripts/                      # render-shells.mjs, generate-dist-sw.mjs, bump.mjs, verify.mjs
 ├── tests/                        # Suite node:test (541 uji) + Vitest Svelte (tests/svelte/, 16 uji) + Playwright smoke + helpers
 └── sw.js                         # Template Service Worker (precache & lifecycle offline)
 ```

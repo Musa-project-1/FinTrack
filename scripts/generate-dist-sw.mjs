@@ -10,11 +10,6 @@ import path from 'node:path';
 const LEGACY_REPLACED_ASSETS = new Set([
   'style.css',
   'css/onboarding-scoped.css',
-  'src/app.js',
-  'src/pages/onboarding.js',
-  'src/pages/privacy.js',
-  'src/ui/svelte-dashboard.js',
-  'src/ui/svelte-onboarding.js',
 ]);
 
 /**

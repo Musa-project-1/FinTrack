@@ -94,9 +94,9 @@ export function registerComponents(comps: Components) {
 
 function mountOnce(target: Element | null, render: (comps: Components, target: Element) => void) {
   if (!target?.ownerDocument || typeof Element === 'undefined' || mounted.has(target)) return;
-  const comps: Components = registeredComponents ?? require('./components');
+  if (!registeredComponents) throw new Error('Svelte island components must be registered via registerComponents() before mounting.');
   target.replaceChildren();
-  render(comps, target);
+  render(registeredComponents, target);
   mounted.add(target);
   mountedDocuments.add(target.ownerDocument);
 }

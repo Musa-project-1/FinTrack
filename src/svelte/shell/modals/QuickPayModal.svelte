@@ -34,12 +34,21 @@
             <span class="qp-status-pill" id="qp-status-badge">BELUM BAYAR</span>
           </div>
 
+          <div class="qp-rapel-wrap" id="qp-rapel-wrap" hidden>
+            <div class="qp-rapel-head">
+              <span class="qp-rapel-title" id="qp-rapel-title">Pilih Bulan (Rapel)</span>
+              <button type="button" class="qp-rapel-all-btn" id="btn-qp-rapel-all" aria-pressed="false">Semua Tunggakan</button>
+            </div>
+            <div class="qp-rapel-pills" id="qp-rapel-pills" role="group" aria-label="Pilih bulan iuran untuk rapel"></div>
+          </div>
+
           <div class="form-group">
             <div class="qp-label-row">
-              <label for="qp-nominal">Nominal Pembayaran</label>
+              <label for="qp-nominal" id="qp-nominal-label">Nominal Pembayaran</label>
               <div class="qp-preset-chips" id="qp-presets" role="group" aria-label="Nominal cepat"></div>
+              <span class="qp-rapel-lock-hint" id="qp-rapel-lock-hint" hidden>Terkunci sesuai sisa tiap bulan</span>
             </div>
-            <div class="input-with-prefix">
+            <div class="input-with-prefix" id="qp-nominal-wrap">
               <span>Rp</span>
               <input type="text" id="qp-nominal" name="qp-nominal" class="form-control input-qp-nominal font-mono tabular-nums" inputmode="numeric" enterkeyhint="done" required>
             </div>
@@ -62,7 +71,7 @@
               <span id="qp-impact-sub">-</span>
             </div>
             <div class="qp-impact-val">
-              <span>Kas masuk</span>
+              <span id="qp-impact-label">Kas masuk</span>
               <strong id="qp-impact-amount">Rp 0</strong>
             </div>
           </div>
@@ -72,7 +81,7 @@
           <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose}>Batal</button>
           <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-quickpay">
             <span class="keel-fill" aria-hidden="true"></span>
-            <span class="keel-label">Simpan Pembayaran</span>
+            <span class="keel-label" id="qp-submit-label">Simpan Pembayaran</span>
             <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
           </button>
         </div>
@@ -93,3 +102,103 @@
       </div>
     </div>
   </dialog>
+
+<style>
+  :global(#modal-quickpay .qp-rapel-wrap) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px 12px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  :global(#modal-quickpay .qp-rapel-wrap[hidden]) {
+    display: none;
+  }
+  :global(#modal-quickpay .qp-rapel-wrap.is-rapel-active) {
+    background: var(--accent-tint);
+    border-color: var(--accent-border);
+  }
+  :global(#modal-quickpay .qp-rapel-head) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  :global(#modal-quickpay .qp-rapel-title) {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  :global(#modal-quickpay .qp-rapel-wrap.is-rapel-active .qp-rapel-title) {
+    color: var(--accent);
+  }
+  :global(#modal-quickpay .qp-rapel-all-btn) {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    min-height: 28px;
+    border-radius: 999px;
+    background: var(--accent-tint);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  :global(#modal-quickpay .qp-rapel-all-btn[aria-pressed="true"]) {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  :global(#modal-quickpay .qp-rapel-pills) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  :global(#modal-quickpay .qp-rapel-pill) {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    min-height: 32px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+  }
+  :global(#modal-quickpay .qp-rapel-pill[aria-pressed="true"]) {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  :global(#modal-quickpay .qp-rapel-lock-hint) {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  :global(#modal-quickpay .qp-rapel-lock-hint[hidden]) {
+    display: none;
+  }
+  :global(#modal-quickpay .input-with-prefix.is-rapel-locked) {
+    background: var(--surface-2);
+    border-color: var(--border);
+  }
+  :global(#modal-quickpay .input-with-prefix.is-rapel-locked .input-qp-nominal) {
+    color: var(--text-main);
+    cursor: default;
+  }
+  :global(#modal-quickpay .qp-status-pill.is-rapel) {
+    background: var(--accent-tint);
+    color: var(--accent);
+    border-color: var(--accent-border);
+  }
+</style>

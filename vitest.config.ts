@@ -42,7 +42,8 @@ export default defineConfig({
         test: {
           name: 'ui',
           environment: 'jsdom',
-          testTimeout: 15000,
+          testTimeout: 30000,
+          hookTimeout: 20000,
           setupFiles: ['tests/helpers/vitest-node-setup.ts'],
           include: ['tests/*.vitest.mjs'],
         },

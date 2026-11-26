@@ -21,7 +21,7 @@ import { renderCheckboxIuran, filterKategori, updateCounterIuran, updateCounterO
 import { openEditWizard } from "../ui/edit-wizard";
 import { syncCdrop } from "../ui/cdrop";
 import { syncDpick } from "../ui/dpick";
-import { markNewlyPaidCells, markUpdatedLedgerRow } from "../render/index";
+import { markNewlyPaidCells, markUpdatedLedgerRow } from "../stores/workspace-sync";
 import {
   refreshAppData,
   tempTransactionId,

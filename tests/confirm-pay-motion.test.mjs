@@ -407,8 +407,8 @@ test('confirm-pay choreography CSS & Svelte contracts enforce contrast, sequenci
     'src/svelte/handlers/transactions.ts',
     'src/svelte/shell/modals/QuickPayModal.svelte',
     'src/svelte/shell/modals/TransactionsModals.svelte',
-    'src/svelte/shell/styles/ButtonsStyle.svelte',
-    'src/svelte/shell/styles/HybridMotionStyle.svelte',
+    'src/styles/app/buttons.css',
+    'src/styles/app/hybrid-motion.css',
     'src/svelte/forms/IuranReviewChips.svelte',
     'src/svelte/forms/StampStylePreview.svelte',
     'src/svelte/dashboard/DuesMatrix.svelte',
@@ -428,7 +428,7 @@ test('confirm-pay choreography CSS & Svelte contracts enforce contrast, sequenci
   assert.match(modalsHtml, /id="trx-verified-stage"/);
   assert.match(read('src/svelte/shell/modals/QuickPayModal.svelte'), /id="qp-verified-stage"/);
 
-  const buttonsCss = read('src/svelte/shell/styles/ButtonsStyle.svelte');
+  const buttonsCss = read('src/styles/app/buttons.css');
   assert.doesNotMatch(buttonsCss, /\.btn-liquid\.is-done\s+\.keel-label\s*\{[^}]*opacity:\s*0\b/);
   assert.doesNotMatch(buttonsCss, /border-radius:\s*44%/);
   assert.match(buttonsCss, /\.btn-liquid\s+\.keel-fill\s*\{\s*display:\s*none;\s*\}/);
@@ -444,11 +444,11 @@ test('confirm-pay choreography CSS & Svelte contracts enforce contrast, sequenci
   assert.match(mobileCards, /class:is-settled=\{row\.settledAny\}/);
   assert.match(mobileCards, /class:is-newly-paid=\{cell\.isNewlyPaid\}/);
 
-  const hybridMotion = read('src/svelte/shell/styles/HybridMotionStyle.svelte');
+  const hybridMotion = read('src/styles/app/hybrid-motion.css');
   assert.match(hybridMotion, /\.dues-seal\.is-newly-paid\s+svg\s*\{[^}]*rubber-stamp\s+360ms[^}]*140ms/);
   assert.match(hybridMotion, /\.dues-seal\s+\.stamp-ring\s*\{[^}]*shockwave-ring\s+440ms[^}]*240ms/);
 
-  const compiledCss = read('css/svelte-scoped.css');
+  const compiledCss = read('style.css');
   assert.match(compiledCss, /#confirm-badge-icon\.is-payment/);
   assert.match(compiledCss, /#modal-quickpay\[data-pay-state="?settled"?\]/);
   assert.match(compiledCss, /td\.is-newly-paid-cell/);

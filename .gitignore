@@ -30,6 +30,7 @@ CODE-REVIEW.md
 HARDENING-CHECKLIST.md
 
 # Tooling
+.svelte-check/
 .vercel/
 .agents/
 .hermes/

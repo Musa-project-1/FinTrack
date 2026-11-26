@@ -135,7 +135,7 @@ export function verifySession(token: string): VerifiedSessionClaims | null {
   try {
     secrets = getVerificationSecrets();
   } catch (err) {
-    console.error('[finkas] Cannot verify session:', err?.message);
+    console.error('[finkas] Cannot verify session:', (err instanceof Error ? err.message : String(err)));
     return null;
   }
 
@@ -330,7 +330,7 @@ export function verifyHashedSecret(secret: string, stored: string, scope: string
     const derived = crypto.scryptSync(`${scope}\u0000${secret}`, salt, expected.length, { N: n, r, p });
     return crypto.timingSafeEqual(derived, expected);
   } catch (err) {
-    console.error('[finkas] scrypt verification failed:', err?.message);
+    console.error('[finkas] scrypt verification failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 }
@@ -408,7 +408,7 @@ export async function registerFailedAttempt(key: string, maxAttempts: number, wi
     throw new RateLimitUnavailableError('Gagal memperbarui batas percobaan akibat konflik bersamaan.');
   } catch (err) {
     if (err instanceof RateLimitUnavailableError) throw err;
-    console.error('[finkas] Rate limit write failed:', err?.message);
+    console.error('[finkas] Rate limit write failed:', (err instanceof Error ? err.message : String(err)));
     throw new RateLimitUnavailableError();
   }
 }
@@ -426,7 +426,7 @@ export async function checkRateLimit(key: string): Promise<{locked: boolean, ret
     }
     return { locked: false, retryAfterSec: 0 };
   } catch (err) {
-    console.error('[finkas] Rate limit read failed:', err?.message);
+    console.error('[finkas] Rate limit read failed:', (err instanceof Error ? err.message : String(err)));
     throw new RateLimitUnavailableError();
   }
 }
@@ -437,7 +437,7 @@ export async function clearRateLimit(key: string) {
     const headers = await requireFirestoreHeaders();
     await fsPatch(rateLimitKey(key), { count: 0, since: 0, until: 0 }, headers);
   } catch (err) {
-    console.error('[finkas] Rate limit clear failed:', err?.message);
+    console.error('[finkas] Rate limit clear failed:', (err instanceof Error ? err.message : String(err)));
   }
 }
 

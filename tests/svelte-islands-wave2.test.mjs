@@ -1,3 +1,4 @@
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -16,7 +17,7 @@ import { setIndicatorStyle } from '../src/ui/svelte-dashboard.js';
 import { renderSpotlight, syncAuditLogRows, syncMasterAnggotaRows } from '../src/ui/svelte-dashboard.js';
 import { syncOnboardingGroupList } from '../src/ui/svelte-onboarding.js';
 
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const html = readWorkspaceFixtureHtml();
 const literal = '<img src=x>';
 const member = { ID_Anggota: literal, Nama_Anggota: 'Ana ' + literal, Nomor_WA: '0812-34', Status_Aktif: 'Aktif' };
 const category = { ID_Kategori: literal, Nama_Kategori: literal, Tipe: 'Masuk' };
@@ -345,8 +346,8 @@ test('the shipped ESM shares core and motion dependencies and is available offli
       'ui/transaction-form.ts', 'ui/modal.ts', 'ui/save-status.ts', 'ui/i18n.ts',
       'ui/theme.ts', 'ui/keel.ts', 'ui/control-a11y.ts', 'ui/cdrop.ts',
       'ui/dpick.ts', 'ui/mpick.ts', 'ui/kasi-effects.ts', 'ui/kasi-stage.ts',
-      'ui/kasi-mascot.ts', 'render/dashboard.ts', 'render/profile.ts', 'render/rekap.ts',
-      'render/index.ts', 'render/receipt.ts', 'ui/workspace.ts',
+      'ui/kasi-mascot.ts', 'handlers/profile.ts', 'handlers/receipt.ts',
+      'stores/workspace-sync.ts', 'ui/workspace.ts',
       'pages/onboarding-motion.ts', 'pages/onboarding-stage.ts', 'pages/journey.ts', 'pages/onboarding.ts', 'pages/privacy.ts',
       'action-router.ts', 'app.ts', 'handlers/groups.ts', 'ui/gestures.ts', 'ui/pin-input.ts', 'ui/bento-dashboard.ts',
       'ui/guided-tour.ts', 'handlers/attachments.ts', 'handlers/auth.ts',

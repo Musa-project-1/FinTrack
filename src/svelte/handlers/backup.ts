@@ -48,7 +48,7 @@ export const exportJSONBackup = async (btn?: HTMLElement | null) => {
       );
     }
   } catch (err) {
-    console.warn('[finkas] Gagal memeriksa antrean offline:', err?.message);
+    console.warn('[finkas] Gagal memeriksa antrean offline:', (err instanceof Error ? err.message : String(err)));
   }
 
   showToast('Mengambil snapshot atomic dari server...', 'info');

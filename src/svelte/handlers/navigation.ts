@@ -8,7 +8,7 @@ import {
   filterKategori, updateCounterOps, updateCounterIuran,
   pilihSemuaIuran, renderCheckboxIuran, filterAnggotaIuran
 } from "../ui/modal";
-import { renderAll, renderTableTransaksi, renderTableRekap } from "../render/index";
+import { renderAll, renderTableTransaksi, renderTableRekap } from "../stores/workspace-sync";
 
 /* ── Bottom nav helpers ────────────────────────────────────────── */
 
@@ -164,7 +164,7 @@ export const setPrivacyMode = (mode: string) => {
   try {
     localStorage.setItem('finkas_privacy_mode', safeMode);
   } catch (e) {
-    console.warn('[finkas] Cannot persist privacy mode:', e?.message);
+    console.warn('[finkas] Cannot persist privacy mode:', (e instanceof Error ? e.message : String(e)));
   }
   applyPrivacyMode(true);
 };
@@ -174,7 +174,7 @@ export const setCurrencyFormat = (formatKey: string | null) => {
   try {
     localStorage.setItem('finkas_currency_format', safeFormat);
   } catch (e) {
-    console.warn('[finkas] Cannot persist currency format:', e?.message);
+    console.warn('[finkas] Cannot persist currency format:', (e instanceof Error ? e.message : String(e)));
   }
   document.querySelectorAll('#currency-format-picker .style-option-card').forEach((card) => {
     const active = card.getAttribute('data-format') === safeFormat;

@@ -1,3 +1,4 @@
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 // Adversarial worst-case stress suite for MemberSpotlight & WorkspaceStats (no network/storage leaks).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -41,7 +42,7 @@ function installDom(t) {
   dom ??= new JSDOM('', { url: 'https://example.test' });
   const { window } = dom;
   window.document.open();
-  window.document.write(read('index.html'));
+  window.document.write(readWorkspaceFixtureHtml());
   window.document.close();
   window.localStorage.clear();
   for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text',

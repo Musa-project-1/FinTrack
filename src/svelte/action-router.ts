@@ -13,7 +13,7 @@ import {
   closeConfirmDialog, executeConfirmAction
 } from "./ui/modal";
 import { flashDownloadRing } from "./ui/ui-moments";
-import { renderChart, bukaProfilAnggota, toggleIuranCard } from "./render/index";
+import { renderChart, toggleIuranCard } from "./stores/workspace-sync";
 import {
   setAdminViewModeAction, logoutAdminAction,
   loginGoogleSuperAdminAction, handleStealthBadgeClick
@@ -39,11 +39,11 @@ import {
   exportToCSV, createGroupReminderMessage
 } from "./handlers/export";
 import { printMonthlyCashReport, exportMonthlyCashCSV } from "./handlers/cash-report";
-import { copyPassbook } from "./render/profile";
+import { bukaProfilAnggota, copyPassbook } from "./handlers/profile";
 import { openSelfPay, selectSelfPayPreset, copySelfPay } from "./handlers/self-pay";
 import {
   copyReceipt, openReceipt, openMonthReceipt, downloadReceiptAttachment
-} from "./render/receipt";
+} from "./handlers/receipt";
 import { exportJSONBackup } from "./handlers/backup";
 import { playKasiAction } from "./ui/kasi-mascot";
 import { startGuidedTour, advanceGuidedTour } from "./ui/guided-tour";

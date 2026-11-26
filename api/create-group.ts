@@ -217,7 +217,7 @@ async function removeGroup(body: JsonBody, headers: FirestoreHeaders) {
     await writeAuditLog('utama', 'HAPUS_GRUP', `${nama} (${groupId}) — ${deleted} dokumen`, headers);
     return { status: true, message: `Grup dihapus beserta ${deleted} dokumen isinya.` };
   } catch (err) {
-    console.error('[finkas] Delete group tree failed:', groupId, err?.message);
+    console.error('[finkas] Delete group tree failed:', groupId, (err instanceof Error ? err.message : String(err)));
     return { status: false, message: 'Penghapusan grup belum selesai sempurna. Silakan ulangi lagi.' };
   }
 }
@@ -269,7 +269,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const result = await ACTIONS[action](body, headers);
     return sendJson(res, result.status ? 200 : 400, result);
   } catch (error) {
-    console.error('[finkas] create-group error:', error?.message);
+    console.error('[finkas] create-group error:', (error instanceof Error ? error.message : String(error)));
     return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan server.' });
   }
 }

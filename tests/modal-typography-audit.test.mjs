@@ -11,10 +11,10 @@ const AUDITED_FILES = [
   'src/svelte/shell/modals/GroupAdminModals.svelte',
   'src/svelte/shell/modals/NavigationModals.svelte',
   'src/svelte/shell/modals/TampilanModal.svelte',
-  'src/svelte/shell/styles/ModalsBaseStyle.svelte',
-  'src/svelte/shell/styles/ModalsSheetStyle.svelte',
-  'src/svelte/shell/styles/DpickStyle.svelte',
-  'src/svelte/shell/styles/HelpersStyle.svelte',
+  'src/styles/app/modals-base.css',
+  'src/styles/app/modals-sheet.css',
+  'src/styles/app/dpick.css',
+  'src/styles/app/helpers.css',
   'src/svelte/modals/GroupPickerList.svelte',
   'src/svelte/modals/MasterAnggotaRows.svelte',
   'src/svelte/modals/SuperAdminList.svelte',
@@ -22,6 +22,7 @@ const AUDITED_FILES = [
 ];
 
 function extractStyleCss(source) {
+  if (!/<style\b/i.test(source)) return source;
   const match = /<style>([\s\S]*?)<\/style>/.exec(source);
   return match ? match[1] : '';
 }
@@ -129,7 +130,7 @@ test('numeric counters, timestamps, audit times, and numeric badges enforce font
       '#modal-menu .command-kbd-pill',
       '#modal-menu .command-footer-text'
     ]],
-    ['src/svelte/shell/styles/ModalsBaseStyle.svelte', [
+    ['src/styles/app/modals-base.css', [
       '.edit-delta-val',
       '#modal-edit-transaksi .edit-origin-pill',
       '#modal-edit-transaksi .edit-origin-summary',
@@ -137,7 +138,7 @@ test('numeric counters, timestamps, audit times, and numeric badges enforce font
       '#modal-edit-transaksi .trx-footer-meta.edit-footer-pill strong',
       '.input-admin-code'
     ]],
-    ['src/svelte/shell/styles/ModalsSheetStyle.svelte', [
+    ['src/styles/app/modals-sheet.css', [
       '.report-stat-val',
       '.report-ledger-badge',
       '.report-ledger-table tbody td.report-row-num',
@@ -145,12 +146,12 @@ test('numeric counters, timestamps, audit times, and numeric badges enforce font
       '.report-row-date',
       '.report-row-clock'
     ]],
-    ['src/svelte/shell/styles/DpickStyle.svelte', [
+    ['src/styles/app/dpick.css', [
       '.dpick-field',
       '.dpick-ym-btn',
       '.dpick-day'
     ]],
-    ['src/svelte/shell/styles/HelpersStyle.svelte', [
+    ['src/styles/app/helpers.css', [
       '.riwayat-summary-value',
       '.metric-pill',
       '.td-date-group-header',
@@ -205,10 +206,10 @@ test('interactive modal controls provide visible :focus-visible outlines and pre
     ['src/svelte/shell/modals/GroupAdminModals.svelte', '.group-name:focus-visible'],
     ['src/svelte/shell/modals/NavigationModals.svelte', '#modal-menu .command-clear-btn:focus-visible'],
     ['src/svelte/shell/modals/TampilanModal.svelte', '.style-option-card:focus-visible'],
-    ['src/svelte/shell/styles/ModalsBaseStyle.svelte', '.close-modal-btn:focus-visible'],
-    ['src/svelte/shell/styles/ModalsBaseStyle.svelte', '.btn-pwd-peek:focus-visible'],
-    ['src/svelte/shell/styles/ModalsSheetStyle.svelte', '.faq-item-title:focus-visible'],
-    ['src/svelte/shell/styles/ModalsSheetStyle.svelte', '.export-restore-label:has(input:focus-visible)'],
+    ['src/styles/app/modals-base.css', '.close-modal-btn:focus-visible'],
+    ['src/styles/app/modals-base.css', '.btn-pwd-peek:focus-visible'],
+    ['src/styles/app/modals-sheet.css', '.faq-item-title:focus-visible'],
+    ['src/styles/app/modals-sheet.css', '.export-restore-label:has(input:focus-visible)'],
     ['src/svelte/modals/MasterAnggotaRows.svelte', '.master-tab-track .tab-btn:focus-visible'],
     ['src/svelte/modals/MasterAnggotaRows.svelte', '.audit-chip:focus-visible'],
     ['src/svelte/forms/StampStylePreview.svelte', '.tampilan-option-card:focus-visible']

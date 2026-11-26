@@ -5,7 +5,7 @@ import { deliverMutation, generateTempId, requestAppRefresh } from "finkas/core/
 import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, switchTab, showConfirmDialog } from "../ui/modal";
 import { syncCdrop } from "../ui/cdrop";
-import { renderSkippedMonthsList } from "../render/index";
+import { renderSkippedMonthsList } from "../stores/workspace-sync";
 import { syncMasterAnggotaRows, syncMasterAnggotaFilter, syncMasterKategoriRows } from "../mount";
 import { flashMasterAnggotaSaved, flashMasterKategoriSaved } from "../stores/master.svelte";
 

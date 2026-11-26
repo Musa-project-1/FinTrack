@@ -160,7 +160,7 @@ function contrast(a, b) {
 }
 
 test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => {
-  const tokens = read('css/svelte-scoped.css');
+  const tokens = read('src/styles/app/tokens.css');
   for (const block of [tokens.split(':root {')[1].split('}')[0],
     tokens.split('body.dark-mode {')[1].split('}')[0]]) {
     const thumb = block.match(/--scrollbar-thumb:\s*(#[\da-f]+)/)[1];
@@ -168,7 +168,7 @@ test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => 
       assert.ok(contrast(thumb, surface) >= 3, `${thumb} on ${surface}`);
     }
   }
-  const landing = read('css/onboarding-scoped.css');
+  const landing = read('src/styles/onboarding/base.css');
   const thumb = landing.match(/--scrollbar-thumb:\s*(#[\da-f]+)/)[1];
   for (const [, surface] of landing.matchAll(/--lp-(?:abyss|canvas|graphite|steel|void):\s*(#[\da-f]+)/g)) {
     assert.ok(contrast(thumb, surface) >= 3, `${thumb} on ${surface}`);
@@ -176,7 +176,7 @@ test('scrollbar thumbs maintain 3:1 contrast against all theme surfaces', () => 
 });
 
 test('vendor scrollbar selectors only appear within unsupported-standard fallback blocks', () => {
-  for (const file of ['css/svelte-scoped.css', 'css/onboarding-scoped.css']) {
+  for (const file of ['src/styles/app/base.css', 'src/styles/onboarding/base.css']) {
     const css = read(file).replace(/\/\*[\s\S]*?\*\//g, '');
     const stack = [];
     let start = 0;
@@ -191,7 +191,7 @@ test('vendor scrollbar selectors only appear within unsupported-standard fallbac
     }
     assert.equal(stack.length, 0);
   }
-  for (const file of ['css/svelte-scoped.css', 'css/onboarding-scoped.css']) {
+  for (const file of ['src/styles/app/base.css', 'src/styles/onboarding/base.css']) {
     assert.match(read(file), /scrollbar-width:\s*thin/);
     assert.match(read(file), /scrollbar-color:\s*var\(--scrollbar-thumb\) transparent/);
   }
@@ -201,13 +201,13 @@ test('split modules are imported, precached, and authored batch sources stay und
   for (const file of ['css/onboarding-scoped.css', 'style.css', 'src/ui/svelte-dashboard.js']) {
     assert.ok(read('sw.js').includes(`'${file}'`));
   }
-  assert.ok(read('src/input.css').includes('../css/svelte-scoped.css'));
+  assert.ok(read('src/styles/app.css').includes('../../css/svelte-scoped.css'));
   for (const file of ['src/svelte/shell/modals/GroupAdminModals.svelte', 'src/svelte/modals/SuperAdminList.svelte',
-    'src/svelte/shell/styles/ModalsBaseStyle.svelte',
+    'src/styles/app/modals-base.css',
     'src/svelte/ui/pin-input.ts', 'src/svelte/ui/gestures.ts', 'src/svelte/handlers/groups.ts',
     'src/svelte/pages/onboarding-motion.ts', 'src/svelte/pages/onboarding-stage.ts', 'src/svelte/pages/journey.ts',
     'src/svelte/pages/onboarding.ts', 'src/svelte/pages/privacy.ts', 'src/pages/onboarding.js', 'src/svelte/pages/OnboardingShell.svelte',
-    'src/svelte/pages/onboarding/OnboardingBaseStyle.svelte', 'src/svelte/pages/onboarding/OnboardingMotionStyle.svelte']) {
+    'src/styles/onboarding/base.css', 'src/styles/onboarding/motion.css']) {
     assert.ok(read(file).split('\n').length - 1 < 750, file);
   }
 });

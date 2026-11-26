@@ -26,7 +26,7 @@ import { getInput, htmlElements, buttonIcon, showToast } from "finkas/core/utils
 import { closeModal } from "../ui/modal";
 import { syncBulkDues } from "../ui/bulk-dues";
 import { syncWorkspaceGliders } from "../ui/workspace";
-import { renderAll, renderChart } from "../render/index";
+import { renderAll, renderChart } from "../stores/workspace-sync";
 
 const GOOGLE_SDK_SRC = "https://accounts.google.com/gsi/client";
 const adminLogoutCleaners = new Set<() => void>();
@@ -525,7 +525,7 @@ export const loginGoogleSuperAdminAction = async () => {
       client.requestAccessToken({ prompt: "select_account" });
     });
   } catch (err) {
-    const message = err?.message || "";
+    const message = (err instanceof Error ? err.message : String(err)) || "";
     if (!message.includes("user_cancel") && !message.includes("closed")) {
       showToast(message ? `Otentikasi Google: ${message}` : "Otentikasi Google dibatalkan.", "info");
     }

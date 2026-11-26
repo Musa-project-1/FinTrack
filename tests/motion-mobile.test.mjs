@@ -87,8 +87,8 @@ test('motion and mobile style files remain under 750 LOC and TS split stays unde
   for (const rel of [
     'src/svelte/pages/onboarding-motion.ts',
     'src/svelte/pages/onboarding-horizon.ts',
-    'src/svelte/pages/onboarding/OnboardingBaseStyle.svelte',
-    'src/svelte/pages/onboarding/OnboardingFooterPortalStyle.svelte',
+    'src/styles/onboarding/base.css',
+    'src/styles/onboarding/footer-portal.css',
     'src/svelte/forms/IuranReviewChips.svelte',
     'scripts/render-shells.mjs'
   ]) {
@@ -103,7 +103,7 @@ test('motion and mobile style files remain under 750 LOC and TS split stays unde
 
 test('iOS 16px input zoom guards exist inside @media (pointer: coarse)', () => {
   const footerBlocks = collectMediaBlocks(
-    read('src/svelte/pages/onboarding/OnboardingFooterPortalStyle.svelte'),
+    read('src/styles/onboarding/footer-portal.css'),
     'pointer: coarse'
   ).join('\n');
   assert.match(footerBlocks, /\.portal-search-input\s*\{[^}]*font-size\s*:\s*16px/);
@@ -127,8 +127,8 @@ test('iOS 16px input zoom guards exist inside @media (pointer: coarse)', () => {
 });
 
 test('onboarding base styles apply tap-highlight, touch-action, user-select, hover gating, Zero Green, and journey tokens', () => {
-  const baseStyle = read('src/svelte/pages/onboarding/OnboardingBaseStyle.svelte');
-  const footerStyle = read('src/svelte/pages/onboarding/OnboardingFooterPortalStyle.svelte');
+  const baseStyle = read('src/styles/onboarding/base.css');
+  const footerStyle = read('src/styles/onboarding/footer-portal.css');
   const chipsStyle = read('src/svelte/forms/IuranReviewChips.svelte');
 
   assert.match(baseStyle, /html\s*\{[^}]*-webkit-tap-highlight-color\s*:\s*transparent\s*;/);

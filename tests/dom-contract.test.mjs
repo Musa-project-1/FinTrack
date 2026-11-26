@@ -58,8 +58,8 @@ const STANDALONE_PAGES = [
 
 /** Every authored markup file and Svelte component a literal lookup may resolve in. */
 const SVELTE_FILES = walk('src/svelte').filter((f) => f.endsWith('.svelte'));
-const HTML_FILES = [];
-const MARKUP_FILES = [...STANDALONE_PAGES, ...SVELTE_FILES];
+const HTML_FILES = ['index.html'];
+const MARKUP_FILES = [...HTML_FILES, ...STANDALONE_PAGES, ...SVELTE_FILES];
 
 /** Every authored client module (.js / .ts, excluding type declarations and compiled bundles). */
 const JS_FILES = walk('src').filter(

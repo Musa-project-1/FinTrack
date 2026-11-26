@@ -68,7 +68,7 @@ export async function getOperationReceipt(gid: string, operationId: string, head
     }
     return receipt;
   } catch (err) {
-    console.error('[finkas] getOperationReceipt failed:', gid, operationId, err?.message);
+    console.error('[finkas] getOperationReceipt failed:', gid, operationId, (err instanceof Error ? err.message : String(err)));
     throw err;
   }
 }

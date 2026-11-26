@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@source not "../ui";
+
+@theme inline {
+  --color-canvas: var(--bg-color);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text-main);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-border: var(--accent-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --shadow-pop: var(--shadow-pop);
+}
+
+/* === PRE-ORDER GLOBAL STYLES === */
+@import "./app/tokens.css";
+@import "./app/typography.css";
+@import "./app/base.css";
+@import "./app/layout.css";
+@import "./app/cards.css";
+@import "./app/buttons.css";
+@import "./app/tables.css";
+@import "./app/forms.css";
+@import "./app/modals-base.css";
+@import "./app/modals-sheet.css";
+@import "./app/toasts.css";
+@import "./app/helpers.css";
+@import "./app/cdrop.css";
+@import "./app/mpick.css";
+@import "./app/dpick.css";
+@import "./app/responsive-tablet.css";
+
+/* === TRANSITIONAL SHELL MODAL SCOPED STYLES === */
+@import "../../css/svelte-scoped.css";
+
+/* === POST-ORDER GLOBAL STYLES === */
+@import "./app/responsive-mobile.css";
+@import "./app/workspace.css";
+@import "./app/kasi-mascot.css";
+@import "./app/kasi-stage.css";
+@import "./app/hybrid-layout.css";
+@import "./app/hybrid-motion.css";
+@import "./app/hybrid-workspace.css";

@@ -12,7 +12,7 @@ import {
   renderTableRekap,
   renderChart,
   populateTahunRekap
-} from "../render/index";
+} from "../stores/workspace-sync";
 
 export const refreshAppData = async () => {
   requestAppRefresh();

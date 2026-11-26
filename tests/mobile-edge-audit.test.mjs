@@ -1,3 +1,4 @@
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -23,9 +24,9 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 const OWNED_STYLE_AND_COMPONENT_FILES = [
-  'src/svelte/shell/styles/ResponsiveMobileStyle.svelte',
-  'src/svelte/shell/styles/ResponsiveTabletStyle.svelte',
-  'src/svelte/shell/styles/HybridWorkspaceStyle.svelte',
+  'src/styles/app/responsive-mobile.css',
+  'src/styles/app/responsive-tablet.css',
+  'src/styles/app/hybrid-workspace.css',
   'src/svelte/dashboard/DuesMobileCards.svelte',
   'src/svelte/dashboard/HistoryLedger.svelte',
   'src/svelte/modals/PassbookMonths.svelte',
@@ -135,7 +136,7 @@ test('all 8 owned files pass >=11px typography, Zero Green, no transition:all, n
 });
 
 test('ResponsiveMobileStyle enforces @media (pointer: coarse) 16px input guard and mobile touch-action: manipulation', () => {
-  const mobileCss = read('src/svelte/shell/styles/ResponsiveMobileStyle.svelte');
+  const mobileCss = read('src/styles/app/responsive-mobile.css');
   const coarseBlock = collectMediaBlocks(mobileCss, 'pointer: coarse').join('\n');
 
   assert.ok(coarseBlock.length > 0, 'ResponsiveMobileStyle.svelte must define @media (pointer: coarse)');
@@ -151,14 +152,14 @@ test('ResponsiveMobileStyle enforces @media (pointer: coarse) 16px input guard a
   assert.doesNotMatch(profileHistoryCss, /\.riwayat-search\s+input\s*\{[^}]*font-size\s*:[^;]*!important/s);
   assert.doesNotMatch(profileHistoryCss, /\.riwayat-select\s*\{[^}]*font-size\s*:[^;]*!important/s);
 
-  if (fs.existsSync(path.join(ROOT, 'css/svelte-scoped.css'))) {
-    const compiled = collectMediaBlocks(read('css/svelte-scoped.css'), 'pointer: coarse').join('\n');
+  if (fs.existsSync(path.join(ROOT, 'style.css'))) {
+    const compiled = collectMediaBlocks(read('style.css').replace(/pointer:\s*coarse/g, 'pointer: coarse'), 'pointer: coarse').join('\n');
     assert.match(compiled, /\.search-member-input[\s\S]*font-size\s*:\s*16px/);
   }
 });
 
 test('CdropStyle and IuranReviewChips preserve coarse-pointer 16px overrides after base 13px rules', () => {
-  const cdropCss = read('src/svelte/shell/styles/CdropStyle.svelte');
+  const cdropCss = read('src/styles/app/cdrop.css');
   const cdropCoarse = collectMediaBlocks(cdropCss, 'pointer: coarse').join('\n');
   assert.match(
     cdropCoarse,
@@ -182,7 +183,7 @@ test('CdropStyle and IuranReviewChips preserve coarse-pointer 16px overrides aft
 });
 
 test('mobile cards, ledger, profile history, and offline queue enforce min-width:0, overflow-wrap:anywhere, and tabular-nums currency', () => {
-  const hybridCss = read('src/svelte/shell/styles/HybridWorkspaceStyle.svelte');
+  const hybridCss = read('src/styles/app/hybrid-workspace.css');
   const duesCards = read('src/svelte/dashboard/DuesMobileCards.svelte');
   const historyLedger = read('src/svelte/dashboard/HistoryLedger.svelte');
   const passbook = read('src/svelte/modals/PassbookMonths.svelte');
@@ -228,7 +229,7 @@ function installDom(t) {
   dom ??= new JSDOM('', { url: 'https://example.test' });
   const { window } = dom;
   window.document.open();
-  window.document.write(read('index.html'));
+  window.document.write(readWorkspaceFixtureHtml());
   window.document.close();
   window.localStorage.clear();
   if (!('inert' in window.HTMLElement.prototype)) {

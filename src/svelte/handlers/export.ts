@@ -1,5 +1,5 @@
 import type { Transaksi } from '../../types/finkas';
-import { getReceiptData, renderReceiptHtml } from '../render/receipt';
+import { getReceiptData, renderReceiptHtml } from './receipt';
 import { NAMA_BULAN } from "finkas/core/config";
 import { getState, currentRekapYear } from "finkas/core/state";
 import { formatRp, showToast, escapeHtml } from "finkas/core/utils";

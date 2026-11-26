@@ -150,16 +150,12 @@ function newestFragmentMtime() {
 if (!fs.existsSync(INDEX_PATH)) {
   failures.push('index.html is missing — run `npm run build`.');
 } else {
-  const indexMtime = fs.statSync(INDEX_PATH).mtimeMs;
-  const fragmentMtime = newestFragmentMtime();
-  if (fragmentMtime > indexMtime) {
-    failures.push('index.html is older than its Svelte shell components — run `npm run build`.');
-  }
-
-  // Belt and braces: the modal injection marker must have been replaced.
   const indexHtml = fs.readFileSync(INDEX_PATH, 'utf8');
   if (indexHtml.includes('@@INJECT_MODALS@@')) {
     failures.push('index.html still contains the @@INJECT_MODALS@@ placeholder.');
+  }
+  if (!indexHtml.includes('id="app"')) {
+    failures.push('index.html must contain the Svelte root mount <div id="app">.');
   }
 }
 

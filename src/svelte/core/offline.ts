@@ -95,7 +95,7 @@ export const countQueuedTransactions = async (groupId: string = getActiveGroupId
     const { items } = await getGroupOfflineTransactions(targetGid);
     return items.length;
   } catch (err) {
-    console.warn('[finkas] countQueuedTransactions error:', err?.message);
+    console.warn('[finkas] countQueuedTransactions error:', (err instanceof Error ? err.message : String(err)));
     return 0;
   }
 };

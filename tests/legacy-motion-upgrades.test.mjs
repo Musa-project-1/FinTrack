@@ -348,18 +348,18 @@ test('all 6 legacy motion upgrades obey Zero Green, no transition:all, no scale(
     'src/svelte/handlers/groups.ts',
     'src/svelte/core/utils.ts',
     'src/svelte/stores/history.svelte.ts',
-    'src/svelte/render/index.ts',
+    'src/svelte/stores/workspace-sync.ts',
     'src/svelte/dashboard/HistoryLedger.svelte',
     'src/svelte/shell/modals/TransactionsModals.svelte',
     'src/svelte/shell/modals/StrukModal.svelte',
     'src/svelte/shell/modals/MasterModals.svelte',
     'src/svelte/forms/StampStylePreview.svelte',
     'src/svelte/forms/IuranReviewChips.svelte',
-    'src/svelte/shell/styles/ButtonsStyle.svelte',
-    'src/svelte/shell/styles/ToastsStyle.svelte',
-    'src/svelte/shell/styles/LayoutStyle.svelte',
-    'src/svelte/shell/styles/MpickStyle.svelte',
-    'src/svelte/shell/styles/DpickStyle.svelte',
+    'src/styles/app/buttons.css',
+    'src/styles/app/toasts.css',
+    'src/styles/app/layout.css',
+    'src/styles/app/mpick.css',
+    'src/styles/app/dpick.css',
     'src/svelte/shell/modals/AuthModals.svelte',
     'src/svelte/shell/modals/GroupPinModal.svelte',
     'src/svelte/modals/ReceiptBody.svelte',
@@ -367,11 +367,11 @@ test('all 6 legacy motion upgrades obey Zero Green, no transition:all, no scale(
     'src/svelte/handlers/auth.ts',
     'src/svelte/handlers/self-pay.ts',
     'src/svelte/handlers/export.ts',
-    'src/svelte/render/receipt.ts',
-    'src/svelte/render/profile.ts',
-    'src/svelte/shell/styles/FormsStyle.svelte',
-    'src/svelte/shell/styles/ModalsBaseStyle.svelte',
-    'src/svelte/shell/styles/ModalsSheetStyle.svelte'
+    'src/svelte/handlers/receipt.ts',
+    'src/svelte/handlers/profile.ts',
+    'src/styles/app/forms.css',
+    'src/styles/app/modals-base.css',
+    'src/styles/app/modals-sheet.css'
   ];
 
   for (const file of editedFiles) {
@@ -392,21 +392,21 @@ test('all 6 legacy motion upgrades obey Zero Green, no transition:all, no scale(
   assert.doesNotMatch(wizardCss, /@keyframes\s+trxStepIn\b/);
   assert.doesNotMatch(wizardCss, /scale\(0\)/);
 
-  const toastsCss = read('src/svelte/shell/styles/ToastsStyle.svelte');
+  const toastsCss = read('src/styles/app/toasts.css');
   assert.match(toastsCss, /\.toast\.is-leaving/);
 
-  const dpickCss = read('src/svelte/shell/styles/DpickStyle.svelte');
+  const dpickCss = read('src/styles/app/dpick.css');
   assert.doesNotMatch(dpickCss, /@keyframes\s+dpick-in\b/);
   assert.match(dpickCss, /@starting-style/);
 
-  const mpickCss = read('src/svelte/shell/styles/MpickStyle.svelte');
+  const mpickCss = read('src/styles/app/mpick.css');
   assert.doesNotMatch(mpickCss, /dropdownFadeIn/);
   assert.match(mpickCss, /allow-discrete/);
 
-  const layoutCss = read('src/svelte/shell/styles/LayoutStyle.svelte');
+  const layoutCss = read('src/styles/app/layout.css');
   assert.doesNotMatch(layoutCss, /@keyframes\s+dropdownFadeIn\b/);
 
-  const modalsBaseCss = read('src/svelte/shell/styles/ModalsBaseStyle.svelte');
+  const modalsBaseCss = read('src/styles/app/modals-base.css');
   assert.match(modalsBaseCss, /details\.faq-item::details-content/);
   assert.match(modalsBaseCss, /interpolate-size:\s*allow-keywords/);
 
@@ -423,14 +423,14 @@ test('delete confirmation button accepts single clicks and uses coral danger pol
   const modalsSrc = read('src/svelte/shell/modals/TransactionsModals.svelte');
   assert.match(modalsSrc, /class="[^"]*\bbtn-danger-solid\s+btn-liquid\b[^"]*"[^>]*id="btn-hapus"/);
 
-  const buttonsSrc = read('src/svelte/shell/styles/ButtonsStyle.svelte');
+  const buttonsSrc = read('src/styles/app/buttons.css');
   assert.match(buttonsSrc, /\.btn-danger-solid\.btn-liquid\.is-saving/);
   assert.match(buttonsSrc, /\.btn-danger-solid\.btn-liquid\.is-done/);
   assert.match(buttonsSrc, /:is\(#modal-quickpay,\s*#modal-transaksi,\s*#modal-hapus,\s*#modal-edit-transaksi,\s*#modal-login\)\[data-pay-state\]\s+\.pay-verified-stage/);
   assert.match(buttonsSrc, /\[data-pay-tone="danger"\]\s+\.pay-verified-amount/);
 
   assert.match(modalsSrc, /id="hapus-verified-stage"/);
-  assert.match(read('src/svelte/shell/styles/ModalsBaseStyle.svelte'), /\.modal-center-dialog\s*\{[^}]*position:\s*relative;/s);
+  assert.match(read('src/styles/app/modals-base.css'), /\.modal-center-dialog\s*\{[^}]*position:\s*relative;/s);
   assert.match(read('src/svelte/dashboard/HistoryLedger.svelte'), /\.ledger-row\.is-deleting\s*\{[^}]*max-height:\s*0\s*!important;/s);
 
   const routerSrc = read('src/svelte/action-router.ts');
@@ -538,16 +538,16 @@ test('v317 signature animations (login vault, edit medallion, pin wave, copy mor
   const pinModal = read('src/svelte/shell/modals/GroupPinModal.svelte');
   assert.match(pinModal, /id="group-pin-badge"/);
   assert.match(pinModal, /id="group-pin-lock-icon"/);
-  assert.match(read('src/svelte/shell/styles/FormsStyle.svelte'), /\.pin-row\.is-unlocked\s+span\.pin-box/);
-  assert.doesNotMatch(read('src/svelte/shell/styles/FormsStyle.svelte'), /scale\(0\)/);
+  assert.match(read('src/styles/app/forms.css'), /\.pin-row\.is-unlocked\s+span\.pin-box/);
+  assert.doesNotMatch(read('src/styles/app/forms.css'), /scale\(0\)/);
 
   const receiptBody = read('src/svelte/modals/ReceiptBody.svelte');
   assert.match(receiptBody, /class="receipt-seal-ring"/);
-  assert.match(read('src/svelte/render/receipt.ts'), /is-stamping/);
+  assert.match(read('src/svelte/handlers/receipt.ts'), /is-stamping/);
   const selfPayCss = read('src/svelte/modals/SelfPayMonths.svelte');
   assert.match(selfPayCss, /#receipt-body\.is-stamping\s+\.receipt-seal\[data-tone="verified"\]\s+\.receipt-seal-ring/);
   assert.doesNotMatch(selfPayCss, /scale\(0\)/);
-  assert.doesNotMatch(read('src/svelte/shell/styles/ModalsBaseStyle.svelte'), /scale\(0\)/);
+  assert.doesNotMatch(read('src/styles/app/modals-base.css'), /scale\(0\)/);
 });
 
 test('v318 edit wizard (Alur Bayar) and content-fitted voucher receipt satisfy behavior and layout contracts', () => {
@@ -616,7 +616,7 @@ test('v319 edit wizard typography, surface alignment, and unified summary card c
   assert.match(trxModals, /class="edit-rev-card"/);
   assert.match(trxModals, /class="trx-rev-callout edit-summary-card"\s+id="edit-rev-callout"/);
 
-  const modalsBaseCss = read('src/svelte/shell/styles/ModalsBaseStyle.svelte');
+  const modalsBaseCss = read('src/styles/app/modals-base.css');
   assert.match(modalsBaseCss, /#modal-edit-transaksi\s+\.edit-origin-banner/);
   assert.match(modalsBaseCss, /#modal-edit-transaksi\s+#trx-attachment-file::file-selector-button/);
   assert.match(modalsBaseCss, /#modal-edit-transaksi\s+\.trx-footer-meta\.edit-footer-pill/);
@@ -645,7 +645,7 @@ test('v320 micro-animations #1-#6 and tactile micro-interactions meet contracts 
   const bento = read('src/svelte/dashboard/BentoDashboard.svelte');
   assert.match(bento, /\.bento-drill-label\s+i/);
   assert.match(bento, /@media\s*\(hover:\s*hover\)\s+and\s+\(pointer:\s*fine\)[\s\S]*\.bento-flow:hover\s+\.bento-drill-label\s+i/);
-  const hybridMotion = read('src/svelte/shell/styles/HybridMotionStyle.svelte');
+  const hybridMotion = read('src/styles/app/hybrid-motion.css');
   assert.match(hybridMotion, /\.bento-flow\.hybrid-card:active/);
 
   // Behavior: applyPrivacyMode(true) toggles aria-pressed and pulses .is-toggling on [data-action="toggle-privacy"]
@@ -683,11 +683,11 @@ test('v320 micro-animations #1-#6 and tactile micro-interactions meet contracts 
   assert.match(masterRows, /\.master-row\.is-just-saved/);
   assert.match(read('src/svelte/modals/MasterKategoriRows.svelte'), /class:is-just-saved/);
 
-  const workspaceCss = read('src/svelte/shell/styles/WorkspaceStyle.svelte');
+  const workspaceCss = read('src/styles/app/workspace.css');
   assert.match(workspaceCss, /\.workspace-tabs\s+\[aria-selected="true"\]\s+i/);
   assert.match(workspaceCss, /@keyframes\s+privacyEyePop/);
 
-  const modalsBaseCss = read('src/svelte/shell/styles/ModalsBaseStyle.svelte');
+  const modalsBaseCss = read('src/styles/app/modals-base.css');
   assert.match(modalsBaseCss, /\.close-modal-btn:active/);
   assert.match(modalsBaseCss, /\.btn-pwd-peek:active\s+i/);
 

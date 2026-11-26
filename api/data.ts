@@ -194,7 +194,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     return badRequest(res, 'Aksi tidak dikenal.');
   } catch (error) {
-    console.error('[finkas] data gateway error:', error?.message);
+    console.error('[finkas] data gateway error:', (error instanceof Error ? error.message : String(error)));
     return sendJson(res, 500, {
       status: false,
       message: 'Terjadi kesalahan pada server data.'

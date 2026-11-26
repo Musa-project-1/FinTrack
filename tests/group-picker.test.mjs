@@ -1,3 +1,4 @@
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 import test, { after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -11,7 +12,7 @@ import {
 import { openModal, closeModal } from '../src/ui/svelte-dashboard.js';
 
 const groups = ['A', 'B', 'C'].map(letter => ({ id: 'GRP-' + letter, nama: 'Grup ' + letter }));
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const html = readWorkspaceFixtureHtml();
 const byId = id => document.getElementById(id);
 const settle = () => new Promise(resolve => setImmediate(resolve));
 const originals = new Map();

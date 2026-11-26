@@ -52,13 +52,13 @@ const miniShapes: Record<string, string> = Object.freeze({
   shield: '<path class="mini-seal-bg" d="M9 1.4 L16 4.2 V9.1 C16 13.3 13 15.9 9 17.1 C5 15.9 2 13.3 2 9.1 V4.2 Z"/><path class="mini-seal-check" d="M5.7 9.1 L8 11.4 L12.5 6.6"/>'
 });
 
-export const renderMiniStamp = (style: StampStyle = getActiveIndicatorStyle()) => {
-  const validStyle = STAMP_STYLES.includes(style) ? style : 'seal';
+export const renderMiniStamp = (style: string = getActiveIndicatorStyle()) => {
+  const validStyle: StampStyle = STAMP_STYLES.includes(style as StampStyle) ? (style as StampStyle) : 'seal';
   return `<svg class="mini-stamp-ico" viewBox="0 0 18 18" aria-hidden="true" focusable="false">${miniShapes[validStyle]}</svg>`;
 };
 
-export const renderLunasHtml = (isNewlyPaid: boolean = false, style: StampStyle = getActiveIndicatorStyle()) => {
-  const validStyle = STAMP_STYLES.includes(style) ? style : 'seal';
+export const renderLunasHtml = (isNewlyPaid: boolean = false, style: string = getActiveIndicatorStyle()) => {
+  const validStyle: StampStyle = STAMP_STYLES.includes(style as StampStyle) ? (style as StampStyle) : 'seal';
   return `
   <span class="dues-seal${isNewlyPaid ? ' is-newly-paid' : ''}" data-stamp="${validStyle}" data-status="Lunas">
     ${renderMiniStamp(validStyle)}
@@ -77,7 +77,7 @@ const passbookEmblems: Record<string, string> = Object.freeze({
   unpaid: '<circle class="seal-unpaid-ring" cx="20" cy="20" r="14"/><path class="seal-unpaid-hand" d="M20 13.5 V20 L24 22.4"/>'
 });
 
-export const renderPassbookEmblem = (kind: string, style: StampStyle = getActiveIndicatorStyle()) => {
+export const renderPassbookEmblem = (kind: string, style: string = getActiveIndicatorStyle()) => {
   const inner = kind === 'paid'
     ? (Object.hasOwn(passbookEmblems, style) ? passbookEmblems[style] : passbookEmblems.seal)
     : (Object.hasOwn(passbookEmblems, kind) ? passbookEmblems[kind] : '');

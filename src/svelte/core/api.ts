@@ -119,7 +119,7 @@ export const fetchInitialData = async (targetGroupId: string): Promise<{status: 
       status: false,
       httpStatus: 500,
       groupId: targetGroupId || getActiveGroupId() || null,
-      message: error?.message || 'Gagal memuat data.',
+      message: (error instanceof Error ? error.message : String(error)) || 'Gagal memuat data.',
       data: null,
       readMarker: null
     };

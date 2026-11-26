@@ -48,7 +48,7 @@ export function getServiceAccount(): ServiceAccount | null {
           return serviceAccountCache;
         }
       } catch (innerErr) {
-        console.error('[finkas] FIREBASE_SERVICE_ACCOUNT is neither valid JSON nor base64 JSON:', innerErr?.message);
+        console.error('[finkas] FIREBASE_SERVICE_ACCOUNT is neither valid JSON nor base64 JSON:', (innerErr instanceof Error ? innerErr.message : String(innerErr)));
       }
     }
   }
@@ -62,7 +62,7 @@ export function getServiceAccount(): ServiceAccount | null {
         return serviceAccountCache;
       }
     } catch (err) {
-      console.error('[finkas] Failed to parse .service-account.local.json:', err?.message);
+      console.error('[finkas] Failed to parse .service-account.local.json:', (err instanceof Error ? err.message : String(err)));
     }
   }
 
@@ -152,7 +152,7 @@ export function constantTimeEqual(a: string, b: string): boolean {
   try {
     return crypto.timingSafeEqual(left, right);
   } catch (err) {
-    console.error('[finkas] timingSafeEqual failed:', err?.message);
+    console.error('[finkas] timingSafeEqual failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 }
@@ -250,10 +250,12 @@ const firestoreError = (message: string, status: number, body: string): Error =>
 
 /** True when a Firestore failure is a write precondition rejection rather than
  * an infrastructure error. `fsCreateIfAbsent` relies on this. */
-export const isPreconditionFailure = (error: Error & {body?: string}): boolean =>
-  /FAILED_PRECONDITION|ALREADY_EXISTS|already exists/i.test(
-    `${error?.body || ''} ${error?.message || ''}`
+export const isPreconditionFailure = (error: unknown): boolean => {
+  const err = error as { body?: string; message?: string } | null | undefined;
+  return /FAILED_PRECONDITION|ALREADY_EXISTS|already exists/i.test(
+    `${err?.body || ''} ${err?.message || ''}`
   );
+};
 
 const docUrl = (docPath: string, query: string = '') => `${FIRESTORE_BASE}/${docPath}${query}`;
 

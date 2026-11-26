@@ -125,7 +125,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (error instanceof RateLimitUnavailableError) {
       return sendJson(res, 503, { status: false, message: error.message });
     }
-    console.error('[finkas] verify-group-pin error:', error?.message);
+    console.error('[finkas] verify-group-pin error:', (error instanceof Error ? error.message : String(error)));
     return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan server.' });
   }
 }

@@ -1,5 +1,5 @@
 import { getInput, htmlElements } from 'finkas/core/utils';
-import { renderChart, renderTableTransaksi } from '../render/index';
+import { renderChart, renderTableTransaksi } from '../stores/workspace-sync';
 import { setBottomNavActive, setHistoryFilter } from '../handlers/navigation';
 import { isReducedMotion } from './ui-moments';
 

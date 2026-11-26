@@ -23,7 +23,7 @@ import {
   applyLanguagePreference
 } from "./ui/theme";
 import { updateCounterIuran, closeMobileMenu, closeHeaderDropdown } from "./ui/modal";
-import { renderAll, renderChart, renderTableRekap } from "./render/index";
+import { renderAll, renderChart, renderTableRekap } from "./stores/workspace-sync";
 
 import {
   handleUI, initLoginModal, initRoleSwitcher, submitLoginAdmin, loginGoogleSuperAdminAction
@@ -40,7 +40,7 @@ import { renderOfflineQueueList } from "./handlers/offlineQueue";
 import { initMonthlyCashReport } from "./handlers/cash-report";
 import { initSelfPay } from "./handlers/self-pay";
 import { initPaymentAccount } from "./handlers/payment-account";
-import { initReceipt } from "./render/receipt";
+import { initReceipt } from "./handlers/receipt";
 import { initAttachmentControls } from "./handlers/attachments";
 import { initSaveStatus } from "./ui/save-status";
 import { restoreJSONBackup } from "./handlers/backup";

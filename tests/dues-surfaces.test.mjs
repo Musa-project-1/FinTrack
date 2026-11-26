@@ -1,3 +1,4 @@
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 // Synthetic ledger only. No user storage, sessions, or network.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,7 +16,7 @@ after(() => { globalThis.Date = realDate; globalThis.fetch = realFetch; });
 const { setState, setCurrentRekapYear } = await import('../src/ui/svelte-dashboard.js');
 const { renderTableRekap } = await import('../src/ui/svelte-dashboard.js');
 const { createGroupReminderMessage, copyMonthlyRecap, cetakLaporanTahunan } = await import('../src/ui/svelte-dashboard.js');
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const html = readWorkspaceFixtureHtml();
 const { window } = new JSDOM(html, { url: 'https://example.test', pretendToBeVisual: true });
 for (const name of ['window', 'document', 'Element', 'HTMLElement', 'HTMLMediaElement', 'Node', 'Text',
   'Comment', 'Event', 'CustomEvent', 'Option', 'MutationObserver', 'navigator', 'requestAnimationFrame']) {

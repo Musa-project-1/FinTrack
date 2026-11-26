@@ -132,7 +132,7 @@ export function initSyncEvents() {
   if (eventsBound || typeof globalThis.window?.addEventListener !== 'function') return;
   eventsBound = true;
   openMutationChannel();
-  window.addEventListener('finkas:mutation-success', handleMutationSuccess);
+  window.addEventListener('finkas:mutation-success', (e) => handleMutationSuccess(e as CustomEvent<{ groupId?: string; updatedAt?: string }>));
   window.addEventListener('finkas:group-changed', (e) => {
     const newGroup = e.detail?.groupId || getActiveGroupId();
     lastSyncedGroupId = newGroup;

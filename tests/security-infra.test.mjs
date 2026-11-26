@@ -160,21 +160,24 @@ test('dist/ contains only allowlisted runtime assets without maps, sources, test
     'privacy.html',
     '404.html',
     'offline.html',
-    'style.css',
     'manifest.json',
     'sw.js',
-    'css/onboarding-scoped.css',
-    'src/app.js',
     'src/sw-register.js',
     'src/workspace-boot-theme.js',
-    'src/pages/onboarding.js',
     'src/pages/onboarding-boot-theme.js',
-    'src/pages/privacy.js',
-    'src/pages/offline.js',
-    'src/ui/svelte-dashboard.js',
-    'src/ui/svelte-onboarding.js'
+    'src/pages/offline.js'
   ]) {
     assert.ok(staged.includes(required), `dist/ missing required runtime asset ${required}`);
+  }
+
+  const hashedJs = staged.filter((f) => /^assets\/.*\.js$/.test(f));
+  const hashedCss = staged.filter((f) => /^assets\/.*\.css$/.test(f));
+  assert.ok(hashedJs.length >= 3, 'dist/assets/ must include hashed JS bundles for MPA entries');
+  assert.ok(hashedCss.length >= 2, 'dist/assets/ must include hashed CSS bundles for MPA entries');
+
+  const distSw = fs.readFileSync(path.join(distDir, 'sw.js'), 'utf8');
+  for (const asset of [...hashedJs, ...hashedCss]) {
+    assert.ok(distSw.includes(`'${asset}'`), `dist/sw.js must precache Vite asset ${asset}`);
   }
 
   for (const entry of staged) {
@@ -197,10 +200,10 @@ test('dist/ contains only allowlisted runtime assets without maps, sources, test
   const distOnboarding = fs.readFileSync(path.join(distDir, 'onboarding.html'), 'utf8');
   assert.match(distOnboarding, /fonts\.googleapis\.com\/css2[^>]*crossorigin="anonymous"/);
 
-  const distDash = fs.readFileSync(path.join(distDir, 'src/ui/svelte-dashboard.js'), 'utf8');
-  const distOnb = fs.readFileSync(path.join(distDir, 'src/ui/svelte-onboarding.js'), 'utf8');
-  assert.doesNotMatch(distDash, /sourceMappingURL/i);
-  assert.doesNotMatch(distOnb, /sourceMappingURL/i);
+  for (const jsAsset of hashedJs) {
+    const body = fs.readFileSync(path.join(distDir, jsAsset), 'utf8');
+    assert.doesNotMatch(body, /sourceMappingURL/i, `${jsAsset} must not expose sourceMappingURL`);
+  }
 });
 
 test('vite.config.ts hides sourcemaps and package.json/bump.mjs enforce safe execution', () => {
@@ -210,7 +213,7 @@ test('vite.config.ts hides sourcemaps and package.json/bump.mjs enforce safe exe
 
   const pkg = JSON.parse(read('package.json'));
   assert.ok(pkg.engines?.node, 'package.json must declare engines.node');
-  assert.ok(pkg.scripts.build.endsWith('&& node scripts/stage-dist.mjs'));
+  assert.match(pkg.scripts.build, /\bvite build\b/);
 
   const bump = read('scripts/bump.mjs');
   assert.doesNotMatch(bump, /\bexecSync\b/);

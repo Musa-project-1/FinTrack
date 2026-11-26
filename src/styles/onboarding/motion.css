@@ -1,0 +1,638 @@
+/* :global {*/
+    /* =========================================================================
+       FINKAS — Landing & Portal Motion Layer + Responsive Breakpoints
+       Loaded ONLY by onboarding.html (and tests/qa/_qa-journey.html).
+       Guardrails: G1 (onboarding.html only) · G2 (never import in css/input.css)
+       ========================================================================= */
+
+    /* ── View Transitions & Smooth Theme Toggle Animation ──────────────────── */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    ::view-transition-old(root) {
+      z-index: 1;
+    }
+
+    ::view-transition-new(root) {
+      z-index: 999;
+    }
+
+    html.theme-fading,
+    html.theme-fading * {
+      transition:
+        background-color 0.42s ease,
+        color 0.32s ease,
+        border-color 0.32s ease !important;
+    }
+
+    .celestial-svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      overflow: visible;
+    }
+
+    .celestial-disc {
+      transform-origin: 12px 12px;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .celestial-cutout {
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .celestial-rays {
+      transform-origin: 12px 12px;
+      opacity: 0;
+      transform: scale(0.35) rotate(-45deg);
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease;
+    }
+
+    :root[data-theme="dark"] .celestial-disc {
+      transform: scale(0.7);
+    }
+
+    :root[data-theme="dark"] .celestial-cutout {
+      transform: translate3d(10px, -10px, 0);
+    }
+
+    :root[data-theme="dark"] .celestial-rays {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .btn-hero-primary i,
+    .btn-nav-cta i,
+    .btn-cta-inverted i {
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .btn-hero-primary:hover i,
+    .btn-nav-cta:hover i,
+    .btn-cta-inverted:hover i {
+      transform: translateX(3px);
+    }
+
+    /* ── Reveal Guard (.js-motion) ─────────────────────────────────────────── */
+    .js-motion [data-lp-reveal] {
+      opacity: 0;
+      will-change: opacity;
+      transition: opacity var(--lp-t-section);
+    }
+
+    .js-motion [data-lp-reveal="blur"] {
+      filter: blur(4px);
+      will-change: opacity, filter;
+      transition: opacity var(--lp-t-reveal), filter var(--lp-t-reveal);
+    }
+
+    .js-motion [data-lp-reveal].is-lp-revealed {
+      opacity: 1;
+      will-change: auto;
+    }
+
+    .js-motion [data-lp-reveal="blur"].is-lp-revealed {
+      filter: blur(0);
+    }
+
+    /* ── Keyframes ─────────────────────────────────────────────────────────── */
+    @keyframes lp-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes lp-atmos-rise {
+      0% { opacity: 0; transform: translate3d(0, 6px, 0); }
+      30% { opacity: 0.55; transform: translate3d(0, 0, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+
+    @keyframes lp-turn-travel {
+      from { stroke-dashoffset: 100; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes lp-turn-settle {
+      0% { opacity: 0.9; }
+      70% { opacity: 0.55; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes lp-flash-veil {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes lp-stamp-fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes lp-pin-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      45% { transform: translateX(5px); }
+      70% { transform: translateX(-3px); }
+      88% { transform: translateX(3px); }
+    }
+
+    /* ── Hero Entrances & borderTurn ───────────────────────────────────────── */
+    .hero-content .hero-eyebrow { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+    .hero-content .hero-sub { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.36s both; }
+    .hero-content .hero-cta-group { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.52s both; }
+    .hero-content .hero-trust-row { animation: lp-atmos-rise var(--lp-t-reveal) var(--lp-ease-calm) 0.68s both; }
+
+    @supports (animation-delay: calc(sibling-index() * 1s)) {
+      .hero-line-mask .hero-line {
+        animation-delay: calc(0.10s + (sibling-index() - 1) * 0.12s);
+      }
+    }
+
+    .lp-turn {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .lp-turn-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
+    }
+
+    .lp-turn-path {
+      fill: none;
+      stroke: var(--lp-turn-stroke);
+      stroke-width: 1;
+      stroke-linecap: round;
+      stroke-dasharray: 18 82;
+      stroke-dashoffset: 100;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .lp-turn-hero { inset: 0; }
+    .lp-turn-hero .lp-turn-svg { animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.05s both; }
+    .lp-turn-hero .lp-turn-path { animation: lp-turn-travel var(--lp-t-reveal) linear 0.05s both; }
+
+    .lp-turn-mockup { inset: 2px; }
+    .js-motion .stage-frame.is-lp-revealed .lp-turn-mockup .lp-turn-svg {
+      animation: lp-turn-settle var(--lp-t-reveal) var(--lp-ease-calm) 0.25s both;
+    }
+    .js-motion .stage-frame.is-lp-revealed .lp-turn-mockup .lp-turn-path {
+      animation: lp-turn-travel var(--lp-t-reveal) linear 0.25s both;
+    }
+
+    /* ── FAQ Accordion & Saldo Flash ───────────────────────────────────────── */
+    .js-motion .faq-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--lp-t-faq);
+    }
+
+    .js-motion .faq-trigger[aria-expanded="true"] ~ .faq-body {
+      grid-template-rows: 1fr;
+    }
+
+    .js-motion .mock-saldo::after {
+      content: '';
+      position: absolute;
+      inset: -4px -8px;
+      border-radius: var(--lp-r-btn);
+      background: var(--lp-flash-tint);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .js-motion .mock-saldo.is-lp-flash::after {
+      animation: lp-flash-veil var(--lp-t-state) ease-out both;
+    }
+
+    /* ── Sky Stage Layer Bindings (consumed by src/pages/journey.js) ───────── */
+    .js-motion .sky-layer-sky {
+      opacity: var(--lp-j-sky, 1);
+      transform: translate3d(0, var(--lp-y-sky, 0%), 0);
+    }
+
+    .js-motion .sky-layer-ridge-far {
+      opacity: var(--lp-j-ridge-far, 0);
+      transform: translate3d(0, var(--lp-y-ridge-far, 0%), 0);
+    }
+
+    .js-motion .sky-layer-clouds {
+      opacity: var(--lp-j-cloud, 0);
+      transform: translate3d(0, var(--lp-y-cloud, 0%), 0);
+    }
+
+    .js-motion .sky-layer-land {
+      opacity: var(--lp-j-land, 0);
+      transform: translate3d(0, var(--lp-y-land, 0%), 0);
+    }
+
+    /* ── PIN Spinner, Screen Transitions, Scroll Margin & Focus ──────────────── */
+    .lp-spin {
+      animation: lp-spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    #state-welcome:not(.hidden) {
+      opacity: 1;
+      transition: opacity 0.2s ease-out;
+      @starting-style {
+        opacity: 0;
+      }
+    }
+
+    #state-list:not(.hidden),
+    #state-pin:not(.hidden) {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity 0.2s ease-out, transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+      @starting-style {
+        opacity: 0;
+        transform: translateY(6px) scale(0.99);
+      }
+    }
+
+    .pin-input-row.is-error {
+      animation: lp-pin-shake 0.22s ease;
+    }
+
+    #fitur, #matriks, #demo-simulator, #faq {
+      scroll-margin-top: 76px;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--lp-ink);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* ── Live Simulator & Thermal Receipt Feed (#demo-simulator) ───────────── */
+    .simulator-panel {
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--lp-footer-glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--lp-line-soft);
+      border-radius: var(--lp-r-card);
+      box-shadow: inset 0 1px 0 var(--lp-inner-highlight), var(--lp-card-shadow);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-sim {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: var(--lp-r-btn);
+      border: 1px solid var(--lp-line);
+      background: var(--lp-surface-solid);
+      color: var(--lp-ink);
+      font-family: var(--lp-font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color var(--lp-t-state), border-color var(--lp-t-state);
+    }
+
+    .btn-sim:hover {
+      background: var(--lp-surface-2);
+    }
+
+    .sim-feedback {
+      font-family: var(--lp-font-mono);
+      font-size: 12.5px;
+      color: var(--lp-ink-2);
+      min-height: 20px;
+    }
+
+    .receipt-feed-wrap {
+      border-top: 1px solid var(--lp-line-soft);
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .receipt-slot-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .receipt-slot-slot {
+      flex: 1;
+      height: 4px;
+      border-radius: var(--lp-r-pill);
+      background: var(--lp-surface-2);
+      border: 1px solid var(--lp-line-soft);
+    }
+
+    .receipt-slot-label {
+      font-family: var(--lp-font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      color: var(--lp-ink-faint);
+      white-space: nowrap;
+    }
+
+    .receipt-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .receipt-slip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--lp-surface-solid);
+      border: 1px solid var(--lp-line);
+      border-top-style: dashed;
+      border-radius: var(--lp-r-btn);
+      font-family: var(--lp-font-mono);
+      font-size: 11.5px;
+      color: var(--lp-ink);
+      animation: lp-receipt-feed 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .receipt-slip-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .receipt-slip-title {
+      font-family: var(--lp-font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--lp-ink);
+    }
+
+    .receipt-slip-sub {
+      font-size: 10.5px;
+      color: var(--lp-ink-2);
+    }
+
+    .receipt-slip-amt {
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--lp-paid);
+    }
+
+    .receipt-slip-amt.is-neg {
+      color: var(--lp-danger);
+    }
+
+    @keyframes lp-receipt-feed {
+      0% {
+        clip-path: inset(0 0 100% 0);
+        transform: translate3d(0, -14px, 0);
+        opacity: 0.3;
+      }
+      100% {
+        clip-path: inset(0 0 0% 0);
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+      }
+    }
+
+    /* ── Prefers-Reduced-Motion ────────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      .hero-content .hero-eyebrow,
+      .hero-line-1,
+      .hero-line-2,
+      .hero-line-3,
+      .hero-content .hero-sub,
+      .hero-content .hero-cta-group,
+      .hero-content .hero-trust-row {
+        animation: none !important;
+        opacity: 1;
+        filter: none;
+        transform: none;
+      }
+
+      .lp-turn { display: none; }
+
+      .js-motion [data-lp-reveal],
+      .js-motion [data-lp-reveal].is-lp-revealed {
+        opacity: 1;
+        filter: none;
+        transition: none;
+      }
+
+      .js-motion .sky-layer {
+        transform: none;
+      }
+
+      .lp-spin,
+      .pin-input-row.is-error,
+      .hero-em-arc path,
+      .stamp-btn.is-ink-ripple,
+      .stamp-btn.is-stamped-in,
+      .stamp-btn.is-ink-ripple::after,
+      .stamp-btn.is-stamped-in::after,
+      .receipt-slip,
+      .footer-wib-dot,
+      .footer-seal-pill {
+        animation: none !important;
+      }
+
+      .hero-em-arc path {
+        stroke-dashoffset: 0;
+      }
+
+      .js-motion .hero-content,
+      .js-motion .stage-frame,
+      .sky-image,
+      .sky-mist,
+      .celestial-disc,
+      .celestial-cutout,
+      .celestial-rays,
+      .btn-hero-primary,
+      .btn-cta-inverted,
+      .btn-footer-top,
+      .odo-reel {
+        transform: none !important;
+        opacity: 1 !important;
+        filter: none !important;
+        transition: none !important;
+      }
+
+      .dossier-indicator,
+      .dossier-body {
+        transition: none !important;
+      }
+
+      .specimen-pane.is-active {
+        animation: none !important;
+      }
+
+      .footer-wordmark-stage:not(.is-pointer-active) .footer-wordmark-fill,
+      .footer-wordmark-stage.is-pointer-active .footer-wordmark-fill {
+        animation: none !important;
+        opacity: 0.28 !important;
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
+      }
+
+      .stage-frame::before {
+        display: none !important;
+      }
+
+      #state-list:not(.hidden),
+      #state-pin:not(.hidden) {
+        transform: none !important;
+        transition: opacity 0.12s ease !important;
+      }
+
+      html.theme-fading,
+      html.theme-fading * {
+        transition: none !important;
+      }
+    }
+
+    /* ── Responsive Breakpoints (<= 900px & <= 640px) ─────────────────────── */
+    @media (max-width: 900px) {
+      .nav-links,
+      .btn-nav-cta {
+        display: none;
+      }
+
+      .nav-hamburger {
+        display: inline-flex;
+      }
+
+      .dossier-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .dossier-stage {
+        border-left: none;
+        border-top: 1px solid var(--lp-line-soft);
+        min-height: 320px;
+      }
+
+      .trust-band-sep {
+        display: none;
+      }
+
+      .matrix-scroll-hint {
+        display: block;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stage-frame {
+        --lens-x: 85%;
+      }
+
+      .landing-hero {
+        padding: 40px 14px;
+      }
+
+      .hero-content {
+        padding: 20px 8px;
+      }
+
+      .hero-cta-group {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-hero-primary,
+      .btn-hero-ghost {
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .stage-topbar,
+      .stage-content,
+      .stage-footer-bar {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .stage-layer-audit .audit-formula {
+        font-size: clamp(10px, 2.75vw, 18px);
+        letter-spacing: -0.03em;
+      }
+
+      .stage-layer-audit .flow-val {
+        font-size: 11px;
+        line-height: 20px;
+        min-height: 20px;
+      }
+
+      .stage-sync-chip,
+      .audit-chip {
+        font-size: 9px;
+        padding: 3px 8px;
+      }
+
+      .stage-footer-bar {
+        font-size: 9.5px;
+      }
+
+      .vault-compliance {
+        font-size: 10px;
+      }
+
+      .flow-val {
+        font-size: 13.5px;
+        line-height: 20px;
+        min-height: 20px;
+      }
+
+      .dossier-row {
+        padding: 16px 18px 16px 22px;
+      }
+
+      .dossier-stage {
+        padding: 22px 18px;
+      }
+
+      .landing-section {
+        padding: 56px 14px;
+      }
+
+      .simulator-panel {
+        padding: 20px 16px;
+      }
+
+      .sim-controls .btn-sim {
+        width: 100%;
+      }
+
+      .landing-cta-banner {
+        padding: 44px 20px;
+      }
+
+      .portal-card {
+        padding: 24px 18px;
+      }
+    }
+  /*}*/

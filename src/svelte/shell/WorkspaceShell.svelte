@@ -1,3 +1,9 @@
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+
+  let { modals }: { modals?: Snippet } = $props();
+</script>
+
   <div class="bg-stage" id="bg-stage" aria-hidden="true">
     <!-- Mode: aurora (default) -->
     <div class="bg-layer bg-aurora">
@@ -412,7 +418,7 @@
 
   <!-- Login Modal -->
 
-  <!-- @@INJECT_MODALS@@ -->
+  {@render modals?.()}
 
   <aside id="kasi-dock" class="kasi-dock" aria-label="Kasi si Kucing Kas" hidden>
     <button type="button" class="kasi-fab" id="kasi-fab" aria-label="Aksi Kasi si Kucing Kas" aria-expanded="false" aria-controls="kasi-halo">

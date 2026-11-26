@@ -14,7 +14,7 @@ import { withLiquidSave } from "../ui/keel";
 import { openModal, closeModal, showConfirmDialog } from "../ui/modal";
 import { syncQuickPayPresets } from "../mount";
 import { syncDpick } from "../ui/dpick";
-import { markNewlyPaidCells } from "../render/index";
+import { markNewlyPaidCells } from "../stores/workspace-sync";
 import {
   refreshAppData,
   tempTransactionId,

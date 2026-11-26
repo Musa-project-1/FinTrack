@@ -421,7 +421,7 @@ const setup = (input: HTMLInputElement) => {
 
 /** Wrap every `<input type="date" class="dpick">` on the page. Safe to call once. */
 export const initDatePickers = () => {
-  document.querySelectorAll('input.dpick').forEach(setup);
+  document.querySelectorAll<HTMLInputElement>('input.dpick').forEach(setup);
   document.addEventListener('finkas:language-changed', () => {
     registry.forEach((ui) => { syncLabel(ui); if (isOpen(ui)) renderView(ui); });
   });

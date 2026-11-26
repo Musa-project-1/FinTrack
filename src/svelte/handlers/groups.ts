@@ -247,7 +247,7 @@ export const enterGroup = (id: string) => {
     localStorage.setItem(GROUP_OPEN_KEY, "1");
     localStorage.setItem(ACTIVE_GROUP_NAME_KEY, found.nama);
   } catch (err) {
-    console.warn("[finkas] Cannot persist group state:", err?.message);
+    console.warn("[finkas] Cannot persist group state:", (err instanceof Error ? err.message : String(err)));
   }
 
   closeModal("modal-groups");

@@ -228,7 +228,7 @@ const setup = (input: HTMLInputElement) => {
 
 /** Wrap every input.mpick on the page. Safe to call once. */
 export const initMonthPickers = () => {
-  document.querySelectorAll('input.mpick').forEach(setup);
+  document.querySelectorAll<HTMLInputElement>('input.mpick').forEach(setup);
   document.addEventListener('click', (e) => {
     if (!closestHtml(e.target, '.mpick')) closeAll();
   });

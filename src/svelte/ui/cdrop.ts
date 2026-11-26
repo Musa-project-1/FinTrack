@@ -293,7 +293,7 @@ const moveHighlight = (ui: Dropdown, dir: number) => {
 
 /** Wrap every native select.cdrop on the page. Safe to call once. */
 export const initCustomDropdowns = () => {
-  document.querySelectorAll('select.cdrop').forEach(setup);
+  document.querySelectorAll<HTMLSelectElement>('select.cdrop').forEach(setup);
   document.addEventListener('click', (e) => {
     if (!closestHtml(e.target, '.cdrop')) closeAll();
   });

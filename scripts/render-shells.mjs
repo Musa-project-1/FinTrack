@@ -25,19 +25,6 @@ const modalOrder = [
   ['struk.html', 'StrukModal.svelte'],
 ];
 
-const shellBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/shell/WorkspaceShell.svelte'), 'utf8')).trimEnd();
-const modalsContent = modalOrder
-  .map(([label, file]) =>
-    `  <!-- === Modal Module: ${label} === -->\n` +
-    stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/shell/modals', file), 'utf8')).trim()
-  )
-  .join('\n\n');
-
-const marker = '<!-- @@INJECT_MODALS@@ -->';
-if (!shellBody.includes(marker)) {
-  throw new Error(`[render-shells] Marker "${marker}" not found in WorkspaceShell.svelte`);
-}
-
 const indexHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -66,15 +53,13 @@ const indexHtml = `<!DOCTYPE html>
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
-
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
-  <link rel="stylesheet" href="style.css?v=${v}">
 </head>
 <body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">
   <script src="src/workspace-boot-theme.js?v=${v}"></script>
-${shellBody.replace(marker, () => modalsContent)}
+  <div id="app"></div>
 
-  <script type="module" src="src/app.js?v=${v}"></script>
+  <script type="module" src="/src/entries/workspace.ts"></script>
   <script src="src/sw-register.js?v=${v}" defer></script>
 </body>
 </html>\n`;
@@ -105,13 +90,12 @@ const onboardingHtml = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/onboarding-scoped.css?v=${v}">
-  <script src="src/pages/onboarding-boot-theme.js"></script>
+  <script src="src/pages/onboarding-boot-theme.js?v=${v}"></script>
 </head>
 <body>
 ${onboardingBody}
 
-  <script type="module" src="src/pages/onboarding.js"></script>
+  <script type="module" src="/src/entries/onboarding.ts"></script>
 </body>
 </html>\n`;
 
@@ -127,14 +111,13 @@ const privacyHtml = `<!DOCTYPE html>
   <meta name="theme-color" content="#f4f7fb">
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
   <link rel="stylesheet" href="fonts/phosphor/phosphor.css">
-  <link rel="stylesheet" href="style.css?v=${v}">
 </head>
 <body class="privacy-page" data-palette="cobalt" data-canvas="aurora">
   <script src="src/workspace-boot-theme.js?v=${v}"></script>
 
 ${privacyBody}
 
-  <script type="module" src="src/pages/privacy.js?v=${v}"></script>
+  <script type="module" src="/src/entries/privacy.ts"></script>
 </body>
 </html>\n`;
 
@@ -147,46 +130,6 @@ function collectSvelteFiles(dir, out = []) {
   return out;
 }
 
-const PRE_STYLE_ORDER = [
-  'src/svelte/shell/styles/TokensStyle.svelte',
-  'src/svelte/shell/styles/TypographyStyle.svelte',
-  'src/svelte/shell/styles/BaseStyle.svelte',
-  'src/svelte/shell/styles/LayoutStyle.svelte',
-  'src/svelte/shell/styles/CardsStyle.svelte',
-  'src/svelte/shell/styles/ButtonsStyle.svelte',
-  'src/svelte/shell/styles/TablesStyle.svelte',
-  'src/svelte/shell/styles/FormsStyle.svelte',
-  'src/svelte/shell/modals/GroupAdminModals.svelte',
-  'src/svelte/modals/SuperAdminList.svelte',
-  'src/svelte/shell/styles/ModalsBaseStyle.svelte',
-  'src/svelte/shell/styles/ModalsSheetStyle.svelte',
-  'src/svelte/shell/styles/ToastsStyle.svelte',
-  'src/svelte/shell/styles/HelpersStyle.svelte',
-  'src/svelte/shell/styles/CdropStyle.svelte',
-  'src/svelte/shell/styles/MpickStyle.svelte',
-  'src/svelte/shell/styles/DpickStyle.svelte',
-  'src/svelte/shell/styles/ResponsiveTabletStyle.svelte',
-];
-
-const POST_STYLE_ORDER = [
-  'src/svelte/shell/styles/ResponsiveMobileStyle.svelte',
-  'src/svelte/shell/styles/WorkspaceStyle.svelte',
-  'src/svelte/shell/styles/KasiMascotStyle.svelte',
-  'src/svelte/shell/styles/KasiStageStyle.svelte',
-  'src/svelte/shell/styles/HybridLayoutStyle.svelte',
-  'src/svelte/shell/styles/HybridMotionStyle.svelte',
-  'src/svelte/shell/styles/HybridWorkspaceStyle.svelte',
-];
-
-const ONBOARDING_STYLE_ORDER = [
-  'src/svelte/pages/onboarding/OnboardingIconsStyle.svelte',
-  'src/svelte/pages/onboarding/OnboardingBaseStyle.svelte',
-  'src/svelte/pages/onboarding/OnboardingHeroStageStyle.svelte',
-  'src/svelte/pages/onboarding/OnboardingSectionsStyle.svelte',
-  'src/svelte/pages/onboarding/OnboardingFooterPortalStyle.svelte',
-  'src/svelte/pages/onboarding/OnboardingMotionStyle.svelte',
-];
-
 function compileStyleBlock(rel) {
   const source = fs.readFileSync(path.join(ROOT, rel), 'utf8');
   if (!/<style\b/.test(source)) return null;
@@ -195,15 +138,22 @@ function compileStyleBlock(rel) {
   return css ? `/* ${rel} */\n${css}` : null;
 }
 
-const reserved = new Set([...PRE_STYLE_ORDER, ...POST_STYLE_ORDER, ...ONBOARDING_STYLE_ORDER]);
 const featureRelPaths = collectSvelteFiles(path.join(ROOT, 'src', 'svelte'))
-  .map((filePath) => path.relative(ROOT, filePath).split(path.sep).join('/'))
-  .filter((rel) => !reserved.has(rel));
+  .map((filePath) => path.relative(ROOT, filePath).split(path.sep).join('/'));
 
-const svelteStyleChunks = [...PRE_STYLE_ORDER, ...featureRelPaths, ...POST_STYLE_ORDER]
-  .map(compileStyleBlock)
-  .filter(Boolean);
-const onboardingStyleChunks = ONBOARDING_STYLE_ORDER.map(compileStyleBlock).filter(Boolean);
+const svelteStyleChunks = featureRelPaths.map(compileStyleBlock).filter(Boolean);
+
+const ONBOARDING_CSS_ORDER = [
+  'src/styles/onboarding/icons.css',
+  'src/styles/onboarding/base.css',
+  'src/styles/onboarding/hero-stage.css',
+  'src/styles/onboarding/sections.css',
+  'src/styles/onboarding/footer-portal.css',
+  'src/styles/onboarding/motion.css',
+];
+const onboardingCssChunks = ONBOARDING_CSS_ORDER.map((rel) =>
+  `/* ${rel} */\n${fs.readFileSync(path.join(ROOT, rel), 'utf8').trim()}`
+);
 
 const writeIfChanged = (filePath, content) => {
   if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === content) return false;
@@ -219,7 +169,7 @@ writeIfChanged(
 );
 writeIfChanged(
   path.join(ROOT, 'css', 'onboarding-scoped.css'),
-  scopedHeader + (onboardingStyleChunks.length ? `${onboardingStyleChunks.join('\n\n')}\n` : '')
+  `/* Generated from src/styles/onboarding/*.css by scripts/render-shells.mjs. */\n${onboardingCssChunks.join('\n\n')}\n`
 );
 
 fs.writeFileSync(path.join(ROOT, 'index.html'), indexHtml, 'utf8');
@@ -227,4 +177,4 @@ fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
 fs.copyFileSync(path.join(ROOT, 'src/pages/404.html'), path.join(ROOT, '404.html'));
 fs.copyFileSync(path.join(ROOT, 'src/pages/offline.html'), path.join(ROOT, 'offline.html'));
-console.log(`[render-shells] Rendered HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length}) + css/onboarding-scoped.css (${onboardingStyleChunks.length}) at v${v}.`);
+console.log(`[render-shells] Rendered MPA HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length}) + css/onboarding-scoped.css (${onboardingCssChunks.length}) at v${v}.`);

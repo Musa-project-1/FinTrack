@@ -66,7 +66,7 @@ export async function readSuperadminEmails(headers: FirestoreHeaders): Promise<s
   try {
     config = await fsGet(APP_CONFIG_DOC, headers);
   } catch (err) {
-    console.error('[finkas] Failed to read superadmin list:', err?.message);
+    console.error('[finkas] Failed to read superadmin list:', (err instanceof Error ? err.message : String(err)));
     throw err;
   }
 
@@ -126,7 +126,7 @@ export async function writeAuditLog(gid: string, aksi: string, detail: string, h
       Detail: String(detail || '').slice(0, 500)
     }, headers);
   } catch (err) {
-    console.error('[finkas] Audit log write failed:', gid, aksi, err?.message);
+    console.error('[finkas] Audit log write failed:', gid, aksi, (err instanceof Error ? err.message : String(err)));
   }
 }
 
@@ -140,7 +140,7 @@ export async function touchGroupUpdated(gid: string, headers: FirestoreHeaders) 
     await fsPatch(groupDoc(gid), { updatedAt: ts }, headers, ['updatedAt']);
     return ts;
   } catch (err) {
-    console.error('[finkas] touchGroupUpdated failed:', gid, err?.message);
+    console.error('[finkas] touchGroupUpdated failed:', gid, (err instanceof Error ? err.message : String(err)));
     return null;
   }
 }

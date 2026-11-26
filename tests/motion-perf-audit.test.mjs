@@ -7,18 +7,19 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 const OWNED_STYLE_AND_UI_FILES = [
-  'src/svelte/shell/styles/HybridMotionStyle.svelte',
-  'src/svelte/shell/styles/KasiMascotStyle.svelte',
-  'src/svelte/shell/styles/KasiStageStyle.svelte',
-  'src/svelte/shell/styles/ToastsStyle.svelte',
-  'src/svelte/shell/styles/ButtonsStyle.svelte',
-  'src/svelte/shell/styles/CardsStyle.svelte',
-  'src/svelte/shell/styles/TablesStyle.svelte',
+  'src/styles/app/hybrid-motion.css',
+  'src/styles/app/kasi-mascot.css',
+  'src/styles/app/kasi-stage.css',
+  'src/styles/app/toasts.css',
+  'src/styles/app/buttons.css',
+  'src/styles/app/cards.css',
+  'src/styles/app/tables.css',
   'src/svelte/dashboard/MemberSpotlight.svelte'
 ];
 
-/** Extract the <style> block contents from a Svelte component. */
+/** Extract the <style> block contents from a Svelte component, or return raw CSS. */
 function extractStyleBlock(source) {
+  if (!/<style\b/i.test(source)) return source;
   const match = /<style[^>]*>([\s\S]*?)<\/style>/i.exec(source);
   return match ? match[1] : '';
 }
@@ -115,14 +116,14 @@ test('all :hover rules with transform: across owned files are gated in @media (h
       `${rel} has :hover transform rules outside @media (hover: hover) and (pointer: fine): ${violations.join(', ')}`
     );
   }
-  const kasiStyle = extractStyleBlock(read('src/svelte/shell/styles/KasiMascotStyle.svelte'));
+  const kasiStyle = extractStyleBlock(read('src/styles/app/kasi-mascot.css'));
   const kasiFineBlocks = collectMediaBlocks(kasiStyle, 'pointer: fine').join('\n');
   assert.match(kasiFineBlocks, /\.kasi-fab:hover\s+\.kasi-paw-right/);
   assert.match(kasiFineBlocks, /\.kasi-stage-pet-zone:hover\s+\.kasi-paw-right/);
 });
 
 test('KasiMascotStyle pauses infinite animations when startup/dock/body hidden and resets reduced-motion', () => {
-  const src = read('src/svelte/shell/styles/KasiMascotStyle.svelte');
+  const src = read('src/styles/app/kasi-mascot.css');
   const style = extractStyleBlock(src);
   const clean = style.replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -138,7 +139,7 @@ test('KasiMascotStyle pauses infinite animations when startup/dock/body hidden a
 });
 
 test('HybridMotionStyle pauses ambient aurora/topo animations during startup and resets will-change in reduced motion', () => {
-  const style = extractStyleBlock(read('src/svelte/shell/styles/HybridMotionStyle.svelte'));
+  const style = extractStyleBlock(read('src/styles/app/hybrid-motion.css'));
   const clean = style.replace(/\/\*[\s\S]*?\*\//g, '');
 
   assert.match(
@@ -171,10 +172,10 @@ test('MemberSpotlight pauses ring tide wave animations when spotlight is hidden 
   assert.match(src, /<circle[^>]*class="ring-progress"\s+cx="43"\s+cy="43"[^>]*id="spotlight-ring-arc"[^>]*r="35"/);
 });
 
-test('compiled css/svelte-scoped.css retains hidden animation-play-state guards and reduced-motion will-change: auto', () => {
-  const compiledPath = path.join(ROOT, 'css/svelte-scoped.css');
+test('compiled style.css retains hidden animation-play-state guards and reduced-motion will-change: auto', () => {
+  const compiledPath = path.join(ROOT, 'style.css');
   if (!fs.existsSync(compiledPath)) return;
-  const compiled = read('css/svelte-scoped.css');
+  const compiled = read('style.css');
   assert.match(compiled, /#kasi-dock\[hidden\][\s\S]*?animation-play-state\s*:\s*paused/);
   assert.match(compiled, /#member-spotlight\[hidden\][\s\S]*?animation-play-state\s*:\s*paused/);
   assert.match(compiled, /will-change\s*:\s*auto/);

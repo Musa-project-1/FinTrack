@@ -90,7 +90,7 @@ async function rollbackTx(headers: FirestoreHeaders, transaction: string | null)
       body: JSON.stringify({ transaction })
     });
   } catch (err) {
-    console.warn('[finkas] Rollback transaction failed:', err?.message);
+    console.warn('[finkas] Rollback transaction failed:', (err instanceof Error ? err.message : String(err)));
   }
 }
 

@@ -1,0 +1,731 @@
+/* :global {*/
+    /* =========================================================================
+       FINKAS — Landing Hero, Optical Audit Lens Product Stage & Trust Band
+       Loaded ONLY by onboarding.html.
+       ========================================================================= */
+
+    /* ── Eyebrow Pill & Centered Hero (#hero) ──────────────────────────────── */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--lp-r-pill);
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      background: var(--lp-surface);
+      border: 1px solid var(--lp-line);
+      color: var(--lp-ink-2);
+    }
+
+    .badge-pill i {
+      color: var(--lp-warm);
+      font-size: 12px;
+    }
+
+    .landing-hero {
+      position: relative;
+      width: 100%;
+      min-height: calc(100dvh - 60px);
+      padding: 56px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+
+    .js-motion .hero-content {
+      transform: translate3d(0, var(--hero-ty, 0px), 0) scale(var(--hero-sc, 1));
+      opacity: var(--hero-op, 1);
+      filter: blur(var(--hero-blur, 0px));
+      will-change: transform, opacity;
+    }
+
+    .hero-content h1 {
+      font-family: var(--lp-font-display);
+      font-size: clamp(42px, 6.4vw, 80px);
+      font-weight: 300;
+      line-height: 1.02;
+      letter-spacing: var(--lp-tracking-display);
+      color: var(--lp-ink);
+      text-wrap: balance;
+    }
+
+    .hero-line-mask {
+      display: block;
+      overflow: hidden;
+      padding: 0 0.04em 0.14em;
+      margin: 0 -0.04em -0.14em;
+    }
+
+    .hero-line {
+      display: inline-block;
+    }
+
+    .hero-line-1 { animation: lp-line-curtain 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
+    .hero-line-2 { animation: lp-line-curtain 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both; }
+    .hero-line-3 { animation: lp-line-curtain 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both; }
+
+    @keyframes lp-line-curtain {
+      from {
+        opacity: 0;
+        filter: blur(4px);
+        transform: translate3d(0, 108%, 0);
+      }
+      to {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    .hero-content h1 em {
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .hero-em {
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-em-arc {
+      position: absolute;
+      left: -2%;
+      right: -2%;
+      bottom: -0.08em;
+      width: 104%;
+      height: 0.22em;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .hero-em-arc path {
+      fill: none;
+      stroke: var(--lp-arc-stroke);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      opacity: 0.82;
+      animation: lp-arc-draw 1.15s cubic-bezier(0.22, 1, 0.36, 1) 1.05s both;
+    }
+
+    @keyframes lp-arc-draw {
+      from { stroke-dashoffset: 100; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--lp-body-onstage);
+      line-height: 1.6;
+      max-width: 540px;
+      text-shadow: 0 1px 14px var(--lp-text-halo);
+    }
+
+    .hero-cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 24px;
+      background: var(--lp-btn-bg);
+      color: var(--lp-btn-ink);
+      border: 1px solid var(--lp-btn-bg);
+      border-radius: var(--lp-r-btn);
+      font-family: var(--lp-font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0);
+      transition: opacity var(--lp-t-state), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .btn-hero-primary:hover {
+      opacity: 0.88;
+    }
+
+    .btn-hero-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 24px;
+      background: var(--lp-nav-glass);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--lp-ink);
+      border: 1px solid var(--lp-line);
+      border-radius: var(--lp-r-btn);
+      font-family: var(--lp-font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background-color var(--lp-t-state), border-color var(--lp-t-state);
+    }
+
+    .btn-hero-ghost:hover {
+      background: var(--lp-surface);
+    }
+
+    .hero-trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 12px;
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      color: var(--lp-body-onstage);
+      text-shadow: 0 1px 14px var(--lp-text-halo);
+    }
+
+    .hero-trust-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-trust-row i {
+      color: var(--lp-ink);
+      font-size: 13px;
+    }
+
+    /* ── Product Showcase Band + Optical Audit Lens ────────────────────────── */
+    .product-band {
+      position: relative;
+      padding: 56px 20px 80px;
+    }
+
+    .product-band-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      perspective: 1400px;
+    }
+
+    .stage-frame {
+      position: relative;
+      background: var(--lp-surface);
+      border: 1px solid var(--lp-line);
+      border-radius: var(--lp-r-stage);
+      box-shadow: inset 0 1px 0 var(--lp-inner-highlight), var(--lp-card-shadow);
+      overflow: hidden;
+      transform-origin: center top;
+    }
+
+    .js-motion .stage-frame {
+      transform: rotateX(var(--stage-rx, 0deg)) translateY(var(--stage-ty, 0px)) scale(var(--stage-sc, 1));
+      will-change: transform;
+    }
+
+    .stage-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(112deg, transparent 36%, var(--lp-stage-sheen) 50%, transparent 64%);
+      transform: translate3d(var(--stage-sheen-x, -120%), 0, 0);
+      opacity: var(--stage-sheen-op, 0);
+    }
+
+    .stage-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 12px;
+      height: 64px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--lp-line-soft);
+      background: var(--lp-surface-solid);
+    }
+
+    .stage-group-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .stage-group-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--lp-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-group-year {
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      color: var(--lp-ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-sync-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--lp-r-pill);
+      font-family: var(--lp-font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      background: var(--lp-paid-bg);
+      border: 1px solid var(--lp-paid-border);
+      color: var(--lp-paid);
+      white-space: nowrap;
+    }
+
+    .stage-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .vault-card {
+      background: var(--lp-surface-solid);
+      border: 1px solid var(--lp-line-soft);
+      border-radius: var(--lp-r-card);
+      padding: 20px 22px;
+    }
+
+    .mock-card-label {
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      color: var(--lp-ink-faint);
+      margin-bottom: 6px;
+    }
+
+    .mock-saldo {
+      font-family: var(--lp-font-mono);
+      font-size: clamp(24px, 3.6vw, 34px);
+      font-weight: 500;
+      color: var(--lp-ink);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      margin-bottom: 14px;
+      position: relative;
+      width: fit-content;
+    }
+
+    .stage-layer-human .mock-saldo {
+      height: clamp(35px, 4.4vw, 44px);
+      display: flex;
+      align-items: center;
+      line-height: 1.15;
+    }
+
+    .odo-wrap {
+      display: inline-flex;
+      align-items: baseline;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .odo-sep {
+      display: inline-block;
+      white-space: pre;
+    }
+
+    .odo-slot {
+      display: inline-block;
+      height: 1.15em;
+      overflow: hidden;
+      vertical-align: bottom;
+      position: relative;
+    }
+
+    .odo-reel {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15em;
+      transform: translate3d(0, calc(var(--d, 0) * -1.15em), 0);
+      transition: transform 580ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--stagger, 0) * 26ms);
+      will-change: transform;
+    }
+
+    .odo-reel > span {
+      display: block;
+      height: 1.15em;
+      line-height: 1.15em;
+      text-align: center;
+    }
+
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--lp-line-soft);
+    }
+
+    .flow-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .flow-cell + .flow-cell {
+      border-left: 1px solid var(--lp-line-soft);
+      padding-left: 14px;
+    }
+
+    .flow-label {
+      font-family: var(--lp-font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      color: var(--lp-ink-faint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .flow-val {
+      font-family: var(--lp-font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 22px;
+      min-height: 22px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .flow-in .flow-val { color: var(--lp-paid); }
+    .flow-out .flow-val { color: var(--lp-danger); }
+
+    .vault-compliance {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--lp-line-soft);
+      font-family: var(--lp-font-mono);
+      font-size: 11px;
+      color: var(--lp-ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mock-roster {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mock-roster-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--lp-surface-solid);
+      border: 1px solid var(--lp-line-soft);
+      border-radius: var(--lp-r-btn);
+      font-size: 13.5px;
+      color: var(--lp-ink);
+    }
+
+    .mock-roster-item > span:first-child {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mock-roster-role {
+      color: var(--lp-ink-2);
+      font-size: 12.5px;
+    }
+
+    .mock-badge {
+      font-family: var(--lp-font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: var(--lp-r-pill);
+      white-space: nowrap;
+    }
+
+    .mock-badge.paid {
+      background: var(--lp-paid-bg);
+      color: var(--lp-paid);
+      border: 1px solid var(--lp-paid-border);
+    }
+
+    .mock-badge.unpaid {
+      background: var(--lp-danger-bg);
+      color: var(--lp-danger);
+      border: 1px solid var(--lp-danger-border);
+    }
+
+    .stage-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 10px;
+      padding: 12px 24px;
+      border-top: 1px solid var(--lp-line-soft);
+      font-family: var(--lp-font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--lp-ink-2);
+    }
+
+    .stage-footer-bar > span {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-footer-bar > span:last-child {
+      flex-shrink: 0;
+    }
+
+    /* Optical "Lensa Transparansi / Audit X-Ray" Curtain */
+    .stage-layer-human {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stage-layer-audit {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--lp-audit-bg);
+      background-image:
+        linear-gradient(to right, var(--lp-audit-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--lp-audit-grid) 1px, transparent 1px);
+      background-size: 20px 20px;
+      clip-path: inset(0 0 0 var(--lens-x, 76%));
+    }
+
+    .stage-layer-audit .stage-topbar,
+    .stage-layer-audit .vault-card,
+    .stage-layer-audit .mock-roster-item {
+      background: transparent;
+      border-color: var(--lp-paid-border);
+    }
+
+    .stage-layer-audit .stage-topbar {
+      background: color-mix(in oklab, var(--lp-audit-bg) 82%, transparent);
+    }
+
+    .stage-layer-audit .stage-group-name,
+    .stage-layer-audit .mock-card-label,
+    .stage-layer-audit .stage-footer-bar,
+    .stage-layer-audit .flow-label,
+    .stage-layer-audit .vault-compliance {
+      font-family: var(--lp-font-mono);
+      color: var(--lp-audit-ink);
+    }
+
+    .stage-layer-audit .stage-group-name {
+      font-size: 13px;
+      letter-spacing: 0.06em;
+    }
+
+    .stage-layer-audit .stage-group-year,
+    .stage-layer-audit .mock-roster-item {
+      font-family: var(--lp-font-mono);
+      color: var(--lp-audit-ink);
+    }
+
+    .stage-layer-audit .mock-roster-item {
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .stage-layer-audit .audit-formula {
+      font-family: var(--lp-font-mono);
+      font-size: clamp(16px, 2.3vw, 24px);
+      height: clamp(35px, 4.4vw, 44px);
+      line-height: 1.15;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      color: var(--lp-audit-ink);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 14px;
+    }
+
+    .stage-layer-audit .stage-footer-bar {
+      margin-top: auto;
+      border-top-color: var(--lp-paid-border);
+    }
+
+    .stage-layer-audit .flow-val {
+      color: var(--lp-audit-ink);
+      font-size: 13.5px;
+    }
+
+    .audit-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--lp-r-pill);
+      font-family: var(--lp-font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--lp-tracking-eyebrow);
+      text-transform: uppercase;
+      background: var(--lp-paid-bg);
+      border: 1px solid var(--lp-paid-border);
+      color: var(--lp-audit-ink);
+      white-space: nowrap;
+    }
+
+    .audit-lens-rail {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--lens-x, 76%);
+      width: 30px;
+      margin-left: -15px;
+      z-index: 4;
+      cursor: ew-resize;
+      touch-action: none;
+      outline: none;
+    }
+
+    .audit-lens-rail::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1.5px;
+      margin-left: -0.75px;
+      background: var(--lp-paid);
+      opacity: 0.72;
+      transition: opacity 0.2s ease, width 0.2s ease;
+    }
+
+    .audit-lens-rail:hover::before,
+    .audit-lens-rail.is-dragging::before {
+      opacity: 1;
+    }
+
+    .audit-lens-grip {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--lp-r-pill);
+      background: var(--lp-surface-solid);
+      border: 1px solid var(--lp-paid-border);
+      color: var(--lp-paid);
+      font-family: var(--lp-font-mono);
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .audit-lens-rail:hover .audit-lens-grip,
+    .audit-lens-rail:focus-visible .audit-lens-grip,
+    .audit-lens-rail.is-dragging .audit-lens-grip {
+      background: var(--lp-paid);
+      color: var(--lp-surface-solid);
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+
+    /* ── Quiet Trust Band (.trust-band) ────────────────────────────────────── */
+    .trust-band {
+      background: var(--lp-band-scrim);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--lp-line-soft);
+      border-bottom: 1px solid var(--lp-line-soft);
+      padding: 24px 20px;
+    }
+
+    .trust-band-inner {
+      max-width: var(--lp-content-max);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .trust-stat { display: flex; align-items: center; gap: 8px; }
+    .trust-stat i { color: var(--lp-ink); opacity: 0.88; font-size: 15px; }
+    .trust-stat-label {
+      font-family: var(--lp-font-mono); font-size: 10.5px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--lp-ink); opacity: 0.88;
+    }
+    .trust-band-sep { width: 1px; height: 14px; background: var(--lp-line); flex-shrink: 0; }
+  /*}*/

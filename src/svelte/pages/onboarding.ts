@@ -232,7 +232,7 @@ const enterApp = () => {
     localStorage.setItem(ONBOARDING_SEEN_KEY, '1');
     localStorage.setItem(GROUP_OPEN_KEY, '1');
   } catch (err) {
-    console.warn('[finkas] Cannot persist group entry:', err?.message);
+    console.warn('[finkas] Cannot persist group entry:', (err instanceof Error ? err.message : String(err)));
   }
   location.href = 'index.html';
 };
@@ -363,7 +363,7 @@ const initializePage = () => {
   try {
     initSectionReveal(reducedMotion, stage.startBalanceCountUp);
   } catch (err) {
-    console.warn('[finkas] Reveal wiring failed; showing sections.', err?.message);
+    console.warn('[finkas] Reveal wiring failed; showing sections.', (err instanceof Error ? err.message : String(err)));
     document.querySelectorAll('[data-lp-reveal]').forEach((n) => n.classList.add('is-lp-revealed'));
   }
 

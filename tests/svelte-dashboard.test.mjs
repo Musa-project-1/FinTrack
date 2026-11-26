@@ -76,6 +76,8 @@ test('empty ledger, unknown category, flat chart and persistent bounded selectio
   assert.doesNotThrow(() => syncSvelteDashboard(empty));
 });
 
+import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
+
 // Svelte caches DOM templates and their realm's node constructors.
 let dom;
 after(() => dom?.window.close());
@@ -83,7 +85,7 @@ function installDom(t, file = 'index.html') {
   dom ??= new JSDOM('', { url: 'https://example.test' });
   const { window } = dom;
   window.document.open();
-  window.document.write(read(file));
+  window.document.write(file === 'index.html' ? readWorkspaceFixtureHtml() : read(file));
   window.document.close();
   window.localStorage.clear();
   if (!('inert' in window.HTMLElement.prototype)) {

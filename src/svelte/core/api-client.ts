@@ -51,7 +51,7 @@ export const apiPost = async <T>(endpoint: string, body: object): Promise<ApiRes
     }
     return { ...json, httpStatus: res.status };
   } catch (err) {
-    console.warn('[finkas] API request failed:', endpoint, err?.message);
+    console.warn('[finkas] API request failed:', endpoint, (err instanceof Error ? err.message : String(err)));
     return null;
   }
 };

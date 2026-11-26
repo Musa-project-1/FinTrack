@@ -109,9 +109,29 @@ let storageStatus: { groupId: string, state: string, operation: string|null, err
 /** Snapshot of the last actual cache operation, never a tiny capacity probe. */
 export const getStorageStatus = () => ({ ...storageStatus });
 
+export type StateChangeReason = 'ledger' | 'group' | 'groups' | 'session' | 'view' | 'storage';
+export type StateListener = (reason: StateChangeReason) => void;
+
+const stateListeners = new Set<StateListener>();
+
+/** Subscribe to reactive core state mutations without requiring a browser DOM. */
+export const subscribeState = (listener: StateListener): (() => void) => {
+  stateListeners.add(listener);
+  return () => {
+    stateListeners.delete(listener);
+  };
+};
+
+const emitStateListeners = (reason: StateChangeReason) => {
+  for (const listener of stateListeners) {
+    listener(reason);
+  }
+};
+
 export function publishStorageStatus(status: string, operation: string, error: unknown = null, groupId: string = activeGroupId) {
   const errMsg = error instanceof Error ? error.message : ((error as {message?: string}|null)?.message || null);
   storageStatus = { groupId, state: status, operation, error: errMsg };
+  emitStateListeners('storage');
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('finkas:storage-status', { detail: getStorageStatus() }));
   }
@@ -123,6 +143,7 @@ export function publishStorageStatus(status: string, operation: string, error: u
 export const notifyStateChange = () => {
   // A previous cache write no longer proves that the current ledger is durable.
   publishStorageStatus('unknown', 'state-change');
+  emitStateListeners('ledger');
   if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
     document.dispatchEvent(new CustomEvent('finkas:state-changed', { detail: { state } }));
   }
@@ -159,7 +180,7 @@ export const setActiveGroupId = (id: string) => {
     if (activeGroupId) storage?.setItem(ACTIVE_GROUP_KEY, activeGroupId);
     else storage?.removeItem(ACTIVE_GROUP_KEY);
   } catch (err) {
-    console.warn('[finkas] Cannot persist active group:', err?.message);
+    console.warn('[finkas] Cannot persist active group:', (err instanceof Error ? err.message : String(err)));
   }
   if (previousGroupId !== activeGroupId) {
     Object.assign(state, emptyLedger());
@@ -167,6 +188,7 @@ export const setActiveGroupId = (id: string) => {
     currentHistoryFilter = 'semua';
     // The in-memory ledger still needs to be loaded for the newly selected group.
     publishStorageStatus('unknown', 'group-change');
+    emitStateListeners('group');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('finkas:group-changed', {
         detail: { groupId: activeGroupId, previousGroupId }
@@ -179,7 +201,10 @@ export const setActiveGroupId = (id: string) => {
 export const getGroups = () => groups;
 
 /** Set daftar grup. */
-export const setGroups = (list: Array<{id: string, nama: string, dibuat?: string}>) => { groups = Array.isArray(list) ? list : []; };
+export const setGroups = (list: Array<{id: string, nama: string, dibuat?: string}>) => {
+  groups = Array.isArray(list) ? list : [];
+  emitStateListeners('groups');
+};
 
 /** Display name for a group id, falling back to the id itself. */
 export const getGroupName = (id: string) => groups.find((g) => g.id === id)?.nama || id;
@@ -200,7 +225,7 @@ export const saveCache = (targetGroupId: string = getActiveGroupId()) => {
     return true;
   } catch (err) {
     publishStorageStatus('failed', 'save', err, targetGroupId);
-    console.warn('[finkas] Cache write failed:', err?.message);
+    console.warn('[finkas] Cache write failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 };
@@ -246,7 +271,7 @@ export const loadCache = (targetGroupId: string = getActiveGroupId()) => {
     return true;
   } catch (err) {
     publishStorageStatus('failed', 'load', err, targetGroupId);
-    console.warn('[finkas] Cache load failed:', err?.message);
+    console.warn('[finkas] Cache load failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 };
@@ -276,7 +301,7 @@ export const clearCache = (targetGroupId: string = getActiveGroupId()) => {
     publishStorageStatus('unknown', 'clear', null, targetGroupId);
     return true;
   } catch (err) {
-    console.warn('[finkas] Cache clear failed:', err?.message);
+    console.warn('[finkas] Cache clear failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 };
@@ -294,7 +319,7 @@ export const clearAllCaches = () => {
     publishStorageStatus('unknown', 'clear');
     return true;
   } catch (err) {
-    console.warn('[finkas] All caches clear failed:', err?.message);
+    console.warn('[finkas] All caches clear failed:', (err instanceof Error ? err.message : String(err)));
     return false;
   }
 };
@@ -314,7 +339,7 @@ export const resetLedgerState = ({ clearActiveGroup = true }: { clearActiveGroup
       storage?.removeItem(ACTIVE_GROUP_NAME_KEY);
       storage?.removeItem(GROUP_OPEN_KEY);
     } catch (err) {
-      console.warn('[finkas] Cannot clear active group keys:', err?.message);
+      console.warn('[finkas] Cannot clear active group keys:', (err instanceof Error ? err.message : String(err)));
     }
   }
 
@@ -352,7 +377,7 @@ const persistGroupSessions = () => {
   try {
     getLocalStorage()?.setItem(GROUP_SESSIONS_KEY, JSON.stringify(groupSessions));
   } catch (err) {
-    console.warn('[finkas] Cannot persist group sessions:', err?.message);
+    console.warn('[finkas] Cannot persist group sessions:', (err instanceof Error ? err.message : String(err)));
   }
 };
 
@@ -394,7 +419,7 @@ const persistSessionField = (key: string, value: string) => {
     if (value) storage?.setItem(key, value);
     else storage?.removeItem(key);
   } catch (err) {
-    console.warn('[finkas] Cannot persist session field:', key, err?.message);
+    console.warn('[finkas] Cannot persist session field:', key, (err instanceof Error ? err.message : String(err)));
   }
 };
 
@@ -421,6 +446,7 @@ export const getAdminViewMode = () => (adminSessionToken && adminViewMode === 'a
 export const setAdminViewMode = (mode: 'admin' | 'anggota') => {
   adminViewMode = mode === 'anggota' ? 'anggota' : 'admin';
   persistSessionField(ADMIN_VIEW_MODE_KEY, adminViewMode === 'anggota' ? 'anggota' : '');
+  emitStateListeners('session');
 };
 
 /** Whether the UI should display Admin controls (true only when session is active and not previewing member view). */
@@ -435,6 +461,7 @@ export const getAdminRole = () => adminRole;
 export const setAdminRole = (role: string) => {
   adminRole = role || '';
   persistSessionField(ADMIN_ROLE_KEY, adminRole);
+  emitStateListeners('session');
 };
 
 export const getAdminEmail = () => adminUserEmail;
@@ -443,6 +470,7 @@ export const getAdminEmail = () => adminUserEmail;
 export const setAdminEmail = (email: string) => {
   adminUserEmail = email || '';
   persistSessionField(ADMIN_EMAIL_KEY, adminUserEmail);
+  emitStateListeners('session');
 };
 
 /** Drop the admin session. Full logout also forgets every member session. */
@@ -469,5 +497,11 @@ export const resolveSessionToken = (gid: string, needsWrite: boolean = false): s
 export let currentRekapYear = String(billingPeriod().year);
 export let currentHistoryFilter = 'semua';
 
-export const setCurrentRekapYear = (y: string | number) => { currentRekapYear = y.toString(); };
-export const setCurrentHistoryFilter = (f: string) => { currentHistoryFilter = f; };
+export const setCurrentRekapYear = (y: string | number) => {
+  currentRekapYear = y.toString();
+  emitStateListeners('view');
+};
+export const setCurrentHistoryFilter = (f: string) => {
+  currentHistoryFilter = f;
+  emitStateListeners('view');
+};

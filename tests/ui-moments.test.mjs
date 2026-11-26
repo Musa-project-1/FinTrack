@@ -151,7 +151,7 @@ test('v321 #20 Worm, #33 Checklist, #30 Tide Progress, #17 Menu Morph, and #28 R
   assert.match(spotlight, /@keyframes\s+tideWaveSpin/);
   assert.match(read('src/svelte/shell/WorkspaceShell.svelte'), /class="menu-morph-bars"/);
 
-  const workspaceCss = read('src/svelte/shell/styles/WorkspaceStyle.svelte');
+  const workspaceCss = read('src/styles/app/workspace.css');
   assert.match(workspaceCss, /\.workspace-glider\.is-worming/);
   assert.match(workspaceCss, /@keyframes\s+gliderWorm/);
   assert.match(workspaceCss, /@keyframes\s+rubberSearchSpring/);

@@ -197,7 +197,7 @@ export async function uploadAttachmentApi({ idTransaksi, file, groupId = null }:
   try {
     base64 = await fileToBase64(file);
   } catch (err) {
-    const msg = err?.message || 'Gagal membaca berkas bukti.';
+    const msg = (err instanceof Error ? err.message : String(err)) || 'Gagal membaca berkas bukti.';
     toast(msg, 'error');
     return { status: false, message: msg };
   }
@@ -433,7 +433,7 @@ export function initAttachmentControls(options: { container?: HTMLElement | stri
         triggerBlobDownload(blob, name);
         flashDownloadRing(downloadBtn, 'Terunduh');
       } catch (err) {
-        toast(err?.message || 'Gagal mengunduh bukti.', 'error');
+        toast((err instanceof Error ? err.message : String(err)) || 'Gagal mengunduh bukti.', 'error');
       } finally {
         downloadBtn.disabled = false;
       }

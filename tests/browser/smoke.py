@@ -100,7 +100,9 @@ class _QuietHandler(SimpleHTTPRequestHandler):
 
 
 def start_server():
-    handler = partial(_QuietHandler, directory=str(ROOT))
+    dist_dir = ROOT / "dist"
+    serve_dir = dist_dir if dist_dir.is_dir() else ROOT
+    handler = partial(_QuietHandler, directory=str(serve_dir))
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

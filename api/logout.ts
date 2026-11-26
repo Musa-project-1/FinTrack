@@ -36,7 +36,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     return sendJson(res, 200, { status: true, message: 'Logout sukses.' });
   } catch (error) {
-    console.error('[finkas] logout error:', error?.message);
+    console.error('[finkas] logout error:', (error instanceof Error ? error.message : String(error)));
     return sendJson(res, 500, { status: false, message: 'Terjadi kesalahan pada server autentikasi.' });
   }
 }

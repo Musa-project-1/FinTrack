@@ -386,7 +386,7 @@ const attachPointerInteractions = () => {
       roam.mode = 'fall'; roam.vy = 0; rig.dataset.mood = 'idle'; applyTransform(); ensureLoop();
     }
   };
-  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(t, endDrag);
+  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) button.addEventListener(t, endDrag);
 
   button.addEventListener('pointerenter', (e) => {
     if (e.pointerType === 'touch') return;

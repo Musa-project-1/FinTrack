@@ -1,0 +1,574 @@
+/* :global {*/
+    /* === TABLES — the ledger ===
+       Data lives in monospace with tabular figures; column labels are mono eyebrows;
+       structure is hairlines. No drop shadows, no blur, no per-row colour tints. */
+
+    .table-card {
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+
+    .table-header {
+      padding: var(--sp-4) var(--sp-6);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: var(--sp-4);
+      /* Above the sticky month header (z-index 11). Without this the year menu's
+         lower option sits under JUL/SEP and the click never reaches it. */
+      position: relative;
+      z-index: 20;
+    }
+
+    /* Desktop header: strictly one horizontal row */
+    .table-header.desktop-only {
+      padding: var(--sp-4) var(--sp-6);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: var(--sp-4);
+    }
+
+    .table-header.desktop-only .table-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      flex-shrink: 0;
+    }
+
+    .table-header.desktop-only .table-header-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      flex-shrink: 0;
+    }
+
+    /* Mobile header: two stacked rows */
+    .table-header.mobile-only {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: var(--sp-3);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .table-header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      scrollbar-gutter: stable;
+    }
+
+    @supports not (scrollbar-color: auto) {
+    .table-responsive {
+      scrollbar-width: auto;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: var(--r-pill);
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover, var(--scrollbar-thumb));
+    }
+    }
+
+    .table-scrollable {
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+
+    /* === TITLES === */
+    .table-title {
+      font-family: var(--font-display);
+      font-size: 18px !important;
+      font-weight: 600 !important;
+      color: var(--text-main) !important;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none !important;
+      -webkit-text-fill-color: initial !important;
+      letter-spacing: var(--tracking-tight);
+      white-space: nowrap;
+    }
+
+    .table-title i {
+      color: var(--accent-strong);
+      font-size: 18px;
+      background: var(--accent-tint);
+      border: 1px solid var(--accent-border);
+      padding: 8px;
+      border-radius: var(--r-sm);
+    }
+
+    /* === YEAR PICKER === */
+    .year-pill {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      background: var(--surface-2);
+      padding: 8px var(--sp-3);
+      min-height: 40px;
+      box-sizing: border-box;
+      border-radius: var(--r-md);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      transition: border-color var(--t-fast), transform var(--t-fast);
+      flex-shrink: 0;
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .year-pill:hover {
+      border-color: var(--border-strong);
+    }
+
+    .year-pill:active {
+      transform: scale(0.98);
+    }
+
+    .year-pill i {
+      font-size: 15px;
+      line-height: 1;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .year-pill label {
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-eyebrow);
+      color: var(--text-faint);
+    }
+
+    .year-pill select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      border: none;
+      background: transparent;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+      font-size: 12.5px;
+      padding: 0 20px 0 4px;
+      margin: 0;
+      line-height: normal;
+      min-width: 60px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d99ac' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 2px center;
+      background-size: 12px;
+    }
+
+    body.dark-mode .year-pill select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b8fa6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-position: right 2px center;
+    }
+
+    /* === CELLS ===
+       Column labels read as ledger eyebrows; figures are monospace and tabular. */
+    th {
+      background: var(--surface-2);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px var(--sp-4);
+      border-bottom: 2px solid var(--border-strong);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: background var(--t-fast);
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      padding-left: var(--sp-4);
+    }
+
+    td:first-child {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Row hover is a quiet surface step — no accent wash, no colour shift. */
+    tr:hover td {
+      background: var(--surface-2);
+    }
+
+    /* === BADGES === */
+    .badge {
+      display: inline-block;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: var(--r-sm);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .badge-masuk {
+      background: var(--income-bg);
+      border: 1px solid var(--income-border);
+      color: var(--income-strong);
+    }
+
+    body.dark-mode .badge-masuk {
+      background: var(--income-bg);
+      border-color: var(--income-border);
+      color: var(--income);
+    }
+
+    /* Outflow is neutral by design — the glyph and the minus carry the meaning. */
+    .badge-keluar {
+      background: var(--surface-2);
+      border-color: var(--border);
+      color: var(--text-main);
+    }
+
+    /* === MATRIX TABLE (dues grid) === */
+    .table-matriks thead th {
+      background: var(--surface-2);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 13px 12px;
+      border-bottom: 2px solid var(--accent-strong);
+    }
+
+    body.dark-mode .table-matriks thead th {
+      color: #ffffff;
+    }
+
+    .table-matriks thead th:first-child {
+      text-align: left;
+      padding-left: var(--sp-4);
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 11.5px;
+      letter-spacing: 0.04em;
+      background: var(--surface-2);
+    }
+
+    .table-matriks td.text-center {
+      font-weight: 500;
+    }
+
+    .table-matriks th,
+    .table-matriks td {
+      border-right: 1px solid var(--border);
+    }
+
+    .table-matriks th:last-child,
+    .table-matriks td:last-child {
+      border-right: none;
+    }
+
+    /* Sticky member column: a solid surface + hairline, never a blur. */
+    .table-matriks th:first-child,
+    .table-matriks td:first-child {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      left: 0;
+      z-index: 10;
+    }
+
+    body:not([data-palette]) .table-matriks tbody tr:nth-child(even) td {
+      background: rgba(234, 240, 248, 0.45);
+    }
+
+    body:not([data-palette]) .table-matriks tbody tr:nth-child(even) td:first-child {
+      background: #f6f9fd;
+    }
+
+    body:not([data-palette]).dark-mode .table-matriks tbody tr:nth-child(even) td {
+      background: rgba(22, 34, 59, 0.45);
+    }
+
+    body:not([data-palette]).dark-mode .table-matriks tbody tr:nth-child(even) td:first-child {
+      background: #111c33;
+    }
+
+    .table-matriks thead th:first-child {
+      background: var(--surface-2);
+      z-index: 11;
+    }
+
+    .table-matriks tbody tr:hover td:first-child {
+      background: var(--surface-2);
+    }
+
+    /* Member names stay readable beside the compact numeric status columns. */
+    .dues-name .clickable-name {
+      font: 700 .875rem/1.28 var(--font-sans);
+      letter-spacing: -.015em;
+      text-align: start;
+      overflow-wrap: anywhere;
+    }
+
+    body:not([data-palette]) .table-matriks td:has(.matrix-dues-button:hover) { background: var(--surface-2); }
+
+    /* === SKELETONS === */
+    .skeleton-text { height: 16px; width: 100%; margin-bottom: 8px; }
+    .skeleton-title { height: 32px; width: 60%; }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+    /* === SEARCH === */
+    .search-wrapper {
+      position: relative;
+      margin-bottom: var(--sp-4);
+    }
+
+    .search-wrapper i {
+      position: absolute;
+      left: var(--sp-4);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .search-wrapper input {
+      padding-left: 42px;
+      border-radius: var(--r-md);
+      background-color: var(--surface-2);
+    }
+
+    .member-search-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .member-search-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .member-search-wrapper .search-member-input {
+      padding-left: 38px !important;
+      border-radius: var(--r-md);
+      height: 40px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      width: 240px;
+      transition: border-color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
+    }
+
+    .member-search-wrapper .search-member-input:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 2px var(--accent-tint);
+    }
+
+    /* === MEMBER CHECKBOX GRID SCROLLBAR === */
+    @supports not (scrollbar-color: auto) {
+    .checkbox-grid { scrollbar-width: auto; }
+    .checkbox-grid::-webkit-scrollbar { width: 8px; }
+    .checkbox-grid::-webkit-scrollbar-track { background: transparent; }
+    .checkbox-grid::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: var(--r-pill);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    .checkbox-grid::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover, var(--scrollbar-thumb));
+      border-radius: var(--r-pill);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    }
+
+    /* ── Sync Rekap Pill (Hybrid Kinetic status button) ───────────────── */
+    .btn-sync-rekap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 36px;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, transform 0.16s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .btn-sync-rekap:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
+    .btn-sync-rekap:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]):not(.is-syncing) {
+      transform: scale(0.97);
+    }
+    .sync-rekap-icon {
+      font-size: 13.5px;
+      line-height: 1;
+      color: var(--text-muted);
+      transition: transform 0.4s ease, color 140ms ease;
+    }
+    .btn-sync-rekap:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) .sync-rekap-icon {
+      color: var(--text-main);
+    }
+    .sync-rekap-dot {
+      position: static;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--income);
+      box-shadow: 0 0 0 3px var(--income-bg);
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* Biru: data sinkron */
+    .btn-sync-rekap.is-clean .sync-rekap-dot {
+      background: var(--income);
+      box-shadow: 0 0 0 3px var(--income-bg);
+      animation: none;
+    }
+
+    /* Coral: ada data baru */
+    .btn-sync-rekap.has-update {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger);
+    }
+    .btn-sync-rekap.has-update:hover:not(:disabled) {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+    .btn-sync-rekap.has-update .sync-rekap-icon {
+      color: var(--danger);
+    }
+    .btn-sync-rekap.has-update .sync-rekap-dot {
+      background: var(--danger);
+      box-shadow: 0 0 0 3px var(--danger-bg);
+      animation: sync-dot-pulse 1.4s ease-in-out infinite;
+    }
+
+    /* Sinkronisasi sedang berjalan */
+    .btn-sync-rekap.is-syncing {
+      background: var(--accent-tint);
+      border-color: var(--accent-border);
+      color: var(--accent-strong);
+      cursor: wait;
+    }
+    .btn-sync-rekap.is-syncing .sync-rekap-icon {
+      color: var(--accent-strong);
+      animation: sync-icon-spin 0.7s linear infinite;
+    }
+    .btn-sync-rekap.is-syncing .sync-rekap-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-tint);
+      animation: none;
+    }
+
+    @keyframes sync-dot-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.55; transform: scale(0.8); }
+    }
+    @keyframes sync-icon-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    body:not([data-workspace-state="ready"]) .btn-sync-rekap.has-update .sync-rekap-dot {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn-sync-rekap.has-update .sync-rekap-dot { animation: none; }
+      .btn-sync-rekap.is-syncing .sync-rekap-icon { animation-duration: 1.4s; }
+      .year-pill, .btn-sync-rekap, .sync-rekap-icon, .sync-rekap-dot { transition: none; }
+    }
+  /*}*/

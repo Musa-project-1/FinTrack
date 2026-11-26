@@ -1,4 +1,4 @@
-import { readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
+import { readOnboardingFixtureHtml, readWorkspaceFixtureHtml } from './helpers/workspace-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -383,7 +383,7 @@ test('onboarding ships a self-contained precached bundle with current source con
 });
 
 test('onboarding list renders all states and passes the literal group ID on selection', t => {
-  const onboardingHtml = readFileSync(new URL('../onboarding.html', import.meta.url), 'utf8');
+  const onboardingHtml = readOnboardingFixtureHtml();
   const byId = installSvelteDom(t, onboardingHtml);
   const list = byId('group-list');
   for (const [status, message] of [

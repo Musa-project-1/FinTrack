@@ -43,3 +43,15 @@ export function readWorkspaceFixtureHtml() {
   cachedHtml = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Finkas</title></head><body data-palette="cobalt" data-canvas="aurora" data-workspace-state="loading">${body}</body></html>`;
   return cachedHtml;
 }
+
+let cachedOnboardingHtml = null;
+
+/** Build an Onboarding DOM fixture from `OnboardingShell.svelte` for legacy JSDOM tests. */
+export function readOnboardingFixtureHtml() {
+  if (cachedOnboardingHtml) return cachedOnboardingHtml;
+  const body = stripBlocks(
+    fs.readFileSync(path.join(ROOT, 'src/svelte/pages/OnboardingShell.svelte'), 'utf8')
+  );
+  cachedOnboardingHtml = `<!DOCTYPE html><html lang="id" data-theme="light"><head><meta charset="UTF-8"><title>Finkas</title></head><body>${body}</body></html>`;
+  return cachedOnboardingHtml;
+}

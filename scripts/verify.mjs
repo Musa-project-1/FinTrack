@@ -159,9 +159,16 @@ if (!fs.existsSync(INDEX_PATH)) {
   }
 }
 
+for (const htmlFile of ['onboarding.html', 'privacy.html']) {
+  const htmlAbs = path.join(ROOT, htmlFile);
+  if (!fs.existsSync(htmlAbs)) {
+    failures.push(`${htmlFile} is missing — run \`npm run build\`.`);
+  } else if (!fs.readFileSync(htmlAbs, 'utf8').includes('id="app"')) {
+    failures.push(`${htmlFile} must contain the Svelte root mount <div id="app">.`);
+  }
+}
+
 for (const [htmlFile, shellFile] of [
-  ['onboarding.html', 'src/svelte/pages/OnboardingShell.svelte'],
-  ['privacy.html', 'src/svelte/pages/PrivacyShell.svelte'],
   ['404.html', 'src/pages/404.html'],
   ['offline.html', 'src/pages/offline.html']
 ]) {

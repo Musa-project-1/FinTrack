@@ -3,27 +3,10 @@ import path from 'node:path';
 import { compile } from 'svelte/compiler';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const stripStyleBlocks = (src) => src.replace(/<style\b[^>]*>[\s\S]*?<\/style>\s*/g, '');
 const swSource = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 const swVerMatch = /const CACHE_NAME = 'finkas-v(\d+)';/.exec(swSource);
 if (!swVerMatch) throw new Error('[render-shells] Could not read CACHE_NAME version from sw.js');
 const v = swVerMatch[1];
-
-const modalOrder = [
-  ['auth.html', 'AuthModals.svelte'],
-  ['groups.html', 'GroupsModal.svelte'],
-  ['group-pin.html', 'GroupPinModal.svelte'],
-  ['group-admin.html', 'GroupAdminModals.svelte'],
-  ['navigation.html', 'NavigationModals.svelte'],
-  ['quickpay.html', 'QuickPayModal.svelte'],
-  ['master.html', 'MasterModals.svelte'],
-  ['reports.html', 'ReportsModals.svelte'],
-  ['transactions.html', 'TransactionsModals.svelte'],
-  ['faq.html', 'FaqModals.svelte'],
-  ['tampilan.html', 'TampilanModal.svelte'],
-  ['self-pay.html', 'SelfPayModal.svelte'],
-  ['struk.html', 'StrukModal.svelte'],
-];
 
 const indexHtml = `<!DOCTYPE html>
 <html lang="id">
@@ -64,7 +47,6 @@ const indexHtml = `<!DOCTYPE html>
 </body>
 </html>\n`;
 
-const onboardingBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/pages/OnboardingShell.svelte'), 'utf8')).trimEnd();
 const onboardingHtml = `<!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
@@ -93,13 +75,12 @@ const onboardingHtml = `<!DOCTYPE html>
   <script src="src/pages/onboarding-boot-theme.js?v=${v}"></script>
 </head>
 <body>
-${onboardingBody}
+  <div id="app"></div>
 
   <script type="module" src="/src/entries/onboarding.ts"></script>
 </body>
 </html>\n`;
 
-const privacyBody = stripStyleBlocks(fs.readFileSync(path.join(ROOT, 'src/svelte/pages/PrivacyShell.svelte'), 'utf8')).trimEnd();
 const privacyHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -114,8 +95,7 @@ const privacyHtml = `<!DOCTYPE html>
 </head>
 <body class="privacy-page" data-palette="cobalt" data-canvas="aurora">
   <script src="src/workspace-boot-theme.js?v=${v}"></script>
-
-${privacyBody}
+  <div id="app"></div>
 
   <script type="module" src="/src/entries/privacy.ts"></script>
 </body>
@@ -177,4 +157,4 @@ fs.writeFileSync(path.join(ROOT, 'onboarding.html'), onboardingHtml, 'utf8');
 fs.writeFileSync(path.join(ROOT, 'privacy.html'), privacyHtml, 'utf8');
 fs.copyFileSync(path.join(ROOT, 'src/pages/404.html'), path.join(ROOT, '404.html'));
 fs.copyFileSync(path.join(ROOT, 'src/pages/offline.html'), path.join(ROOT, 'offline.html'));
-console.log(`[render-shells] Rendered MPA HTML shells + css/svelte-scoped.css (${svelteStyleChunks.length}) + css/onboarding-scoped.css (${onboardingCssChunks.length}) at v${v}.`);
+console.log(`[render-shells] Rendered MPA Svelte root shells (index, onboarding, privacy) + CSS at v${v}.`);

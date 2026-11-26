@@ -99,6 +99,7 @@ export default defineConfig(({ mode }) => {
   return {
     resolve: { alias: aliases },
     plugins: [tailwindcss(), svelte(), finkasDistPlugin()],
+    server: { hmr: false },
     build: {
       outDir: 'dist',
       emptyOutDir: true,

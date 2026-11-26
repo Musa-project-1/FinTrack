@@ -85,12 +85,18 @@ function listenForGroupChanges() {
 type Components = typeof import('./components');
 type SimpleIsland = Exclude<keyof Components, 'YearGlider'>;
 
-function mountOnce(target: Element | null, render: (components: Components, target: Element) => void) {
+let registeredComponents: Components | null = null;
+
+/** Register Svelte island components eagerly in browser ESM entries (avoids CJS require). */
+export function registerComponents(comps: Components) {
+  registeredComponents = comps;
+}
+
+function mountOnce(target: Element | null, render: (comps: Components, target: Element) => void) {
   if (!target?.ownerDocument || typeof Element === 'undefined' || mounted.has(target)) return;
-  // Defer Svelte template initialization until a browser DOM exists.
-  const components: typeof import('./components') = require('./components');
+  const comps: Components = registeredComponents ?? require('./components');
   target.replaceChildren();
-  render(components, target);
+  render(comps, target);
   mounted.add(target);
   mountedDocuments.add(target.ownerDocument);
 }

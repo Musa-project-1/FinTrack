@@ -452,7 +452,7 @@
 
     /* The sticky canvas-wide topbar keeps the production group and role controls. */
     body[data-canvas] { padding: 0 0 40px; }
-    body[data-canvas] > main.container { max-width: 1320px; padding: 20px 20px 0; }
+    body[data-canvas] main.container { max-width: 1320px; padding: 20px 20px 0; }
     body[data-palette] .hybrid-topbar {
       display: block;
       top: 0;
@@ -510,7 +510,7 @@
 
     @media (max-width: 768px) {
       body[data-canvas] { padding-bottom: 96px; }
-      body[data-canvas] > main.container { padding: 14px 14px 0; }
+      body[data-canvas] main.container { padding: 14px 14px 0; }
       .hybrid-topbar-inner { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 4px; padding: 7px 9px; }
       .hybrid-topbar .header-left { gap: 4px; }
       .hybrid-topbar .brand-link { min-width: 34px; }
@@ -650,7 +650,7 @@
     }
 
     /* Reveal the dashboard only after a complete cache or remote snapshot is rendered. */
-    body[data-workspace-state]:not([data-workspace-state="ready"]) > :is(main.container, #bottom-nav, #kasi-dock) {
+    body[data-workspace-state]:not([data-workspace-state="ready"]) :is(main.container, #bottom-nav, #kasi-dock) {
       display: none;
     }
     .workspace-startup {

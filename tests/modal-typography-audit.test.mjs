@@ -233,7 +233,10 @@ test('interactive modal controls provide visible :focus-visible outlines and pre
     assert.ok(authHtml.includes(token), `AuthModals.svelte missing contract token ${token}`);
   }
 
-  const groupAdminHtml = read('src/svelte/shell/modals/GroupAdminModals.svelte');
+  const groupAdminHtml =
+    read('src/svelte/shell/modals/GroupAdminModals.svelte') +
+    '\n' +
+    read('src/svelte/modals/GroupAdminFlowPanel.svelte');
   for (const token of ['id="modal-group-admin"', 'id="form-create-group"', 'for="chk-group-admin-auto"', 'data-action="copy-cred-wa"', 'aria-selected="true"']) {
     assert.ok(groupAdminHtml.includes(token), `GroupAdminModals.svelte missing contract token ${token}`);
   }

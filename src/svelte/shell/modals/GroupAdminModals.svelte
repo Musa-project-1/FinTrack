@@ -2,12 +2,27 @@
   import { getIsSuperAdmin } from 'finkas/core/state';
   import { showToast } from 'finkas/core/utils';
   import { closeModal, switchTab } from '../../ui/modal';
-  import { copyGroupWhatsAppAction } from '../../handlers/groups';
+  import { copyGroupWhatsAppAction, refreshAutoAdminCreds } from '../../handlers/groups';
+  import GroupAdminFlowPanel from '../../modals/GroupAdminFlowPanel.svelte';
+  import {
+    groupAdminFlow,
+    openGroupAdminFlow,
+    resetGroupAdminFlow
+  } from '../../stores/group-admin.svelte';
 
-  const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
+  const onClose = (id: string) => (e: MouseEvent) => {
+    e.stopPropagation();
+    if (id === 'modal-group-admin') resetGroupAdminFlow();
+    closeModal(id);
+  };
   const onSwitchTab = (tab: string) => (e: MouseEvent) => {
     e.stopPropagation();
+    resetGroupAdminFlow();
     switchTab(tab, 'modal-group-admin');
+  };
+  const onOpenCreateFlow = () => {
+    refreshAutoAdminCreds();
+    openGroupAdminFlow('create');
   };
   const onCopyCredWa = (e: MouseEvent) => {
     e.stopPropagation();
@@ -56,58 +71,21 @@
       <div class="group-admin-sheet-body">
         <!-- Tab 1: Ruang Kas -->
         <div id="tab-group-list" class="tab-content active" role="tabpanel" aria-labelledby="btn-group-tab-list">
-          <div class="group-admin-create-box">
-            <div class="group-section-header">
-              <i class="ph-bold ph-plus-circle" aria-hidden="true"></i>
-              <span>Tambah Ruang Kas Baru</span>
-            </div>
-            <form id="form-create-group">
-              <div class="group-create-grid">
-                <div class="input-with-icon group-create-name-field">
-                  <i class="ph ph-users group-input-icon" aria-hidden="true"></i>
-                  <input type="text" id="input-group-nama" name="group-nama" class="form-control group-form-input" placeholder="Nama kelas / grup baru..." maxlength="60" required autocomplete="off" aria-label="Nama kelas atau grup baru">
-                </div>
-                <div class="input-with-icon group-create-pin-field">
-                  <i class="ph ph-lock-key group-input-icon" aria-hidden="true"></i>
-                  <input type="password" id="input-group-pin" name="group-pin" class="form-control group-form-input group-pin-input" inputmode="numeric" maxlength="4" placeholder="PIN 4 digit" required autocomplete="off" aria-label="PIN 4 digit">
-                </div>
-                <button type="submit" class="btn btn-primary btn-create-submit">
-                  <i class="ph-bold ph-plus" aria-hidden="true"></i>
-                  <span>Buat</span>
-                </button>
-              </div>
+          <GroupAdminFlowPanel />
 
-              <div class="group-admin-opt-wrap">
-                <label class="group-admin-opt-label" for="chk-group-admin-auto">
-                  <input type="checkbox" id="chk-group-admin-auto" name="chk-group-admin-auto" checked>
-                  <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
-                </label>
-                <div id="box-group-admin-creds" class="group-admin-creds-row">
-                  <div class="input-with-icon group-cred-email-field">
-                    <i class="ph ph-envelope group-input-icon" aria-hidden="true"></i>
-                    <input type="email" id="input-group-admin-email" name="group-admin-email" class="form-control group-form-input" placeholder="admin.nama@finkas.id" autocomplete="off" aria-label="Email admin grup">
-                  </div>
-                  <div class="input-with-icon group-cred-pwd-field">
-                    <i class="ph ph-key group-input-icon" aria-hidden="true"></i>
-                    <input type="text" id="input-group-admin-pwd" name="group-admin-pwd" class="form-control group-form-input group-mono-input" placeholder="Password acak..." autocomplete="off" aria-label="Password admin grup">
-                  </div>
-                  <button type="button" class="btn btn-outline btn-refresh-pwd" id="btn-refresh-admin-pwd" title="Acak ulang password" aria-label="Acak ulang password">
-                    <i class="ph-bold ph-arrows-clockwise" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <div class="group-admin-list-toolbar">
+          <div class="group-admin-list-toolbar" hidden={groupAdminFlow.mode !== 'list'}>
             <div class="search-wrapper group-admin-search-box">
               <i class="ph ph-magnifying-glass search-icon" aria-hidden="true"></i>
               <input type="search" id="search-group-admin" name="search-group-admin" class="form-control" placeholder="Cari nama atau ID grup..." aria-label="Cari grup terdaftar" autocomplete="off" spellcheck="false">
             </div>
             <span class="group-list-meta-pill" id="group-admin-filter-meta">Memuat...</span>
+            <button type="button" class="btn btn-primary btn-open-create-group" onclick={onOpenCreateFlow}>
+              <i class="ph-bold ph-plus" aria-hidden="true"></i>
+              <span>Buat Grup</span>
+            </button>
           </div>
 
-          <div id="group-admin-list" class="group-admin-list" role="list"></div>
+          <div id="group-admin-list" class="group-admin-list" role="list" hidden={groupAdminFlow.mode !== 'list'}></div>
         </div>
 
         <!-- Tab 2: Super Admin Whitelist -->
@@ -369,7 +347,14 @@
     }
 
     /* Search & Group List Toolbar */
-    .group-admin-list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .group-admin-list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .group-admin-list-toolbar[hidden],
+    .group-admin-list[hidden] { display: none; }
+    .btn-open-create-group {
+      height: 36px; min-height: 36px; padding: 0 13px; border-radius: 10px;
+      font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap; flex-shrink: 0;
+    }
     .group-admin-search-box { flex: 1 1 220px; min-width: 0; margin-bottom: 0; }
     .group-admin-search-box .search-icon { left: 11px; font-size: 15px; }
     #modal-group-admin .group-admin-search-box .form-control {

@@ -1,3 +1,24 @@
+<script lang="ts">
+  import { getIsSuperAdmin } from 'finkas/core/state';
+  import { showToast } from 'finkas/core/utils';
+  import { closeModal, switchTab } from '../../ui/modal';
+  import { copyGroupWhatsAppAction } from '../../handlers/groups';
+
+  const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
+  const onSwitchTab = (tab: string) => (e: MouseEvent) => {
+    e.stopPropagation();
+    switchTab(tab, 'modal-group-admin');
+  };
+  const onCopyCredWa = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!getIsSuperAdmin()) {
+      showToast('Hanya Super Admin yang dapat menyalin kredensial grup.', 'error');
+      return;
+    }
+    copyGroupWhatsAppAction(e.currentTarget as HTMLElement);
+  };
+</script>
+
 <!-- 0c. Modal Kelola Grup: khusus admin pemilik (Hybrid Kinetic 2-Tab Sheet) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-group-admin" aria-labelledby="modal-group-admin-title">
     <div class="modal-content modal-md modal-data-dialog group-admin-sheet">
@@ -15,7 +36,7 @@
             <p>Atur ruang kas, akun pengurus, dan akses pemilik superadmin</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-group-admin')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -23,10 +44,10 @@
       <div class="group-admin-tabs-bar">
         <div class="tab-header group-admin-tab-track" role="tablist" aria-label="Kategori Kelola Grup">
           <div class="group-admin-glider-pill" aria-hidden="true"></div>
-          <button type="button" class="tab-btn active" id="btn-group-tab-list" role="tab" aria-selected="true" aria-controls="tab-group-list" data-action="switch-tab" data-tab="tab-group-list">
+          <button type="button" class="tab-btn active" id="btn-group-tab-list" role="tab" aria-selected="true" aria-controls="tab-group-list" data-action="switch-tab" data-tab="tab-group-list" onclick={onSwitchTab('tab-group-list')}>
             <i class="ph ph-folders" aria-hidden="true"></i><span>Ruang Kas</span><span class="group-tab-count" id="group-admin-count">0</span>
           </button>
-          <button type="button" class="tab-btn" id="btn-group-tab-superadmin" role="tab" aria-selected="false" aria-controls="tab-group-superadmin" data-action="switch-tab" data-tab="tab-group-superadmin">
+          <button type="button" class="tab-btn" id="btn-group-tab-superadmin" role="tab" aria-selected="false" aria-controls="tab-group-superadmin" data-action="switch-tab" data-tab="tab-group-superadmin" onclick={onSwitchTab('tab-group-superadmin')}>
             <i class="ph ph-shield-check" aria-hidden="true"></i><span>Super Admin</span><span class="group-tab-count" id="superadmin-count">0</span>
           </button>
         </div>
@@ -124,7 +145,7 @@
 
       <div class="hybrid-settings-footer group-admin-sheet-footer">
         <span class="group-admin-footer-hint"><i class="ph-fill ph-lock-key" aria-hidden="true"></i> Data tiap grup terisolasi aman · Hapus grup butuh konfirmasi nama</span>
-        <button type="button" class="btn btn-secondary" data-action="close-modal">Tutup</button>
+        <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-group-admin')}>Tutup</button>
       </div>
     </div>
   </dialog>
@@ -143,7 +164,7 @@
             <p id="cred-modal-subtitle">Akun siap dibagikan ke pengurus</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-group-credentials')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -175,8 +196,8 @@
       </div>
 
       <div class="hybrid-settings-footer group-creds-footer">
-        <button type="button" class="btn btn-secondary cred-close-btn" data-action="close-modal">Tutup</button>
-        <button type="button" class="btn btn-primary cred-wa-btn" id="btn-copy-cred-wa" data-action="copy-cred-wa">
+        <button type="button" class="btn btn-secondary cred-close-btn" data-action="close-modal" onclick={onClose('modal-group-credentials')}>Tutup</button>
+        <button type="button" class="btn btn-primary cred-wa-btn" id="btn-copy-cred-wa" data-action="copy-cred-wa" onclick={onCopyCredWa}>
           <i class="ph-bold ph-whatsapp-logo cred-wa-icon" aria-hidden="true"></i>
           <span>Salin Format WhatsApp</span>
         </button>
@@ -196,7 +217,7 @@
             <p id="cred-edit-group-label">-</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-group-cred-edit')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -211,7 +232,7 @@
           <input type="password" id="edit-group-cred-pwd" name="edit-group-cred-pwd" class="form-control" minlength="6" placeholder="Minimal 6 karakter..." required autocomplete="new-password">
         </div>
         <div class="modal-footer-actions">
-          <button type="button" class="btn btn-secondary" data-action="close-modal">Batal</button>
+          <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-group-cred-edit')}>Batal</button>
           <button type="submit" class="btn btn-primary" id="btn-submit-edit-group-creds">Simpan Kredensial</button>
         </div>
       </form>

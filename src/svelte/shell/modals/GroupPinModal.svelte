@@ -1,3 +1,12 @@
+<script lang="ts">
+  import { closeModal } from '../../ui/modal';
+  import { openGroupPicker, submitGroupPin } from '../../handlers/groups';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-group-pin'); };
+  const onSubmitPin = (e: MouseEvent) => { e.stopPropagation(); submitGroupPin(); };
+  const onOpenGroups = (e: MouseEvent) => { e.stopPropagation(); openGroupPicker(); };
+</script>
+
 <!-- 0b. Modal PIN Grup (multi-grup tahap 2: 4 angka) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-group-pin" aria-labelledby="group-pin-name">
     <div class="modal-content modal-sm">
@@ -12,7 +21,7 @@
             <p id="group-pin-subtitle">Masukkan 4 digit PIN untuk membuka grup ini</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup"><i class="ph ph-x"></i></button>
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose}><i class="ph ph-x"></i></button>
       </div>
       <div class="pin-row pin-control">
           <input id="group-pin" name="group-pin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN grup, 4 angka" aria-describedby="group-pin-msg" aria-invalid="false">
@@ -22,8 +31,8 @@
           <span class="pin-box" aria-hidden="true"></span>
         </div>
       <p id="group-pin-msg" class="pin-msg" aria-live="polite"></p>
-      <button type="button" class="btn btn-primary pin-action-btn" data-action="submit-group-pin" data-i18n="pin.submit">Buka Grup</button>
-      <button type="button" class="btn btn-outline btn-secondary pin-action-btn pin-action-btn-secondary" data-action="open-groups" data-i18n="pin.switch">Pilih Grup Lain</button>
+      <button type="button" class="btn btn-primary pin-action-btn" data-action="submit-group-pin" data-i18n="pin.submit" onclick={onSubmitPin}>Buka Grup</button>
+      <button type="button" class="btn btn-outline btn-secondary pin-action-btn pin-action-btn-secondary" data-action="open-groups" data-i18n="pin.switch" onclick={onOpenGroups}>Pilih Grup Lain</button>
       <p class="pin-rate-limit-note" data-i18n="pin.note">Akses dikunci sementara selama 5 menit setelah 5 kali salah PIN.</p>
     </div>
   </dialog>

@@ -1,10 +1,20 @@
+<script lang="ts">
+  import { appStore } from '../../stores/app.svelte';
+  import { closeModal } from '../../ui/modal';
+  import { handleStealthBadgeClick, logoutAdminAction } from '../../handlers/auth';
+
+  const onClose = (id: string) => (e: MouseEvent) => { e.stopPropagation(); closeModal(id); };
+  const onStealth = (e: MouseEvent) => { e.stopPropagation(); handleStealthBadgeClick(); };
+  const onLogout = (e: MouseEvent) => { e.stopPropagation(); logoutAdminAction(); };
+</script>
+
 <!-- 1. Modal Login Admin -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-login" aria-labelledby="modal-login-title">
     <div class="modal-content auth-login-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="hybrid-settings-header auth-sheet-header">
         <div class="auth-header-main">
-          <button type="button" class="auth-header-emblem stealth-badge" id="badge-admin-login" data-action="stealth-badge-click" aria-label="Login Pengurus">
+          <button type="button" class="auth-header-emblem stealth-badge" id="badge-admin-login" data-action="stealth-badge-click" aria-label="Login Pengurus" onclick={onStealth}>
             <i class="ph ph-lock-key" aria-hidden="true"></i>
           </button>
           <div class="auth-header-copy">
@@ -12,7 +22,7 @@
             <p id="modal-login-subtitle">Masuk untuk mengelola pencatatan dan pengaturan kas grup</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-login')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -23,7 +33,7 @@
             <span class="auth-context-dot" aria-hidden="true"></span>
             <div class="auth-group-context-meta">
               <span class="auth-context-label">Grup Aktif</span>
-              <strong class="auth-context-name" id="auth-login-group-name">Finkas</strong>
+              <strong class="auth-context-name" id="auth-login-group-name">{appStore.activeGroupName || 'Finkas'}</strong>
             </div>
           </div>
           <span class="auth-role-pill">Akses Pengurus</span>
@@ -75,7 +85,7 @@
           <i class="ph ph-lock-simple" aria-hidden="true"></i>
           <span>Sesi terenkripsi · Berlaku 12 jam</span>
         </div>
-        <button type="button" class="auth-cancel-link" data-action="close-modal">Batal</button>
+        <button type="button" class="auth-cancel-link" data-action="close-modal" onclick={onClose('modal-login')}>Batal</button>
       </div>
       <div class="pay-verified-stage" id="login-verified-stage" aria-hidden="true">
         <div class="pay-verified-card">
@@ -104,8 +114,8 @@
       <h2 id="modal-logout-title">Keluar Sesi Admin?</h2>
       <p>Anda perlu memasukkan password kembali untuk mencatat dan mengedit kas.</p>
       <div class="modal-dialog-actions">
-        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-logout">Batal</button>
-        <button type="button" class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm">Ya, Keluar</button>
+        <button type="button" class="btn btn-outline btn-secondary" data-action="cancel-logout" onclick={onClose('modal-logout')}>Batal</button>
+        <button type="button" class="btn btn-primary btn-slate-solid" data-action="confirm-logout" id="btn-logout-confirm" onclick={onLogout}>Ya, Keluar</button>
       </div>
     </div>
   </dialog>
@@ -115,7 +125,7 @@
     <div class="modal-content about-sheet">
       <div class="hybrid-sheet-handle" aria-hidden="true"><span></span></div>
       <div class="about-hero">
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose('modal-about')}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
 
@@ -162,7 +172,7 @@
           <span>Kebijakan Privasi</span>
           <i class="ph ph-arrow-up-right about-ext-ico" aria-hidden="true"></i>
         </a>
-        <button type="button" class="about-close-pill" data-action="close-modal">Tutup</button>
+        <button type="button" class="about-close-pill" data-action="close-modal" onclick={onClose('modal-about')}>Tutup</button>
       </div>
     </div>
   </dialog>

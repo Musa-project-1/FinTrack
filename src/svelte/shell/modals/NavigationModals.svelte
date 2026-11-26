@@ -1,3 +1,21 @@
+<script lang="ts">
+  import { appStore } from '../../stores/app.svelte';
+  import { closeModal, openModal } from '../../ui/modal';
+  import { openGroupAdmin } from '../../handlers/groups';
+  import { openAuditLogModal, openKelolaMasterModal } from '../../handlers/master';
+  import { openOfflineQueueModal } from '../../handlers/offlineQueue';
+  import { openTampilanModal } from '../../handlers/navigation';
+  import { switchWorkspace } from '../../ui/workspace';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-menu'); };
+  const fromMenu = (fn: () => void) => (e: MouseEvent) => {
+    e.stopPropagation();
+    closeModal('modal-menu');
+    fn();
+  };
+  const onLogoutPrompt = (e: MouseEvent) => { e.stopPropagation(); openModal('modal-logout'); };
+</script>
+
 <!-- 7. Navigation Menu Modal Sheet (Hybrid Kinetic Command Hub) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-menu" aria-labelledby="modal-menu-title">
     <div class="modal-content modal-md command-hub-modal">
@@ -7,7 +25,7 @@
           <h2 id="modal-menu-title">Menu Navigasi</h2>
           <p>Akses cepat seluruh fitur, laporan, dan pengaturan kas</p>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -25,7 +43,7 @@
 
       <div class="command-hub-body">
         <!-- Sesi Pengurus (Khusus saat belum login admin) -->
-        <button type="button" class="nav-item nav-item-featured" id="btn-login-menu-sheet" data-action="open-login" data-keywords="login masuk admin sandi password pengurus otentikasi">
+        <button type="button" class="nav-item nav-item-featured" id="btn-login-menu-sheet" data-action="open-login" data-keywords="login masuk admin sandi password pengurus otentikasi" onclick={fromMenu(() => openModal('modal-login'))}>
           <span class="nav-ico is-brand"><i class="ph ph-shield-check" aria-hidden="true"></i></span>
           <div class="nav-item-content">
             <span class="nav-txt" data-i18n="nav.login.title">Login Pengurus</span>
@@ -38,7 +56,7 @@
         <div class="nav-group" data-group="data">
           <div class="nav-group-label" data-i18n="nav.sec.data">Manajemen &amp; Data Kas</div>
           <div class="nav-group-list">
-            <button type="button" class="nav-item admin-only" data-action="open-kelola-master" data-keywords="master data anggota kategori bulan libur hapus tambah">
+            <button type="button" class="nav-item admin-only" data-action="open-kelola-master" data-keywords="master data anggota kategori bulan libur hapus tambah" onclick={fromMenu(openKelolaMasterModal)}>
               <span class="nav-ico is-accent"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.master.title">Kelola Data Master</span>
@@ -47,7 +65,7 @@
               <span class="nav-badge-tag">ADMIN</span>
             </button>
 
-            <button type="button" class="nav-item superadmin-only" data-action="open-group-admin" data-keywords="grup kelompok ruang kelas superadmin pin">
+            <button type="button" class="nav-item superadmin-only" data-action="open-group-admin" data-keywords="grup kelompok ruang kelas superadmin pin" onclick={fromMenu(openGroupAdmin)}>
               <span class="nav-ico is-secondary"><i class="ph ph-buildings" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.groupadmin.title">Manajemen Grup</span>
@@ -56,7 +74,7 @@
               <span class="nav-badge-tag is-super">SUPERADMIN</span>
             </button>
 
-            <button type="button" class="nav-item superadmin-only" data-action="open-audit-log" data-keywords="audit log jejak aktivitas histori admin superadmin">
+            <button type="button" class="nav-item superadmin-only" data-action="open-audit-log" data-keywords="audit log jejak aktivitas histori admin superadmin" onclick={fromMenu(openAuditLogModal)}>
               <span class="nav-ico is-secondary"><i class="ph ph-list-magnifying-glass" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.audit.title">Log Aktivitas</span>
@@ -65,7 +83,7 @@
               <span class="nav-badge-tag is-super">SUPERADMIN</span>
             </button>
 
-            <button type="button" class="nav-item admin-only" data-action="open-offline-queue" data-keywords="antrean offline pending sinkron koneksi internet database">
+            <button type="button" class="nav-item admin-only" data-action="open-offline-queue" data-keywords="antrean offline pending sinkron koneksi internet database" onclick={fromMenu(openOfflineQueueModal)}>
               <span class="nav-ico is-warning"><i class="ph ph-cloud-arrow-up" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.offline.title">Antrean Offline</span>
@@ -80,7 +98,7 @@
         <div class="nav-group" data-group="laporan">
           <div class="nav-group-label" data-i18n="nav.sec.report">Laporan &amp; Analitik</div>
           <div class="nav-group-list">
-            <button type="button" class="nav-item" data-action="open-history" data-keywords="riwayat transaksi mutasi histori tabel pencarian">
+            <button type="button" class="nav-item" data-action="open-history" data-keywords="riwayat transaksi mutasi histori tabel pencarian" onclick={fromMenu(() => switchWorkspace('history'))}>
               <span class="nav-ico is-income"><i class="ph ph-receipt" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.history.title">Riwayat Arus Kas</span>
@@ -89,7 +107,7 @@
               <i class="ph ph-caret-right nav-chev" aria-hidden="true"></i>
             </button>
 
-            <button type="button" class="nav-item" data-action="open-statistik" data-keywords="statistik grafik chart tren arus keuangan analisa">
+            <button type="button" class="nav-item" data-action="open-statistik" data-keywords="statistik grafik chart tren arus keuangan analisa" onclick={fromMenu(() => switchWorkspace('stats'))}>
               <span class="nav-ico is-income"><i class="ph ph-chart-line-up" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.stats.title">Analitik &amp; Grafik Kas</span>
@@ -98,7 +116,7 @@
               <i class="ph ph-caret-right nav-chev" aria-hidden="true"></i>
             </button>
 
-            <button type="button" class="nav-item" data-action="open-export" data-keywords="ekspor export unduh download excel csv pdf cetak laporan whatsapp wa">
+            <button type="button" class="nav-item" data-action="open-export" data-keywords="ekspor export unduh download excel csv pdf cetak laporan whatsapp wa" onclick={fromMenu(() => openModal('modal-export'))}>
               <span class="nav-ico is-accent"><i class="ph ph-file-arrow-down" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.export.title">Laporan &amp; Ekspor Data</span>
@@ -113,7 +131,7 @@
         <div class="nav-group" data-group="sistem">
           <div class="nav-group-label" data-i18n="nav.sec.system">Preferensi &amp; Bantuan</div>
           <div class="nav-group-list">
-            <button type="button" class="nav-item" data-action="open-tampilan" data-keywords="tampilan tema dark mode gelap terang aksen warna font privasi blur kerapatan bahasa language">
+            <button type="button" class="nav-item" data-action="open-tampilan" data-keywords="tampilan tema dark mode gelap terang aksen warna font privasi blur kerapatan bahasa language" onclick={fromMenu(openTampilanModal)}>
               <span class="nav-ico is-secondary"><i class="ph ph-swatches" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.tampilan.title">Tampilan &amp; Bahasa</span>
@@ -122,7 +140,7 @@
               <i class="ph ph-caret-right nav-chev" aria-hidden="true"></i>
             </button>
 
-            <button type="button" class="nav-item" data-action="open-faq" data-keywords="faq panduan bantuan pertanyaan cara pakai tutorial">
+            <button type="button" class="nav-item" data-action="open-faq" data-keywords="faq panduan bantuan pertanyaan cara pakai tutorial" onclick={fromMenu(() => openModal('modal-faq'))}>
               <span class="nav-ico is-income"><i class="ph ph-book-open-text" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.faq.title">Panduan &amp; FAQ</span>
@@ -140,7 +158,7 @@
               <i class="ph ph-caret-right nav-chev" aria-hidden="true"></i>
             </button>
 
-            <button type="button" class="nav-item nav-danger admin-session-only" data-action="logout" data-keywords="logout keluar sesi admin pengurus">
+            <button type="button" class="nav-item nav-danger admin-session-only" data-action="logout" data-keywords="logout keluar sesi admin pengurus" onclick={onLogoutPrompt}>
               <span class="nav-ico is-danger"><i class="ph ph-sign-out" aria-hidden="true"></i></span>
               <div class="nav-item-content">
                 <span class="nav-txt" data-i18n="nav.logout.title">Keluar Sesi Pengurus</span>
@@ -161,7 +179,7 @@
       <div class="hybrid-settings-footer command-hub-footer">
         <div class="command-footer-status">
           <span class="status-indicator-dot" aria-hidden="true"></span>
-          <span id="command-footer-group" class="command-footer-text">Finkas Cloud</span>
+          <span id="command-footer-group" class="command-footer-text">{appStore.activeGroupName || 'Finkas Cloud'}</span>
         </div>
         <div class="command-footer-hints" aria-hidden="true">
           <span class="command-hint-key">↑↓</span>

@@ -1,3 +1,11 @@
+<script lang="ts">
+  import { closeModal } from '../../ui/modal';
+  import { exitGroup } from '../../handlers/groups';
+
+  const onClose = (e: MouseEvent) => { e.stopPropagation(); closeModal('modal-groups'); };
+  const onExit = (e: MouseEvent) => { e.stopPropagation(); exitGroup(); };
+</script>
+
 <!-- 0. Modal Pilih Grup (multi-grup tahap 1) -->
   <dialog class="modal-overlay hybrid-dialog" id="modal-groups" aria-labelledby="modal-groups-title">
     <div class="modal-content groups-picker-sheet">
@@ -10,7 +18,7 @@
             <p id="modal-groups-subtitle">Setiap grup memiliki buku kas dan data anggota yang terpisah</p>
           </div>
         </div>
-        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup">
+        <button type="button" class="close-modal-btn" data-action="close-modal" aria-label="Tutup" onclick={onClose}>
           <i class="ph-bold ph-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -35,7 +43,7 @@
           <i class="ph ph-house" aria-hidden="true"></i>
           <span>Halaman Utama</span>
         </a>
-        <button type="button" class="groups-footer-btn is-danger" id="btn-exit-active-group" data-action="exit-group" data-i18n="groups.exit">
+        <button type="button" class="groups-footer-btn is-danger" id="btn-exit-active-group" data-action="exit-group" data-i18n="groups.exit" onclick={onExit}>
           <i class="ph ph-sign-out" aria-hidden="true"></i>
           <span>Keluar dari Grup</span>
         </button>

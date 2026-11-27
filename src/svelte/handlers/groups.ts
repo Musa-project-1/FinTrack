@@ -34,6 +34,7 @@ import { initSyncEvents } from "finkas/core/sync";
 import { apiPost } from "finkas/core/api-client";
 import { syncGroupAdminList, syncSuperAdminList } from "../mount";
 import { openGroupAdminFlow, resetGroupAdminFlow, setGroupFlowBusy } from "../stores/group-admin.svelte";
+import { runGroupLiquidAction } from "./group-admin-stage";
 import { getInput, showToast } from "finkas/core/utils";
 import { resolveGroupDirection, runGroupSwitchTransition } from "../ui/hybrid-motion";
 import { flashCopyFeedback } from "../ui/keel";
@@ -442,8 +443,7 @@ export const openGroupAdmin = async () => {
   resetGroupAdminFlow();
   switchTab("tab-group-list", "modal-group-admin");
   const chk = getInput("chk-group-admin-auto");
-  const box = document.getElementById("box-group-admin-creds");
-  if (chk && box) box.hidden = !chk.checked;
+  if (chk) chk.checked = true;
   await fetchGroups();
   renderGroupAdmin();
   refreshAutoAdminCreds();
@@ -591,47 +591,40 @@ export const submitCreateGroup = async (e?: Event) => {
   }
 
   setGroupFlowBusy(true);
-  let res;
   try {
-    res = await callGroupAdmin({
-      action: "create",
-      nama,
-      pin: rawPin,
-      skipAdmin,
-      adminEmail,
-      adminPassword
+    await runGroupLiquidAction({
+      buttonId: "btn-submit-create-group", savingTitle: "Membuat Ruang Kas…", doneTitle: "Ruang Kas Dibuat",
+      highlight: nama, sub: skipAdmin ? `PIN ${rawPin} · Tanpa akun admin` : `PIN ${rawPin} · ${adminEmail}`,
+      doneSub: "Siap dibagikan ke pengurus", savingText: "Membuat…", doneText: "Dibuat",
+      run: async () => {
+        const res = await callGroupAdmin({ action: "create", nama, pin: rawPin, skipAdmin, adminEmail, adminPassword });
+        if (!res.status) return { ok: false, afterSettle: () => showToast(res.message ?? "", "error") };
+        return {
+          ok: true,
+          afterSettle: async () => {
+            showToast(res.message ?? "", "success");
+            if (namaEl) namaEl.value = "";
+            if (pinEl) pinEl.value = "";
+            refreshAutoAdminCreds();
+            resetGroupAdminFlow();
+            await fetchGroups();
+            renderGroupAdmin();
+            if (!skipAdmin && !res.data?.adminPassword) {
+              showCredentialsModal({ nama, pin: rawPin, email: adminEmail, pwd: adminPassword });
+            } else if (res.data) {
+              showCredentialsModal({ nama, pin: res.data.pin || rawPin, email: res.data.adminEmail || adminEmail, pwd: res.data.adminPassword || "" });
+            }
+          }
+        };
+      }
     });
-  } finally {
-    setGroupFlowBusy(false);
-  }
-
-  showToast(res.message ?? "", res.status ? "success" : "error");
-  if (!res.status) return;
-
-  if (namaEl) namaEl.value = "";
-  if (pinEl) pinEl.value = "";
-  refreshAutoAdminCreds();
-  resetGroupAdminFlow();
-  await fetchGroups();
-  renderGroupAdmin();
-
-  if (!skipAdmin && !res.data?.adminPassword) {
-    showCredentialsModal({ nama, pin: rawPin, email: adminEmail, pwd: adminPassword });
-  } else if (res.data) {
-    showCredentialsModal({
-      nama,
-      pin: res.data.pin || rawPin,
-      email: res.data.adminEmail || adminEmail,
-      pwd: res.data.adminPassword || ""
-    });
-  }
+  } finally { setGroupFlowBusy(false); }
 };
 
-/** Buka alur ubah nama grup di dalam modal Kelola Grup. */
-export const renameGroupAction = (id: string) => {
-  const currentName = getGroups().find((g) => g.id === id)?.nama || "";
-  openGroupAdminFlow("rename", id, currentName);
-};
+/** Buka alur ubah nama / PIN / hapus grup di dalam modal Kelola Grup. */
+export const renameGroupAction = (id: string) => openGroupAdminFlow("rename", id, getGroups().find((g) => g.id === id)?.nama || "");
+export const resetGroupPinAction = (id: string) => openGroupAdminFlow("pin", id, getGroups().find((g) => g.id === id)?.nama || id);
+export const removeGroupAction = (id: string) => openGroupAdminFlow("remove", id, getGroups().find((g) => g.id === id)?.nama || id);
 
 /** Simpan perubahan nama grup dari panel inline. */
 export const submitRenameGroup = async (id: string, rawName: string) => {
@@ -640,57 +633,52 @@ export const submitRenameGroup = async (id: string, rawName: string) => {
   if (newName.length < 3 || newName === currentName) return;
   setGroupFlowBusy(true);
   try {
-    const res = await callGroupAdmin({ action: "rename", groupId: id, nama: newName });
-    showToast(res.message ?? "", res.status ? "success" : "error");
-    if (res.status) {
-      resetGroupAdminFlow();
-      await fetchGroups();
-      renderGroupAdmin();
-    }
+    await runGroupLiquidAction({
+      buttonId: "btn-submit-rename-group", savingTitle: "Menyimpan Nama Baru…", doneTitle: "Nama Diperbarui",
+      highlight: newName, sub: `Sebelumnya: ${currentName}`, savingText: "Menyimpan…", doneText: "Tersimpan",
+      run: async () => {
+        const res = await callGroupAdmin({ action: "rename", groupId: id, nama: newName });
+        if (!res.status) return { ok: false, afterSettle: () => showToast(res.message ?? "", "error") };
+        return { ok: true, afterSettle: async () => { showToast(res.message ?? "", "success"); resetGroupAdminFlow(); await fetchGroups(); renderGroupAdmin(); } };
+      }
+    });
   } finally { setGroupFlowBusy(false); }
-};
-
-/** Buka alur atur ulang PIN grup di dalam modal Kelola Grup. */
-export const resetGroupPinAction = (id: string) => {
-  const label = getGroups().find((g) => g.id === id)?.nama || id;
-  openGroupAdminFlow("pin", id, label);
 };
 
 /** Simpan perubahan PIN 4 digit dari panel inline. */
 export const submitResetGroupPin = async (id: string, rawPin: string) => {
   const pin = (rawPin || "").replace(/\D/g, "").slice(0, 4);
   if (pin.length !== 4) { showToast("PIN wajib berupa 4 angka.", "error"); return; }
+  const label = getGroups().find((g) => g.id === id)?.nama || id;
   setGroupFlowBusy(true);
   try {
-    const res = await callGroupAdmin({ action: "set-pin", groupId: id, pin });
-    showToast(res.message ?? "", res.status ? "success" : "error");
-    if (res.status) resetGroupAdminFlow();
+    await runGroupLiquidAction({
+      buttonId: "btn-submit-pin-group", savingTitle: "Memperbarui PIN…", doneTitle: "PIN Diperbarui",
+      highlight: label, sub: "PIN akses warga 4 angka baru", savingText: "Menyimpan…", doneText: "Tersimpan",
+      run: async () => {
+        const res = await callGroupAdmin({ action: "set-pin", groupId: id, pin });
+        if (!res.status) return { ok: false, afterSettle: () => showToast(res.message ?? "", "error") };
+        return { ok: true, afterSettle: () => { showToast(res.message ?? "", "success"); resetGroupAdminFlow(); } };
+      }
+    });
   } finally { setGroupFlowBusy(false); }
-};
-
-/** Buka alur konfirmasi hapus grup di dalam modal Kelola Grup. */
-export const removeGroupAction = (id: string) => {
-  const label = getGroups().find((g) => g.id === id)?.nama || id;
-  openGroupAdminFlow("remove", id, label);
 };
 
 /** Hapus grup permanen setelah verifikasi nama di panel inline. */
 export const submitRemoveGroup = async (id: string, typedName: string) => {
   const label = getGroups().find((g) => g.id === id)?.nama || id;
-  if (!typedName || typedName.trim().toLowerCase() !== label.trim().toLowerCase()) {
-    showToast("Nama grup tidak cocok.", "warning");
-    return;
-  }
+  if (!typedName || typedName.trim().toLowerCase() !== label.trim().toLowerCase()) { showToast("Nama grup tidak cocok.", "warning"); return; }
   setGroupFlowBusy(true);
   try {
-    const res = await callGroupAdmin({ action: "remove", groupId: id });
-    showToast(res.message ?? "", res.status ? "success" : "error");
-    if (res.status) {
-      resetGroupAdminFlow();
-      if (getActiveGroupId() === id) exitGroup();
-      await fetchGroups();
-      renderGroupAdmin();
-    }
+    await runGroupLiquidAction({
+      buttonId: "btn-submit-remove-group", tone: "danger", savingTitle: "Menghapus Ruang Kas…", doneTitle: "Ruang Kas Dihapus",
+      highlight: label, sub: "Menghapus seluruh data grup", savingText: "Menghapus…", doneText: "Terhapus",
+      run: async () => {
+        const res = await callGroupAdmin({ action: "remove", groupId: id });
+        if (!res.status) return { ok: false, afterSettle: () => showToast(res.message ?? "", "error") };
+        return { ok: true, afterSettle: async () => { showToast(res.message ?? "", "success"); resetGroupAdminFlow(); if (getActiveGroupId() === id) exitGroup(); await fetchGroups(); renderGroupAdmin(); } };
+      }
+    });
   } finally { setGroupFlowBusy(false); }
 };
 
@@ -725,11 +713,6 @@ export const initGroupsUI = (onGroupChanged?: () => void) => {
     const emailEl = getInput("input-group-admin-email");
     const val = ((e.currentTarget as HTMLInputElement).value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
     if (emailEl) emailEl.value = `admin.${val || "baru"}@finkas.id`;
-  });
-
-  document.getElementById("chk-group-admin-auto")?.addEventListener("change", (e) => {
-    const box = document.getElementById("box-group-admin-creds");
-    if (box) box.hidden = !(e.currentTarget as HTMLInputElement).checked;
   });
 
   document.getElementById("btn-refresh-admin-pwd")?.addEventListener("click", () => {

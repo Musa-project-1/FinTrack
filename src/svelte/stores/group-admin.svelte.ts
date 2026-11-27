@@ -13,6 +13,7 @@ export type GroupAdminFlowMode = 'list' | 'create' | 'rename' | 'pin' | 'remove'
 export interface GroupAdminFlowState {
   mode: GroupAdminFlowMode;
   createStep: 1 | 2;
+  stepDir: 'forward' | 'backward';
   targetId: string;
   targetName: string;
   busy: boolean;
@@ -24,6 +25,7 @@ export const superAdminStore = $state<SuperAdminInput>({ status: 'loading', item
 export const groupAdminFlow = $state<GroupAdminFlowState>({
   mode: 'list',
   createStep: 1,
+  stepDir: 'forward',
   targetId: '',
   targetName: '',
   busy: false
@@ -38,6 +40,7 @@ export function updateSuperAdminStore(input: SuperAdminInput) {
 }
 
 export function openGroupAdminFlow(mode: GroupAdminFlowMode, targetId = '', targetName = '') {
+  groupAdminFlow.stepDir = mode === 'list' ? 'backward' : 'forward';
   groupAdminFlow.mode = mode;
   groupAdminFlow.createStep = 1;
   groupAdminFlow.targetId = targetId;
@@ -46,6 +49,7 @@ export function openGroupAdminFlow(mode: GroupAdminFlowMode, targetId = '', targ
 }
 
 export function setGroupCreateStep(step: 1 | 2) {
+  groupAdminFlow.stepDir = step >= groupAdminFlow.createStep ? 'forward' : 'backward';
   groupAdminFlow.createStep = step;
 }
 

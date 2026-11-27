@@ -355,7 +355,76 @@
       #modal-export .export-sheet-footer .btn { width: 100%; min-height: 44px; height: 44px; justify-content: center; }
     }
 
+    /* === UNIVERSAL 10-POINT MODAL MOTION CRAFT (ALL 24 HYBRID DIALOGS) === */
+    .hybrid-dialog .modal-content .btn,
+    .hybrid-dialog .close-modal-btn,
+    .hybrid-dialog .tab-btn,
+    .hybrid-dialog .btn-group-chip,
+    .hybrid-dialog .export-card-btn,
+    .hybrid-dialog .nav-item {
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 180ms ease, transform 120ms var(--hybrid-ease-spring);
+    }
+    .hybrid-dialog .modal-content .btn:active:not(:disabled),
+    .hybrid-dialog .close-modal-btn:active,
+    .hybrid-dialog .tab-btn:active,
+    .hybrid-dialog .btn-group-chip:active,
+    .hybrid-dialog .export-card-btn:active,
+    .hybrid-dialog .nav-item:active {
+      transform: scale(0.97);
+    }
+
+    /* Shared blur-crossfade icon stack for any modal toggle */
+    .icon-xfade-stack { position: relative; display: inline-grid; place-items: center; width: 18px; height: 18px; }
+    .icon-xfade-layer {
+      grid-area: 1 / 1; opacity: 0; filter: blur(2.5px); transform: scale(0.82); pointer-events: none;
+      transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), filter 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .icon-xfade-layer.is-visible { opacity: 1; filter: blur(0); transform: scale(1); }
+
+    /* Stage the focus inside modal form cards */
+    .hybrid-dialog .modal-content :is(.master-form-card, .edit-master-card, .group-superadmin-card, .report-filter-card) {
+      transition: border-color 180ms ease, box-shadow 200ms ease;
+    }
+    .hybrid-dialog .modal-content :is(.master-form-card, .edit-master-card, .group-superadmin-card, .report-filter-card):focus-within {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      /* Directional tab slide across Master, Export, Group Admin, Tampilan, etc. */
+      .hybrid-dialog[data-tab-dir="forward"] .tab-content.active {
+        animation: modalTabFwd 190ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      .hybrid-dialog[data-tab-dir="backward"] .tab-content.active {
+        animation: modalTabBack 190ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      /* Masked reveal for FAQ & details accordions */
+      details.faq-item[open] .faq-item-desc {
+        animation: modalMaskReveal 210ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      /* Pulse to confirm on copy & verified feedback across all modals */
+      .hybrid-dialog .is-copied,
+      .hybrid-dialog .is-copied-surface {
+        animation: modalConfirmPulse 260ms var(--hybrid-ease-spring);
+      }
+    }
+    @keyframes modalTabFwd { from { opacity: 0; translate: 12px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes modalTabBack { from { opacity: 0; translate: -12px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes modalMaskReveal {
+      from { opacity: 0; clip-path: inset(0 0 100% 0); translate: 0 -4px; }
+      to { opacity: 1; clip-path: inset(0 0 0% 0); translate: 0 0; }
+    }
+    @keyframes modalConfirmPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.022); }
+      100% { transform: scale(1); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .export-glider-pill, .export-card-btn { transition: none; }
+      .export-glider-pill, .export-card-btn, .icon-xfade-layer,
+      .hybrid-dialog .modal-content .btn, .hybrid-dialog .close-modal-btn,
+      .hybrid-dialog .tab-btn, .hybrid-dialog .btn-group-chip, .hybrid-dialog .nav-item {
+        transition: none; filter: none;
+      }
     }
   /*}*/

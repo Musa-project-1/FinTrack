@@ -56,7 +56,7 @@
         </button>
       </div>
 
-      <div class="group-admin-tabs-bar">
+      <div class="group-admin-tabs-bar" class:is-staged-dim={groupAdminFlow.mode !== 'list'}>
         <div class="tab-header group-admin-tab-track" role="tablist" aria-label="Kategori Kelola Grup">
           <div class="group-admin-glider-pill" aria-hidden="true"></div>
           <button type="button" class="tab-btn active" id="btn-group-tab-list" role="tab" aria-selected="true" aria-controls="tab-group-list" data-action="switch-tab" data-tab="tab-group-list" onclick={onSwitchTab('tab-group-list')}>
@@ -124,6 +124,20 @@
       <div class="hybrid-settings-footer group-admin-sheet-footer">
         <span class="group-admin-footer-hint"><i class="ph-fill ph-lock-key" aria-hidden="true"></i> Data tiap grup terisolasi aman · Hapus grup butuh konfirmasi nama</span>
         <button type="button" class="btn btn-secondary" data-action="close-modal" onclick={onClose('modal-group-admin')}>Tutup</button>
+      </div>
+      <div class="pay-verified-stage" id="group-admin-verified-stage" aria-hidden="true">
+        <div class="pay-verified-card">
+          <div class="pay-verified-medallion">
+            <span class="pay-verified-orbit"></span>
+            <span class="pay-verified-halo"></span>
+            <svg class="pay-verified-check" viewBox="0 0 28 28" focusable="false">
+              <path d="M6.5 14.5l5 5L21.5 9"></path>
+            </svg>
+          </div>
+          <strong class="pay-verified-title" id="group-admin-verified-title">Memproses…</strong>
+          <span class="pay-verified-amount font-mono tabular-nums" id="group-admin-verified-amount">-</span>
+          <span class="pay-verified-sub" id="group-admin-verified-sub">-</span>
+        </div>
       </div>
     </div>
   </dialog>
@@ -226,6 +240,7 @@
     #modal-group-admin::backdrop { overflow: hidden; }
 
     #modal-group-admin .group-admin-sheet {
+      position: relative;
       width: min(680px, calc(100vw - 28px)); max-width: 100%; max-height: min(92dvh, 760px); padding: 0;
       border-radius: 20px; border: 1px solid var(--border); background: var(--surface);
       box-shadow: var(--shadow-pop); display: flex; flex-direction: column; overflow: hidden; gap: 0;
@@ -261,7 +276,9 @@
     }
 
     /* 2-Tab Segmented Glider Bar */
-    .group-admin-tabs-bar { padding: 12px 20px 0; flex-shrink: 0; }
+    .group-admin-tabs-bar { padding: 12px 20px 0; flex-shrink: 0; transition: opacity 200ms ease, filter 200ms ease; }
+    .group-admin-tabs-bar.is-staged-dim { opacity: 0.48; }
+    .group-admin-tabs-bar.is-staged-dim:hover { opacity: 1; }
     .group-admin-tab-track {
       position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0; padding: 3px; margin: 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-pill);
@@ -354,7 +371,16 @@
       height: 36px; min-height: 36px; padding: 0 13px; border-radius: 10px;
       font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
       white-space: nowrap; flex-shrink: 0;
+      transition: background-color 150ms ease, transform 120ms var(--hybrid-ease-spring);
     }
+    .btn-open-create-group:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: no-preference) {
+      .group-admin-list:not([hidden]),
+      .group-admin-list-toolbar:not([hidden]) {
+        animation: groupListFadeIn 180ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+    }
+    @keyframes groupListFadeIn { from { opacity: 0; translate: -8px 0; } to { opacity: 1; translate: 0 0; } }
     .group-admin-search-box { flex: 1 1 220px; min-width: 0; margin-bottom: 0; }
     .group-admin-search-box .search-icon { left: 11px; font-size: 15px; }
     #modal-group-admin .group-admin-search-box .form-control {

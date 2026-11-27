@@ -20,6 +20,27 @@
   let pinValue = $state('');
   let showEditPin = $state(false);
   let removeConfirmText = $state('');
+  let spinPinBtn = $state(false);
+  let spinPwdBtn = $state(false);
+  let rubberNudge = $state(false);
+
+  const pulseRubber = () => {
+    rubberNudge = false;
+    requestAnimationFrame(() => { rubberNudge = true; });
+    setTimeout(() => { rubberNudge = false; }, 340);
+  };
+
+  const pulseSpin = (which: 'pin' | 'pwd') => {
+    if (which === 'pin') {
+      spinPinBtn = false;
+      requestAnimationFrame(() => { spinPinBtn = true; });
+      setTimeout(() => { spinPinBtn = false; }, 320);
+    } else {
+      spinPwdBtn = false;
+      requestAnimationFrame(() => { spinPwdBtn = true; });
+      setTimeout(() => { spinPwdBtn = false; }, 320);
+    }
+  };
 
   const createInitial = $derived((createNama.trim()[0] || 'G').toUpperCase());
   const createSlug = $derived(
@@ -99,11 +120,13 @@
     syncDomCreatePin(pinVal);
 
     if (namaVal.length < 3) {
+      pulseRubber();
       showToast('Nama grup minimal 3 karakter.', 'error');
       namaEl?.focus();
       return;
     }
     if (!/^\d{4}$/.test(pinVal)) {
+      pulseRubber();
       showToast('PIN wajib tepat 4 digit angka.', 'error');
       pinEl?.focus();
       return;
@@ -136,7 +159,7 @@
 </script>
 
 <!-- ── Panel 1: Alur Buat Ruang Kas Baru (2 Langkah) ── -->
-<div class="group-flow-panel" hidden={flow.mode !== 'create'}>
+<div class="group-flow-panel" class:is-rubber={rubberNudge} data-step-dir={flow.stepDir} hidden={flow.mode !== 'create'}>
   <div class="group-flow-nav">
     <button type="button" class="group-flow-back" onclick={resetGroupAdminFlow}>
       <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
@@ -144,12 +167,15 @@
     </button>
     <div class="group-flow-stepper" aria-label="Langkah pembuatan grup">
       <button type="button" class="flow-step-pill" class:is-active={flow.createStep === 1} class:is-done={flow.createStep === 2} onclick={() => setGroupCreateStep(1)}>
-        <span class="flow-step-num">{flow.createStep === 2 ? '✓' : '1'}</span>
+        <span class="flow-step-num icon-xfade-stack" aria-hidden="true">
+          <span class="icon-xfade-layer" class:is-visible={flow.createStep !== 2}>1</span>
+          <i class="ph-bold ph-check icon-xfade-layer" class:is-visible={flow.createStep === 2}></i>
+        </span>
         <span>Identitas &amp; PIN</span>
       </button>
-      <span class="flow-step-sep" aria-hidden="true"></span>
+      <span class="flow-step-sep" class:is-done={flow.createStep === 2} aria-hidden="true"></span>
       <button type="button" class="flow-step-pill" class:is-active={flow.createStep === 2} onclick={onGoStep2}>
-        <span class="flow-step-num">2</span>
+        <span class="flow-step-num" aria-hidden="true">2</span>
         <span>Akun Admin</span>
       </button>
     </div>
@@ -158,13 +184,19 @@
   <form id="form-create-group" class="group-flow-form">
     <!-- Langkah 1: Identitas & PIN -->
     <div class="group-flow-step" hidden={flow.createStep !== 1}>
-      <div class="group-preview-card">
-        <span class="group-preview-avatar" aria-hidden="true">{createInitial}</span>
+      <div class="group-preview-card" class:is-ready={step1Valid}>
+        {#key createInitial}
+          <span class="group-preview-avatar" aria-hidden="true">{createInitial}</span>
+        {/key}
         <div class="group-preview-copy">
           <strong>{createNama.trim() || 'Nama Ruang Kas Baru'}</strong>
-          <small class="font-mono">admin.{createSlug}@finkas.id · PIN {pinDigitsOnly.length === 4 ? (showCreatePin ? pinDigitsOnly : '••••') : '____'}</small>
+          <small class="font-mono">admin.{createSlug}@finkas.id</small>
         </div>
-        <span class="group-preview-badge">BARU</span>
+        <span class="group-pin-dots" aria-hidden="true">
+          {#each [0, 1, 2, 3] as idx (idx)}
+            <span class="group-pin-dot" class:is-filled={idx < pinDigitsOnly.length}></span>
+          {/each}
+        </span>
       </div>
 
       <div class="group-flow-field">
@@ -195,7 +227,8 @@
           <button
             type="button"
             class="group-inline-link"
-            onclick={() => { syncDomCreatePin(generatePin4()); showCreatePin = true; }}
+            class:is-spinning={spinPinBtn}
+            onclick={() => { syncDomCreatePin(generatePin4()); showCreatePin = true; pulseSpin('pin'); }}
           >
             <i class="ph-bold ph-shuffle" aria-hidden="true"></i> Acak 4 Angka
           </button>
@@ -224,7 +257,10 @@
             aria-pressed={showCreatePin}
             onclick={() => { showCreatePin = !showCreatePin; }}
           >
-            <i class={showCreatePin ? 'ph ph-eye-slash' : 'ph ph-eye'} aria-hidden="true"></i>
+            <span class="icon-xfade-stack" aria-hidden="true">
+              <i class="ph ph-eye icon-xfade-layer" class:is-visible={!showCreatePin}></i>
+              <i class="ph ph-eye-slash icon-xfade-layer" class:is-visible={showCreatePin}></i>
+            </span>
           </button>
         </div>
         <p class="group-flow-hint">Dipakai anggota untuk membuka ruang kas dan melihat status iuran.</p>
@@ -263,7 +299,8 @@
           >
           <span>Buat akun Admin Grup langsung (Email &amp; Password)</span>
         </label>
-        <div id="box-group-admin-creds" class="group-admin-creds-stack" hidden={!createAutoAdmin}>
+        <div class="group-expand-shell" class:is-open={createAutoAdmin}>
+          <div id="box-group-admin-creds" class="group-admin-creds-stack" aria-hidden={!createAutoAdmin}>
           <div class="group-flow-field">
             <label for="input-group-admin-email">Email Pengurus / Bendahara</label>
             <div class="input-with-icon group-cred-email-field">
@@ -297,13 +334,16 @@
               <button
                 type="button"
                 class="btn btn-outline btn-refresh-pwd"
+                class:is-spinning={spinPwdBtn}
                 id="btn-refresh-admin-pwd"
                 title="Acak ulang password"
                 aria-label="Acak ulang password"
+                onclick={() => pulseSpin('pwd')}
               >
                 <i class="ph-bold ph-arrows-clockwise" aria-hidden="true"></i>
               </button>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -313,9 +353,10 @@
           <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
           <span>Kembali</span>
         </button>
-        <button type="submit" class="btn btn-primary btn-create-submit" disabled={flow.busy}>
-          <i class="ph-bold ph-check" aria-hidden="true"></i>
-          <span>{flow.busy ? 'Membuat...' : 'Buat Ruang Kas'}</span>
+        <button type="submit" class="btn btn-primary btn-create-submit btn-liquid" id="btn-submit-create-group" disabled={flow.busy}>
+          <span class="keel-fill" aria-hidden="true"></span>
+          <span class="keel-label"><i class="ph-bold ph-check" aria-hidden="true"></i><span>Buat Ruang Kas</span></span>
+          <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
         </button>
       </div>
     </div>
@@ -355,10 +396,13 @@
         <button type="button" class="btn btn-secondary" onclick={resetGroupAdminFlow}>Batal</button>
         <button
           type="submit"
-          class="btn btn-primary"
+          class="btn btn-primary btn-liquid"
+          id="btn-submit-rename-group"
           disabled={flow.busy || renameValue.trim().length < 3 || renameValue.trim() === flow.targetName.trim()}
         >
-          {flow.busy ? 'Menyimpan...' : 'Simpan Nama'}
+          <span class="keel-fill" aria-hidden="true"></span>
+          <span class="keel-label">Simpan Nama</span>
+          <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
         </button>
       </div>
     </form>
@@ -410,15 +454,20 @@
             aria-pressed={showEditPin}
             onclick={() => { showEditPin = !showEditPin; }}
           >
-            <i class={showEditPin ? 'ph ph-eye-slash' : 'ph ph-eye'} aria-hidden="true"></i>
+            <span class="icon-xfade-stack" aria-hidden="true">
+              <i class="ph ph-eye icon-xfade-layer" class:is-visible={!showEditPin}></i>
+              <i class="ph ph-eye-slash icon-xfade-layer" class:is-visible={showEditPin}></i>
+            </span>
           </button>
         </div>
         <p class="group-flow-hint">Anggota yang belum punya sesi aktif perlu memasukkan PIN baru ini.</p>
       </div>
       <div class="group-flow-actions">
         <button type="button" class="btn btn-secondary" onclick={resetGroupAdminFlow}>Batal</button>
-        <button type="submit" class="btn btn-primary" disabled={flow.busy || pinValue.length !== 4}>
-          {flow.busy ? 'Menyimpan...' : 'Simpan PIN Baru'}
+        <button type="submit" class="btn btn-primary btn-liquid" id="btn-submit-pin-group" disabled={flow.busy || pinValue.length !== 4}>
+          <span class="keel-fill" aria-hidden="true"></span>
+          <span class="keel-label">Simpan PIN Baru</span>
+          <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
         </button>
       </div>
     </form>
@@ -442,7 +491,7 @@
       </div>
       <div class="group-flow-field">
         <label for="input-remove-group-confirm">Ketik persis <strong>{flow.targetName}</strong> untuk konfirmasi</label>
-        <div class="input-with-icon">
+        <div class="input-with-icon group-confirm-input-wrap" class:is-matched={removeMatches}>
           <i class="ph ph-trash group-input-icon" aria-hidden="true"></i>
           <input
             type="text"
@@ -456,8 +505,10 @@
       </div>
       <div class="group-flow-actions">
         <button type="button" class="btn btn-secondary" onclick={resetGroupAdminFlow}>Batal</button>
-        <button type="submit" class="btn btn-danger" disabled={flow.busy || !removeMatches}>
-          {flow.busy ? 'Menghapus...' : 'Hapus Grup Permanen'}
+        <button type="submit" class="btn btn-danger btn-danger-solid btn-liquid" id="btn-submit-remove-group" disabled={flow.busy || !removeMatches}>
+          <span class="keel-fill" aria-hidden="true"></span>
+          <span class="keel-label">Hapus Grup Permanen</span>
+          <span class="keel-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
         </button>
       </div>
     </form>
@@ -520,6 +571,61 @@
     .group-danger-banner p { margin: 0; }
 
     .group-flow-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 4px; }
-    .group-flow-actions .btn { min-height: 38px; padding: 0 14px; border-radius: 10px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .group-flow-actions .btn { min-height: 40px; padding: 0 15px; border-radius: 10px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms var(--hybrid-ease-spring); }
+
+    /* 1-10 Motion Craft: Crossfade w/ blur, Expand + Mask Reveal, Pulse to Confirm, Rubber Band, Fitts & Doherty */
+    .icon-xfade-stack { position: relative; display: inline-grid; place-items: center; width: 18px; height: 18px; }
+    .icon-xfade-layer { grid-area: 1 / 1; opacity: 0; filter: blur(2.5px); transform: scale(0.82); transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1), filter 180ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1); pointer-events: none; }
+    .icon-xfade-layer.is-visible { opacity: 1; filter: blur(0); transform: scale(1); }
+
+    .group-expand-shell { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 180ms ease; }
+    .group-expand-shell.is-open { grid-template-rows: 1fr; opacity: 1; }
+    .group-expand-shell > .group-admin-creds-stack { overflow: hidden; min-height: 0; clip-path: inset(0 0 100% 0 round 12px); transition: clip-path 220ms cubic-bezier(0.23, 1, 0.32, 1), padding 220ms cubic-bezier(0.23, 1, 0.32, 1), border-color 180ms ease; padding-block: 0; border-color: transparent; }
+    .group-expand-shell.is-open > .group-admin-creds-stack { clip-path: inset(0 0 0% 0 round 12px); padding-block: 12px; border-color: var(--border); }
+
+    .flow-step-sep { position: relative; width: 20px; height: 2px; background: var(--border-strong); border-radius: var(--r-pill); overflow: hidden; }
+    .flow-step-sep::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--accent); transform-origin: left center; transform: scaleX(0); transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .flow-step-sep.is-done::after { transform: scaleX(1); }
+    .group-flow-panel[data-step-dir="backward"] .flow-step-sep:not(.is-done)::after { transform-origin: right center; }
+
+    .flow-step-pill { min-height: 32px; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms var(--hybrid-ease-spring); }
+    .flow-step-num { transition: background-color 180ms ease, color 180ms ease; }
+    .group-flow-back { min-height: 36px; transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms var(--hybrid-ease-spring); }
+    .group-pin-eye-btn, .group-inline-link { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms var(--hybrid-ease-spring); }
+    .group-flow-back:active, .flow-step-pill:active, .group-pin-eye-btn:active, .group-flow-actions .btn:active { transform: scale(0.97); }
+    .group-preview-card { transition: border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease; }
+    .group-preview-card.is-ready { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+    .group-confirm-input-wrap.is-matched .group-form-input { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-bg); }
+
+    .group-pin-dots { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--border); flex-shrink: 0; }
+    .group-pin-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong); transition: background-color 160ms ease, transform 180ms var(--hybrid-ease-spring); }
+    .group-pin-dot.is-filled { background: var(--accent); transform: scale(1.18); }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .group-flow-panel:not([hidden]) { animation: gfPanelIn 210ms cubic-bezier(0.23, 1, 0.32, 1); }
+      .group-flow-panel.is-rubber { animation: gfRubberBand 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+      .group-flow-panel[data-step-dir="forward"] .group-flow-step:not([hidden]) { animation: gfStepFwd 210ms cubic-bezier(0.23, 1, 0.32, 1); }
+      .group-flow-panel[data-step-dir="backward"] .group-flow-step:not([hidden]) { animation: gfStepBack 210ms cubic-bezier(0.23, 1, 0.32, 1); }
+      .flow-step-pill.is-active .flow-step-num { animation: gfBadgeWorm 240ms var(--hybrid-ease-spring); }
+      .group-preview-avatar { animation: gfAvatarPop 220ms var(--hybrid-ease-spring); }
+      .group-preview-card.is-ready { animation: gfConfirmPulse 280ms var(--hybrid-ease-spring); }
+      .group-confirm-input-wrap.is-matched { animation: gfConfirmPulse 260ms var(--hybrid-ease-spring); }
+      .group-inline-link.is-spinning i, #btn-refresh-admin-pwd.is-spinning i { animation: gfSpinOnce 300ms cubic-bezier(0.23, 1, 0.32, 1); }
+    }
+    @keyframes gfPanelIn { from { opacity: 0; translate: 10px 0; clip-path: inset(0 0 12% 0 round 14px); } to { opacity: 1; translate: 0 0; clip-path: inset(0 0 0% 0 round 14px); } }
+    @keyframes gfStepFwd { from { opacity: 0; translate: 16px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes gfStepBack { from { opacity: 0; translate: -16px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes gfRubberBand { 0% { transform: translateX(0); } 25% { transform: translateX(-7px); } 55% { transform: translateX(5px); } 80% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
+    @keyframes gfConfirmPulse { 0% { transform: scale(1); } 45% { transform: scale(1.018); } 100% { transform: scale(1); } }
+    @keyframes gfAvatarPop { 0% { transform: scale(0.9); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    @keyframes gfBadgeWorm { 0% { transform: scaleX(1.22) scaleY(0.86); } 60% { transform: scaleX(0.95) scaleY(1.04); } 100% { transform: scale(1); } }
+    @keyframes gfSpinOnce { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+    @media (max-width: 640px) {
+      .group-flow-actions { flex-direction: column-reverse; }
+      .group-flow-actions .btn { width: 100%; min-height: 44px; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flow-step-sep::after, .group-pin-dot, .icon-xfade-layer, .group-expand-shell, .group-expand-shell > .group-admin-creds-stack { transition: none; filter: none; }
+    }
   }
 </style>

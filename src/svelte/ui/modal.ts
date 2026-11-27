@@ -233,11 +233,18 @@ export const executeConfirmAction = async () => {
 export const switchTab = (tabName: string, modalId: string) => {
   const modal = document.getElementById(modalId);
   if (!modal) return;
-  modal.querySelectorAll('.tab-btn').forEach((btn) => {
+  const buttons = Array.from(modal.querySelectorAll('.tab-btn'));
+  const prevIdx = buttons.findIndex((b) => b.classList.contains('active'));
+  let nextIdx = -1;
+  buttons.forEach((btn, idx) => {
     const isTarget = btn.getAttribute('data-tab') === tabName || btn.id === `btn-tab-${tabName}`;
+    if (isTarget) nextIdx = idx;
     btn.classList.toggle('active', isTarget);
     if (btn.getAttribute('role') === 'tab') btn.setAttribute('aria-selected', String(isTarget));
   });
+  if (prevIdx !== -1 && nextIdx !== -1 && prevIdx !== nextIdx) {
+    modal.setAttribute('data-tab-dir', nextIdx > prevIdx ? 'forward' : 'backward');
+  }
   modal.querySelectorAll('.tab-content').forEach((content) => {
     content.classList.toggle('active', content.id === tabName || content.id === `tab-${tabName}`);
   });
